@@ -1,10 +1,10 @@
-#include "Rom.h"
+#include <string>
+#include <iostream>
+
 #include "AgbTypes.h"
+#include "Rom.h"
 #include "MyException.h"
 #include "Debug.h"
-#include <string>
-
-#include <iostream>
 
 using namespace agbplay;
 using namespace std;
@@ -25,14 +25,10 @@ Rom::Rom(string filePath) {
     if (size > AGB_ROM_SIZE || size < 0x200)
         throw MyException("Illegal ROM size");
     is.seekg(0, ios_base::beg);
-    __print_debug("Allocating ROM buffer");
     data = vector<uint8_t>((size_t)size, 0);
-    __print_debug("Allocated ROM buffer! Size:");
-    __print_debug(to_string(size).c_str());
 
     // load ROM to memory
     is.read((char *)&data[0], size);
-    __print_debug("Loaded ROM to RAM");
     is.close();
     verify();
 
@@ -107,7 +103,7 @@ uint32_t Rom::ReadUInt32() {
     return result;
 }
 
-long ReadAGBPtrToPos() {
+long Rom::ReadAGBPtrToPos() {
     return AGBPtrToPos(ReadUInt32());
 }
 
@@ -142,7 +138,7 @@ bool Rom::ValidPointer(agbptr_t ptr) {
 
 void Rom::checkBounds(long pos, size_t typesz) {
     if (pos < 0 || ((size_t)pos + typesz) > data.size())
-        throw MyException("ROM Reader position out of range");
+        throw MyException(string("ROM Reader position out of range: ") + to_string(pos));
 }
 
 void Rom::verify() {

@@ -44,7 +44,6 @@
 
 
 #include <ncurses.h>
-#include <boost/thread/mutex.hpp>
 
 #include "Rom.h"
 #include "ConsoleGUI.h"
@@ -54,9 +53,12 @@
 #include "TitlebarGUI.h"
 #include "RomviewGUI.h"
 #include "TrackviewGUI.h"
+#include "PlayerModule.h"
 
-namespace agbplay {
-    class WindowGUI {
+namespace agbplay 
+{
+    class WindowGUI 
+    {
         public:
             WindowGUI(Rom& rrom, SoundData& rsdata);
             ~WindowGUI();
@@ -87,12 +89,10 @@ namespace agbplay {
             RomviewGUI *romUI;
             TrackviewGUI *trackUI;
 
-            // GUI mutex
-            boost::mutex UIMutex;
-
             // resource
             Rom& rom;
             SoundData& sdata;
+            PlayerModule *mplay;
 
             // ncurses windows
             WINDOW *containerWin;
@@ -101,5 +101,5 @@ namespace agbplay {
             enum {
                 PLAYLIST, SONGLIST
             } cursorl;
-    };
-}
+    }; // end WindowGUI
+} // end namespace agbplay

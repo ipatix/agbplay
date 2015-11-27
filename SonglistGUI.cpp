@@ -124,6 +124,7 @@ void SonglistGUI::scrollUpNoUpdate() {
 }
 
 void SonglistGUI::update() {
+    UIMutex.lock();
     string bar = "Songlist:";
     bar.resize(contentWidth, ' ');
     wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | A_REVERSE);
@@ -144,6 +145,7 @@ void SonglistGUI::update() {
         mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, songText.c_str());
     }
     wrefresh(winPtr);
+    UIMutex.unlock();
 }
 
 void SonglistGUI::checkDimensions(uint32_t height, uint32_t width) {
@@ -157,7 +159,7 @@ void SonglistGUI::checkDimensions(uint32_t height, uint32_t width) {
  * SongEntry
  */
 
-SongEntry::SongEntry(string name, uint32_t uid) {
+SongEntry::SongEntry(string name, uint16_t uid) {
     this->name = name;
     this->uid = uid;
 }
@@ -166,6 +168,6 @@ SongEntry::~SongEntry() {
     // empty
 }
 
-uint32_t SongEntry::GetUID() {
+uint16_t SongEntry::GetUID() {
     return uid;
 }

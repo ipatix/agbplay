@@ -7,23 +7,23 @@
 #include "CursesWin.h"
 #include "DisplayContainer.h"
 
-namespace agbplay {
-    class TrackviewGUI : public CursesWin {
+namespace agbplay 
+{
+    class TrackviewGUI : public CursesWin 
+    {
         public:
-            TrackviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, boost::mutex& uiMutex);
+            TrackviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos);
             ~TrackviewGUI();
 
             void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;
-            void DrawState (struct DisplayData& disp);
-
-        private:
+            void SetState (DisplayContainer& disp);
             
+        private:
             agbplay::DisplayContainer disp;
             void update() override;
 
             uint32_t cursorPos;
             bool cursorVisible;
-            boost::mutex& UIMutex;
             const std::vector<std::string> noteNames = {
                 "C-2", "C#-2", "D-2", "D#-2", "E-2", "F-2", "F#-2", "G-2", "G#-2", "A-2", "A#-2", "B-2",
                 "C-1", "C#-1", "D-1", "D#-1", "E-1", "F-1", "F#-1", "G-1", "G#-1", "A-1", "A#-1", "B-1",
@@ -37,5 +37,5 @@ namespace agbplay {
                 "C7", "C#7", "D7", "D#7", "E7", "F7", "F#7", "G7", "G#7", "A7", "A#7", "B7",
                 "C8", "C#8", "D8", "D#8", "E8", "F8", "F#8", "G8"
             };
-    };
-}
+    }; // end TrackviewGUI
+} // end namespace agbplay

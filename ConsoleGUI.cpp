@@ -15,8 +15,9 @@ using namespace std;
 
 ConsoleGUI::ConsoleGUI(uint32_t height, uint32_t width,
         uint32_t yPos, uint32_t xPos) : CursesWin(height, width, yPos, xPos) {
+    UIMutex.lock();
     keypad(winPtr, true);
-    __print_debug((string("H: ") + to_string(height) + string(", W: ") + to_string(width) + string(", Y: ") + to_string(yPos) + string(", X: ") + to_string(xPos)).c_str());
+    UIMutex.unlock();
     textWidth = width - 2;
     textHeight = height;
     textBuffer = vector<string>();
@@ -29,7 +30,9 @@ ConsoleGUI::~ConsoleGUI() {
 void ConsoleGUI::Resize(uint32_t height, uint32_t width,
         uint32_t yPos, uint32_t xPos) {
     CursesWin::Resize(height, width, yPos, xPos);
+    UIMutex.lock();
     keypad(winPtr, true);
+    UIMutex.unlock();
     textHeight = height;
     textWidth = width - 2;
     update();    
@@ -42,7 +45,10 @@ void ConsoleGUI::WriteLn(string str) {
 }
 
 int ConsoleGUI::ConGetCH() {
-    return wgetch(winPtr);
+    UIMutex.lock();
+    int ret = wgetch(winPtr);
+    UIMutex.unlock();
+    return ret;
 }
 
 /*
@@ -50,6 +56,7 @@ int ConsoleGUI::ConGetCH() {
  */
 
 void ConsoleGUI::update() {
+    UIMutex.lock();
     for (uint32_t i = 0; i < textHeight; i++) {
         wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | A_REVERSE);
         mvwprintw(winPtr, (int)i, 0, ">");
@@ -65,6 +72,7 @@ void ConsoleGUI::update() {
         mvwprintw(winPtr, (int)i, 2, txt.c_str());
     }
     wrefresh(winPtr);
+    UIMutex.unlock();
 }
 
 void ConsoleGUI::writeToBuffer(string str) {

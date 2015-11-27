@@ -2,6 +2,7 @@
 
 #include <ncurses.h>
 #include <cstdint>
+#include <boost/thread/mutex.hpp>
 
 namespace agbplay {
     class CursesWin {
@@ -10,6 +11,7 @@ namespace agbplay {
             virtual ~CursesWin();
             virtual void Resize(uint32_t height, uint32_t width, 
                     uint32_t yPos, uint32_t xPos);
+            static boost::mutex UIMutex;
         protected:
             virtual void update();
 

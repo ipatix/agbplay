@@ -5,8 +5,10 @@
 
 #define NUM_NOTES 128
 
-namespace agbplay {
-    struct DisplayData {
+namespace agbplay 
+{
+    struct DisplayData 
+    {
         DisplayData();
         ~DisplayData();
 
@@ -26,14 +28,13 @@ namespace agbplay {
         std::bitset<NUM_NOTES> activeNotes;
     };
 
-    class DisplayContainer {
+    class DisplayContainer 
+    {
         public:
             DisplayContainer();
             DisplayContainer(uint8_t nTracks);
             ~DisplayContainer();
-
+            
             std::vector<DisplayData> data;
     };
-
-
 }

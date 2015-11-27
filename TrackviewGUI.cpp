@@ -10,8 +10,8 @@ using namespace agbplay;
  * public
  */
 
-TrackviewGUI::TrackviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, boost::mutex& mu
-        ) : CursesWin(height, width, yPos, xPos), UIMutex(mu) {
+TrackviewGUI::TrackviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos
+        ) : CursesWin(height, width, yPos, xPos) {
     // will clear the screen due to not overriding from CursesWin base class
     cursorPos = 0;
     cursorVisible = false;
@@ -26,32 +26,13 @@ void TrackviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32
     update();
 }
 
-/*void TrackviewGUI::StartTracking() {
-    trAssignMutex.lock();
-    if (tracker == nullptr) {
-        tracker = new boost::thread(boost::bind(&TrackviewGUI::safeUpdate, this));
-    }
-    trAssignMutex.unlock();
-}
-
-void TrackviewGUI::StopTracking() {
-    trAssignMutex.lock();
-    if (tracker != nullptr) {
-        tracker->join();
-        delete tracker;
-        tracker = nullptr;
-    }
-    trAssignMutex.unlock();
-}*/
-
-void TrackviewGUI::DrawState(DisplayContainer& disp) {
+void TrackviewGUI::SetState(DisplayContainer& disp) {
     this->disp = disp;
-    UIMutex.lock();
     update();
-    UIMutex.unlock();
 }
 
 void TrackviewGUI::update() {
+    UIMutex.lock();
     wclear(winPtr);
     const uint32_t yBias = 1;
     const uint32_t xBias = 1;
@@ -90,7 +71,7 @@ void TrackviewGUI::update() {
         // print tickbox
         unsigned long aFlag = (cursorVisible) ? A_REVERSE : 0;
         wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | aFlag);
-        mvwprintw(winPtr, (int)(yBias + th), xBias, "[");
+        mvwprintw(winPtr, (int)(yBias + 1 + th), xBias, "[");
         if (disp.data[i].isMuted) {
             wattrset(winPtr, COLOR_PAIR(RED_ON_DEFAULT) | aFlag);
         } else {
@@ -118,4 +99,5 @@ void TrackviewGUI::update() {
     }
 
     wrefresh(winPtr);
+    UIMutex.unlock();
 }

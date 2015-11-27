@@ -1,8 +1,9 @@
 #include "MyException.h"
 
 using namespace agbplay;
+using namespace std;
 
-MyException::MyException(const char msg[]) {
+MyException::MyException(string msg) {
     this->msg = msg;
 }
 
@@ -11,5 +12,5 @@ MyException::~MyException() {
 }
 
 const char *MyException::what() const throw() {
-    return msg;
+    return msg.c_str();
 }

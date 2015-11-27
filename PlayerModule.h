@@ -5,27 +5,25 @@
 #include "Rom.h"
 #include "TrackviewGUI.h"
 #include "DisplayContainer.h"
+#include "SoundData.h"
 
-namespace agbplay {
-    class PlayerModule {
+namespace agbplay 
+{
+    class PlayerModule 
+    {
         public:
-            PlayerModule(Rom& rrom, TrackviewGUI *trackUI);
+            PlayerModule(Rom& rrom, TrackviewGUI *trackUI, long initSongPos);
             ~PlayerModule();
             
-            void LoadSong(uint16_t songNum);
+            void LoadSong(long songPos);
             void Play();
             void Pause();
             void Stop();
-
-        private:
-            
-            uint16_t loadedSong;
+        private:           
             bool isPlaying;
             bool isPaused;
-
+            Sequence seq;
             Rom& rom;
             TrackviewGUI *trackUI;
-
-            DisplayContainer cont;
     };
 }

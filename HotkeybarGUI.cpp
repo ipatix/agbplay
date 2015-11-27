@@ -18,6 +18,7 @@ HotkeybarGUI::~HotkeybarGUI() {
 }
 
 void HotkeybarGUI::update() {
+    UIMutex.lock();
     wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | A_REVERSE);
     // draw initial border
     std::string hkText = " [q=QUIT] [tab=SWITCH] [a=ADD] [d=DEL] [g=DRAG]";
@@ -30,14 +31,19 @@ void HotkeybarGUI::update() {
         mvwprintw(winPtr, (int)i, 0, fillText.c_str());
     }
     wrefresh(winPtr);
+    UIMutex.unlock();
 }
 
 void HotkeybarGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) {
+    UIMutex.lock();
     if (delwin(winPtr) == ERR)
+        UIMutex.unlock();
         throw MyException("Error while resizing Hotkeybar [delwin]");
     if ((winPtr = newwin((int)height, (int)width, (int)yPos, (int)xPos)) == nullptr)
+        UIMutex.unlock();
         throw MyException("Error while resizing Hotkeybar [newwin]");
     this->height = height;
     this->width = width;
     update();
+    UIMutex.unlock();
 }

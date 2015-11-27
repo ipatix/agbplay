@@ -34,6 +34,7 @@ void TitlebarGUI::Resize(uint32_t height, uint32_t width,
 }
 
 void TitlebarGUI::update() {
+    UIMutex.lock();
     uint32_t textHeight = sizeof(bannerText) / sizeof(char *);
     uint32_t upperPadding = (uint32_t)((height - textHeight) / 2);
     // unused for now
@@ -63,4 +64,5 @@ void TitlebarGUI::update() {
         }
     }
     wrefresh(winPtr);
+    UIMutex.unlock();
 }

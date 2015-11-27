@@ -31,6 +31,7 @@ void RomviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t
  */
 
 void RomviewGUI::update() {
+    UIMutex.lock();
     // clear
     wattrset(winPtr, A_NORMAL);
     wclear(winPtr);
@@ -55,4 +56,5 @@ void RomviewGUI::update() {
     mvwprintw(winPtr, 11, 2, "Song Amount:");
     mvwprintw(winPtr, 12, 2, to_string(numSongs).c_str());
     wrefresh(winPtr);
+    UIMutex.unlock();
 }

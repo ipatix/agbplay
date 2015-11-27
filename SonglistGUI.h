@@ -10,13 +10,13 @@ using namespace std;
 namespace agbplay {
     class SongEntry {
         public:
-            SongEntry(string name, uint32_t uid);
+            SongEntry(string name, uint16_t uid);
             ~SongEntry();
 
-            uint32_t GetUID();
+            uint16_t GetUID();
             string name;
         private:
-            uint32_t uid;
+            uint16_t uid;
     };
 
     class SonglistGUI : public CursesWin {

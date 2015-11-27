@@ -6,13 +6,15 @@
 #include "Debug.h"
 
 using namespace agbplay;
+using namespace std;
 
 /*
  * public
  * SongTable
  */
 
-SongTable::SongTable(Rom& rrom, long songTable) : rom(rrom) {
+SongTable::SongTable(Rom& rrom, long songTable) : rom(rrom) 
+{
     if (songTable == UNKNOWN_TABLE) {
         this->songTable = locateSongTable();
     } else {
@@ -28,6 +30,11 @@ long SongTable::GetSongTablePos() {
     return songTable;
 }
 
+long SongTable::GetPosOfSong(uint16_t uid) {
+    rom.Seek(songTable + uid * 8);
+    return rom.ReadAGBPtrToPos();
+}
+
 unsigned short SongTable::GetNumSongs() {
     return numSongs;
 }
@@ -36,7 +43,8 @@ unsigned short SongTable::GetNumSongs() {
  * private
  */
 
-long SongTable::locateSongTable() {
+long SongTable::locateSongTable() 
+{
     for (long i = 0x200; i < (long)rom.Size(); i += 4) {
         bool validEntries = true;
         long location = i;
@@ -52,7 +60,8 @@ long SongTable::locateSongTable() {
     throw MyException("Unable to find songtable");
 }
 
-bool SongTable::validateTableEntry(long pos, bool strongCheck) {
+bool SongTable::validateTableEntry(long pos, bool strongCheck) 
+{
     rom.Seek(pos);
     agbptr_t songPtr = rom.ReadUInt32();
 
@@ -77,14 +86,15 @@ bool SongTable::validateTableEntry(long pos, bool strongCheck) {
     return true;
 }
 
-bool SongTable::validateSong(agbptr_t ptr, bool strongCheck) {
+bool SongTable::validateSong(agbptr_t ptr, bool strongCheck) 
+{
     rom.SeekAGBPtr(ptr);
     uint8_t nTracks = rom.ReadUInt8();
     uint8_t nBlocks = rom.ReadUInt8(); // these could be anything
     uint8_t prio = rom.ReadUInt8();
     uint8_t rev = rom.ReadUInt8();
 
-    if (!strongCheck && nTracks | nBlocks | prio | rev == 0)
+    if (!strongCheck && nTracks | nBlocks | prio | (rev == 0))
         return true;
 
     // verify voicegroup pointer
@@ -103,7 +113,8 @@ bool SongTable::validateSong(agbptr_t ptr, bool strongCheck) {
     return true;
 }
 
-unsigned short SongTable::determineNumSongs() {
+unsigned short SongTable::determineNumSongs() 
+{
     long pos = songTable;
     unsigned short count = 0;
     while (true) {
@@ -120,25 +131,55 @@ unsigned short SongTable::determineNumSongs() {
  * Sequence
  */
 
-SongTable::Sequence::Sequence(long songHeader) {
+Sequence::Sequence(long songHeader, Rom *rom)
+{
+    this->rom = rom;
+    __print_debug(to_string(songHeader).c_str());
     // read song header
-    rom.Seek(songHeader);
-    uint8_t nTracks = rom.ReadUInt8();
-    blocks = rom.ReadUInt8();
-    prio = rom.ReadUInt8();
-    reverb = rom.ReadUInt8();
+    this->songHeader = songHeader;
+    rom->Seek(songHeader);
+    uint8_t nTracks = rom->ReadUInt8();
+    blocks = rom->ReadUInt8();
+    prio = rom->ReadUInt8();
+    reverb = rom->ReadUInt8();
+
     // voicegroup
-    soundBank = rom.ReadAGBPtrToPos();
+    soundBank = rom->ReadAGBPtrToPos();
+
     // read track pointer
-    track.clear();
-    for (uint8_t i = 0; i < nTracks; i++) {
-        rom.Seek(songHeader + 8 + 4 * i);
-        track.push_back(Track(rom.ReadAGBPtrToPos()));
+    tracks.clear();
+    for (uint8_t i = 0; i < nTracks; i++) 
+    {
+        rom->Seek(songHeader + 8 + 4 * i);
+        tracks.push_back(Track(rom->ReadAGBPtrToPos()));
     }
+    dcont = DisplayContainer(nTracks);
 }
 
-SongTable::Sequence::~Sequence() {
+Sequence::~Sequence() {
 
+}
+
+DisplayContainer& Sequence::GetUpdatedDisp()
+{
+    for (uint32_t i = 0; i < tracks.size(); i++) 
+    {
+        dcont.data[i].trackPtr = (uint32_t) tracks[i].pos;
+        dcont.data[i].isCalling = (tracks[i].retStackPos == 0) ? true : false;
+        dcont.data[i].isMuted = tracks[i].muted;
+        dcont.data[i].vol = tracks[i].vol;
+        dcont.data[i].mod = tracks[i].mod;
+        dcont.data[i].bendr = tracks[i].bendr;
+        dcont.data[i].prog = tracks[i].prog;
+        dcont.data[i].pan = tracks[i].pan;
+        dcont.data[i].bend = tracks[i].bend;
+        dcont.data[i].tune = tracks[i].tune;
+        dcont.data[i].envL = 0; // FIXME do proper volume scale updating
+        dcont.data[i].envR = 0;
+        dcont.data[i].delay = tracks[i].delay;
+        // TODO do active notes updates
+    }
+    return dcont;
 }
 
 /*
@@ -146,17 +187,20 @@ SongTable::Sequence::~Sequence() {
  * Track
  */
 
-SongTable::Sequence::Track::Track(long pos) {
+Sequence::Track::Track(long pos) 
+{
     this->pos = pos;
     retStack[0] = retStack[1] = retStack[2] = patBegin = 0;
     prog = PROG_UNDEFINED;
-    delay = vol = mod = bendr = 0;
+    vol = 100;
+    bendr = 2;
+    delay = mod = retStackPos = reptCount = 0;
     pan = bend = tune = keyShift = 0;
     muted = false;
 }
 
-SongTable::Sequence::Track::~Track() {
-
+Sequence::Track::~Track() 
+{
 }
 
 /*
@@ -164,10 +208,12 @@ SongTable::Sequence::Track::~Track() {
  * SoundData
  */
 
-SoundData::SoundData(Rom& rrom) {   
+SoundData::SoundData(Rom& rrom) 
+{
     sTable = new SongTable(rrom, UNKNOWN_TABLE);
 }
 
-SoundData::~SoundData() {
+SoundData::~SoundData() 
+{
     delete sTable;
 }

@@ -2,12 +2,13 @@
 #include <string>
 #include <iomanip>
 #include <cstdlib>
+#include <stdexcept>
 
 #include "MyException.h"
 #include "Debug.h"
 #include "ColorDef.h"
-
 #include "WindowGUI.h"
+#include "Util.h"
 
 #define KEY_TAB 9
 
@@ -16,14 +17,18 @@ using namespace std;
 
 WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata) {
     // init ncurses stuff
+    CursesWin::UIMutex.lock();
     containerWin = initscr();
     getmaxyx(stdscr, height, width);
     if (has_colors() == false)
-        throw new MyException("Error, your terminal doesn't support colors");
+        throw MyException("Error, your terminal doesn't support colors");
+    CursesWin::UIMutex.unlock();
     initColors();
+    CursesWin::UIMutex.lock();
     noecho();
     curs_set(0);
     keypad(stdscr, true);
+    CursesWin::UIMutex.unlock();
 
     cursorl = SONGLIST;
 
@@ -51,10 +56,10 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata) {
             SONGLIST_XPOS(height, width), true);
 
     // add songs to table
-    for (uint32_t i = 0; i < sdata.sTable->GetNumSongs(); i++) {
+    for (uint16_t i = 0; i < sdata.sTable->GetNumSongs(); i++) {
         ostringstream txt;
         txt << setw(4) << setfill('0') << i;
-        songUI->AddSong(SongEntry(txt.str().c_str(), i));
+        songUI->AddSong(SongEntry(txt.str(), i));
     }
     songUI->Enter();
 
@@ -81,7 +86,11 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata) {
             TRACKVIEW_HEIGHT(height, width),
             TRACKVIEW_WIDTH(height, width),
             TRACKVIEW_YPOS(height, width),
-            TRACKVIEW_XPOS(height, width), UIMutex);
+            TRACKVIEW_XPOS(height, width));
+    
+    rom.Seek(sdata.sTable->GetSongTablePos());
+    mplay = new PlayerModule(rom, trackUI, rom.ReadAGBPtrToPos());
+    mplay->LoadSong(sdata.sTable->GetPosOfSong(0));
 }
 
 WindowGUI::~WindowGUI() {
@@ -92,13 +101,14 @@ WindowGUI::~WindowGUI() {
     delete titleUI;
     delete romUI;
     delete trackUI;
+    delete mplay;
+    CursesWin::UIMutex.lock();
     endwin();
+    CursesWin::UIMutex.unlock();
 }
 
 void WindowGUI::Handle() {
     while (true) {
-        UIMutex.lock();
-        //__print_debug("Locked UI mutex");
         int ch = conUI->ConGetCH();
         switch (ch) {
             case KEY_RESIZE:
@@ -140,15 +150,13 @@ void WindowGUI::Handle() {
             case 4: // EOT
             case 'q':
                 conUI->WriteLn("Exiting...");
-                UIMutex.unlock();
                 return;
             default:
                 string msg = "Bad, you pressed ";
                 msg += to_string(ch);
                 conUI->WriteLn(msg.c_str());
+                __print_debug("msg");
         }
-        UIMutex.unlock();
-        //__print_debug("Unlocked UI mutex");
     }
 }
 
@@ -193,6 +201,7 @@ void WindowGUI::resizeWindows() {
 }
 
 void WindowGUI::initColors() {
+    CursesWin::UIMutex.lock();
     start_color();
     if (use_default_colors() == ERR)
         throw MyException("Using default terminal colors failed");
@@ -201,6 +210,7 @@ void WindowGUI::initColors() {
     init_pair(GREEN_ON_DEFAULT, COLOR_GREEN, -1);
     init_pair(YELLOW_ON_DEFAULT, COLOR_YELLOW, -1);
     init_pair(CYAN_ON_DEFAULT, COLOR_CYAN, -1);
+    CursesWin::UIMutex.unlock();
 }
 
 void WindowGUI::cycleFocus() {
@@ -209,11 +219,13 @@ void WindowGUI::cycleFocus() {
             songUI->Leave();
             cursorl = PLAYLIST;
             playUI->Enter();
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
         case PLAYLIST:
             playUI->Leave();
             cursorl = SONGLIST;
             songUI->Enter();
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
             break;
     }
 }
@@ -222,9 +234,11 @@ void WindowGUI::scrollDown() {
     switch (cursorl) {
         case SONGLIST:
             songUI->ScrollDown();
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
             break;
         case PLAYLIST:
             playUI->ScrollDown();
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
     }
 }
@@ -233,9 +247,11 @@ void WindowGUI::scrollUp() {
     switch (cursorl) {
         case SONGLIST:
             songUI->ScrollUp();
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
             break;
         case PLAYLIST:
             playUI->ScrollUp();
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
     }
 }
@@ -244,9 +260,11 @@ void WindowGUI::pageDown() {
     switch (cursorl) {
         case SONGLIST:
             songUI->PageDown();
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
             break;
         case PLAYLIST:
             playUI->PageDown();
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
     }
 }
@@ -255,21 +273,23 @@ void WindowGUI::pageUp() {
     switch (cursorl) {
         case SONGLIST:
             songUI->PageUp();
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
             break;
         case PLAYLIST:
             playUI->PageUp();
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
     }
 }
 
 void WindowGUI::add() {
     if (cursorl != SONGLIST) return;
-    try {
-        playUI->AddSong(songUI->GetSong());
-    } catch (exception e) { }
+    TRY_OOR(playUI->AddSong(songUI->GetSong()));
+
 }
 
 void WindowGUI::del() {
     if (cursorl != PLAYLIST) return;
     playUI->RemoveSong();
+    TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
 }

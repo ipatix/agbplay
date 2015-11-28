@@ -219,13 +219,19 @@ void WindowGUI::cycleFocus() {
             songUI->Leave();
             cursorl = PLAYLIST;
             playUI->Enter();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
+            try {
+                __print_debug("before");
+                mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()));
+                __print_debug("after");
+            } catch (exception& e) {}
             break;
         case PLAYLIST:
             playUI->Leave();
             cursorl = SONGLIST;
             songUI->Enter();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
+            try {
+                mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID()));
+            } catch (exception& e) {} 
             break;
     }
 }

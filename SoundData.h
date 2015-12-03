@@ -4,7 +4,7 @@
 #include "DisplayContainer.h"
 
 #define UNKNOWN_TABLE -1
-#define MIN_SONG_NUM 16
+#define MIN_SONG_NUM 32
 #define PROG_UNDEFINED 0xFF
 
 namespace agbplay 
@@ -60,8 +60,8 @@ namespace agbplay
             unsigned short GetNumSongs();
         private:
             long locateSongTable();
-            bool validateTableEntry(long pos, bool strongCheck);
-            bool validateSong(agbptr_t checkPtr, bool strongCheck);
+            bool validateTableEntry(long pos);
+            bool validateSong(agbptr_t checkPtr);
             unsigned short determineNumSongs();
 
             Rom& rom;

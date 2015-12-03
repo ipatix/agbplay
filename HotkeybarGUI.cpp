@@ -35,15 +35,8 @@ void HotkeybarGUI::update() {
 }
 
 void HotkeybarGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) {
-    UIMutex.lock();
-    if (delwin(winPtr) == ERR)
-        UIMutex.unlock();
-        throw MyException("Error while resizing Hotkeybar [delwin]");
-    if ((winPtr = newwin((int)height, (int)width, (int)yPos, (int)xPos)) == nullptr)
-        UIMutex.unlock();
-        throw MyException("Error while resizing Hotkeybar [newwin]");
+    CursesWin::Resize(height, width, yPos, xPos);
     this->height = height;
     this->width = width;
     update();
-    UIMutex.unlock();
 }

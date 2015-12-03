@@ -49,7 +49,7 @@ long SongTable::locateSongTable()
         bool validEntries = true;
         long location = i;
         for (long j = 0; j < MIN_SONG_NUM; j++) {
-            if (!validateTableEntry(i + j * 8, true)) {
+            if (!validateTableEntry(i + j * 8)) {
                 validEntries = false;
                 break;
             }
@@ -60,15 +60,22 @@ long SongTable::locateSongTable()
     throw MyException("Unable to find songtable");
 }
 
-bool SongTable::validateTableEntry(long pos, bool strongCheck) 
+bool SongTable::validateTableEntry(long pos) 
 {
     rom.Seek(pos);
     agbptr_t songPtr = rom.ReadUInt32();
 
     // check if the pointer is actually valid
+    long debug_pos = 0xFD484;
+    if (pos == debug_pos) {
+        __print_debug("Checking...");
+    }
     if (!rom.ValidPointer(songPtr))
         return false;
 
+    if (pos == debug_pos) {
+        __print_debug("Passed pointer test");
+    }
     // check if the song groups are set appropriately
     rom.Seek(pos + 4);
     
@@ -80,13 +87,18 @@ bool SongTable::validateTableEntry(long pos, bool strongCheck)
     if (z1 != 0 || z2 != 0 || g1 != g2)
         return false;
 
+    if (pos == debug_pos) {
+        __print_debug("Passed song group and zero check");
+    }
     // now check if the pointer points to a valid song
-    if (!validateSong(songPtr, strongCheck))
+    if (!validateSong(songPtr))
         return false;
+    if (pos == debug_pos)
+        __print_debug("Passed actual song test");
     return true;
 }
 
-bool SongTable::validateSong(agbptr_t ptr, bool strongCheck) 
+bool SongTable::validateSong(agbptr_t ptr) 
 {
     rom.SeekAGBPtr(ptr);
     uint8_t nTracks = rom.ReadUInt8();
@@ -94,7 +106,7 @@ bool SongTable::validateSong(agbptr_t ptr, bool strongCheck)
     uint8_t prio = rom.ReadUInt8();
     uint8_t rev = rom.ReadUInt8();
 
-    if (!strongCheck && nTracks | nBlocks | prio | (rev == 0))
+    if ((nTracks | nBlocks | prio | rev) == 0)
         return true;
 
     // verify voicegroup pointer
@@ -118,7 +130,7 @@ unsigned short SongTable::determineNumSongs()
     long pos = songTable;
     unsigned short count = 0;
     while (true) {
-        if (!validateTableEntry(pos, false))
+        if (!validateTableEntry(pos))
             break;
         count++;
         pos += 8;
@@ -134,7 +146,6 @@ unsigned short SongTable::determineNumSongs()
 Sequence::Sequence(long songHeader, Rom *rom)
 {
     this->rom = rom;
-    __print_debug(to_string(songHeader).c_str());
     // read song header
     this->songHeader = songHeader;
     rom->Seek(songHeader);

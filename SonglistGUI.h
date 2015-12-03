@@ -29,7 +29,7 @@ namespace agbplay {
             virtual void AddSong(SongEntry song);
             virtual void RemoveSong();
             virtual void ClearSongs();
-            SongEntry GetSong() throw();
+            SongEntry GetSong();
             void Enter();
             virtual void Leave();
             void ScrollDown();

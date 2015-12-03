@@ -70,12 +70,15 @@ namespace agbplay
             void resizeWindows();
             // color definitions
             void initColors();
-            void cycleFocus();
             // hotkey methods
+            void cycleFocus();
+            void scrollLeft();
+            void scrollRight();
             void scrollDown();
             void scrollUp();
             void pageDown();
             void pageUp();
+            void enter();
             void add();
             void del();
             void toggle();
@@ -99,7 +102,7 @@ namespace agbplay
             
             uint32_t width, height;
             enum {
-                PLAYLIST, SONGLIST
+                PLAYLIST, SONGLIST, TRACKS, SETTINGS
             } cursorl;
     }; // end WindowGUI
 } // end namespace agbplay

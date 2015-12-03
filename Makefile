@@ -1,7 +1,7 @@
 CXX = clang++
 CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -g -D DEBUG
 BINARY = agbplay
-LIBS = -L. -l:libportaudio.so -lm -lncursesw -lboost_system -lboost_thread
+LIBS = ../portaudio/libportaudio_static.a -lm -lncursesw -lboost_system -lboost_thread
 IMPORT = -I ../portaudio/include
 
 SRC_FILES = $(wildcard *.cpp)

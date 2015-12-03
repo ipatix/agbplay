@@ -15,10 +15,11 @@
 using namespace agbplay;
 using namespace std;
 
-WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata) {
+WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata) 
+{
     // init ncurses stuff
     CursesWin::UIMutex.lock();
-    containerWin = initscr();
+    this->containerWin = initscr();
     getmaxyx(stdscr, height, width);
     if (has_colors() == false)
         throw MyException("Error, your terminal doesn't support colors");
@@ -30,7 +31,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata) {
     keypad(stdscr, true);
     CursesWin::UIMutex.unlock();
 
-    cursorl = SONGLIST;
+    this->cursorl = SONGLIST;
 
     // cap small terminal sizes
     if (height < 24) height = 24;
@@ -93,7 +94,8 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata) {
     mplay->LoadSong(sdata.sTable->GetPosOfSong(0));
 }
 
-WindowGUI::~WindowGUI() {
+WindowGUI::~WindowGUI() 
+{
     delete conUI;
     delete hotUI;
     delete songUI;
@@ -107,7 +109,8 @@ WindowGUI::~WindowGUI() {
     CursesWin::UIMutex.unlock();
 }
 
-void WindowGUI::Handle() {
+void WindowGUI::Handle() 
+{
     while (true) {
         int ch = conUI->ConGetCH();
         switch (ch) {
@@ -122,6 +125,12 @@ void WindowGUI::Handle() {
                 break;
             case KEY_DOWN:
                 scrollDown();
+                break;
+            case KEY_LEFT:
+                scrollLeft();
+                break;
+            case KEY_RIGHT:
+                scrollRight();
                 break;
             case KEY_PPAGE:
                 pageUp();
@@ -160,8 +169,8 @@ void WindowGUI::Handle() {
     }
 }
 
-void WindowGUI::resizeWindows() {
-    // TODO fill in all windows
+void WindowGUI::resizeWindows() 
+{
     __print_debug("Resizing Window...");
     conUI->Resize(
             CONSOLE_HEIGHT(height, width),
@@ -200,7 +209,8 @@ void WindowGUI::resizeWindows() {
             TRACKVIEW_XPOS(height, width));
 }
 
-void WindowGUI::initColors() {
+void WindowGUI::initColors() 
+{
     CursesWin::UIMutex.lock();
     start_color();
     if (use_default_colors() == ERR)
@@ -213,30 +223,59 @@ void WindowGUI::initColors() {
     CursesWin::UIMutex.unlock();
 }
 
-void WindowGUI::cycleFocus() {
+void WindowGUI::cycleFocus() 
+{
     switch (cursorl) {
         case SONGLIST:
             songUI->Leave();
             cursorl = PLAYLIST;
             playUI->Enter();
-            try {
-                __print_debug("before");
-                mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()));
-                __print_debug("after");
-            } catch (exception& e) {}
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
         case PLAYLIST:
             playUI->Leave();
             cursorl = SONGLIST;
             songUI->Enter();
-            try {
-                mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID()));
-            } catch (exception& e) {} 
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
+            break;
+        default:
             break;
     }
 }
 
-void WindowGUI::scrollDown() {
+void WindowGUI::scrollLeft()
+{
+    switch (cursorl) {
+        case TRACKS:
+            trackUI->Leave();
+            cursorl = SONGLIST;
+            songUI->Enter();
+            break;
+        default:
+            break;
+    }
+}
+
+void WindowGUI::scrollRight()
+{
+    switch (cursorl) {
+        case SONGLIST:
+            songUI->Leave();
+            cursorl = TRACKS;
+            trackUI->Enter();
+            break;
+        case PLAYLIST:
+            playUI->Leave();
+            cursorl = TRACKS;
+            trackUI->Enter();
+            break;
+        default:
+            break;
+    }
+}
+
+void WindowGUI::scrollDown() 
+{
     switch (cursorl) {
         case SONGLIST:
             songUI->ScrollDown();
@@ -246,10 +285,16 @@ void WindowGUI::scrollDown() {
             playUI->ScrollDown();
             TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
+        case TRACKS:
+            trackUI->ScrollDown();
+            break;
+        default:
+            break;
     }
 }
 
-void WindowGUI::scrollUp() {
+void WindowGUI::scrollUp() 
+{
     switch (cursorl) {
         case SONGLIST:
             songUI->ScrollUp();
@@ -259,10 +304,16 @@ void WindowGUI::scrollUp() {
             playUI->ScrollUp();
             TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
+        case TRACKS:
+            trackUI->ScrollUp();
+            break;
+        default:
+            break;
     }
 }
 
-void WindowGUI::pageDown() {
+void WindowGUI::pageDown() 
+{
     switch (cursorl) {
         case SONGLIST:
             songUI->PageDown();
@@ -272,10 +323,16 @@ void WindowGUI::pageDown() {
             playUI->PageDown();
             TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
+        case TRACKS:
+            trackUI->PageDown();
+            break;
+        default:
+            break;
     }
 }
 
-void WindowGUI::pageUp() {
+void WindowGUI::pageUp() 
+{
     switch (cursorl) {
         case SONGLIST:
             songUI->PageUp();
@@ -285,16 +342,33 @@ void WindowGUI::pageUp() {
             playUI->PageUp();
             TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
+        case TRACKS:
+            trackUI->PageUp();
+            break;
+        default:
+            break;
     }
 }
 
-void WindowGUI::add() {
-    if (cursorl != SONGLIST) return;
-    TRY_OOR(playUI->AddSong(songUI->GetSong()));
-
+void WindowGUI::enter()
+{
+    switch (cursorl) {
+        case TRACKS:
+            // TODO mute/unmute
+            break;
+        default:
+            break;
+    }
 }
 
-void WindowGUI::del() {
+void WindowGUI::add() 
+{
+    if (cursorl != SONGLIST) return;
+    TRY_OOR(playUI->AddSong(songUI->GetSong()));
+}
+
+void WindowGUI::del() 
+{
     if (cursorl != PLAYLIST) return;
     playUI->RemoveSong();
     TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));

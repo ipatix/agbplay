@@ -17,10 +17,18 @@ namespace agbplay
 
             void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;
             void SetState (DisplayContainer& disp);
+            void Enter();
+            void Leave();
+            void PageDown();
+            void PageUp();
+            void ScrollDown();
+            void ScrollUp();
             
         private:
             agbplay::DisplayContainer disp;
             void update() override;
+            void scrollDownNoUpdate();
+            void scrollUpNoUpdate();
 
             uint32_t cursorPos;
             bool cursorVisible;

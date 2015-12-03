@@ -11,32 +11,90 @@ using namespace agbplay;
  */
 
 TrackviewGUI::TrackviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos
-        ) : CursesWin(height, width, yPos, xPos) {
+        ) : CursesWin(height, width, yPos, xPos) 
+{
     // will clear the screen due to not overriding from CursesWin base class
     cursorPos = 0;
     cursorVisible = false;
     update();
 }
 
-TrackviewGUI::~TrackviewGUI() {
+TrackviewGUI::~TrackviewGUI() 
+{
 }
 
-void TrackviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) {
+void TrackviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
+{
     CursesWin::Resize(height, width, yPos, xPos);
     update();
 }
 
-void TrackviewGUI::SetState(DisplayContainer& disp) {
+void TrackviewGUI::SetState(DisplayContainer& disp) 
+{
     this->disp = disp;
     update();
 }
 
-void TrackviewGUI::update() {
+void TrackviewGUI::Enter() 
+{
+    this->cursorVisible = true;
+    update();
+}
+
+void TrackviewGUI::Leave()
+{
+    this->cursorVisible = false;
+    update();
+}
+
+void TrackviewGUI::PageDown()
+{
+    for (int i = 0; i < 5; i++) {
+        scrollDownNoUpdate();
+    }
+    update();
+}
+
+void TrackviewGUI::PageUp()
+{
+    for (int i = 0; i < 5; i++) {
+        scrollUpNoUpdate();
+    }
+    update();
+}
+
+void TrackviewGUI::ScrollDown()
+{
+    scrollDownNoUpdate();
+    update();
+}
+
+void TrackviewGUI::ScrollUp()
+{
+    scrollUpNoUpdate();
+    update();
+}
+
+/*
+ * private Trackview
+ */
+
+void TrackviewGUI::update() 
+{
+    // init draw
     UIMutex.lock();
-    wclear(winPtr);
     const uint32_t yBias = 1;
     const uint32_t xBias = 1;
-
+    // clear field
+    if (cursorPos >= disp.data.size() && cursorPos > 0) {
+        cursorPos = (uint32_t)disp.data.size() - 1;
+    }
+    string clr = "";
+    clr.resize(width - xBias, ' ');
+    wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT));
+    for (uint32_t i = yBias + 1 + (uint32_t)disp.data.size() * 2; i < height; i++) {
+        mvwprintw(winPtr, (int)i, xBias, clr.c_str());
+    }
     // draw borderlines
     wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | A_REVERSE);
     mvwvline(winPtr, 1, 0, ' ', height - 1);
@@ -69,23 +127,19 @@ void TrackviewGUI::update() {
     uint32_t th = 0;
     for (uint32_t i = 0; i < disp.data.size(); i++, th += 2) {
         // print tickbox
-        unsigned long aFlag = (cursorVisible) ? A_REVERSE : 0;
+        unsigned long aFlag = (cursorVisible && i == cursorPos) ? A_REVERSE : 0;
         wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | aFlag);
         mvwprintw(winPtr, (int)(yBias + 1 + th), xBias, "[");
-        if (disp.data[i].isMuted) {
-            wattrset(winPtr, COLOR_PAIR(RED_ON_DEFAULT) | aFlag);
-        } else {
-            wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | aFlag);
-        }
-        wprintw(winPtr, "%2d", i);
+        wattrset(winPtr, COLOR_PAIR((disp.data[i].isMuted) ? RED_ON_DEFAULT : GREEN_ON_DEFAULT) | aFlag);
+        wprintw(winPtr, "%02d", i);
         wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | aFlag);
         wprintw(winPtr, "] ");
         wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | aFlag);
-        wprintw(winPtr, "0x%7X", disp.data[i].trackPtr);
+        wprintw(winPtr, "0x%07X", disp.data[i].trackPtr);
         wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | aFlag);
         wprintw(winPtr, " ");
         wattrset(winPtr, COLOR_PAIR(RED_ON_DEFAULT) | aFlag);
-        wprintw(winPtr, "%2d ", disp.data[i].delay);
+        wprintw(winPtr, "W%02d", disp.data[i].delay);
         wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | aFlag);
         wprintw(winPtr, " ");
         wattrset(winPtr, COLOR_PAIR(CYAN_ON_DEFAULT) | aFlag);
@@ -94,10 +148,22 @@ void TrackviewGUI::update() {
             if (disp.data[i].activeNotes[j])
                 notes += noteNames[j] + " ";
         }
-        notes.resize(32, ' ');
+        notes.resize((width < 20) ? 0 : width - 20, ' ');
         wprintw(winPtr, notes.c_str());
     }
 
     wrefresh(winPtr);
     UIMutex.unlock();
+}
+
+void TrackviewGUI::scrollDownNoUpdate() 
+{
+    if (cursorPos + 1 < disp.data.size())
+        cursorPos++;
+}
+
+void TrackviewGUI::scrollUpNoUpdate()
+{
+    if (cursorPos > 0)
+        cursorPos--;
 }

@@ -127,13 +127,13 @@ void SonglistGUI::update() {
     UIMutex.lock();
     string bar = "Songlist:";
     bar.resize(contentWidth, ' ');
-    wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | A_REVERSE);
+    wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
     mvwprintw(winPtr, 0, 0, bar.c_str());
     for (uint32_t i = 0; i < contentHeight; i++) {
         if (i + viewPos == cursorPos && cursorVisible)
-            wattrset(winPtr, COLOR_PAIR(YELLOW_ON_DEFAULT) | A_REVERSE);
+            wattrset(winPtr, COLOR_PAIR(Color::YEL_DEF) | A_REVERSE);
         else
-            wattrset(winPtr, COLOR_PAIR(YELLOW_ON_DEFAULT));
+            wattrset(winPtr, COLOR_PAIR(Color::YEL_DEF));
         // generate list of songs
         string songText;
         if (i + viewPos < songlist->size()) {

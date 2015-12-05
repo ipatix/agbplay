@@ -57,7 +57,6 @@ agbptr_t Rom::PosToAGBPtr(long pos) {
 
 long Rom::AGBPtrToPos(agbptr_t ptr) {
     long result = (long)ptr - AGB_MAP_ROM;
-    checkBounds(result, sizeof(char));
     return result;
 }
 

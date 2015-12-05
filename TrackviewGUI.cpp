@@ -91,65 +91,86 @@ void TrackviewGUI::update()
     }
     string clr = "";
     clr.resize(width - xBias, ' ');
-    wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT));
+    wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF));
     for (uint32_t i = yBias + 1 + (uint32_t)disp.data.size() * 2; i < height; i++) {
         mvwprintw(winPtr, (int)i, xBias, clr.c_str());
     }
     // draw borderlines
-    wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | A_REVERSE);
+    wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
     mvwvline(winPtr, 1, 0, ' ', height - 1);
     string titleText = " Tracker";
     titleText.resize(width, ' ');
     mvwprintw(winPtr, 0, 0, titleText.c_str());
 
     // draw track titlebar
-    wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
     mvwprintw(winPtr, yBias, xBias, "[");
-    wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_UNDERLINE);
     wprintw(winPtr, "#t");
-    wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
     wprintw(winPtr, "] ");
-    wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_UNDERLINE);
     wprintw(winPtr, "Location ");
-    wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
     wprintw(winPtr, " ");
-    wattrset(winPtr, COLOR_PAIR(RED_ON_DEFAULT) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::RED_DEF) | A_UNDERLINE);
     wprintw(winPtr, "Del");
-    wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
     wprintw(winPtr, " ");
-    wattrset(winPtr, COLOR_PAIR(CYAN_ON_DEFAULT) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | A_UNDERLINE);
     wprintw(winPtr, "Note");
-    wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
     string blank = "";
     blank.resize(width - 24, ' '); // 24 makes the line fit to screen end
-    wprintw(winPtr, blank.c_str());
+    wprintw(winPtr, "%s", blank.c_str());
 
-    uint32_t th = 0;
-    for (uint32_t i = 0; i < disp.data.size(); i++, th += 2) {
-        // print tickbox
+    for (uint32_t i = 0, th = 0; i < disp.data.size(); i++, th += 2) {
         unsigned long aFlag = (cursorVisible && i == cursorPos) ? A_REVERSE : 0;
-        wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | aFlag);
+        // print tickbox and first line
+        wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         mvwprintw(winPtr, (int)(yBias + 1 + th), xBias, "[");
-        wattrset(winPtr, COLOR_PAIR((disp.data[i].isMuted) ? RED_ON_DEFAULT : GREEN_ON_DEFAULT) | aFlag);
+        wattrset(winPtr, COLOR_PAIR((disp.data[i].isMuted) ? Color::RED_DEF : Color::GRN_DEF) | aFlag);
         wprintw(winPtr, "%02d", i);
-        wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         wprintw(winPtr, "] ");
-        wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | aFlag);
         wprintw(winPtr, "0x%07X", disp.data[i].trackPtr);
-        wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         wprintw(winPtr, " ");
-        wattrset(winPtr, COLOR_PAIR(RED_ON_DEFAULT) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::RED_DEF) | aFlag);
         wprintw(winPtr, "W%02d", disp.data[i].delay);
-        wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         wprintw(winPtr, " ");
-        wattrset(winPtr, COLOR_PAIR(CYAN_ON_DEFAULT) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | aFlag);
         string notes = "";
         for (uint32_t j = 0; j < disp.data[i].activeNotes.size(); j++) {
             if (disp.data[i].activeNotes[j])
                 notes += noteNames[j] + " ";
         }
         notes.resize((width < 20) ? 0 : width - 20, ' ');
-        wprintw(winPtr, notes.c_str());
+        wprintw(winPtr, "%s", notes.c_str());
+
+        // print track values and sencond line
+        wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
+        mvwprintw(winPtr, (int)(yBias + 2 + th), xBias, "    ");
+        wattrset(winPtr, COLOR_PAIR(Color::MAG_DEF) | aFlag | A_BOLD);
+        if (disp.data[i].prog == PROG_UNDEFINED) {
+            wprintw(winPtr, "---");
+        } else {
+            wprintw(winPtr, "%-3d", disp.data[i].prog);
+        }
+        wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
+        wprintw(winPtr, " %-+3d", disp.data[i].pan);
+        wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | aFlag | A_BOLD);
+        wprintw(winPtr, " %-3d", disp.data[i].vol);
+        wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | aFlag);
+        wprintw(winPtr, " %-3d", disp.data[i].mod);
+        wattrset(winPtr, COLOR_PAIR(Color::MAG_DEF) | aFlag);
+        wprintw(winPtr, " %-+6d", disp.data[i].pitch);
+        wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
+        string clr = "";
+        clr.resize(width - 27, ' ');
+        wprintw(winPtr, "%s", clr.c_str());
     }
 
     wrefresh(winPtr);

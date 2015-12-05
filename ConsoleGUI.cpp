@@ -58,9 +58,9 @@ int ConsoleGUI::ConGetCH() {
 void ConsoleGUI::update() {
     UIMutex.lock();
     for (uint32_t i = 0; i < textHeight; i++) {
-        wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | A_REVERSE);
+        wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
         mvwprintw(winPtr, (int)i, 0, ">");
-        wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT) | A_REVERSE);
+        wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_REVERSE);
         mvwprintw(winPtr, (int)i, 1, " ");
         string txt;
         if (i < textBuffer.size()) {

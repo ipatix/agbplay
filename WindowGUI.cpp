@@ -215,11 +215,12 @@ void WindowGUI::initColors()
     start_color();
     if (use_default_colors() == ERR)
         throw MyException("Using default terminal colors failed");
-    init_pair(DEFAULT_ON_DEFAULT, -1, -1);
-    init_pair(RED_ON_DEFAULT, COLOR_RED, -1);
-    init_pair(GREEN_ON_DEFAULT, COLOR_GREEN, -1);
-    init_pair(YELLOW_ON_DEFAULT, COLOR_YELLOW, -1);
-    init_pair(CYAN_ON_DEFAULT, COLOR_CYAN, -1);
+    init_pair((int)Color::DEF_DEF, -1, -1);
+    init_pair((int)Color::RED_DEF, COLOR_RED, -1);
+    init_pair((int)Color::GRN_DEF, COLOR_GREEN, -1);
+    init_pair((int)Color::YEL_DEF, COLOR_YELLOW, -1);
+    init_pair((int)Color::CYN_DEF, COLOR_CYAN, -1);
+    init_pair((int)Color::MAG_DEF, COLOR_MAGENTA, -1);
     CursesWin::UIMutex.unlock();
 }
 

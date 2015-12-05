@@ -81,19 +81,19 @@ void PlaylistGUI::update() {
     UIMutex.lock();
     string bar = "Playlist:";
     bar.resize(contentWidth, ' ');
-    wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | A_REVERSE);
+    wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
     mvwprintw(winPtr, 0, 0, bar.c_str());
     for (uint32_t i = 0; i < contentHeight; i++) {
         uint32_t entry = i + viewPos;
         if (entry == cursorPos && cursorVisible) {
             if (dragging) {
-                wattrset(winPtr, COLOR_PAIR(RED_ON_DEFAULT) | A_REVERSE);
+                wattrset(winPtr, COLOR_PAIR(Color::RED_DEF) | A_REVERSE);
             } else {
-                wattrset(winPtr, COLOR_PAIR(YELLOW_ON_DEFAULT) | A_REVERSE);
+                wattrset(winPtr, COLOR_PAIR(Color::YEL_DEF) | A_REVERSE);
             }
         }
         else 
-            wattrset(winPtr, COLOR_PAIR(YELLOW_ON_DEFAULT));
+            wattrset(winPtr, COLOR_PAIR(Color::YEL_DEF));
         string songText;
         if (entry < songlist->size()) {
             songText = (ticked->at(entry)) ? "[x] " : "[ ] ";

@@ -13,11 +13,9 @@ DisplayData::DisplayData()
     isCalling = false;
     isMuted = false;
     vol = 100;
-    bendr = 2;
     pan = 0;
-    prog = 0;
-    bend = 0;
-    tune = 0;
+    prog = PROG_UNDEFINED;
+    pitch = 0;
     envL = 0;
     envR = 0;
     delay = 0;

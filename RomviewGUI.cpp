@@ -37,14 +37,14 @@ void RomviewGUI::update() {
     wclear(winPtr);
 
     // draw borders
-    wattrset(winPtr, COLOR_PAIR(GREEN_ON_DEFAULT) | A_REVERSE);
+    wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
     mvwvline(winPtr, 1, 0, ' ', height-1);
     string title = " ROM Information:";
     title.resize(width, ' ');
     mvwprintw(winPtr, 0, 0, title.c_str());
 
     // print information
-    wattrset(winPtr, A_UNDERLINE | COLOR_PAIR(DEFAULT_ON_DEFAULT));
+    wattrset(winPtr, A_UNDERLINE | COLOR_PAIR(Color::DEF_DEF));
     mvwprintw(winPtr, 2, 2, "ROM Name:");
     mvwprintw(winPtr, 3, 2, gameName.c_str());
     mvwprintw(winPtr, 5, 2, "ROM Code:");

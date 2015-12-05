@@ -1,7 +1,14 @@
-// color sets
+#pragma once
 
-#define DEFAULT_ON_DEFAULT 1
-#define RED_ON_DEFAULT 2
-#define GREEN_ON_DEFAULT 3
-#define YELLOW_ON_DEFAULT 4
-#define CYAN_ON_DEFAULT 5
+namespace agbplay
+{
+    // color sets
+    enum class Color : int {
+        DEF_DEF = 1,    // default on default
+        RED_DEF,        // red on default
+        GRN_DEF,        // green on default
+        YEL_DEF,        // yellow in default
+        CYN_DEF,        // cyan on default
+        MAG_DEF,        // magenta on default
+    };
+}

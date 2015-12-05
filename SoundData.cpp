@@ -155,7 +155,7 @@ Sequence::Sequence(long songHeader, Rom *rom)
     reverb = rom->ReadUInt8();
 
     // voicegroup
-    soundBank = rom->ReadAGBPtrToPos();
+    soundBank = rom->AGBPtrToPos(rom->ReadUInt32());
 
     // read track pointer
     tracks.clear();
@@ -180,11 +180,9 @@ DisplayContainer& Sequence::GetUpdatedDisp()
         dcont.data[i].isMuted = tracks[i].muted;
         dcont.data[i].vol = tracks[i].vol;
         dcont.data[i].mod = tracks[i].mod;
-        dcont.data[i].bendr = tracks[i].bendr;
         dcont.data[i].prog = tracks[i].prog;
         dcont.data[i].pan = tracks[i].pan;
-        dcont.data[i].bend = tracks[i].bend;
-        dcont.data[i].tune = tracks[i].tune;
+        dcont.data[i].pitch = tracks[i].bendr * tracks[i].bend + tracks[i].tune * 2;
         dcont.data[i].envL = 0; // FIXME do proper volume scale updating
         dcont.data[i].envR = 0;
         dcont.data[i].delay = tracks[i].delay;
@@ -204,7 +202,6 @@ Sequence::Track::Track(long pos)
     retStack[0] = retStack[1] = retStack[2] = patBegin = 0;
     prog = PROG_UNDEFINED;
     vol = 100;
-    bendr = 2;
     delay = mod = retStackPos = reptCount = 0;
     pan = bend = tune = keyShift = 0;
     muted = false;

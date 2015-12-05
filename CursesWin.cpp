@@ -46,7 +46,7 @@ void CursesWin::Resize(uint32_t height, uint32_t width,
 
 void CursesWin::update() {
     UIMutex.lock();
-    wattrset(winPtr, COLOR_PAIR(DEFAULT_ON_DEFAULT));
+    wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF));
     wclear(winPtr);
     UIMutex.unlock();
 }

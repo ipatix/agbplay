@@ -5,7 +5,6 @@
 
 #define UNKNOWN_TABLE -1
 #define MIN_SONG_NUM 32
-#define PROG_UNDEFINED 0xFF
 
 namespace agbplay 
 {

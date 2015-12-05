@@ -45,7 +45,7 @@ void TitlebarGUI::update() {
         if (i < upperPadding || i > height - upperPadding) {
             tmp = "";
             tmp.resize(width, ' ');
-            wattrset(winPtr, COLOR_PAIR(CYAN_ON_DEFAULT) | A_REVERSE);
+            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | A_REVERSE);
             mvwprintw(winPtr, (int)i, 0, tmp.c_str());
         } else {
             uint32_t leftPadding = (uint32_t)((width - strlen(bannerText[i - upperPadding])) / 2);
@@ -53,13 +53,13 @@ void TitlebarGUI::update() {
                 ((width - strlen(bannerText[i - upperPadding])) % 2));
             tmp = "";
             tmp.resize(leftPadding, ' ');
-            wattrset(winPtr, COLOR_PAIR(CYAN_ON_DEFAULT) | A_REVERSE);
+            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | A_REVERSE);
             mvwprintw(winPtr, (int)i, 0, tmp.c_str());
             tmp = "";
             tmp.resize(rightPadding, ' ');
-            wattrset(winPtr, COLOR_PAIR(CYAN_ON_DEFAULT));
+            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF));
             wprintw(winPtr, "%s", bannerText[i - upperPadding]);
-            wattrset(winPtr, COLOR_PAIR(CYAN_ON_DEFAULT) | A_REVERSE);
+            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | A_REVERSE);
             wprintw(winPtr, tmp.c_str());
         }
     }

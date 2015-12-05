@@ -4,6 +4,7 @@
 #include <vector>
 
 #define NUM_NOTES 128
+#define PROG_UNDEFINED 0xFF
 
 namespace agbplay 
 {
@@ -17,11 +18,9 @@ namespace agbplay
         bool isMuted;
         uint8_t vol;   // range 0 to 127
         uint8_t mod;   // range 0 to 127
-        uint8_t bendr; // range 0 to 127
         uint8_t prog;  // range 0 to 127
         int8_t pan;    // range -64 to 63
-        int8_t bend;   // range -64 to 63
-        int8_t tune;   // range -64 to 63
+        int16_t pitch; // range -32768 to 32767
         uint8_t envL;  // range 0 to 255
         uint8_t envR;  // range 0 to 255
         uint8_t delay; // range 0 to 96

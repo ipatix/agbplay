@@ -182,7 +182,7 @@ DisplayContainer& Sequence::GetUpdatedDisp()
         dcont.data[i].mod = tracks[i].mod;
         dcont.data[i].prog = tracks[i].prog;
         dcont.data[i].pan = tracks[i].pan;
-        dcont.data[i].pitch = tracks[i].bendr * tracks[i].bend + tracks[i].tune * 2;
+        dcont.data[i].pitch = (int16_t)(tracks[i].bendr * tracks[i].bend + tracks[i].tune * 2);
         dcont.data[i].envL = 0; // FIXME do proper volume scale updating
         dcont.data[i].envR = 0;
         dcont.data[i].delay = tracks[i].delay;

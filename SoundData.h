@@ -11,7 +11,7 @@ namespace agbplay
     class Sequence 
     {
         public:
-            Sequence(long songHeader, Rom *rom);
+            Sequence(long songHeader, uint8_t trackLimit, Rom *rom);
             ~Sequence();
 
             DisplayContainer& GetUpdatedDisp();

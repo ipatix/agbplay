@@ -22,9 +22,15 @@ int main(int argc, char *argv[]) {
     }
     try {
         cout << "Loading ROM..." << endl;
-        Rom rom(argv[1]);
+        FileContainer fc(argv[1]);
+        cout << "Loaded ROM successfully" << endl;
+        Rom rom(fc);
+        cout << "Created ROM object" << endl;
         SoundData sdata(rom);
+        cout << "Analyzed Sound Data" << endl;
         WindowGUI wgui(rom, sdata);
+
+        // blocking call until program get's closed
         wgui.Handle();
     } catch (const exception& e) {
         endwin();

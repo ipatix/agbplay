@@ -1,16 +1,17 @@
 #pragma once
 
 #include <cstdint>
-#include <fstream>
 #include <string>
 #include <vector>
+
+#include "FileContainer.h"
 
 typedef uint32_t agbptr_t;
 
 namespace agbplay {
     class Rom {
         public:
-            Rom(std::string filePath);
+            Rom(FileContainer& fc);
             ~Rom();
 
             void Seek(long pos);
@@ -35,7 +36,7 @@ namespace agbplay {
             void checkBounds(long pos, size_t typesz);
             void verify();
 
-            std::vector<uint8_t> data;
+            std::vector<uint8_t>& data;
             long pos;   // = 0 for ROM start
     };
 }

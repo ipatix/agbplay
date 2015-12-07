@@ -25,7 +25,7 @@ namespace agbplay
             void ScrollUp();
             
         private:
-            agbplay::DisplayContainer disp;
+            DisplayContainer disp;
             void update() override;
             void scrollDownNoUpdate();
             void scrollUpNoUpdate();

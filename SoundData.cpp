@@ -1,4 +1,5 @@
 #include <cstring>
+#include <algorithm>
 
 #include "AgbTypes.h"
 #include "SoundData.h"
@@ -143,13 +144,13 @@ unsigned short SongTable::determineNumSongs()
  * Sequence
  */
 
-Sequence::Sequence(long songHeader, Rom *rom)
+Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom *rom)
 {
     this->rom = rom;
     // read song header
     this->songHeader = songHeader;
     rom->Seek(songHeader);
-    uint8_t nTracks = rom->ReadUInt8();
+    uint8_t nTracks = min(rom->ReadUInt8(), trackLimit);
     blocks = rom->ReadUInt8();
     prio = rom->ReadUInt8();
     reverb = rom->ReadUInt8();
@@ -167,7 +168,8 @@ Sequence::Sequence(long songHeader, Rom *rom)
     dcont = DisplayContainer(nTracks);
 }
 
-Sequence::~Sequence() {
+Sequence::~Sequence() 
+{
 
 }
 

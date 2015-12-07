@@ -19,6 +19,11 @@ Rom::Rom(FileContainer& fc) : data(fc.data)
     pos = 0;
 }
 
+Rom::Rom(const Rom& r) : data(r.data)
+{
+    pos = r.pos;
+}
+
 Rom::~Rom() 
 {
 }

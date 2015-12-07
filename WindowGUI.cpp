@@ -90,7 +90,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
             TRACKVIEW_XPOS(height, width));
     
     rom.Seek(sdata.sTable->GetSongTablePos());
-    mplay = new PlayerModule(rom, trackUI, rom.ReadAGBPtrToPos(), EnginePars(15, 0, 4));
+    mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos(), EnginePars(15, 0, 4));
     mplay->LoadSong(sdata.sTable->GetPosOfSong(0), 16); // TODO read track limit from rom rather than using fixed value
 }
 

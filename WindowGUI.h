@@ -53,7 +53,7 @@
 #include "TitlebarGUI.h"
 #include "RomviewGUI.h"
 #include "TrackviewGUI.h"
-#include "PlayerModule.h"
+#include "PlayerInterface.h"
 
 namespace agbplay 
 {
@@ -95,7 +95,7 @@ namespace agbplay
             // resource
             Rom& rom;
             SoundData& sdata;
-            PlayerModule *mplay;
+            PlayerInterface *mplay;
 
             // ncurses windows
             WINDOW *containerWin;

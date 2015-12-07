@@ -12,6 +12,7 @@ namespace agbplay {
     class Rom {
         public:
             Rom(FileContainer& fc);
+            Rom(const Rom& r);
             ~Rom();
 
             void Seek(long pos);

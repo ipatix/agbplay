@@ -11,7 +11,7 @@ namespace agbplay
     class Sequence 
     {
         public:
-            Sequence(long songHeader, uint8_t trackLimit, Rom *rom);
+            Sequence(long songHeader, uint8_t trackLimit, Rom& rom);
             ~Sequence();
 
             DisplayContainer& GetUpdatedDisp();
@@ -40,7 +40,7 @@ namespace agbplay
             };
             std::vector<Track> tracks;
             DisplayContainer dcont;
-            Rom *rom;
+            Rom rom;
             long songHeader;
             long soundBank;
             uint8_t blocks;

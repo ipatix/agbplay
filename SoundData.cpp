@@ -144,9 +144,8 @@ unsigned short SongTable::determineNumSongs()
  * Sequence
  */
 
-Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom *rom)
+Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom& rom) : this->rom(rom)
 {
-    this->rom = rom;
     // read song header
     this->songHeader = songHeader;
     rom->Seek(songHeader);

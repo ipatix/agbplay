@@ -29,14 +29,3 @@ void PlayerInterface::LoadSong(long songPos, uint8_t trackLimit)
 /*
  * private PlayerInterface
  */
-
-/*
- * public EnginePars
- */
-
-EnginePars::EnginePars(uint8_t vol, uint8_t rev, uint8_t freq)
-{
-    this->vol = vol;
-    this->rev = rev;
-    this->freq = freq;
-}

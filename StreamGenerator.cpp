@@ -26,3 +26,27 @@ StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep) : this->seq(seq),
 {
     this->ep = ep;
 }
+
+StreamGenerator::~StreamGenerator()
+{
+}
+
+uint32_t StreamGenerator::GetBufferUnitCount()
+{
+    return sm.GetBufferUnitCount();
+}
+
+void *StreamGenerator::ProcessAndGetAudio()
+{
+    processSequenceFrame();
+    return sm.ProcessAndGetAudio();;
+}
+
+/*
+ * private StreamGenerator
+ */
+
+void StreamGenerator::processSequenceFrame()
+{
+    // TODO implement
+}

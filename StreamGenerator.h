@@ -20,11 +20,13 @@ namespace agbplay
             StreamGenerator(Sequence& seq, uint32_t outSampleRate, EnginePars ep);
             ~StreamGenerator();
 
-            uint32_t GetBufferElementCount();
-            void *ProcessAudio();
+            uint32_t GetBufferUnitCount();
+            void *ProcessAndGetAudio();
         private:
             Sequence& seq;
             EnginePars ep;
             SoundMixer sm;
+
+            void processSequenceFrame();
     };
 }

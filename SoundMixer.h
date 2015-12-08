@@ -3,8 +3,12 @@
 #include <vector>
 
 #define NOTE_TIE -1
+// AGB has 60 FPS based processing
 #define AGB_FPS 60
+// for increased quality we process in subframes (including the base frame)
 #define INTERFRAMES 4
+// stereo, so 2 channels
+#define N_CHANNELS 2
 
 namespace agbplay
 {
@@ -62,6 +66,9 @@ namespace agbplay
         public:
             SoundMixer(uint32_t sampleRate);
             ~SoundMixer();
+            SoundChannel *AllocateChannel();
+            void *ProcessAndGetAudio();
+            uint32_t GetBufferUnitCount();
 
         private:
             // channel management
@@ -70,6 +77,7 @@ namespace agbplay
             SoundChannel *headFree;
             SoundChannel *headUsed;
 
+            std::vector<float> sampleBuffer;
             uint32_t sampleRate;
             uint32_t samplesPerBuffer;
     };

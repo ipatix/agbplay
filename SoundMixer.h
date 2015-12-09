@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <list>
 
 #define NOTE_TIE -1
 // AGB has 60 FPS based processing
@@ -40,13 +41,8 @@ namespace agbplay
             float freq;
             float interPos;
 
-            // DLinkedList of free channels
-            SoundChannel *nextFree;
-            SoundChannel *prevFree;
-
-            // DLinkedList of used channels
-            SoundChannel *nextUsed;
-            SoundChannel *prevUsed;
+            SoundChannel *trNext;
+            SoundChannel *trPrev;
         private:
             uint32_t sampLength;
             bool loopEnabled;
@@ -72,10 +68,11 @@ namespace agbplay
 
         private:
             // channel management
-            std::vector<SoundChannel> sndChannels;
-            std::vector<CGBChannel> cgbChannels;
-            SoundChannel *headFree;
-            SoundChannel *headUsed;
+            std::list<SoundChannel> sndChannels;
+            CGBChannel sq1;
+            CGBChannel sq2;
+            CGBChannel wave;
+            CGBChannel noise;
 
             std::vector<float> sampleBuffer;
             uint32_t sampleRate;

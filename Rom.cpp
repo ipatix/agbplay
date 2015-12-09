@@ -41,6 +41,13 @@ void Rom::SeekAGBPtr(agbptr_t ptr)
     this->pos = pos;
 }
 
+void Rom::RelSeek(int space)
+{
+    checkBounds(pos + space, sizeof(char));
+    pos += space;
+    return;
+}
+
 agbptr_t Rom::PosToAGBPtr(long pos) 
 {
     checkBounds(pos, sizeof(char));
@@ -67,6 +74,16 @@ uint8_t Rom::ReadUInt8()
     uint8_t result = *(uint8_t *)&data[(size_t)pos];
     pos += sizeof(uint8_t);
     return result;
+}
+
+int8_t Rom::PeekInt8()
+{
+    return *(int8_t *)&data[(size_t)pos];
+}
+
+uint8_t Rom::PeekUInt8()
+{
+    return *(int8_t *)&data[(size_t)pos];
 }
 
 int16_t Rom::ReadInt16() 

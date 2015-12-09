@@ -1,6 +1,9 @@
 #pragma once
 
 #include "SoundData.h"
+#include "SoundMixer.h"
+
+#define BPM_PER_FRAME 150
 
 namespace agbplay
 {
@@ -28,5 +31,6 @@ namespace agbplay
             SoundMixer sm;
 
             void processSequenceFrame();
+            void processSequenceTick();
     };
 }

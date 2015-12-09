@@ -15,7 +15,6 @@ namespace agbplay
             ~Sequence();
 
             DisplayContainer& GetUpdatedDisp();
-        private:
             struct Track 
             {
                 Track(long pos);
@@ -26,18 +25,25 @@ namespace agbplay
                 long patBegin;
                 uint8_t retStackPos;
                 uint8_t reptCount;
-                uint8_t delay;
                 uint8_t prog;
                 uint8_t vol;
                 uint8_t mod;
                 uint8_t bendr;
+                int8_t delay;
                 int8_t pan;
                 int8_t bend;
                 int8_t tune;
                 int8_t keyShift;
-
                 bool muted;
             };
+            // processing variables
+            uint32_t bpmStack;
+            uint16_t bpm;
+            Track& getTrk(uint8_t trk);
+            Rom& getRom();
+            long getSndBnk();
+            uint8_t getNumTrks();
+        private:
             std::vector<Track> tracks;
             DisplayContainer dcont;
             Rom rom;

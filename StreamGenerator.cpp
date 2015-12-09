@@ -48,5 +48,26 @@ void *StreamGenerator::ProcessAndGetAudio()
 
 void StreamGenerator::processSequenceFrame()
 {
-    // TODO implement
+    while (bpmStack >= 0) {
+        processSequenceTick();
+        seq.bpmStack -= seq.bpm * INTERFRAMES;
+    }
+    seq.bpmStack += BPM_PER_FRAME;
+}
+
+void StreamGenerator::processSequenceTick()
+{
+    Rom& reader = seq.getRom();
+    // process all tracks
+    for (int i = 0; i < seq.getNumTrks(); i++) {
+        Track& cTrk = seq.getTrk(i);
+        reader.Seek(cTrk.pos);
+        // count down last delay and process
+        if (--cTrk.delay <= 0) {
+            while (true) {
+                uint8_t cmd = reader.ReadUInt8();
+                // TODO continue here 
+            }
+        }
+    }
 }

@@ -165,6 +165,10 @@ Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom& rom) : this->rom(ro
         tracks.push_back(Track(rom->ReadAGBPtrToPos()));
     }
     dcont = DisplayContainer(nTracks);
+
+    // reset runtime variables
+    bpmStack = 0;
+    bpm = 120;
 }
 
 Sequence::~Sequence() 
@@ -190,6 +194,26 @@ DisplayContainer& Sequence::GetUpdatedDisp()
         // TODO do active notes updates
     }
     return dcont;
+}
+
+Track& Sequence::getTrk(uint8_t trk)
+{
+    return tracks.at(trk);
+}
+
+Rom& Sequence::getRom()
+{
+    return rom;
+}
+
+long Sequence::getSndBnk()
+{
+    return soundBank;
+}
+
+uint8_t Sequence::getNumTrks()
+{
+    return tracks.size();
 }
 
 /*

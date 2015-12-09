@@ -12,10 +12,6 @@ SoundMixer::SoundMixer(uint32_t sampleRate)
     this->sampleRate = sampleRate;
     this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
     this->sampleBuffer = std::vector<float>(N_CHANNELS * samplesPerBuffer);
-
-    // init linked lists with nullptr = EMPTY
-    headFree = nullptr;
-    headUsed = nullptr;
 }
 
 SoundMixer::~SoundMixer()

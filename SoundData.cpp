@@ -196,11 +196,6 @@ DisplayContainer& Sequence::GetUpdatedDisp()
     return dcont;
 }
 
-Track& Sequence::getTrk(uint8_t trk)
-{
-    return tracks.at(trk);
-}
-
 Rom& Sequence::getRom()
 {
     return rom;
@@ -209,11 +204,6 @@ Rom& Sequence::getRom()
 long Sequence::getSndBnk()
 {
     return soundBank;
-}
-
-uint8_t Sequence::getNumTrks()
-{
-    return tracks.size();
 }
 
 /*
@@ -227,9 +217,10 @@ Sequence::Track::Track(long pos)
     retStack[0] = retStack[1] = retStack[2] = patBegin = 0;
     prog = PROG_UNDEFINED;
     vol = 100;
-    delay = mod = retStackPos = reptCount = 0;
+    delay = mod = reptCount = retStackPos = 0;
     pan = bend = tune = keyShift = 0;
     muted = false;
+    isRunning = true;
 }
 
 Sequence::Track::~Track() 

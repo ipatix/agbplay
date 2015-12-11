@@ -5,6 +5,7 @@
 
 #define UNKNOWN_TABLE -1
 #define MIN_SONG_NUM 32
+#define MAX_TRK_CALL 3
 
 namespace agbplay 
 {
@@ -21,7 +22,7 @@ namespace agbplay
                 ~Track();
 
                 long pos;
-                long retStack[3];
+                long retStack[MAX_TRK_CALL];
                 long patBegin;
                 uint8_t retStackPos;
                 uint8_t reptCount;
@@ -35,16 +36,15 @@ namespace agbplay
                 int8_t tune;
                 int8_t keyShift;
                 bool muted;
+                bool isRunning;
             };
+            std::vector<Track> tracks;
             // processing variables
             uint32_t bpmStack;
             uint16_t bpm;
-            Track& getTrk(uint8_t trk);
             Rom& getRom();
             long getSndBnk();
-            uint8_t getNumTrks();
         private:
-            std::vector<Track> tracks;
             DisplayContainer dcont;
             Rom rom;
             long songHeader;

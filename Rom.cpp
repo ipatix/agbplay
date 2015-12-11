@@ -13,15 +13,11 @@ using namespace std;
  * public
  */
 
-Rom::Rom(FileContainer& fc) : data(fc.data) 
+Rom::Rom(FileContainer& fc)
 {
+    data = &fc.data;
     verify();
     pos = 0;
-}
-
-Rom::Rom(const Rom& r) : data(r.data)
-{
-    pos = r.pos;
 }
 
 Rom::~Rom() 
@@ -63,7 +59,7 @@ long Rom::AGBPtrToPos(agbptr_t ptr)
 int8_t Rom::ReadInt8() 
 {
     checkBounds(pos, sizeof(int8_t));
-    int8_t result = *(int8_t *)&data[(size_t)pos];
+    int8_t result = *(int8_t *)&(*data)[(size_t)pos];
     pos += sizeof(int8_t);
     return result;
 }
@@ -71,25 +67,25 @@ int8_t Rom::ReadInt8()
 uint8_t Rom::ReadUInt8() 
 {
     checkBounds(pos, sizeof(int8_t));
-    uint8_t result = *(uint8_t *)&data[(size_t)pos];
+    uint8_t result = *(uint8_t *)&(*data)[(size_t)pos];
     pos += sizeof(uint8_t);
     return result;
 }
 
 int8_t Rom::PeekInt8()
 {
-    return *(int8_t *)&data[(size_t)pos];
+    return *(int8_t *)&(*data)[(size_t)pos];
 }
 
 uint8_t Rom::PeekUInt8()
 {
-    return *(int8_t *)&data[(size_t)pos];
+    return *(uint8_t *)&(*data)[(size_t)pos];
 }
 
 int16_t Rom::ReadInt16() 
 {
     checkBounds(pos, sizeof(int16_t));
-    int16_t result = *(int16_t *)&data[(size_t)pos];
+    int16_t result = *(int16_t *)&(*data)[(size_t)pos];
     pos += sizeof(int16_t);
     return result;
 }
@@ -98,7 +94,7 @@ uint16_t Rom::ReadUInt16()
 {
     
     checkBounds(pos, sizeof(uint16_t));
-    uint16_t result = *(uint16_t *)&data[(size_t)pos];
+    uint16_t result = *(uint16_t *)&(*data)[(size_t)pos];
     pos += sizeof(uint16_t);
     return result;
 }
@@ -106,7 +102,7 @@ uint16_t Rom::ReadUInt16()
 int32_t Rom::ReadInt32() 
 {
     checkBounds(pos, sizeof(int32_t));
-    int32_t result = *(int32_t *)&data[(size_t)pos];
+    int32_t result = *(int32_t *)&(*data)[(size_t)pos];
     pos += sizeof(int32_t);
     return result;
 }
@@ -114,7 +110,7 @@ int32_t Rom::ReadInt32()
 uint32_t Rom::ReadUInt32() 
 {
     checkBounds(pos, sizeof(uint32_t));
-    uint32_t result = *(uint32_t *)&data[(size_t)pos];
+    uint32_t result = *(uint32_t *)&(*data)[(size_t)pos];
     pos += sizeof(uint32_t);
     return result;
 }
@@ -128,7 +124,7 @@ string Rom::ReadString(size_t limit)
 {
     if (limit > 2048)
         throw new MyException("Unable to read a string THAT long");
-    string result = string((const char *)&data[(size_t)pos], limit);
+    string result = string((const char *)&(*data)[(size_t)pos], limit);
     pos += limit;
     return result;
 }
@@ -136,18 +132,18 @@ string Rom::ReadString(size_t limit)
 void *Rom::GetPtr() 
 {
     checkBounds(pos, sizeof(char));
-    return &data[(size_t)pos];
+    return &(*data)[(size_t)pos];
 }
 
 size_t Rom::Size() 
 {
-    return data.size();
+    return (*data).size();
 }
 
 bool Rom::ValidPointer(agbptr_t ptr) 
 {
     long rec = (long)ptr - AGB_MAP_ROM;
-    if (rec < 0 || rec + 4 >= (long)data.size())
+    if (rec < 0 || rec + 4 >= (long)(*data).size())
         return false;
     return true;
 }
@@ -157,17 +153,17 @@ bool Rom::ValidPointer(agbptr_t ptr)
  */
 
 void Rom::checkBounds(long pos, size_t typesz) {
-    if (pos < 0 || ((size_t)pos + typesz) > data.size())
+    if (pos < 0 || ((size_t)pos + typesz) > (*data).size())
         throw MyException(string("ROM Reader position out of range: ") + to_string(pos));
 }
 
 void Rom::verify() 
 {
     // check ROM size
-    if (data.size() > AGB_ROM_SIZE || data.size() < 0x200)
+    if ((*data).size() > AGB_ROM_SIZE || (*data).size() < 0x200)
         throw MyException("Illegal ROM size");
     
-    // Logo Data
+    // Logo data
     // TODO replace 1 to 1 logo comparison with checksum
     uint8_t imageBytes[] = {
         0x24,0xff,0xae,0x51,0x69,0x9a,0xa2,0x21,0x3d,0x84,0x82,0x0a,0x84,0xe4,0x09,0xad,
@@ -184,15 +180,15 @@ void Rom::verify()
 
     // check logo
     for (size_t i = 0; i < sizeof(imageBytes); i++) {
-        if (imageBytes[i] != data[i + 0x4])
+        if (imageBytes[i] != (*data)[i + 0x4])
             throw MyException("ROM verification: Bad Nintendo Logo");
     }
 
     // check checksum
-    uint8_t checksum = data[0xBD];
+    uint8_t checksum = (*data)[0xBD];
     int check = 0;
     for (size_t i = 0xA0; i < 0xBC; i++) {
-        check -= data[i];
+        check -= (*data)[i];
     }
     check = (check - 0x19) & 0xFF;
     if (check != checksum)

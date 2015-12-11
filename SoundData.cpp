@@ -144,25 +144,25 @@ unsigned short SongTable::determineNumSongs()
  * Sequence
  */
 
-Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom& rom) : this->rom(rom)
+Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom& rom) : rom(rom)
 {
     // read song header
     this->songHeader = songHeader;
-    rom->Seek(songHeader);
-    uint8_t nTracks = min(rom->ReadUInt8(), trackLimit);
-    blocks = rom->ReadUInt8();
-    prio = rom->ReadUInt8();
-    reverb = rom->ReadUInt8();
+    rom.Seek(songHeader);
+    uint8_t nTracks = min(rom.ReadUInt8(), trackLimit);
+    blocks = rom.ReadUInt8();
+    prio = rom.ReadUInt8();
+    reverb = rom.ReadUInt8();
 
     // voicegroup
-    soundBank = rom->AGBPtrToPos(rom->ReadUInt32());
+    soundBank = rom.AGBPtrToPos(rom.ReadUInt32());
 
     // read track pointer
     tracks.clear();
     for (uint8_t i = 0; i < nTracks; i++) 
     {
-        rom->Seek(songHeader + 8 + 4 * i);
-        tracks.push_back(Track(rom->ReadAGBPtrToPos()));
+        rom.Seek(songHeader + 8 + 4 * i);
+        tracks.push_back(Track(rom.ReadAGBPtrToPos()));
     }
     dcont = DisplayContainer(nTracks);
 
@@ -187,10 +187,10 @@ DisplayContainer& Sequence::GetUpdatedDisp()
         dcont.data[i].mod = tracks[i].mod;
         dcont.data[i].prog = tracks[i].prog;
         dcont.data[i].pan = tracks[i].pan;
-        dcont.data[i].pitch = (int16_t)(tracks[i].bendr * tracks[i].bend + tracks[i].tune * 2);
+        dcont.data[i].pitch = int16_t(tracks[i].bendr * tracks[i].bend + tracks[i].tune * 2);
         dcont.data[i].envL = 0; // FIXME do proper volume scale updating
         dcont.data[i].envR = 0;
-        dcont.data[i].delay = tracks[i].delay;
+        dcont.data[i].delay = uint8_t((tracks[i].delay < 0) ? 0 : tracks[i].delay);
         // TODO do active notes updates
     }
     return dcont;

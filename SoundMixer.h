@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <list>
+#include <cstdint>
 
 #define NOTE_TIE -1
 // AGB has 60 FPS based processing
@@ -16,6 +17,7 @@ namespace agbplay
     struct ADSR
     {
         ADSR(uint8_t att, uint8_t dec, uint8_t sus, uint8_t rel);
+        ADSR();
         uint8_t att;
         uint8_t dec;
         uint8_t sus;
@@ -25,6 +27,7 @@ namespace agbplay
     struct Note
     {
         Note(uint8_t midiKey, uint8_t velocity, int8_t length);
+        Note();
         uint8_t midiKey;
         uint8_t velocity;
         int8_t length;
@@ -33,9 +36,9 @@ namespace agbplay
     class SoundChannel
     {
         public:
-            SoundChannel(int8_t *samplePtr, Note note);
+            SoundChannel(int8_t *samplePtr, ADSR env, Note note);
             ~SoundChannel();
-            SetFreq(float freq);
+            void SetFreq(float freq);
 
             int8_t *samplePtr;
             float freq;

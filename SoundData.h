@@ -40,7 +40,7 @@ namespace agbplay
             };
             std::vector<Track> tracks;
             // processing variables
-            uint32_t bpmStack;
+            int32_t bpmStack;
             uint16_t bpm;
             Rom& getRom();
             long getSndBnk();

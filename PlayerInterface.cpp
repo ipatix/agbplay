@@ -7,8 +7,8 @@ using namespace agbplay;
  * public PlayerInterface
  */
 
-PlayerInterface::PlayerInterface(Rom& rrom, TrackviewGUI *trackUI, long initSongPos, EnginePars pars
-        ) : seq(Sequence(initSongPos, 0, &rrom)), rom(rrom)
+PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos, EnginePars pars
+        ) : seq(Sequence(initSongPos, 16, _rom)), rom(_rom)
 {
     this->trackUI = trackUI;
     this->dSoundVol = pars.vol + 1;
@@ -22,7 +22,7 @@ PlayerInterface::~PlayerInterface()
 
 void PlayerInterface::LoadSong(long songPos, uint8_t trackLimit)
 {
-    seq = Sequence(songPos, trackLimit, &rom);
+    seq = Sequence(songPos, trackLimit, rom);
     trackUI->SetState(seq.GetUpdatedDisp());
 }
 

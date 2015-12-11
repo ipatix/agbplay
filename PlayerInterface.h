@@ -14,7 +14,7 @@ namespace agbplay
     class PlayerInterface 
     {
         public:
-            PlayerInterface(Rom& rrom, TrackviewGUI *trackUI, long initSongPos, EnginePars pars);
+            PlayerInterface(Rom& rom, TrackviewGUI *trackUI, long initSongPos, EnginePars pars);
             ~PlayerInterface();
             
             void LoadSong(long songPos, uint8_t trackLimit);

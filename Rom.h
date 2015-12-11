@@ -12,7 +12,6 @@ namespace agbplay {
     class Rom {
         public:
             Rom(FileContainer& fc);
-            Rom(const Rom& r);
             ~Rom();
 
             void Seek(long pos);
@@ -40,7 +39,7 @@ namespace agbplay {
             void checkBounds(long pos, size_t typesz);
             void verify();
 
-            std::vector<uint8_t>& data;
+            std::vector<uint8_t> *data;
             long pos;   // = 0 for ROM start
     };
 }

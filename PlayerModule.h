@@ -1,6 +1,6 @@
 #pragma once
 
-#include "StreamGenetator.h"
+#include "StreamGenerator.h"
 
 namespace agbplay
 {

@@ -91,7 +91,25 @@ void StreamGenerator::processSequenceTick()
             while (true) {
                 uint8_t cmd = reader.ReadUInt8();
                 if (cmd <= 0x7F) {
-                    // repeat command TODO
+                    switch (cTrk.lastEvent) {
+                        case LEvent::NONE:                                    break;
+                        case LEvent::VOL:    cTrk.vol   = cmd;                break;
+                        case LEvent::PAN:    cTrk.pan   = int8_t(cmd - 0x40); break;
+                        case LEvent::BEND:   cTrk.bend  = int8_t(cmd - 0x40); break;
+                        case LEvent::BENDR:  cTrk.bendr = cmd;                break;
+                        case LEvent::MOD:    cTrk.mod   = cmd;                break;
+                        case LEvent::TUNE:   cTrk.tune  = int8_t(cmd - 0x40); break;
+                        case LEvent::NOTE:
+                                          // TODO
+                                          break;
+                        case LEvent::TIE:
+                                          // TODO
+                                          break;
+                        case LEvent::EOT:
+                                          // TODO
+                                          break;
+                        default: break;
+                    }
                 } else if (cmd == 0x80) {
                     // NOP delay
                     cTrk.pos++;
@@ -146,39 +164,73 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case 0xBE:
                             // VOL
+                            cTrk.lastEvent = LEvent::VOL;
                             cTrk.vol = reader.ReadUInt8();
                             cTrk.pos += 2;
                             // TODO update note volumes
                             break;
                         case 0xBF:
                             // PAN
+                            cTrk.lastEvent = LEvent::PAN;
+                            cTrk.pan = int8_t(reader.ReadUInt8() - 0x40);
+                            cTrk.pos += 2;
+                            // TODO update note volumes
                             break;
                         case 0xC0:
                             // BEND
+                            cTrk.lastEvent = LEvent::BEND;
+                            cTrk.bend = int8_t(reader.ReadUInt8() - 0x40);
+                            cTrk.pos += 2;
+                            // update pitch
                             break;
                         case 0xC1:
                             // BENDR
+                            cTrk.lastEvent = LEvent::BENDR;
+                            cTrk.bendr = reader.ReadUInt8();
+                            cTrk.pos += 2;
+                            // update pitch
                             break;
                         case 0xC2:
                             // LFOS
+                            cTrk.lfos = reader.ReadUInt8();
+                            cTrk.pos += 2;
                             break;
                         case 0xC3:
                             // LFODL
+                            cTrk.lfodl = reader.ReadUInt8();
+                            cTrk.pos += 2;
                             break;
                         case 0xC4:
                             // MOD
+                            cTrk.lastEvent = LEvent::MOD;
+                            cTrk.mod = reader.ReadUInt8();
+                            cTrk.pos += 2;
                             break;
                         case 0xC5:
-                            // MODT,
+                            // MODT
+                            switch (reader.ReadUInt8()) {
+                                case 0: cTrk.modt = MODT::PITCH; break;
+                                case 1: cTrk.modt = MODT::VOL; break;
+                                case 2: cTrk.modt = MODT::PAN; break;
+                                default: cTrk.modt = MODT::PITCH; break;
+                            }
+                            // FIXME maybe do conditional updates upon changing the modt
                             break;
                         case 0xC8:
                             // TUNE
+                            cTrk.lastEvent = LEvent::TUNE;
+                            cTrk.tune = int8_t(reader.ReadUInt8() - 128);
+                            cTrk.pos += 2;
                             break;
                         case 0xCE:
                             // EOT
+                            cTrk.lastEvent = LEvent::EOT;
+                            // TODO implement
                             break;
                         case 0xCF:
                             // TIE
+                            cTrk.lastEvent = LEvent::TIE;
+                            // TODO implement
                             break;
                     }
                 } else {

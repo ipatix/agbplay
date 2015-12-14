@@ -9,6 +9,8 @@
 
 namespace agbplay 
 {
+    enum class MODT : int { PITCH = 0, VOL, PAN };
+    enum class LEvent : int { NONE = 0, VOL, PAN, BEND, BENDR, MOD, TUNE, NOTE, TIE, EOT };
     class Sequence 
     {
         public:
@@ -20,16 +22,25 @@ namespace agbplay
             {
                 Track(long pos);
                 ~Track();
+                int16_t GetPitch();
 
                 long pos;
                 long retStack[MAX_TRK_CALL];
                 long patBegin;
+                MODT modt;
+                LEvent lastEvent;
+                uint8_t lastNoteKey;
+                uint8_t lastNoteVel;
+                uint8_t lastNoteDel;
                 uint8_t retStackPos;
                 uint8_t reptCount;
                 uint8_t prog;
                 uint8_t vol;
                 uint8_t mod;
                 uint8_t bendr;
+                uint8_t lfos;
+                uint8_t lfodl;
+                uint8_t lfodlCount;
                 int8_t delay;
                 int8_t pan;
                 int8_t bend;

@@ -227,6 +227,12 @@ Sequence::Track::~Track()
 {
 }
 
+int16_t Sequence::Track::GetPitch()
+{
+    // TODO implement pitch MOD handling
+    return bend * bendr + tune * 2;
+}
+
 /*
  * public
  * SoundData

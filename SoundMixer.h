@@ -77,8 +77,27 @@ namespace agbplay
     class CGBChannel
     {
         public: 
-            CGBChannel();
+            CGBChannel(void *owner, uint8_t *wavePtr, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch);
             ~CGBChannel();
+            void *GetOwner();
+            float GetFreq();
+            void SetVol(uint8_t leftVol, uint8_t rightVol);
+            uint8_t GetVolL();
+            uint8_t GetVolR();
+            void SetPitch(int16_t pitch);
+            uint8_t *wavePtr;
+            float interPos;
+        private:
+            void *owner;
+            float freq;
+            ADSR env;
+            Note note;
+            uint8_t leftVol;
+            uint8_t rightVol;
+
+            uint8_t processLeftVol;
+            uint8_t processRightVol;
+            uint8_t processEnvelope;
     };
 
     class SoundMixer
@@ -86,8 +105,11 @@ namespace agbplay
         public:
             SoundMixer(uint32_t sampleRate);
             ~SoundMixer();
-            void NewChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch);
+            void NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch);
+            void NewCGBChannel(void *owner, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, uint8_t chn);
             void SetAllTrackPars(void *owner, uint8_t volLeft, uint8_t volRight, int16_t pitch);
+            void TickAllTrackNotes(void *owner);
+            void DelChannel(void *owner, uint8_t key);
             void *ProcessAndGetAudio();
             uint32_t GetBufferUnitCount();
 

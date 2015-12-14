@@ -115,12 +115,43 @@ void SoundChannel::SetPitch(int16_t pitch)
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel()
+CGBChannel::CGBChannel(void *owner, uint8_t *wavePtr, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
 {
+    // TODO
 }
 
 CGBChannel::~CGBChannel()
 {
+}
+
+void *CGBChannel::GetOwner()
+{
+    return owner;
+}
+
+float CGBChannel::GetFreq()
+{
+    return freq;
+}
+
+void CGBChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
+{
+    // TODO
+}
+
+uint8_t CGBChannel::GetVolL()
+{
+    return leftVol;
+}
+
+uint8_t CGBChannel::GetVolR()
+{
+    return rightVol;
+}
+
+void CGBChannel::SetPitch(int16_t pitch)
+{
+    // TODO
 }
 
 /*
@@ -139,7 +170,7 @@ SoundMixer::~SoundMixer()
 {
 }
 
-void SoundMixer::NewChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
+void SoundMixer::NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
 {
     sndChannels.emplace_back(owner, sInfo, env, note, leftVol, rightVol, pitch);
 }
@@ -152,6 +183,7 @@ void SoundMixer::SetAllTrackPars(void *owner, uint8_t leftVol, uint8_t rightVol,
             sc.SetPitch(pitch);
         }
     }
+    
 }
 
 void *SoundMixer::ProcessAndGetAudio()

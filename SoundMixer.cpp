@@ -20,6 +20,10 @@ ADSR::ADSR(uint8_t att, uint8_t dec, uint8_t sus, uint8_t rel)
 
 ADSR::ADSR()
 {
+    this->att = 0xFF;
+    this->dec = 0x00;
+    this->sus = 0xFF;
+    this->rel = 0xFF;
 }
 
 /*
@@ -64,6 +68,7 @@ SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, u
     this->note = note;
     this->env = env;
     this->sInfo = sInfo;
+    this->interPos = 0.0f;
     SetVol(leftVol, rightVol);
     this->processLeftVol = note.velocity * leftVol / 128;
     this->processRightVol = note.velocity * rightVol / 128;
@@ -115,13 +120,23 @@ void SoundChannel::SetPitch(int16_t pitch)
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel(void *owner, uint8_t *wavePtr, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
+CGBChannel::CGBChannel()
 {
-    // TODO
+    this->interPos = 0.0f;
+    this->owner = nullptr;
+    this->leftVol = 0;
+    this->rightVol = 0;
 }
 
 CGBChannel::~CGBChannel()
 {
+}
+
+void CGBChannel::Init(void *owner, Note note, ADSR env)
+{
+    this->owner = owner;
+    this->note = note;
+    this->env = env;
 }
 
 void *CGBChannel::GetOwner()
@@ -183,7 +198,6 @@ void SoundMixer::SetAllTrackPars(void *owner, uint8_t leftVol, uint8_t rightVol,
             sc.SetPitch(pitch);
         }
     }
-    
 }
 
 void *SoundMixer::ProcessAndGetAudio()

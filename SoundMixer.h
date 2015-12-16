@@ -14,6 +14,7 @@
 
 namespace agbplay
 {
+    enum class CGBType : int { SQ1, SQ2, WAVE, NOISE };
     struct ADSR
     {
         ADSR(uint8_t att, uint8_t dec, uint8_t sus, uint8_t rel);
@@ -77,8 +78,9 @@ namespace agbplay
     class CGBChannel
     {
         public: 
-            CGBChannel(void *owner, uint8_t *wavePtr, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch);
+            CGBChannel();
             ~CGBChannel();
+            void Init(void *owner, Note note, ADSR env);
             void *GetOwner();
             float GetFreq();
             void SetVol(uint8_t leftVol, uint8_t rightVol);

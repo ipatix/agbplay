@@ -1,5 +1,6 @@
 *.o
 *.gba
+*.sav
 DEBUG
 agbplay*
 sappy.txt

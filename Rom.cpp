@@ -1,5 +1,6 @@
 #include <string>
 #include <cstdio>
+#include <cstring>
 
 #include "AgbTypes.h"
 #include "Rom.h"
@@ -127,6 +128,14 @@ string Rom::ReadString(size_t limit)
     string result = string((const char *)&(*data)[(size_t)pos], limit);
     pos += limit;
     return result;
+}
+
+void Rom::ReadData(void *dest, size_t bytes)
+{
+    checkBounds(pos, bytes);
+    void *src = (void *)&(*data)[(size_t)pos];
+    memcpy(dest, src, bytes);
+    pos += (long)bytes;
 }
 
 void *Rom::GetPtr() 

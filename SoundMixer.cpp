@@ -23,7 +23,7 @@ ADSR::ADSR()
     this->att = 0xFF;
     this->dec = 0x00;
     this->sus = 0xFF;
-    this->rel = 0xFF;
+    this->rel = 0x00;
 }
 
 /*
@@ -74,11 +74,8 @@ SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, u
     this->processRightVol = note.velocity * rightVol / 128;
     SetPitch(pitch);
     // if instant attack is ative directly max out the envelope to not cut off initial sound
-    if (env.att == 0xFF) {
-        this->processEnvelope = 0xFF;
-    } else {
-        this->processEnvelope = 0;
-    }
+    this->processEnvelope = 0;
+    this->eState = EnvState::INIT;
 }
 
 SoundChannel::~SoundChannel()
@@ -120,12 +117,14 @@ void SoundChannel::SetPitch(int16_t pitch)
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel()
+CGBChannel::CGBChannel(CGBType t)
 {
+    this->cType = t;
     this->interPos = 0.0f;
     this->owner = nullptr;
     this->leftVol = 0;
     this->rightVol = 0;
+    this->eState = EnvState::SUS;
 }
 
 CGBChannel::~CGBChannel()
@@ -137,6 +136,7 @@ void CGBChannel::Init(void *owner, Note note, ADSR env)
     this->owner = owner;
     this->note = note;
     this->env = env;
+    this->eState = EnvState::INIT;
 }
 
 void *CGBChannel::GetOwner()

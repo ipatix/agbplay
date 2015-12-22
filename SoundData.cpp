@@ -10,6 +10,174 @@ using namespace agbplay;
 using namespace std;
 
 /*
+ * public SoundBank
+ */
+
+class SoundBank
+{
+    SoundBank(Rom& rom, long bankPos) : rom(rom)
+    {
+        this->bankPos = bankPos;
+    }
+
+    ~SoundBank()
+    {
+    }
+
+    InstrType GetInstrType(uint8_t instr, uint8_t midiKey)
+    {
+        rom.Seek(pos + instr * 12);
+        struct Instrument *instr = rom.GetPtr();
+        switch(instr->instrType) {
+            case 0x0:
+                return InstrType::PCM;
+            case 0x1:
+                return InstrType::SQ1;
+            case 0x2:
+                return InstrType::SQ2;
+            case 0x3:
+                return InstrType::WAVE;
+            case 0x4:
+                return InstrType::NOISE;
+            case 0x8:
+                return InstrType::PCM_FIXED;
+            case 0x9:
+                return InstrType::SQ1;
+            case 0xA:
+                return InstrType::SQ2;
+            case 0xB:
+                return InstrType::WAVE;
+            case 0xC:
+                return InstrType::NOISE;
+            case 0x40:
+                {
+                }
+                break;
+            case 0x80:
+                {
+                }
+                break;
+            default:
+                throw MyException("Invalid Instrument Type detected");
+        }
+        
+    }
+
+    uint8_t GetMidiKey(uint8_t instr, uint8_t midiKey)
+    {
+
+    }
+
+    uint8_t GetPan(uint8_t instr, uint8_t midiKey)
+    {
+
+    }
+
+    int8_t *GetSamplePtr(uint8_t instr, uint8_t midiKey)
+    {
+
+    }
+
+    uint8_t *GetWavePtr(uint8_t instr, uint8_t midiKey)
+    {
+
+    }
+}
+
+/*
+ * public Sequence
+ */
+
+Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom& rom) : rom(rom)
+{
+    // read song header
+    this->songHeader = songHeader;
+    rom.Seek(songHeader);
+    uint8_t nTracks = min(rom.ReadUInt8(), trackLimit);
+    blocks = rom.ReadUInt8();
+    prio = rom.ReadUInt8();
+    reverb = rom.ReadUInt8();
+
+    // voicegroup
+    soundBank = rom.AGBPtrToPos(rom.ReadUInt32());
+
+    // read track pointer
+    tracks.clear();
+    for (uint8_t i = 0; i < nTracks; i++) 
+    {
+        rom.Seek(songHeader + 8 + 4 * i);
+        tracks.push_back(Track(rom.ReadAGBPtrToPos()));
+    }
+    dcont = DisplayContainer(nTracks);
+
+    // reset runtime variables
+    bpmStack = 0;
+    bpm = 120;
+}
+
+Sequence::~Sequence() 
+{
+
+}
+
+DisplayContainer& Sequence::GetUpdatedDisp()
+{
+    for (uint32_t i = 0; i < tracks.size(); i++) 
+    {
+        dcont.data[i].trackPtr = (uint32_t) tracks[i].pos;
+        dcont.data[i].isCalling = (tracks[i].retStackPos == 0) ? true : false;
+        dcont.data[i].isMuted = tracks[i].muted;
+        dcont.data[i].vol = tracks[i].vol;
+        dcont.data[i].mod = tracks[i].mod;
+        dcont.data[i].prog = tracks[i].prog;
+        dcont.data[i].pan = tracks[i].pan;
+        dcont.data[i].pitch = int16_t(tracks[i].bendr * tracks[i].bend + tracks[i].tune * 2);
+        dcont.data[i].envL = 0; // FIXME do proper volume scale updating
+        dcont.data[i].envR = 0;
+        dcont.data[i].delay = uint8_t((tracks[i].delay < 0) ? 0 : tracks[i].delay);
+        // TODO do active notes updates
+    }
+    return dcont;
+}
+
+Rom& Sequence::getRom()
+{
+    return rom;
+}
+
+long Sequence::getSndBnk()
+{
+    return soundBank;
+}
+
+/*
+ * public
+ * Track
+ */
+
+Sequence::Track::Track(long pos) 
+{
+    this->pos = pos;
+    retStack[0] = retStack[1] = retStack[2] = patBegin = 0;
+    prog = PROG_UNDEFINED;
+    vol = 100;
+    delay = mod = reptCount = retStackPos = 0;
+    pan = bend = tune = keyShift = 0;
+    muted = false;
+    isRunning = true;
+}
+
+Sequence::Track::~Track() 
+{
+}
+
+int16_t Sequence::Track::GetPitch()
+{
+    // TODO implement pitch MOD handling
+    return bend * bendr + tune * 2;
+}
+
+/*
  * public
  * SongTable
  */
@@ -137,100 +305,6 @@ unsigned short SongTable::determineNumSongs()
         pos += 8;
     }
     return count;
-}
-
-/*
- * public
- * Sequence
- */
-
-Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom& rom) : rom(rom)
-{
-    // read song header
-    this->songHeader = songHeader;
-    rom.Seek(songHeader);
-    uint8_t nTracks = min(rom.ReadUInt8(), trackLimit);
-    blocks = rom.ReadUInt8();
-    prio = rom.ReadUInt8();
-    reverb = rom.ReadUInt8();
-
-    // voicegroup
-    soundBank = rom.AGBPtrToPos(rom.ReadUInt32());
-
-    // read track pointer
-    tracks.clear();
-    for (uint8_t i = 0; i < nTracks; i++) 
-    {
-        rom.Seek(songHeader + 8 + 4 * i);
-        tracks.push_back(Track(rom.ReadAGBPtrToPos()));
-    }
-    dcont = DisplayContainer(nTracks);
-
-    // reset runtime variables
-    bpmStack = 0;
-    bpm = 120;
-}
-
-Sequence::~Sequence() 
-{
-
-}
-
-DisplayContainer& Sequence::GetUpdatedDisp()
-{
-    for (uint32_t i = 0; i < tracks.size(); i++) 
-    {
-        dcont.data[i].trackPtr = (uint32_t) tracks[i].pos;
-        dcont.data[i].isCalling = (tracks[i].retStackPos == 0) ? true : false;
-        dcont.data[i].isMuted = tracks[i].muted;
-        dcont.data[i].vol = tracks[i].vol;
-        dcont.data[i].mod = tracks[i].mod;
-        dcont.data[i].prog = tracks[i].prog;
-        dcont.data[i].pan = tracks[i].pan;
-        dcont.data[i].pitch = int16_t(tracks[i].bendr * tracks[i].bend + tracks[i].tune * 2);
-        dcont.data[i].envL = 0; // FIXME do proper volume scale updating
-        dcont.data[i].envR = 0;
-        dcont.data[i].delay = uint8_t((tracks[i].delay < 0) ? 0 : tracks[i].delay);
-        // TODO do active notes updates
-    }
-    return dcont;
-}
-
-Rom& Sequence::getRom()
-{
-    return rom;
-}
-
-long Sequence::getSndBnk()
-{
-    return soundBank;
-}
-
-/*
- * public
- * Track
- */
-
-Sequence::Track::Track(long pos) 
-{
-    this->pos = pos;
-    retStack[0] = retStack[1] = retStack[2] = patBegin = 0;
-    prog = PROG_UNDEFINED;
-    vol = 100;
-    delay = mod = reptCount = retStackPos = 0;
-    pan = bend = tune = keyShift = 0;
-    muted = false;
-    isRunning = true;
-}
-
-Sequence::Track::~Track() 
-{
-}
-
-int16_t Sequence::Track::GetPitch()
-{
-    // TODO implement pitch MOD handling
-    return bend * bendr + tune * 2;
 }
 
 /*

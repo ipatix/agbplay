@@ -13,81 +13,80 @@ using namespace std;
  * public SoundBank
  */
 
-class SoundBank
+SoundBank::SoundBank(Rom& rom, long bankPos) : rom(rom)
 {
-    SoundBank(Rom& rom, long bankPos) : rom(rom)
-    {
-        this->bankPos = bankPos;
-    }
+    this->bankPos = bankPos;
+}
 
-    ~SoundBank()
-    {
-    }
+SoundBank::~SoundBank()
+{
+}
 
-    InstrType GetInstrType(uint8_t instr, uint8_t midiKey)
-    {
-        rom.Seek(pos + instr * 12);
-        struct Instrument *instr = rom.GetPtr();
+InstrType SoundBank::GetInstrType(uint8_t instrNum, uint8_t midiKey)
+{
+    rom.Seek(bankPos + instrNum * 12);
+    auto instr = (struct Instrument *)rom.GetPtr();
 
-        InstrType lookup(uint8_t key) {
-            case 0x0:
-                return InstrType::PCM;
-            case 0x1:
-                return InstrType::SQ1;
-            case 0x2:
-                return InstrType::SQ2;
-            case 0x3:
-                return InstrType::WAVE;
-            case 0x4:
-                return InstrType::NOISE;
-            case 0x8:
-                return InstrType::PCM_FIXED;
-            case 0x9:
-                return InstrType::SQ1;
-            case 0xA:
-                return InstrType::SQ2;
-            case 0xB:
-                return InstrType::WAVE;
-            case 0xC:
-                return InstrType::NOISE;
-            default:
-                return InstrType::INVALID;
+    auto lookup = [](uint8_t key) {
+        switch (key) {
+        case 0x0:
+            return InstrType::PCM;
+        case 0x1:
+            return InstrType::SQ1;
+        case 0x2:
+            return InstrType::SQ2;
+        case 0x3:
+            return InstrType::WAVE;
+        case 0x4:
+            return InstrType::NOISE;
+        case 0x8:
+            return InstrType::PCM_FIXED;
+        case 0x9:
+            return InstrType::SQ1;
+        case 0xA:
+            return InstrType::SQ2;
+        case 0xB:
+            return InstrType::WAVE;
+        case 0xC:
+            return InstrType::NOISE;
+        default:
+            return InstrType::INVALID;
         }
+    };
 
-        if (instr->instrType == 0x40) {
-            rom.SeekAGBPtr(instr->field_8.instrMap + midiKey);
-            uint8_t mappedInstr = rom.ReadUInt8();
-            rom.SeekAGBPtr(instr->field_4.subTable + mappedInstr * 12);
-            struct Instrument *subInstr = rom.GetPtr();
-            return lookup(subInstr->instrType);
-        } else if (instr->instrType == 0x80) {
-            rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
-            struct Instrument *subInstr = rom.GetPtr();
-            return lookup(subInstr->instrType);
-        } else {
-            return lookup(instr->instrType);
-        }
+    if (instr->instrType == 0x40) {
+        rom.SeekAGBPtr(instr->field_8.instrMap + midiKey);
+        uint8_t mappedInstr = rom.ReadUInt8();
+        rom.SeekAGBPtr(instr->field_4.subTable + mappedInstr * 12);
+        auto subInstr = (struct Instrument *)rom.GetPtr();
+        return lookup(subInstr->instrType);
+    } else if (instr->instrType == 0x80) {
+        rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
+        auto subInstr = (struct Instrument *)rom.GetPtr();
+        return lookup(subInstr->instrType);
+    } else {
+        return lookup(instr->instrType);
     }
+}
 
-    uint8_t GetMidiKey(uint8_t instr, uint8_t midiKey)
-    {
+uint8_t SoundBank::GetMidiKey(uint8_t instr, uint8_t midiKey)
+{
 
-    }
+}
 
-    uint8_t GetPan(uint8_t instr, uint8_t midiKey)
-    {
+uint8_t SoundBank::GetPan(uint8_t instr, uint8_t midiKey)
+{
 
-    }
+}
 
-    int8_t *GetSamplePtr(uint8_t instr, uint8_t midiKey)
-    {
+int8_t *SoundBank::GetSamplePtr(uint8_t instr, uint8_t midiKey)
+{
 
-    }
+}
 
-    uint8_t *GetWavePtr(uint8_t instr, uint8_t midiKey)
-    {
+uint8_t *SoundBank::GetWavePtr(uint8_t instr, uint8_t midiKey)
+{
 
-    }
 }
 
 /*

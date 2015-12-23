@@ -26,9 +26,9 @@ namespace agbplay
                 uint8_t instrType;
                 uint8_t midiKey;
                 uint8_t hardwareLength; // unsupported
-                union { uint8_t pan, uint8_t sweep } field_3;
-                union { uint8_t dutyCycle, agbptr_t wave, agbptr_t samplePtr, agbptr_t subTable } field_4;
-                union { agbptr_t instrMap, struct { uint8_t atk, dec, sus, rel } env } field_8;
+                union { uint8_t pan; uint8_t sweep; } field_3;
+                union { uint8_t dutyCycle; agbptr_t wave; agbptr_t samplePtr; agbptr_t subTable; } field_4;
+                union { agbptr_t instrMap; struct { uint8_t atk, dec, sus, rel; } env; } field_8;
             };
             Rom rom;
             long bankPos;

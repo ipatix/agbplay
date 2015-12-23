@@ -1,4 +1,5 @@
 #include <cstring>
+#include <cassert>
 #include <algorithm>
 
 #include "AgbTypes.h"
@@ -25,7 +26,7 @@ SoundBank::~SoundBank()
 InstrType SoundBank::GetInstrType(uint8_t instrNum, uint8_t midiKey)
 {
     rom.Seek(bankPos + instrNum * 12);
-    auto instr = (struct Instrument *)rom.GetPtr();
+    auto instr = (Instrument *)rom.GetPtr();
 
     auto lookup = [](uint8_t key) {
         switch (key) {
@@ -54,39 +55,127 @@ InstrType SoundBank::GetInstrType(uint8_t instrNum, uint8_t midiKey)
         }
     };
 
-    if (instr->instrType == 0x40) {
+    if (instr->type == 0x40) {
         rom.SeekAGBPtr(instr->field_8.instrMap + midiKey);
         uint8_t mappedInstr = rom.ReadUInt8();
         rom.SeekAGBPtr(instr->field_4.subTable + mappedInstr * 12);
-        auto subInstr = (struct Instrument *)rom.GetPtr();
-        return lookup(subInstr->instrType);
-    } else if (instr->instrType == 0x80) {
+        auto subInstr = (Instrument *)rom.GetPtr();
+        return lookup(subInstr->type);
+    } else if (instr->type == 0x80) {
         rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
-        auto subInstr = (struct Instrument *)rom.GetPtr();
-        return lookup(subInstr->instrType);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        return lookup(subInstr->type);
     } else {
-        return lookup(instr->instrType);
+        return lookup(instr->type);
     }
 }
 
-uint8_t SoundBank::GetMidiKey(uint8_t instr, uint8_t midiKey)
+uint8_t SoundBank::GetMidiKey(uint8_t instrNum, uint8_t midiKey)
 {
-
+    rom.Seek(bankPos + instrNum * 12);
+    auto instr = (Instrument *)rom.GetPtr();
+    if (instr->type == 0x80) {
+        rom.Seek(bankPos + midiKey * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        return subInstr->midiKey;
+    } else {
+        return midiKey;
+    }
+    return 0;
 }
 
-uint8_t SoundBank::GetPan(uint8_t instr, uint8_t midiKey)
+uint8_t SoundBank::GetPan(uint8_t instrNum, uint8_t midiKey)
 {
-
+    rom.Seek(bankPos + instrNum * 12);
+    auto instr = (Instrument *)rom.GetPtr();
+    if (instr->type == 0x40) {
+        rom.SeekAGBPtr(instr->field_8.instrMap + midiKey);
+        uint8_t mappedInstr = rom.ReadUInt8();
+        rom.SeekAGBPtr(instr->field_4.subTable + mappedInstr * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        assert(subInstr->type == 0x0 || subInstr->type == 0x8);
+        return subInstr->field_3.pan;
+    } else if (instr->type == 0x80) {
+        rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        assert(subInstr->type == 0x0 || subInstr->type == 0x8);
+        return subInstr->field_3.pan;
+    } else {
+        assert(instr->type == 0x0 || instr->type == 0x8);
+        return instr->field_3.pan;
+    }
 }
 
-int8_t *SoundBank::GetSamplePtr(uint8_t instr, uint8_t midiKey)
+uint8_t SoundBank::GetSweep(uint8_t instrNum, uint8_t midiKey)
 {
-
+    rom.Seek(bankPos + instrNum * 12);
+    auto instr = (Instrument *)rom.GetPtr();
+    if (instr->type == 0x40) {
+        rom.SeekAGBPtr(instr->field_8.instrMap + midiKey);
+        uint8_t mappedInstr = rom.ReadUInt8();
+        rom.SeekAGBPtr(instr->field_4.subTable + mappedInstr * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        assert(subInstr->type == 0x1 || subInstr->type == 0x9);
+        return subInstr->field_3.sweep;
+    } else if (instr->type == 0x80) {
+        rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        assert(subInstr->type == 0x1 || subInstr->type == 0x9);
+        return subInstr->field_3.sweep;
+    } else {
+        assert(instr->type == 0x1 || instr->type == 0x9);
+        return instr->field_3.sweep;
+    }
 }
 
-uint8_t *SoundBank::GetWavePtr(uint8_t instr, uint8_t midiKey)
+int8_t *SoundBank::GetSamplePtr(uint8_t instrNum, uint8_t midiKey)
 {
+    rom.Seek(bankPos + instrNum * 12);
+    auto instr = (Instrument *)rom.GetPtr();
+    if (instr->type == 0x40) {
+        rom.SeekAGBPtr(instr->field_8.instrMap + midiKey);
+        uint8_t mappedInstr = rom.ReadUInt8();
+        rom.SeekAGBPtr(instr->field_4.subTable + mappedInstr * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        assert(subInstr->type == 0x0 || subInstr->type == 0x8);
+        rom.SeekAGBPtr(subInstr->field_4.samplePtr);
+        return (int8_t *)rom.GetPtr();
+    } else if (instr->type == 0x80) {
+        rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        assert(subInstr->type == 0x0 || subInstr->type == 0x8);
+        rom.SeekAGBPtr(subInstr->field_4.samplePtr);
+        return (int8_t *)rom.GetPtr();
+    } else {
+        assert(instr->type == 0x0 || instr->type == 0x8);
+        rom.SeekAGBPtr(instr->field_4.samplePtr);
+        return (int8_t *)rom.GetPtr();
+    }
+}
 
+uint8_t *SoundBank::GetWavePtr(uint8_t instrNum, uint8_t midiKey)
+{
+    rom.Seek(bankPos + instrNum * 12);
+    auto instr = (Instrument *)rom.GetPtr();
+    if (instr->type == 0x40) {
+        rom.SeekAGBPtr(instr->field_8.instrMap + midiKey);
+        uint8_t mappedInstr = rom.ReadUInt8();
+        rom.SeekAGBPtr(instr->field_4.subTable + mappedInstr * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        assert(subInstr->type == 0x3 || subInstr->type == 0xB);
+        rom.SeekAGBPtr(subInstr->field_4.wavePtr);
+        return (uint8_t *)rom.GetPtr();
+    } else if (instr->type == 0x80) {
+        rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        assert(subInstr->type == 0x3 || subInstr->type == 0xB);
+        rom.SeekAGBPtr(subInstr->field_4.wavePtr);
+        return (uint8_t *)rom.GetPtr();
+    } else {
+        assert(instr->type == 0x3 || instr->type == 0xB);
+        rom.SeekAGBPtr(instr->field_4.wavePtr);
+        return (uint8_t *)rom.GetPtr();
+    }
 }
 
 /*

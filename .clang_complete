@@ -1,1 +1,2 @@
 -I../portaudio/include
+-std=c++0x

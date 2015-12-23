@@ -173,7 +173,7 @@ void CGBChannel::SetPitch(int16_t pitch)
  * public SoundMixer
  */
 
-SoundMixer::SoundMixer(uint32_t sampleRate)
+SoundMixer::SoundMixer(uint32_t sampleRate) : sq1(CGBType::SQ1), sq2(CGBType::SQ2), wave(CGBType::WAVE), noise(CGBType::NOISE)
 {
     this->sampleRate = sampleRate;
     this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
@@ -190,7 +190,18 @@ void SoundMixer::NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note n
     sndChannels.emplace_back(owner, sInfo, env, note, leftVol, rightVol, pitch);
 }
 
-void SoundMixer::SetAllTrackPars(void *owner, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
+void SoundMixer::NewCGBNote(void *owner, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, uint8_t chn)
+{
+    CGBChannel& nChn = sq1;
+    switch (chn) {
+        case 1: nChn = sq1; break;
+        case 2: nChn = sq2; break;
+        case 3: nChn = wave; break;
+        case 4: nChn = noise; break;
+    }
+}
+
+void SoundMixer::SetTrackPV(void *owner, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
 {
     for (SoundChannel& sc : sndChannels) {
         if (sc.GetOwner() == owner) {
@@ -198,6 +209,16 @@ void SoundMixer::SetAllTrackPars(void *owner, uint8_t leftVol, uint8_t rightVol,
             sc.SetPitch(pitch);
         }
     }
+}
+
+void SoundMixer::TickAllNotes()
+{
+    // TODO
+}
+
+void SoundMixer::StopChannel(void *owner, uint8_t key)
+{
+    // TODO
 }
 
 void *SoundMixer::ProcessAndGetAudio()

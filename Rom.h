@@ -20,8 +20,8 @@ namespace agbplay {
             long AGBPtrToPos(agbptr_t ptr);
             int8_t ReadInt8();
             uint8_t ReadUInt8();
-            int8_t PeekInt8();
-            uint8_t PeekUInt8();
+            int8_t PeekInt8(int offset);
+            uint8_t PeekUInt8(int offset);
             int16_t ReadInt16();
             uint16_t ReadUInt16();
             int32_t ReadInt32();

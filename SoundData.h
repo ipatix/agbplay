@@ -16,18 +16,19 @@ namespace agbplay
             SoundBank(Rom& rom, long bankPos);
             ~SoundBank();
 
-            InstrType GetInstrType(uint8_t instr, uint8_t midiKey);
-            uint8_t GetMidiKey(uint8_t instr, uint8_t midiKey);
-            uint8_t GetPan(uint8_t instr, uint8_t midiKey);
-            int8_t *GetSamplePtr(uint8_t instr, uint8_t midiKey);
-            uint8_t *GetWavePtr(uint8_t instr, uint8_t midiKey);
+            InstrType GetInstrType(uint8_t instrNum, uint8_t midiKey);
+            uint8_t GetMidiKey(uint8_t instrNum, uint8_t midiKey);
+            uint8_t GetPan(uint8_t instrNum, uint8_t midiKey);
+            uint8_t GetSweep(uint8_t instrNum, uint8_t midiKey);
+            int8_t *GetSamplePtr(uint8_t instrNum, uint8_t midiKey);
+            uint8_t *GetWavePtr(uint8_t instrNum, uint8_t midiKey);
         private:
             struct Instrument {
-                uint8_t instrType;
+                uint8_t type;
                 uint8_t midiKey;
                 uint8_t hardwareLength; // unsupported
                 union { uint8_t pan; uint8_t sweep; } field_3;
-                union { uint8_t dutyCycle; agbptr_t wave; agbptr_t samplePtr; agbptr_t subTable; } field_4;
+                union { uint8_t dutyCycle; agbptr_t wavePtr; agbptr_t samplePtr; agbptr_t subTable; } field_4;
                 union { agbptr_t instrMap; struct { uint8_t atk, dec, sus, rel; } env; } field_8;
             };
             Rom rom;
@@ -56,7 +57,7 @@ namespace agbplay
                 LEvent lastEvent;
                 uint8_t lastNoteKey;
                 uint8_t lastNoteVel;
-                uint8_t lastNoteDel;
+                int8_t lastNoteLen;
                 uint8_t retStackPos;
                 uint8_t reptCount;
                 uint8_t prog;

@@ -73,14 +73,14 @@ uint8_t Rom::ReadUInt8()
     return result;
 }
 
-int8_t Rom::PeekInt8()
+int8_t Rom::PeekInt8(int offset)
 {
-    return *(int8_t *)&(*data)[(size_t)pos];
+    return *(int8_t *)&(*data)[size_t(pos + offset)];
 }
 
-uint8_t Rom::PeekUInt8()
+uint8_t Rom::PeekUInt8(int offset)
 {
-    return *(uint8_t *)&(*data)[(size_t)pos];
+    return *(uint8_t *)&(*data)[size_t(pos + offset)];
 }
 
 int16_t Rom::ReadInt16() 

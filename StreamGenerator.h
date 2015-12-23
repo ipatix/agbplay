@@ -32,10 +32,12 @@ namespace agbplay
 
         private:
             Sequence& seq;
+            SoundBank sbnk;
             EnginePars ep;
             SoundMixer sm;
 
             void processSequenceFrame();
             void processSequenceTick();
+            void playNote(Note note, void *owner);
     };
 }

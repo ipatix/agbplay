@@ -28,7 +28,8 @@ class SoundBank
     {
         rom.Seek(pos + instr * 12);
         struct Instrument *instr = rom.GetPtr();
-        switch(instr->instrType) {
+
+        InstrType lookup(uint8_t key) {
             case 0x0:
                 return InstrType::PCM;
             case 0x1:
@@ -49,18 +50,23 @@ class SoundBank
                 return InstrType::WAVE;
             case 0xC:
                 return InstrType::NOISE;
-            case 0x40:
-                {
-                }
-                break;
-            case 0x80:
-                {
-                }
-                break;
             default:
-                throw MyException("Invalid Instrument Type detected");
+                return InstrType::INVALID;
         }
-        
+
+        if (instr->instrType == 0x40) {
+            rom.SeekAGBPtr(instr->field_8.instrMap + midiKey);
+            uint8_t mappedInstr = rom.ReadUInt8();
+            rom.SeekAGBPtr(instr->field_4.subTable + mappedInstr * 12);
+            struct Instrument *subInstr = rom.GetPtr();
+            return lookup(subInstr->instrType);
+        } else if (instr->instrType == 0x80) {
+            rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
+            struct Instrument *subInstr = rom.GetPtr();
+            return lookup(subInstr->instrType);
+        } else {
+            return lookup(instr->instrType);
+        }
     }
 
     uint8_t GetMidiKey(uint8_t instr, uint8_t midiKey)
@@ -247,7 +253,7 @@ bool SongTable::validateTableEntry(long pos)
     }
     // check if the song groups are set appropriately
     rom.Seek(pos + 4);
-    
+
     uint8_t g1 = rom.ReadUInt8();
     uint8_t z1 = rom.ReadUInt8();
     uint8_t g2 = rom.ReadUInt8();

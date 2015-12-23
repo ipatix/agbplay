@@ -9,7 +9,7 @@
 
 namespace agbplay 
 {
-    enum class InstrType : int { PCM, PCM_FIXED, SQ1, SQ2, WAVE, NOISE };
+    enum class InstrType : int { PCM, PCM_FIXED, SQ1, SQ2, WAVE, NOISE, INVALID };
     class SoundBank
     {
         public:
@@ -27,8 +27,8 @@ namespace agbplay
                 uint8_t midiKey;
                 uint8_t hardwareLength; // unsupported
                 union { uint8_t pan, uint8_t sweep } field_3;
-                union { uint8_t dutyCycle, agbptr_t wave, agbptr_t samplePtr, agbptr_t subTable };
-                union { agbptr_t instrMap, struct { uint8_t atk, dec, sus, rel } env };
+                union { uint8_t dutyCycle, agbptr_t wave, agbptr_t samplePtr, agbptr_t subTable } field_4;
+                union { agbptr_t instrMap, struct { uint8_t atk, dec, sus, rel } env } field_8;
             };
             Rom rom;
             long bankPos;

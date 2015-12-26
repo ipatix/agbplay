@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "StreamGenerator.h"
 #include "MyException.h"
 
@@ -23,7 +25,7 @@ EnginePars::EnginePars()
  * public StreamGenerator
  */
 
-const std::map<uint8_t, int8_t> StreamGenerator::delayLut = {
+const map<uint8_t, int8_t> StreamGenerator::delayLut = {
     {0x81,1 }, {0x82,2 }, {0x83,3 }, {0x84,4 }, {0x85,5 }, {0x86,6 }, {0x87,7 }, {0x88,8 },
     {0x89,9 }, {0x8A,10}, {0x8B,11}, {0x8C,12}, {0x8D,13}, {0x8E,14}, {0x8F,15}, {0x90,16},
     {0x91,17}, {0x92,18}, {0x93,19}, {0x94,20}, {0x95,21}, {0x96,22}, {0x97,23}, {0x98,24},
@@ -32,7 +34,7 @@ const std::map<uint8_t, int8_t> StreamGenerator::delayLut = {
     {0xA9,76}, {0xAA,78}, {0xAB,80}, {0xAC,84}, {0xAD,88}, {0xAE,90}, {0xAF,92}, {0xB0,96}
 };
 
-const std::map<uint8_t, int8_t> StreamGenerator::noteLut = {
+const map<uint8_t, int8_t> StreamGenerator::noteLut = {
     {0xD0,1 }, {0xD1,2 }, {0xD2,3 }, {0xD3,4 }, {0xD4,5 }, {0xD5,6 }, {0xD6,7 }, {0xD7,8 },
     {0xD8,9 }, {0xD9,10}, {0xDA,11}, {0xDB,12}, {0xDC,13}, {0xDD,14}, {0xDE,15}, {0xDF,16},
     {0xE0,17}, {0xE1,18}, {0xE2,19}, {0xE3,20}, {0xE4,21}, {0xE5,22}, {0xE6,23}, {0xE7,24},
@@ -40,8 +42,6 @@ const std::map<uint8_t, int8_t> StreamGenerator::noteLut = {
     {0xF0,52}, {0xF1,52}, {0xF2,56}, {0xF3,60}, {0xF4,64}, {0xF5,66}, {0xF6,68}, {0xF7,72},
     {0xF8,76}, {0xF9,78}, {0xFA,80}, {0xFB,84}, {0xFC,88}, {0xFD,90}, {0xFE,92}, {0xFF,96}
 };
-
-
 
 StreamGenerator::StreamGenerator(Sequence& seq, uint32_t outSampleRate, EnginePars ep) : seq(seq), sm(outSampleRate), sbnk(seq.getRom(), seq.getSndBnk())
 {
@@ -80,6 +80,7 @@ void StreamGenerator::processSequenceTick()
 {
     Rom& reader = seq.getRom();
     // process all tracks
+    // TODO do some handling for the song finishing
     for (Sequence::Track& cTrk : seq.tracks) {
         if (!cTrk.isRunning)
             continue;
@@ -87,31 +88,49 @@ void StreamGenerator::processSequenceTick()
         reader.Seek(cTrk.pos);
 
         // count down last delay and process
+        bool updatePV = false;
         if (--cTrk.delay <= 0) {
-            bool updatePV = false;
             while (true) {
                 uint8_t cmd = reader.ReadUInt8();
                 if (cmd <= 0x7F) {
                     switch (cTrk.lastEvent) {
                         case LEvent::NONE:
+                            cTrk.pos += 1;
                             break;
                         case LEvent::VOL:    
                             cTrk.vol = cmd;
+                            cTrk.pos += 1;
                             break;
                         case LEvent::PAN:
                             cTrk.pan = int8_t(cmd - 0x40);
+                            cTrk.pos += 1;
                             break;
                         case LEvent::BEND:
-                            cTrk.bend = int8_t(cmd - 0x40); 
+                            cTrk.bend = int8_t(cmd - 0x40);
+                            cTrk.pos += 1;
                             break;
                         case LEvent::BENDR:
                             cTrk.bendr = cmd;
+                            cTrk.pos += 1;
                             break;
                         case LEvent::MOD:
                             cTrk.mod = cmd;
+                            cTrk.pos += 1;
                             break;
                         case LEvent::TUNE:
                             cTrk.tune = int8_t(cmd - 0x40);
+                            cTrk.pos += 1;
+                            break;
+                        case LEvent::XCMD: 
+                            {
+                                uint8_t arg = reader.ReadUInt8();
+                                if (cmd == 0x8) {
+                                    cTrk.echoVol = arg;
+                                } else if (cmd == 0x9) {
+                                    cTrk.echoLen = arg;
+                                }
+                                cTrk.pos += 2;
+                            }
                             break;
                         case LEvent::NOTE:
                             if (reader.PeekInt8(0) >= 0) {
@@ -256,6 +275,7 @@ void StreamGenerator::processSequenceTick()
                                 case 2: cTrk.modt = MODT::PAN; break;
                                 default: cTrk.modt = MODT::PITCH; break;
                             }
+                            cTrk.pos += 2;
                             break;
                         case 0xC8:
                             // TUNE
@@ -264,10 +284,24 @@ void StreamGenerator::processSequenceTick()
                             cTrk.pos += 2;
                             updatePV = true;
                             break;
+                        case 0xCD:
+                            // XCMD
+                            {
+                                uint8_t type = reader.ReadUInt8();
+                                uint8_t arg = reader.ReadUInt8();
+                                if (type == 0x8) {
+                                    cTrk.echoVol = arg;
+                                } else if (type == 0x9) {
+                                    cTrk.echoLen = arg;
+                                }
+                                cTrk.pos += 3;
+                            }
+                            break;
                         case 0xCE:
                             // EOT
                             cTrk.lastEvent = LEvent::EOT;
                             sm.StopChannel(&cTrk, reader.ReadUInt8());
+                            cTrk.pos += 2;
                             break;
                         case 0xCF:
                             // TIE
@@ -292,7 +326,9 @@ void StreamGenerator::processSequenceTick()
                                 cTrk.pos += 1;
                             }
                             break;
-                    }
+                        default:
+                            throw MyException(string("unsupported command (decimal): ") + to_string(cmd));
+                    } // end main cmd switch
                 } else {
                     int8_t len = cTrk.lastNoteLen = noteLut.at(cmd);
                     if (reader.PeekInt8(0) >= 0) {
@@ -326,10 +362,14 @@ void StreamGenerator::processSequenceTick()
                     }
                 }
             } // end of processing loop
-            if (updatePV) {
-                // TODO update volume and pitch for track
-            }
+        } // end of single tick processing handler
+        if (updatePV || cTrk.mod > 0) {
+            sm.SetTrackPV((void *)&cTrk, 
+                    cTrk.GetLeftVol(),
+                    cTrk.GetRightVol(),
+                    cTrk.GetPitch());
         }
+        // TODO insert some modulation updater here
     } // end of track iteration
 } // end processSequenceTick
 

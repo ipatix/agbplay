@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "Rom.h"
 #include "DisplayContainer.h"
 
@@ -36,7 +38,7 @@ namespace agbplay
     };
 
     enum class MODT : int { PITCH = 0, VOL, PAN };
-    enum class LEvent : int { NONE = 0, VOL, PAN, BEND, BENDR, MOD, TUNE, NOTE, TIE, EOT };
+    enum class LEvent : int { NONE = 0, VOL, PAN, BEND, BENDR, MOD, TUNE, XCMD, NOTE, TIE, EOT };
     class Sequence 
     {
         public:
@@ -49,33 +51,28 @@ namespace agbplay
                 Track(long pos);
                 ~Track();
                 int16_t GetPitch();
+                uint8_t GetLeftVol();
+                uint8_t GetRightVol();
 
                 long pos;
                 long retStack[MAX_TRK_CALL];
                 long patBegin;
                 MODT modt;
                 LEvent lastEvent;
-                uint8_t lastNoteKey;
-                uint8_t lastNoteVel;
+                uint8_t lastNoteKey, lastNoteVel;
                 int8_t lastNoteLen;
-                uint8_t retStackPos;
-                uint8_t reptCount;
-                uint8_t prog;
-                uint8_t vol;
-                uint8_t mod;
-                uint8_t bendr;
-                uint8_t lfos;
-                uint8_t lfodl;
-                uint8_t lfodlCount;
+                uint8_t retStackPos, reptCount;
+                uint8_t prog, vol, mod, bendr;
+                uint8_t lfos, lfodl, lfodlCount, lfoPhase;
+                uint8_t echoVol, echoLen;
                 int8_t delay;
-                int8_t pan;
-                int8_t bend;
-                int8_t tune;
+                int8_t pan, bend, tune;
                 int8_t keyShift;
                 bool muted;
                 bool isRunning;
             }; // end Track
 
+            static const std::vector<int16_t> sineLut;
             std::vector<Track> tracks;
             // processing variables
             int32_t bpmStack;

@@ -70,11 +70,8 @@ SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, u
     this->sInfo = sInfo;
     this->interPos = 0.0f;
     SetVol(leftVol, rightVol);
-    this->processLeftVol = note.velocity * leftVol / 128;
-    this->processRightVol = note.velocity * rightVol / 128;
     SetPitch(pitch);
     // if instant attack is ative directly max out the envelope to not cut off initial sound
-    this->processEnvelope = 0;
     this->eState = EnvState::INIT;
 }
 
@@ -94,8 +91,8 @@ float SoundChannel::GetFreq()
 
 void SoundChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
 {
-    this->leftVol = uint8_t(note.velocity * leftVol / 128);
-    this->rightVol = uint8_t(note.velocity * rightVol / 128);
+    this->leftVol = note.velocity * leftVol / 128;
+    this->rightVol = note.velocity * rightVol / 128;
 }
 
 uint8_t SoundChannel::GetVolL()

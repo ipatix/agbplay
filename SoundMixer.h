@@ -68,13 +68,13 @@ namespace agbplay
             EnvState eState;
             uint8_t leftVol;
             uint8_t rightVol;
+            uint8_t envLevel;
 
             // do not touch these values, the mixing engine cares about these
             // they are used for the volume change micro ramping
             // the mixer will fade the values of process* over to the according values
             uint8_t processLeftVol;
             uint8_t processRightVol;
-            uint8_t processEnvelope;
     };
 
     class CGBChannel

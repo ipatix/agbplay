@@ -6,6 +6,7 @@ IMPORT = -I ../portaudio/include
 
 GREEN = \033[1;32m
 RED = \033[1;31m
+BROWN = \033[0;33m
 WHITE = \033[1;37m
 NCOL = \033[0m
 
@@ -17,7 +18,8 @@ all: $(BINARY)
 
 .PHONY: clean
 clean:
-	rm -f $(OBJ_FILES)
+	@echo "[$(BROWN)Cleaning$(NCOL)] $(WHITE)$(OBJ_FILES)$(NCOL)"
+	@rm -f $(OBJ_FILES)
 
 $(BINARY): $(OBJ_FILES)
 	@echo "[$(RED)Linking$(NCOL)] $(WHITE)$(BINARY)$(NCOL)"

@@ -129,8 +129,9 @@ uint8_t SoundBank::GetSweep(uint8_t instrNum, uint8_t midiKey)
     }
 }
 
-uint8_t *SoundBank::GetWavePtr(uint8_t instrNum, uint8_t midiKey)
+CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
 {
+    CGBDef def;
     rom.Seek(bankPos + instrNum * 12);
     auto instr = (Instrument *)rom.GetPtr();
     if (instr->type == 0x40) {
@@ -138,20 +139,78 @@ uint8_t *SoundBank::GetWavePtr(uint8_t instrNum, uint8_t midiKey)
         uint8_t mappedInstr = rom.ReadUInt8();
         rom.SeekAGBPtr(instr->field_4.subTable + mappedInstr * 12);
         auto subInstr = (Instrument *)rom.GetPtr();
-        assert(subInstr->type == 0x3 || subInstr->type == 0xB);
-        rom.SeekAGBPtr(subInstr->field_4.wavePtr);
-        return (uint8_t *)rom.GetPtr();
+        if (subInstr->type == 0x1 || subInstr->type == 0x9 || subInstr->type == 0x2 || subInstr->type == 0xA) {
+            switch (subInstr->field_4.dutyCycle) {
+                case 0: def.wd = WaveDuty::D12; break;
+                case 1: def.wd = WaveDuty::D25; break;
+                case 2: def.wd = WaveDuty::D50; break;
+                case 3: def.wd = WaveDuty::D75; break;
+                default:
+                    throw MyException(FormatString("Invalid Square Wave duty cycle at 0x%7X", rom.GetPos()));
+            }
+        } else if (subInstr->type == 0x3 || subInstr->type == 0xB) {
+            rom.SeekAGBPtr(subInstr->field_4.wavePtr);
+            def.wavePtr = (uint8_t *)rom.GetPtr();
+        } else if (subInstr->type == 0x4 || subInstr->type == 0xC) {
+            switch (subInstr->field_4.dutyCycle) {
+                case 0: def.np = NoisePatt::FINE; break;
+                case 1: def.np = NoisePatt::ROUGH; break;
+                default: 
+                    throw MyException(FormatString("Invalid Noise Pattern at 0x%7X", rom.GetPos()));
+            }
+        } else {
+            assert(false);
+        }
     } else if (instr->type == 0x80) {
         rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
         auto subInstr = (Instrument *)rom.GetPtr();
-        assert(subInstr->type == 0x3 || subInstr->type == 0xB);
-        rom.SeekAGBPtr(subInstr->field_4.wavePtr);
-        return (uint8_t *)rom.GetPtr();
+        if (subInstr->type == 0x1 || subInstr->type == 0x9 || subInstr->type == 0x2 || subInstr->type == 0xA) {
+            switch (subInstr->field_4.dutyCycle) {
+                case 0: def.wd = WaveDuty::D12; break;
+                case 1: def.wd = WaveDuty::D25; break;
+                case 2: def.wd = WaveDuty::D50; break;
+                case 3: def.wd = WaveDuty::D75; break;
+                default:
+                    throw MyException(FormatString("Invalid Square Wave duty cycle at 0x%7X", rom.GetPos()));
+            }
+        } else if (subInstr->type == 0x3 || subInstr->type == 0xB) {
+            rom.SeekAGBPtr(subInstr->field_4.wavePtr);
+            def.wavePtr = (uint8_t *)rom.GetPtr();
+        } else if (subInstr->type == 0x4 || subInstr->type == 0xC) {
+            switch (subInstr->field_4.dutyCycle) {
+                case 0: def.np = NoisePatt::FINE; break;
+                case 1: def.np = NoisePatt::ROUGH; break;
+                default: 
+                    throw MyException(FormatString("Invalid Noise Pattern at 0x%7X", rom.GetPos()));
+            }
+        } else {
+            assert(false);
+        }
     } else {
-        assert(instr->type == 0x3 || instr->type == 0xB);
-        rom.SeekAGBPtr(instr->field_4.wavePtr);
-        return (uint8_t *)rom.GetPtr();
+        if (instr->type == 0x1 || instr->type == 0x9 || instr->type == 0x2 || instr->type == 0xA) {
+            switch (instr->field_4.dutyCycle) {
+                case 0: def.wd = WaveDuty::D12; break;
+                case 1: def.wd = WaveDuty::D25; break;
+                case 2: def.wd = WaveDuty::D50; break;
+                case 3: def.wd = WaveDuty::D75; break;
+                default:
+                    throw MyException(FormatString("Invalid Square Wave duty cycle at 0x%7X", rom.GetPos()));
+            }
+        } else if (instr->type == 0x3 || instr->type == 0xB) {
+            rom.SeekAGBPtr(instr->field_4.wavePtr);
+            def.wavePtr = (uint8_t *)rom.GetPtr();
+        } else if (instr->type == 0x4 || instr->type == 0xC) {
+            switch (instr->field_4.dutyCycle) {
+                case 0: def.np = NoisePatt::FINE; break;
+                case 1: def.np = NoisePatt::ROUGH; break;
+                default: 
+                    throw MyException(FormatString("Invalid Noise Pattern at 0x%7X", rom.GetPos()));
+            }
+        } else {
+            assert(false);
+        }
     }
+    return def;
 }
 
 SampleInfo SoundBank::GetSampInfo(uint8_t instrNum, uint8_t midiKey)

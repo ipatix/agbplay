@@ -420,12 +420,48 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
                     true);
             break;
         case InstrType::SQ1:
+            sm.NewCGBNote(
+                    owner, 
+                    sbnk.GetCGBDef(trk.prog, note.midiKey),
+                    sbnk.GetADSR(trk.prog, note.midiKey),
+                    note, 
+                    trk.GetLeftVol(), 
+                    trk.GetRightVol(), 
+                    trk.GetPitch(), 
+                    CGBType::SQ1);
             break;
         case InstrType::SQ2:
+            sm.NewCGBNote(
+                    owner, 
+                    sbnk.GetCGBDef(trk.prog, note.midiKey),
+                    sbnk.GetADSR(trk.prog, note.midiKey),
+                    note, 
+                    trk.GetLeftVol(), 
+                    trk.GetRightVol(), 
+                    trk.GetPitch(), 
+                    CGBType::SQ2);
             break;
         case InstrType::WAVE:
+            sm.NewCGBNote(
+                    owner, 
+                    sbnk.GetCGBDef(trk.prog, note.midiKey),
+                    sbnk.GetADSR(trk.prog, note.midiKey),
+                    note, 
+                    trk.GetLeftVol(), 
+                    trk.GetRightVol(), 
+                    trk.GetPitch(), 
+                    CGBType::WAVE);
             break;
         case InstrType::NOISE:
+            sm.NewCGBNote(
+                    owner, 
+                    sbnk.GetCGBDef(trk.prog, note.midiKey),
+                    sbnk.GetADSR(trk.prog, note.midiKey),
+                    note, 
+                    trk.GetLeftVol(), 
+                    trk.GetRightVol(), 
+                    trk.GetPitch(), 
+                    CGBType::NOISE);
             break;
         case InstrType::INVALID:
             return;

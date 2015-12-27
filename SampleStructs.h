@@ -4,8 +4,18 @@
 
 namespace agbplay
 {
-    enum class CGBType : int { SQ1, SQ2, WAVE, NOISE };
-    enum class EnvState : int { INIT, ATK, DEC, SUS, REL, DEAD };
+    enum class CGBType : int { SQ1 = 0, SQ2, WAVE, NOISE };
+    enum class EnvState : int { INIT = 0, ATK, DEC, SUS, REL, DEAD };
+    enum class WaveDuty : int { D12 = 0, D25, D50, D75 };
+    enum class NoisePatt : int { FINE = 0, ROUGH };
+
+    union CGBDef
+    {
+        uint8_t *wavePtr;
+        WaveDuty wd;
+        NoisePatt np;
+    };
+
     struct ADSR
     {
         ADSR(uint8_t att, uint8_t dec, uint8_t sus, uint8_t rel);

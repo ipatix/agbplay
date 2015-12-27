@@ -107,6 +107,16 @@ uint8_t SoundChannel::GetVolR()
     return rightVol;
 }
 
+uint8_t SoundChannel::GetMidiKey()
+{
+    return note.midiKey;
+}
+
+void SoundChannel::Release()
+{
+    eState = EnvState::REL;
+}
+
 bool SoundChannel::TickNote()
 {
     if (eState < EnvState::REL) {
@@ -125,9 +135,9 @@ bool SoundChannel::TickNote()
     }
 }
 
-bool SoundChannel::IsDead()
+EnvState SoundChannel::GetState()
 {
-    return (eState == EnvState::DEAD) ? true : false;
+    return eState;
 }
 
 void SoundChannel::SetPitch(int16_t pitch)
@@ -153,12 +163,18 @@ CGBChannel::~CGBChannel()
 {
 }
 
-void CGBChannel::Init(void *owner, Note note, ADSR env)
+void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
 {
     this->owner = owner;
     this->note = note;
+    this->def = def;
     this->env = env;
     this->eState = EnvState::INIT;
+}
+
+void *CGBChannel::GetOwner()
+{
+    return owner;
 }
 
 float CGBChannel::GetFreq()
@@ -168,7 +184,23 @@ float CGBChannel::GetFreq()
 
 void CGBChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
 {
-    // TODO
+#ifdef CGB_PAN_SNAP
+    if (leftVol << 1 > rightVol) {
+        // snap left
+        this->leftVol = (leftVol + rightVol) >> 5;
+        this->rightVol = 0;
+    } else if (rightVol << 1 > leftVol) {
+        // snap right
+        this->rightVol= (leftVol + rightVol) >> 5;
+        this->leftVol = 0;
+    } else {
+        // snap mid
+        this->leftVol = this->rightVol = (leftVol + rightVol) >> 5;
+    }
+#else
+    this->leftVol = leftVol >> 4;
+    this->rightVol = rightVol >> 4;
+#endif
 }
 
 uint8_t CGBChannel::GetVolL()
@@ -179,6 +211,16 @@ uint8_t CGBChannel::GetVolL()
 uint8_t CGBChannel::GetVolR()
 {
     return rightVol;
+}
+
+uint8_t CGBChannel::GetMidiKey()
+{
+    return note.midiKey;
+}
+
+void CGBChannel::Release()
+{
+    eState = EnvState::REL;
 }
 
 bool CGBChannel::TickNote()
@@ -199,9 +241,14 @@ bool CGBChannel::TickNote()
     }
 }
 
+EnvState CGBChannel::GetState()
+{
+    return eState;
+}
+
 void CGBChannel::SetPitch(int16_t pitch)
 {
-    // TODO
+    freq = powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
 }
 
 /*
@@ -213,6 +260,7 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate) : sq1(CGBTyp
     this->sampleRate = sampleRate;
     this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
     this->sampleBuffer = vector<float>(N_CHANNELS * samplesPerBuffer);
+    this->fixedModeRate = fixedModeRate;
     fill_n(this->sampleBuffer.begin(), this->sampleBuffer.size(), 0.0f);
 }
 
@@ -225,17 +273,18 @@ void SoundMixer::NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note n
     sndChannels.emplace_back(owner, sInfo, env, note, leftVol, rightVol, pitch, fixed);
 }
 
-void SoundMixer::NewCGBNote(void *owner, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, uint8_t chn)
+void SoundMixer::NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, CGBType type)
 {
-    CGBChannel& nChn = sq1;
-    switch (chn) {
-        case 1: nChn = sq1; break;
-        case 2: nChn = sq2; break;
-        case 3: nChn = wave; break;
-        case 4: nChn = noise; break;
+    CGBChannel *nChn;
+    switch (type) {
+        case CGBType::SQ1: nChn = &sq1; break;
+        case CGBType::SQ2: nChn = &sq2; break;
+        case CGBType::WAVE: nChn = &wave; break;
+        case CGBType::NOISE: nChn = &noise; break;
     }
-    nChn.Init(owner, note, env);
-    nChn.SetVol(leftVol, rightVol);
+    nChn->Init(owner, def, note, env);
+    nChn->SetVol(leftVol, rightVol);
+    nChn->SetPitch(pitch);
 }
 
 void SoundMixer::SetTrackPV(void *owner, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
@@ -263,7 +312,29 @@ int SoundMixer::TickTrackNotes(void *owner)
 
 void SoundMixer::StopChannel(void *owner, uint8_t key)
 {
-    // TODO
+    for (SoundChannel& chn : sndChannels) 
+    {
+        if (chn.GetOwner() == owner && chn.GetMidiKey() == key && chn.GetState() < EnvState::REL) {
+            chn.Release();
+            return;
+        }
+    }
+    if (sq1.GetOwner() == owner && sq1.GetMidiKey() == key && sq1.GetState() < EnvState::REL) {
+        sq1.Release();
+        return;
+    }
+    if (sq2.GetOwner() == owner && sq2.GetMidiKey() == key && sq2.GetState() < EnvState::REL) {
+        sq2.Release();
+        return;
+    }
+    if (wave.GetOwner() == owner && wave.GetMidiKey() == key && wave.GetState() < EnvState::REL) {
+        wave.Release();
+        return;
+    }
+    if (noise.GetOwner() == owner && noise.GetMidiKey() == key && noise.GetState() < EnvState::REL) {
+        noise.Release();
+        return;
+    }
 }
 
 void *SoundMixer::ProcessAndGetAudio()
@@ -283,5 +354,5 @@ uint32_t SoundMixer::GetBufferUnitCount()
 
 void SoundMixer::purgeChannels()
 {
-    sndChannels.remove_if([](SoundChannel& chn) { return chn.IsDead(); });
+    sndChannels.remove_if([](SoundChannel& chn) { return chn.GetState() == EnvState::DEAD; });
 }

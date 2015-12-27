@@ -22,7 +22,7 @@ namespace agbplay
             uint8_t GetMidiKey(uint8_t instrNum, uint8_t midiKey);
             uint8_t GetPan(uint8_t instrNum, uint8_t midiKey);
             uint8_t GetSweep(uint8_t instrNum, uint8_t midiKey);
-            uint8_t *GetWavePtr(uint8_t instrNum, uint8_t midiKey);
+            CGBDef GetCGBDef(uint8_t instrNum, uint8_t midiKey);
             SampleInfo GetSampInfo(uint8_t instrNum, uint8_t midiKey);
             ADSR GetADSR(uint8_t instrNum, uint8_t midiKey);
         private:

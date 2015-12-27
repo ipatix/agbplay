@@ -13,6 +13,8 @@
 #define INTERFRAMES 4
 // stereo, so 2 channels
 #define N_CHANNELS 2
+// enable pan snap for CGB
+#define CGB_PAN_SNAP
 
 namespace agbplay
 {
@@ -26,9 +28,11 @@ namespace agbplay
             void SetVol(uint8_t leftVol, uint8_t rightVol);
             uint8_t GetVolL();
             uint8_t GetVolR();
+            uint8_t GetMidiKey();
+            void Release();
             void SetPitch(int16_t pitch);
             bool TickNote(); // returns true if note remains active
-            bool IsDead();
+            EnvState GetState();
             int8_t *samplePtr;
             float interPos;
         private:
@@ -43,9 +47,6 @@ namespace agbplay
             uint8_t rightVol;
             uint8_t envLevel;
 
-            // do not touch these values, the mixing engine cares about these
-            // they are used for the volume change micro ramping
-            // the mixer will fade the values of process* over to the according values
             uint8_t processLeftVol;
             uint8_t processRightVol;
     };
@@ -55,28 +56,32 @@ namespace agbplay
         public: 
             CGBChannel(CGBType t);
             ~CGBChannel();
-            void Init(void *owner, Note note, ADSR env);
+            void Init(void *owner, CGBDef def, Note note, ADSR env);
+            void *GetOwner();
             float GetFreq();
             void SetVol(uint8_t leftVol, uint8_t rightVol);
             uint8_t GetVolL();
             uint8_t GetVolR();
+            uint8_t GetMidiKey();
+            void Release();
             void SetPitch(int16_t pitch);
             bool TickNote(); // returns true if note remains active
-            uint8_t *wavePtr;
+            EnvState GetState();
             float interPos;
         private:
             void *owner;
             float freq;
             ADSR env;
             Note note;
+            CGBDef def;
             CGBType cType;
             EnvState eState;
             uint8_t leftVol;
             uint8_t rightVol;
+            uint8_t envLevel;
 
             uint8_t processLeftVol;
             uint8_t processRightVol;
-            uint8_t processEnvelope;
     };
 
     class SoundMixer
@@ -85,7 +90,7 @@ namespace agbplay
             SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate);
             ~SoundMixer();
             void NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, bool fixed);
-            void NewCGBNote(void *owner, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, uint8_t chn);
+            void NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, CGBType type);
             void SetTrackPV(void *owner, uint8_t volLeft, uint8_t volRight, int16_t pitch);
             // optional FIXME: reduce complxity by replacing the owner pointers with int pointers to a note reference counter so the note amount tracking becomes obsolete
             int TickTrackNotes(void *owner);

@@ -4,6 +4,11 @@ BINARY = agbplay
 LIBS = ../portaudio/libportaudio_static.a -lm -lncursesw -lboost_system -lboost_thread
 IMPORT = -I ../portaudio/include
 
+GREEN = \033[1;32m
+RED = \033[1;31m
+WHITE = \033[1;37m
+NCOL = \033[0m
+
 SRC_FILES = $(wildcard *.cpp)
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
 
@@ -15,8 +20,10 @@ clean:
 	rm -f $(OBJ_FILES)
 
 $(BINARY): $(OBJ_FILES)
-	$(CXX) -o $@ $(CXXFLAGS) $(LIBS) $^
+	@echo "[$(RED)Linking$(NCOL)] $(WHITE)$(BINARY)$(NCOL)"
+	@$(CXX) -o $@ $(CXXFLAGS) $(LIBS) $^
 
 %.o: %.cpp
-	$(CXX) -c -o $@ $< $(CXXFLAGS) $(IMPORT)
+	@echo "[$(GREEN)Compiling$(NCOL)] $(WHITE)$@$(NCOL)"
+	@$(CXX) -c -o $@ $< $(CXXFLAGS) $(IMPORT)
 

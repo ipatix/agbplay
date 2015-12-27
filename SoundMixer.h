@@ -85,7 +85,6 @@ namespace agbplay
             CGBChannel(CGBType t);
             ~CGBChannel();
             void Init(void *owner, Note note, ADSR env);
-            void *GetOwner();
             float GetFreq();
             void SetVol(uint8_t leftVol, uint8_t rightVol);
             uint8_t GetVolL();

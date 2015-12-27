@@ -160,11 +160,6 @@ void CGBChannel::Init(void *owner, Note note, ADSR env)
     this->eState = EnvState::INIT;
 }
 
-void *CGBChannel::GetOwner()
-{
-    return owner;
-}
-
 float CGBChannel::GetFreq()
 {
     return freq;

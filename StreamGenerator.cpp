@@ -44,7 +44,7 @@ const map<uint8_t, int8_t> StreamGenerator::noteLut = {
     {0xF8,76}, {0xF9,78}, {0xFA,80}, {0xFB,84}, {0xFC,88}, {0xFD,90}, {0xFE,92}, {0xFF,96}
 };
 
-StreamGenerator::StreamGenerator(Sequence& seq, uint32_t outSampleRate, EnginePars ep) : seq(seq), sm(outSampleRate), sbnk(seq.getRom(), seq.getSndBnk())
+StreamGenerator::StreamGenerator(Sequence& seq, uint32_t outSampleRate, EnginePars ep) : seq(seq), sbnk(seq.getRom(), seq.getSndBnk()), sm(outSampleRate)
 {
     this->ep = ep;
 }

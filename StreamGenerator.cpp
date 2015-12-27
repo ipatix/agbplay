@@ -2,6 +2,7 @@
 
 #include "StreamGenerator.h"
 #include "MyException.h"
+#include "Util.h"
 
 using namespace std;
 using namespace agbplay;
@@ -84,13 +85,17 @@ void StreamGenerator::processSequenceTick()
     for (Sequence::Track& cTrk : seq.tracks) {
         if (!cTrk.isRunning)
             continue;
-
-        reader.Seek(cTrk.pos);
-
+        
+        if (sm.TickTrackNotes((void *)&cTrk) > 0) {
+            cTrk.lfoPhase = uint8_t(cTrk.lfoPhase + cTrk.lfos);
+        } else {
+            cTrk.lfoPhase = 0;
+        }
         // count down last delay and process
         bool updatePV = false;
         if (--cTrk.delay <= 0) {
             while (true) {
+                reader.Seek(cTrk.pos);
                 uint8_t cmd = reader.ReadUInt8();
                 if (cmd <= 0x7F) {
                     switch (cTrk.lastEvent) {
@@ -191,20 +196,35 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case 0xB3:
                             // PATT, call sub
-                            if (cTrk.retStackPos >= MAX_TRK_CALL)
-                                throw MyException("Too many nested Track calls");
+                            if (cTrk.isCalling)
+                                throw MyException(FormatString("Nested track calls are not allowed: 0x%7X", cTrk.pos));
 
-                            cTrk.retStack[cTrk.retStackPos++] = cTrk.pos + 5;
-                            cTrk.pos = reader.ReadAGBPtrToPos();
+                            cTrk.returnPos = cTrk.pos + 5;
+                            cTrk.reptCount = 1;
+                            cTrk.pos = cTrk.patBegin = reader.ReadAGBPtrToPos();
                             break;
                         case 0xB4:
                             // PEND, end of sub
-                            if (cTrk.retStackPos == 0) {
+                            if (!cTrk.isCalling) {
                                 // nothing is called so ignore it
                                 cTrk.pos++;
                             } else {
-                                cTrk.pos = cTrk.retStack[--cTrk.retStackPos];
+                                if (--cTrk.reptCount > 0) {
+                                    cTrk.pos = cTrk.patBegin;
+                                } else {
+                                    cTrk.pos = cTrk.returnPos;
+                                    cTrk.isCalling = false;
+                                }
                             }
+                            break;
+                        case 0xB5:
+                            // REPT
+                            if (cTrk.isCalling)
+                                throw MyException(FormatString("Nested track calls are not allowed: 0x%7X", cTrk.pos));
+
+                            cTrk.returnPos = cTrk.pos + 5;
+                            cTrk.reptCount = reader.ReadUInt8();
+                            cTrk.pos = reader.ReadAGBPtrToPos();
                             break;
                         case 0xBB:
                             // TEMPO
@@ -369,7 +389,6 @@ void StreamGenerator::processSequenceTick()
                     cTrk.GetRightVol(),
                     cTrk.GetPitch());
         }
-        // TODO insert some modulation updater here
     } // end of track iteration
 } // end processSequenceTick
 

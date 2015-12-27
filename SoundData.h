@@ -7,7 +7,6 @@
 
 #define UNKNOWN_TABLE -1
 #define MIN_SONG_NUM 32
-#define MAX_TRK_CALL 3
 
 namespace agbplay 
 {
@@ -55,13 +54,13 @@ namespace agbplay
                 uint8_t GetRightVol();
 
                 long pos;
-                long retStack[MAX_TRK_CALL];
+                long returnPos;
                 long patBegin;
                 MODT modt;
                 LEvent lastEvent;
                 uint8_t lastNoteKey, lastNoteVel;
                 int8_t lastNoteLen;
-                uint8_t retStackPos, reptCount;
+                uint8_t reptCount;
                 uint8_t prog, vol, mod, bendr;
                 uint8_t lfos, lfodl, lfodlCount, lfoPhase;
                 uint8_t echoVol, echoLen;
@@ -70,6 +69,7 @@ namespace agbplay
                 int8_t keyShift;
                 bool muted;
                 bool isRunning;
+                bool isCalling;
             }; // end Track
 
             static const std::vector<int16_t> sineLut;

@@ -218,7 +218,7 @@ DisplayContainer& Sequence::GetUpdatedDisp()
     for (uint32_t i = 0; i < tracks.size(); i++) 
     {
         dcont.data[i].trackPtr = (uint32_t) tracks[i].pos;
-        dcont.data[i].isCalling = (tracks[i].retStackPos == 0) ? true : false;
+        dcont.data[i].isCalling = tracks[i].isCalling;
         dcont.data[i].isMuted = tracks[i].muted;
         dcont.data[i].vol = tracks[i].vol;
         dcont.data[i].mod = tracks[i].mod;
@@ -252,12 +252,12 @@ Sequence::Track::Track(long pos)
 {
     // TODO corrently init all values
     this->pos = pos;
-    retStack[0] = retStack[1] = retStack[2] = patBegin = 0;
+    patBegin = 0;
     prog = PROG_UNDEFINED;
     vol = 100;
-    delay = mod = reptCount = retStackPos = 0;
+    delay = mod = reptCount = 0;
     pan = bend = tune = keyShift = 0;
-    muted = false;
+    muted = isCalling = false;
     isRunning = true;
 }
 

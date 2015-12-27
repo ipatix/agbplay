@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "SoundMixer.h"
+#include "MyException.h"
 
 using namespace std;
 using namespace agbplay;
@@ -105,6 +106,29 @@ uint8_t SoundChannel::GetVolR()
     return rightVol;
 }
 
+bool SoundChannel::TickNote()
+{
+    if (eState < EnvState::REL) {
+        if (note.length > 0) {
+            note.length--;
+            if (note.length == 0) {
+                eState = EnvState::REL;
+                return false;
+            }
+            return true;
+        } else if (note.length == -1) {
+            return true;
+        } else throw MyException("ShoundChannel::NoteTick shouldn't be able to crash");
+    } else {
+        return false;
+    }
+}
+
+bool SoundChannel::IsDead()
+{
+    return (eState == EnvState::DEAD) ? true : false;
+}
+
 void SoundChannel::SetPitch(int16_t pitch)
 {
     freq = sInfo.midCfreq * powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
@@ -161,6 +185,24 @@ uint8_t CGBChannel::GetVolR()
     return rightVol;
 }
 
+bool CGBChannel::TickNote()
+{
+    if (eState < EnvState::REL) {
+        if (note.length > 0) {
+            note.length--;
+            if (note.length == 0) {
+                eState = EnvState::REL;
+                return false;
+            }
+            return true;
+        } else if (note.length == -1) {
+            return true;
+        } else throw MyException("ShoundChannel::NoteTick shouldn't be able to crash");
+    } else {
+        return false;
+    }
+}
+
 void CGBChannel::SetPitch(int16_t pitch)
 {
     // TODO
@@ -196,6 +238,8 @@ void SoundMixer::NewCGBNote(void *owner, ADSR env, Note note, uint8_t leftVol, u
         case 3: nChn = wave; break;
         case 4: nChn = noise; break;
     }
+    nChn.Init(owner, note, env);
+    nChn.SetVol(leftVol, rightVol);
 }
 
 void SoundMixer::SetTrackPV(void *owner, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
@@ -208,9 +252,17 @@ void SoundMixer::SetTrackPV(void *owner, uint8_t leftVol, uint8_t rightVol, int1
     }
 }
 
-void SoundMixer::TickAllNotes()
+int SoundMixer::TickTrackNotes(void *owner)
 {
-    // TODO
+    int active = 0;
+    for (SoundChannel& chn : sndChannels) 
+    {
+        if (chn.GetOwner() == owner) {
+            if (chn.TickNote())
+                active++;
+        }
+    }
+    return active;
 }
 
 void SoundMixer::StopChannel(void *owner, uint8_t key)
@@ -227,4 +279,13 @@ void *SoundMixer::ProcessAndGetAudio()
 uint32_t SoundMixer::GetBufferUnitCount()
 {
     return samplesPerBuffer;
+}
+
+/*
+ * private SoundMixer
+ */
+
+void SoundMixer::purgeChannels()
+{
+    sndChannels.remove_if([](SoundChannel& chn) { return chn.IsDead(); });
 }

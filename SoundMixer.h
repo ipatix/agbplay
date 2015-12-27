@@ -15,7 +15,7 @@
 namespace agbplay
 {
     enum class CGBType : int { SQ1, SQ2, WAVE, NOISE };
-    enum class EnvState : int { INIT, ATK, DEC, SUS, REL };
+    enum class EnvState : int { INIT, ATK, DEC, SUS, REL, DEAD };
     struct ADSR
     {
         ADSR(uint8_t att, uint8_t dec, uint8_t sus, uint8_t rel);
@@ -57,6 +57,8 @@ namespace agbplay
             uint8_t GetVolL();
             uint8_t GetVolR();
             void SetPitch(int16_t pitch);
+            bool TickNote(); // returns true if note remains active
+            bool IsDead();
             int8_t *samplePtr;
             float interPos;
         private:
@@ -89,6 +91,7 @@ namespace agbplay
             uint8_t GetVolL();
             uint8_t GetVolR();
             void SetPitch(int16_t pitch);
+            bool TickNote(); // returns true if note remains active
             uint8_t *wavePtr;
             float interPos;
         private:
@@ -114,12 +117,15 @@ namespace agbplay
             void NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch);
             void NewCGBNote(void *owner, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, uint8_t chn);
             void SetTrackPV(void *owner, uint8_t volLeft, uint8_t volRight, int16_t pitch);
-            void TickAllNotes();
+            // optional FIXME: reduce complxity by replacing the owner pointers with int pointers to a note reference counter so the note amount tracking becomes obsolete
+            int TickTrackNotes(void *owner);
             void StopChannel(void *owner, uint8_t key);
             void *ProcessAndGetAudio();
             uint32_t GetBufferUnitCount();
 
         private:
+            void purgeChannels();
+
             // channel management
             std::list<SoundChannel> sndChannels;
             CGBChannel sq1;

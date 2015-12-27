@@ -30,6 +30,7 @@ namespace agbplay {
             std::string ReadString(size_t limit);
             void ReadData(void *dest, size_t bytes);
             void *GetPtr();
+            long GetPos();
             size_t Size();
             bool ValidPointer(agbptr_t ptr);
         private:

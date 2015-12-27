@@ -4,6 +4,8 @@
 #include <list>
 #include <cstdint>
 
+#include "SampleStructs.h"
+
 #define NOTE_TIE -1
 // AGB has 60 FPS based processing
 #define AGB_FPS 60
@@ -14,42 +16,10 @@
 
 namespace agbplay
 {
-    enum class CGBType : int { SQ1, SQ2, WAVE, NOISE };
-    enum class EnvState : int { INIT, ATK, DEC, SUS, REL, DEAD };
-    struct ADSR
-    {
-        ADSR(uint8_t att, uint8_t dec, uint8_t sus, uint8_t rel);
-        ADSR();
-        uint8_t att;
-        uint8_t dec;
-        uint8_t sus;
-        uint8_t rel;
-    };
-
-    struct Note
-    {
-        Note(uint8_t midiKey, uint8_t velocity, int8_t length);
-        Note();
-        uint8_t midiKey;
-        uint8_t velocity;
-        int8_t length;
-    };
-
-    struct SampleInfo
-    {
-        SampleInfo(int8_t *samplePtr, float midCfreq, bool loopEnabled, uint32_t loopPos, uint32_t endPos);
-        SampleInfo();
-        int8_t *samplePtr;
-        float midCfreq;
-        uint32_t loopPos;
-        uint32_t endPos;
-        bool loopEnabled;
-    };
-
     class SoundChannel
     {
         public:
-            SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch);
+            SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, bool fixed);
             ~SoundChannel();
             void *GetOwner();
             float GetFreq();
@@ -64,6 +34,7 @@ namespace agbplay
         private:
             void *owner;
             float freq;
+            bool fixed;
             ADSR env;
             Note note;
             SampleInfo sInfo;
@@ -111,9 +82,9 @@ namespace agbplay
     class SoundMixer
     {
         public:
-            SoundMixer(uint32_t sampleRate);
+            SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate);
             ~SoundMixer();
-            void NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch);
+            void NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, bool fixed);
             void NewCGBNote(void *owner, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, uint8_t chn);
             void SetTrackPV(void *owner, uint8_t volLeft, uint8_t volRight, int16_t pitch);
             // optional FIXME: reduce complxity by replacing the owner pointers with int pointers to a note reference counter so the note amount tracking becomes obsolete
@@ -134,6 +105,7 @@ namespace agbplay
 
             std::vector<float> sampleBuffer;
             uint32_t sampleRate;
+            uint32_t fixedModeRate;
             uint32_t samplesPerBuffer;
     };
 }

@@ -144,6 +144,11 @@ void *Rom::GetPtr()
     return &(*data)[(size_t)pos];
 }
 
+long Rom::GetPos()
+{
+    return pos;
+}
+
 size_t Rom::Size() 
 {
     return (*data).size();

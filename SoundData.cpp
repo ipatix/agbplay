@@ -6,6 +6,7 @@
 #include "SoundData.h"
 #include "MyException.h"
 #include "Debug.h"
+#include "Util.h"
 
 using namespace agbplay;
 using namespace std;
@@ -128,31 +129,6 @@ uint8_t SoundBank::GetSweep(uint8_t instrNum, uint8_t midiKey)
     }
 }
 
-int8_t *SoundBank::GetSamplePtr(uint8_t instrNum, uint8_t midiKey)
-{
-    rom.Seek(bankPos + instrNum * 12);
-    auto instr = (Instrument *)rom.GetPtr();
-    if (instr->type == 0x40) {
-        rom.SeekAGBPtr(instr->field_8.instrMap + midiKey);
-        uint8_t mappedInstr = rom.ReadUInt8();
-        rom.SeekAGBPtr(instr->field_4.subTable + mappedInstr * 12);
-        auto subInstr = (Instrument *)rom.GetPtr();
-        assert(subInstr->type == 0x0 || subInstr->type == 0x8);
-        rom.SeekAGBPtr(subInstr->field_4.samplePtr);
-        return (int8_t *)rom.GetPtr();
-    } else if (instr->type == 0x80) {
-        rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
-        auto subInstr = (Instrument *)rom.GetPtr();
-        assert(subInstr->type == 0x0 || subInstr->type == 0x8);
-        rom.SeekAGBPtr(subInstr->field_4.samplePtr);
-        return (int8_t *)rom.GetPtr();
-    } else {
-        assert(instr->type == 0x0 || instr->type == 0x8);
-        rom.SeekAGBPtr(instr->field_4.samplePtr);
-        return (int8_t *)rom.GetPtr();
-    }
-}
-
 uint8_t *SoundBank::GetWavePtr(uint8_t instrNum, uint8_t midiKey)
 {
     rom.Seek(bankPos + instrNum * 12);
@@ -175,6 +151,80 @@ uint8_t *SoundBank::GetWavePtr(uint8_t instrNum, uint8_t midiKey)
         assert(instr->type == 0x3 || instr->type == 0xB);
         rom.SeekAGBPtr(instr->field_4.wavePtr);
         return (uint8_t *)rom.GetPtr();
+    }
+}
+
+SampleInfo SoundBank::GetSampInfo(uint8_t instrNum, uint8_t midiKey)
+{
+    int8_t *samplePtr;
+    float midCfreq;
+    uint32_t loopPos;
+    uint32_t endPos;
+    bool loopEnabled;
+
+    rom.Seek(bankPos + instrNum * 12);
+    auto instr = (Instrument *)rom.GetPtr();
+    if (instr->type == 0x40) {
+        rom.SeekAGBPtr(instr->field_8.instrMap + midiKey);
+        uint8_t mappedInstr = rom.ReadUInt8();
+        rom.SeekAGBPtr(instr->field_4.subTable + mappedInstr * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        assert(subInstr->type == 0x0 || subInstr->type == 0x8);
+        rom.SeekAGBPtr(subInstr->field_4.samplePtr);
+    } else if (instr->type == 0x80) {
+        rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        assert(subInstr->type == 0x0 || subInstr->type == 0x8);
+        rom.SeekAGBPtr(subInstr->field_4.samplePtr);
+    } else {
+        assert(instr->type == 0x0 || instr->type == 0x8);
+        rom.SeekAGBPtr(instr->field_4.samplePtr);
+    }
+    uint32_t tmp = rom.ReadUInt32();
+    if (tmp == 0x40000000)
+        loopEnabled = true;
+    else if (tmp == 0x0)
+        loopEnabled = false;
+    else
+        throw MyException(FormatString("Invalid sample mode 0x%8X at 0x%7X", tmp, rom.GetPos()));
+    midCfreq = rom.ReadUInt32() / 1024.0f;
+    loopPos = rom.ReadUInt32();
+    endPos = rom.ReadUInt32();
+    samplePtr = (int8_t *)rom.GetPtr();
+    return SampleInfo(samplePtr, midCfreq, loopEnabled, loopPos, endPos);
+}
+
+ADSR SoundBank::GetADSR(uint8_t instrNum, uint8_t midiKey)
+{
+    rom.Seek(bankPos + instrNum * 12);
+    auto instr = (Instrument *)rom.GetPtr();
+    if (instr->type == 0x40) {
+        rom.SeekAGBPtr(instr->field_8.instrMap + midiKey);
+        uint8_t mappedInstr = rom.ReadUInt8();
+        rom.SeekAGBPtr(instr->field_4.subTable + mappedInstr * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        assert(subInstr->type == 0x0 || subInstr->type == 0x1 || 
+                subInstr->type == 0x2 || subInstr->type == 0x3 ||
+                subInstr->type == 0x4 || subInstr->type == 0x8 ||
+                subInstr->type == 0x9 || subInstr->type == 0xA ||
+                subInstr->type == 0xB || subInstr->type == 0xC);
+        return subInstr->field_8.env;
+    } else if (instr->type == 0x80) {
+        rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
+        auto subInstr = (Instrument *)rom.GetPtr();
+        assert(subInstr->type == 0x0 || subInstr->type == 0x1 || 
+                subInstr->type == 0x2 || subInstr->type == 0x3 ||
+                subInstr->type == 0x4 || subInstr->type == 0x8 ||
+                subInstr->type == 0x9 || subInstr->type == 0xA ||
+                subInstr->type == 0xB || subInstr->type == 0xC);
+        return subInstr->field_8.env;
+    } else {
+        assert(instr->type == 0x0 || instr->type == 0x1 || 
+                instr->type == 0x2 || instr->type == 0x3 ||
+                instr->type == 0x4 || instr->type == 0x8 ||
+                instr->type == 0x9 || instr->type == 0xA ||
+                instr->type == 0xB || instr->type == 0xC);
+        return instr->field_8.env;
     }
 }
 

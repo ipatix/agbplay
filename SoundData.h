@@ -4,6 +4,7 @@
 
 #include "Rom.h"
 #include "DisplayContainer.h"
+#include "SampleStructs.h"
 
 #define UNKNOWN_TABLE -1
 #define MIN_SONG_NUM 32
@@ -21,8 +22,9 @@ namespace agbplay
             uint8_t GetMidiKey(uint8_t instrNum, uint8_t midiKey);
             uint8_t GetPan(uint8_t instrNum, uint8_t midiKey);
             uint8_t GetSweep(uint8_t instrNum, uint8_t midiKey);
-            int8_t *GetSamplePtr(uint8_t instrNum, uint8_t midiKey);
             uint8_t *GetWavePtr(uint8_t instrNum, uint8_t midiKey);
+            SampleInfo GetSampInfo(uint8_t instrNum, uint8_t midiKey);
+            ADSR GetADSR(uint8_t instrNum, uint8_t midiKey);
         private:
             struct Instrument {
                 uint8_t type;
@@ -30,7 +32,7 @@ namespace agbplay
                 uint8_t hardwareLength; // unsupported
                 union { uint8_t pan; uint8_t sweep; } field_3;
                 union { uint8_t dutyCycle; agbptr_t wavePtr; agbptr_t samplePtr; agbptr_t subTable; } field_4;
-                union { agbptr_t instrMap; struct { uint8_t atk, dec, sus, rel; } env; } field_8;
+                union { agbptr_t instrMap; ADSR env; } field_8;
             };
             Rom rom;
             long bankPos;

@@ -63,7 +63,7 @@ SampleInfo::SampleInfo()
  * public SoundChannel
  */
 
-SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
+SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, bool fixed)
 {
     this->owner = owner;
     this->note = note;
@@ -71,6 +71,7 @@ SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, u
     this->sInfo = sInfo;
     this->interPos = 0.0f;
     SetVol(leftVol, rightVol);
+    this->fixed = fixed;
     SetPitch(pitch);
     // if instant attack is ative directly max out the envelope to not cut off initial sound
     this->eState = EnvState::INIT;
@@ -207,7 +208,7 @@ void CGBChannel::SetPitch(int16_t pitch)
  * public SoundMixer
  */
 
-SoundMixer::SoundMixer(uint32_t sampleRate) : sq1(CGBType::SQ1), sq2(CGBType::SQ2), wave(CGBType::WAVE), noise(CGBType::NOISE)
+SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate) : sq1(CGBType::SQ1), sq2(CGBType::SQ2), wave(CGBType::WAVE), noise(CGBType::NOISE)
 {
     this->sampleRate = sampleRate;
     this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
@@ -219,9 +220,9 @@ SoundMixer::~SoundMixer()
 {
 }
 
-void SoundMixer::NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
+void SoundMixer::NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, bool fixed)
 {
-    sndChannels.emplace_back(owner, sInfo, env, note, leftVol, rightVol, pitch);
+    sndChannels.emplace_back(owner, sInfo, env, note, leftVol, rightVol, pitch, fixed);
 }
 
 void SoundMixer::NewCGBNote(void *owner, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, uint8_t chn)

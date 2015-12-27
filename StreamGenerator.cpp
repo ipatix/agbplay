@@ -44,7 +44,7 @@ const map<uint8_t, int8_t> StreamGenerator::noteLut = {
     {0xF8,76}, {0xF9,78}, {0xFA,80}, {0xFB,84}, {0xFC,88}, {0xFD,90}, {0xFE,92}, {0xFF,96}
 };
 
-StreamGenerator::StreamGenerator(Sequence& seq, uint32_t outSampleRate, EnginePars ep) : seq(seq), sbnk(seq.getRom(), seq.getSndBnk()), sm(outSampleRate)
+StreamGenerator::StreamGenerator(Sequence& seq, uint32_t fixedModeRate, EnginePars ep) : seq(seq), sbnk(seq.getRom(), seq.getSndBnk()), sm(48000, fixedModeRate)
 {
     this->ep = ep;
 }
@@ -142,16 +142,16 @@ void StreamGenerator::processSequenceTick()
                                 if (reader.PeekInt8(1) >= 0) {
                                     uint8_t vel = cTrk.lastNoteVel = reader.ReadUInt8();
                                     int8_t len = cTrk.lastNoteLen + reader.ReadInt8();
-                                    playNote(Note(cmd, vel, len), &cTrk);
+                                    playNote(cTrk, Note(cmd, vel, len), &cTrk);
                                     cTrk.pos += 3;
                                 } else {
                                     uint8_t vel = cTrk.lastNoteVel = reader.ReadUInt8();
                                     int8_t len = cTrk.lastNoteLen;
-                                    playNote(Note(cmd, vel, len), &cTrk);
+                                    playNote(cTrk, Note(cmd, vel, len), &cTrk);
                                     cTrk.pos += 2;
                                 }
                             } else {
-                                playNote(Note(cmd, cTrk.lastNoteVel, cTrk.lastNoteLen), &cTrk);
+                                playNote(cTrk, Note(cmd, cTrk.lastNoteVel, cTrk.lastNoteLen), &cTrk);
                                 cTrk.pos += 1;
                             }
                             cTrk.lastNoteKey = cmd;
@@ -159,10 +159,10 @@ void StreamGenerator::processSequenceTick()
                         case LEvent::TIE:
                             if (reader.PeekInt8(0) >= 0) {
                                 uint8_t vel = cTrk.lastNoteVel = reader.ReadUInt8();
-                                playNote(Note(cmd, vel, NOTE_TIE), &cTrk);
+                                playNote(cTrk, Note(cmd, vel, NOTE_TIE), &cTrk);
                                 cTrk.pos += 2;
                             } else {
-                                playNote(Note(cmd, cTrk.lastNoteVel, NOTE_TIE), &cTrk);
+                                playNote(cTrk, Note(cmd, cTrk.lastNoteVel, NOTE_TIE), &cTrk);
                                 cTrk.pos += 1;
                             }
                             cTrk.lastNoteKey = cmd;
@@ -332,17 +332,17 @@ void StreamGenerator::processSequenceTick()
                                     // new velocity
                                     uint8_t key = cTrk.lastNoteKey = reader.ReadUInt8();
                                     uint8_t vel = cTrk.lastNoteVel = reader.ReadUInt8();
-                                    playNote(Note(key, vel, NOTE_TIE), &cTrk);
+                                    playNote(cTrk, Note(key, vel, NOTE_TIE), &cTrk);
                                     cTrk.pos += 3;
                                 } else {
                                     // repeat velocity
                                     uint8_t key = cTrk.lastNoteKey = reader.ReadUInt8();
-                                    playNote(Note(key, cTrk.lastNoteVel, NOTE_TIE), &cTrk);
+                                    playNote(cTrk, Note(key, cTrk.lastNoteVel, NOTE_TIE), &cTrk);
                                     cTrk.pos += 2;
                                 }
                             } else {
                                 // repeat midi key
-                                playNote(Note(cTrk.lastNoteKey, cTrk.lastNoteVel, NOTE_TIE), &cTrk);
+                                playNote(cTrk, Note(cTrk.lastNoteKey, cTrk.lastNoteVel, NOTE_TIE), &cTrk);
                                 cTrk.pos += 1;
                             }
                             break;
@@ -360,24 +360,24 @@ void StreamGenerator::processSequenceTick()
                                 uint8_t key = cTrk.lastNoteKey = reader.ReadUInt8();
                                 uint8_t vel = cTrk.lastNoteVel = reader.ReadUInt8();
                                 len += reader.ReadInt8();
-                                playNote(Note(key, vel, len), &cTrk);
+                                playNote(cTrk, Note(key, vel, len), &cTrk);
                                 cTrk.pos += 4;
                             } else {
                                 // no gate time
                                 uint8_t key = cTrk.lastNoteKey = reader.ReadUInt8();
                                 uint8_t vel = cTrk.lastNoteVel = reader.ReadUInt8();
-                                playNote(Note(key, vel, len), &cTrk);
+                                playNote(cTrk, Note(key, vel, len), &cTrk);
                                 cTrk.pos += 3;
                             }
                         } else {
                             // repeast note velocity
                             uint8_t key = cTrk.lastNoteKey = reader.ReadUInt8();
-                            playNote(Note(key, cTrk.lastNoteVel, len), &cTrk);
+                            playNote(cTrk, Note(key, cTrk.lastNoteVel, len), &cTrk);
                             cTrk.pos += 2;
                         }
                     } else {
                         // repeat midi key
-                        playNote(Note(cTrk.lastNoteKey, cTrk.lastNoteVel, len), &cTrk);
+                        playNote(cTrk, Note(cTrk.lastNoteKey, cTrk.lastNoteVel, len), &cTrk);
                         cTrk.pos += 1;
                     }
                 }
@@ -392,7 +392,42 @@ void StreamGenerator::processSequenceTick()
     } // end of track iteration
 } // end processSequenceTick
 
-void StreamGenerator::playNote(Note note, void *owner)
+void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
 {
-    // TODO
+    if (trk.prog > 127)
+        return;
+
+    switch (sbnk.GetInstrType(trk.prog, note.midiKey)) {
+        case InstrType::PCM:
+            sm.NewSoundChannel(
+                    owner, 
+                    sbnk.GetSampInfo(trk.prog, note.midiKey),
+                    sbnk.GetADSR(trk.prog, note.midiKey),
+                    note,
+                    trk.GetLeftVol(),
+                    trk.GetRightVol(),
+                    trk.GetPitch(),
+                    false);
+        case InstrType::PCM_FIXED:
+            sm.NewSoundChannel(
+                    owner, 
+                    sbnk.GetSampInfo(trk.prog, note.midiKey),
+                    sbnk.GetADSR(trk.prog, note.midiKey),
+                    note,
+                    trk.GetLeftVol(),
+                    trk.GetRightVol(),
+                    trk.GetPitch(),
+                    true);
+            break;
+        case InstrType::SQ1:
+            break;
+        case InstrType::SQ2:
+            break;
+        case InstrType::WAVE:
+            break;
+        case InstrType::NOISE:
+            break;
+        case InstrType::INVALID:
+            return;
+    }
 }

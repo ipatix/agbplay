@@ -22,7 +22,7 @@ namespace agbplay
     class StreamGenerator
     {
         public:
-            StreamGenerator(Sequence& seq, uint32_t outSampleRate, EnginePars ep);
+            StreamGenerator(Sequence& seq, uint32_t fixedModeRate, EnginePars ep);
             ~StreamGenerator();
 
             uint32_t GetBufferUnitCount();
@@ -38,6 +38,6 @@ namespace agbplay
 
             void processSequenceFrame();
             void processSequenceTick();
-            void playNote(Note note, void *owner);
+            void playNote(Sequence::Track& trk, Note note, void *owner);
     };
 }

@@ -97,9 +97,11 @@ namespace agbplay
             void StopChannel(void *owner, uint8_t key);
             void *ProcessAndGetAudio();
             uint32_t GetBufferUnitCount();
+            void Shutdown();
 
         private:
             void purgeChannels();
+            void clearBuffer();
 
             // channel management
             std::list<SoundChannel> sndChannels;
@@ -112,5 +114,6 @@ namespace agbplay
             uint32_t sampleRate;
             uint32_t fixedModeRate;
             uint32_t samplesPerBuffer;
+            bool isShuttingDown;
     };
 }

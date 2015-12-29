@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <cassert>
 
 #include "SoundMixer.h"
 #include "MyException.h"
@@ -114,7 +115,8 @@ uint8_t SoundChannel::GetMidiKey()
 
 void SoundChannel::Release()
 {
-    eState = EnvState::REL;
+    if (eState < EnvState::REL)
+        eState = EnvState::REL;
 }
 
 bool SoundChannel::TickNote()
@@ -129,7 +131,7 @@ bool SoundChannel::TickNote()
             return true;
         } else if (note.length == -1) {
             return true;
-        } else throw MyException("ShoundChannel::NoteTick shouldn't be able to crash");
+        } else assert(false);
     } else {
         return false;
     }
@@ -220,7 +222,8 @@ uint8_t CGBChannel::GetMidiKey()
 
 void CGBChannel::Release()
 {
-    eState = EnvState::REL;
+    if (eState < EnvState::REL)
+        eState = EnvState::REL;
 }
 
 bool CGBChannel::TickNote()
@@ -262,6 +265,7 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate) : sq1(CGBTyp
     this->sampleBuffer = vector<float>(N_CHANNELS * samplesPerBuffer);
     this->fixedModeRate = fixedModeRate;
     fill_n(this->sampleBuffer.begin(), this->sampleBuffer.size(), 0.0f);
+    this->isShuttingDown = false;
 }
 
 SoundMixer::~SoundMixer()
@@ -340,12 +344,30 @@ void SoundMixer::StopChannel(void *owner, uint8_t key)
 void *SoundMixer::ProcessAndGetAudio()
 {
     // TODO implement
-    return nullptr;
+    if (isShuttingDown)
+        return nullptr;
+    else {
+        clearBuffer();
+        return (void *)&sampleBuffer[0];
+    }
 }
 
 uint32_t SoundMixer::GetBufferUnitCount()
 {
     return samplesPerBuffer;
+}
+
+void SoundMixer::Shutdown()
+{
+    this->isShuttingDown = true;
+    for (SoundChannel& chn : sndChannels)
+    {
+        chn.Release();
+    }
+    sq1.Release();
+    sq2.Release();
+    wave.Release();
+    noise.Release();
 }
 
 /*
@@ -355,4 +377,9 @@ uint32_t SoundMixer::GetBufferUnitCount()
 void SoundMixer::purgeChannels()
 {
     sndChannels.remove_if([](SoundChannel& chn) { return chn.GetState() == EnvState::DEAD; });
+}
+
+void SoundMixer::clearBuffer()
+{
+    fill(sampleBuffer.begin(), sampleBuffer.end(), 0.0f);
 }

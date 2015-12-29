@@ -81,15 +81,21 @@ void StreamGenerator::processSequenceTick()
 {
     Rom& reader = seq.getRom();
     // process all tracks
-    // TODO do some handling for the song finishing
+    bool isSongRunning = false;
     for (Sequence::Track& cTrk : seq.tracks) {
         if (!cTrk.isRunning)
             continue;
+        isSongRunning = true;
         
         if (sm.TickTrackNotes((void *)&cTrk) > 0) {
-            cTrk.lfoPhase = uint8_t(cTrk.lfoPhase + cTrk.lfos);
+            if (cTrk.lfodlCount > 0) {
+                cTrk.lfodlCount--;
+            } else {
+                cTrk.lfoPhase = uint8_t(cTrk.lfoPhase + cTrk.lfos);
+            }
         } else {
             cTrk.lfoPhase = 0;
+            cTrk.lfodlCount = cTrk.lfodl;
         }
         // count down last delay and process
         bool updatePV = false;
@@ -390,6 +396,9 @@ void StreamGenerator::processSequenceTick()
                     cTrk.GetPitch());
         }
     } // end of track iteration
+    if (isSongRunning) {
+        sm.Shutdown();
+    }
 } // end processSequenceTick
 
 void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)

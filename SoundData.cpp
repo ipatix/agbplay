@@ -361,10 +361,16 @@ Sequence::Track::Track(long pos)
 {
     // TODO corrently init all values
     this->pos = pos;
-    patBegin = 0;
+    patBegin = returnPos = 0;
+    modt = MODT::PITCH;
+    lastEvent = LEvent::NONE;
+    lastNoteKey = 60;
+    lastNoteVel = 127;
+    lastNoteLen = 96;
     prog = PROG_UNDEFINED;
     vol = 100;
-    delay = mod = reptCount = 0;
+    delay = mod = reptCount = bendr = lfos = lfodl = 
+        lfodlCount = lfoPhase = echoVol = echoLen = 0;
     pan = bend = tune = keyShift = 0;
     muted = isCalling = false;
     isRunning = true;

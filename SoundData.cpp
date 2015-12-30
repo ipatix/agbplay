@@ -342,14 +342,19 @@ DisplayContainer& Sequence::GetUpdatedDisp()
     return dcont;
 }
 
-Rom& Sequence::getRom()
+Rom& Sequence::GetRom()
 {
     return rom;
 }
 
-long Sequence::getSndBnk()
+long Sequence::GetSndBnk()
 {
     return soundBank;
+}
+
+uint8_t Sequence::GetReverb()
+{
+    return reverb;
 }
 
 /*

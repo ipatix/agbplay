@@ -44,7 +44,7 @@ const map<uint8_t, int8_t> StreamGenerator::noteLut = {
     {0xF8,76}, {0xF9,78}, {0xFA,80}, {0xFB,84}, {0xFC,88}, {0xFD,90}, {0xFE,92}, {0xFF,96}
 };
 
-StreamGenerator::StreamGenerator(Sequence& seq, uint32_t fixedModeRate, EnginePars ep) : seq(seq), sbnk(seq.getRom(), seq.getSndBnk()), sm(48000, fixedModeRate)
+StreamGenerator::StreamGenerator(Sequence& seq, uint32_t fixedModeRate, EnginePars ep) : seq(seq), sbnk(seq.GetRom(), seq.GetSndBnk()), sm(48000, fixedModeRate, seq.GetReverb() & 0x7F)
 {
     this->ep = ep;
 }
@@ -79,7 +79,7 @@ void StreamGenerator::processSequenceFrame()
 
 void StreamGenerator::processSequenceTick()
 {
-    Rom& reader = seq.getRom();
+    Rom& reader = seq.GetRom();
     // process all tracks
     bool isSongRunning = false;
     for (Sequence::Track& cTrk : seq.tracks) {

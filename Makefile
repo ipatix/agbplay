@@ -6,7 +6,7 @@ IMPORT = -I ../portaudio/include
 
 GREEN = \033[1;32m
 RED = \033[1;31m
-BROWN = \033[0;33m
+BROWN = \033[1;33m
 WHITE = \033[1;37m
 NCOL = \033[0m
 

@@ -79,8 +79,9 @@ namespace agbplay
             // processing variables
             int32_t bpmStack;
             uint16_t bpm;
-            Rom& getRom();
-            long getSndBnk();
+            Rom& GetRom();
+            long GetSndBnk();
+            uint8_t GetReverb();
         private:
             DisplayContainer dcont;
             Rom rom;

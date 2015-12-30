@@ -2,10 +2,13 @@
 
 #include <cstdint>
 
+// for increased quality we process in subframes (including the base frame)
+#define INTERFRAMES 4
+
 namespace agbplay
 {
     enum class CGBType : int { SQ1 = 0, SQ2, WAVE, NOISE };
-    enum class EnvState : int { INIT = 0, ATK, DEC, SUS, REL, DEAD };
+    enum class EnvState : int { INIT = 0, ATK, DEC, SUS, REL, DIE, DEAD };
     enum class WaveDuty : int { D12 = 0, D25, D50, D75 };
     enum class NoisePatt : int { FINE = 0, ROUGH };
 

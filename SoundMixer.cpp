@@ -9,257 +9,12 @@ using namespace std;
 using namespace agbplay;
 
 /*
- * ADSR
- */
-
-ADSR::ADSR(uint8_t att, uint8_t dec, uint8_t sus, uint8_t rel)
-{
-    this->att = att;
-    this->dec = dec;
-    this->sus = sus;
-    this->rel = rel;
-}
-
-ADSR::ADSR()
-{
-    this->att = 0xFF;
-    this->dec = 0x00;
-    this->sus = 0xFF;
-    this->rel = 0x00;
-}
-
-/*
- * Note
- */
-
-Note::Note(uint8_t midiKey, uint8_t velocity, int8_t length)
-{
-    this->midiKey = midiKey;
-    this->velocity = velocity;
-    this->length = length;
-}
-
-Note::Note()
-{
-}
-
-/*
- * public SampleInfo
- */
-
-SampleInfo::SampleInfo(int8_t *samplePtr, float midCfreq, bool loopEnabled, uint32_t loopPos, uint32_t endPos)
-{
-    this->samplePtr = samplePtr;
-    this->midCfreq = midCfreq;
-    this->loopPos = loopPos;
-    this->endPos = endPos;
-    this->loopEnabled = loopEnabled;
-}
-
-SampleInfo::SampleInfo()
-{
-}
-
-/*
- * public SoundChannel
- */
-
-SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, bool fixed)
-{
-    this->owner = owner;
-    this->note = note;
-    this->env = env;
-    this->sInfo = sInfo;
-    this->interPos = 0.0f;
-    SetVol(leftVol, rightVol);
-    this->fixed = fixed;
-    SetPitch(pitch);
-    // if instant attack is ative directly max out the envelope to not cut off initial sound
-    this->eState = EnvState::INIT;
-}
-
-SoundChannel::~SoundChannel()
-{
-}
-
-void *SoundChannel::GetOwner()
-{
-    return owner;
-}
-
-float SoundChannel::GetFreq()
-{
-    return freq;
-}
-
-void SoundChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
-{
-    this->leftVol = note.velocity * leftVol / 128;
-    this->rightVol = note.velocity * rightVol / 128;
-}
-
-uint8_t SoundChannel::GetVolL()
-{
-    return leftVol;
-}
-
-uint8_t SoundChannel::GetVolR()
-{
-    return rightVol;
-}
-
-uint8_t SoundChannel::GetMidiKey()
-{
-    return note.midiKey;
-}
-
-void SoundChannel::Release()
-{
-    if (eState < EnvState::REL)
-        eState = EnvState::REL;
-}
-
-bool SoundChannel::TickNote()
-{
-    if (eState < EnvState::REL) {
-        if (note.length > 0) {
-            note.length--;
-            if (note.length == 0) {
-                eState = EnvState::REL;
-                return false;
-            }
-            return true;
-        } else if (note.length == -1) {
-            return true;
-        } else assert(false);
-    } else {
-        return false;
-    }
-}
-
-EnvState SoundChannel::GetState()
-{
-    return eState;
-}
-
-void SoundChannel::SetPitch(int16_t pitch)
-{
-    freq = sInfo.midCfreq * powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
-}
-
-/*
- * public CGBChannel
- */
-
-CGBChannel::CGBChannel(CGBType t)
-{
-    this->cType = t;
-    this->interPos = 0.0f;
-    this->owner = nullptr;
-    this->leftVol = 0;
-    this->rightVol = 0;
-    this->eState = EnvState::SUS;
-}
-
-CGBChannel::~CGBChannel()
-{
-}
-
-void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
-{
-    this->owner = owner;
-    this->note = note;
-    this->def = def;
-    this->env = env;
-    this->eState = EnvState::INIT;
-}
-
-void *CGBChannel::GetOwner()
-{
-    return owner;
-}
-
-float CGBChannel::GetFreq()
-{
-    return freq;
-}
-
-void CGBChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
-{
-#ifdef CGB_PAN_SNAP
-    if (leftVol << 1 > rightVol) {
-        // snap left
-        this->leftVol = (leftVol + rightVol) >> 5;
-        this->rightVol = 0;
-    } else if (rightVol << 1 > leftVol) {
-        // snap right
-        this->rightVol= (leftVol + rightVol) >> 5;
-        this->leftVol = 0;
-    } else {
-        // snap mid
-        this->leftVol = this->rightVol = (leftVol + rightVol) >> 5;
-    }
-#else
-    this->leftVol = leftVol >> 4;
-    this->rightVol = rightVol >> 4;
-#endif
-}
-
-uint8_t CGBChannel::GetVolL()
-{
-    return leftVol;
-}
-
-uint8_t CGBChannel::GetVolR()
-{
-    return rightVol;
-}
-
-uint8_t CGBChannel::GetMidiKey()
-{
-    return note.midiKey;
-}
-
-void CGBChannel::Release()
-{
-    if (eState < EnvState::REL)
-        eState = EnvState::REL;
-}
-
-bool CGBChannel::TickNote()
-{
-    if (eState < EnvState::REL) {
-        if (note.length > 0) {
-            note.length--;
-            if (note.length == 0) {
-                eState = EnvState::REL;
-                return false;
-            }
-            return true;
-        } else if (note.length == -1) {
-            return true;
-        } else throw MyException("ShoundChannel::NoteTick shouldn't be able to crash");
-    } else {
-        return false;
-    }
-}
-
-EnvState CGBChannel::GetState()
-{
-    return eState;
-}
-
-void CGBChannel::SetPitch(int16_t pitch)
-{
-    freq = powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
-}
-
-/*
  * public SoundMixer
  */
 
-SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate) : sq1(CGBType::SQ1), sq2(CGBType::SQ2), wave(CGBType::WAVE), noise(CGBType::NOISE)
+SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb) : sq1(CGBType::SQ1), sq2(CGBType::SQ2), wave(CGBType::WAVE), noise(CGBType::NOISE)
 {
+    this->revdsp = new ReverbEffect(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)));
     this->sampleRate = sampleRate;
     this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
     this->sampleBuffer = vector<float>(N_CHANNELS * samplesPerBuffer);
@@ -270,6 +25,7 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate) : sq1(CGBTyp
 
 SoundMixer::~SoundMixer()
 {
+    delete revdsp;
 }
 
 void SoundMixer::NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, bool fixed)
@@ -343,11 +99,11 @@ void SoundMixer::StopChannel(void *owner, uint8_t key)
 
 void *SoundMixer::ProcessAndGetAudio()
 {
-    // TODO implement
-    if (isShuttingDown)
+    if (isShuttingDown) {
         return nullptr;
-    else {
+    } else {
         clearBuffer();
+        renderToBuffer();
         return (void *)&sampleBuffer[0];
     }
 }
@@ -382,4 +138,8 @@ void SoundMixer::purgeChannels()
 void SoundMixer::clearBuffer()
 {
     fill(sampleBuffer.begin(), sampleBuffer.end(), 0.0f);
+}
+
+void SoundMixer::renderToBuffer()
+{
 }

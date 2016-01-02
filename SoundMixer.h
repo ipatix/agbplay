@@ -52,5 +52,14 @@ namespace agbplay
             uint32_t samplesPerBuffer;
             float sampleRateReciprocal;
             bool isShuttingDown;
+
+            // sample patterns
+            static const float pat_sq12[0x10];
+            static const float pat_sq25[0x10];
+            static const float pat_sq50[0x10];
+            static const float pat_sq75[0x10];
+            
+            static const float pat_noise_fine[0x8000];
+            static const float pat_noise_rough[0x80];
     };
 }

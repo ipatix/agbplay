@@ -12,6 +12,23 @@ using namespace agbplay;
  * public SoundMixer
  */
 
+// square wave LUT
+
+const float SoundMixer::pat_sq12[] = {
+    0.875f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f, -0.125f
+};
+const float SoundMixer::pat_sq25[] = {
+    0.75f, 0.75f, -0.25f, -0.25f, -0.25f, -0.25f, -0.25f, -0.25f
+};
+const float SoundMixer::pat_sq50[] = {
+    0.50f, 0.50f, 0.50f, 0.50f, -0.50f, -0.50f, -0.50f, -0.50f
+};
+const float SoundMixer::pat_sq75[] = {
+    0.25f, 0.25f, 0.25f, 0.25f, 0.25f, 0.25f, -0.75, -0.75f
+};
+
+// noise LUT in external file
+
 SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb) : sq1(CGBType::SQ1), sq2(CGBType::SQ2), wave(CGBType::WAVE), noise(CGBType::NOISE)
 {
     this->revdsp = new ReverbEffect(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)));
@@ -152,6 +169,7 @@ void SoundMixer::renderToBuffer()
     {
         if (chn.GetState() == EnvState::DEAD)
             continue;
+
         ChnVol vol = chn.GetVol();
         SampleInfo& info = chn.GetInfo();
         float lVolDeltaStep = (vol.toVolLeft - vol.toVolLeft) * nBlocksReciprocal;
@@ -160,22 +178,29 @@ void SoundMixer::renderToBuffer()
         float rVol = vol.fromVolRight;
         float interStep = chn.GetFreq() * this->sampleRateReciprocal;
         float *buf = &sampleBuffer[0];
-        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-        {
-            float baseSamp = float(info.samplePtr[chn.pos]) / 128;
-            float deltaSamp = float(info.samplePtr[chn.pos+1]) / 128 - baseSamp;
-            float finalSamp = baseSamp + deltaSamp * chn.interPos;
+        if (chn.IsGS()) {
+            for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
+            {
+                // TODO
+            }
+        } else {
+            for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
+            {
+                float baseSamp = float(info.samplePtr[chn.pos]) / 128;
+                float deltaSamp = float(info.samplePtr[chn.pos+1]) / 128 - baseSamp;
+                float finalSamp = baseSamp + deltaSamp * chn.interPos;
 
-            *buf++ = finalSamp * lVol;
-            *buf++ = finalSamp * rVol;
+                *buf++ = finalSamp * lVol;
+                *buf++ = finalSamp * rVol;
 
-            lVol += lVolDeltaStep;
-            rVol += rVolDeltaStep;
+                lVol += lVolDeltaStep;
+                rVol += rVolDeltaStep;
 
-            chn.interPos += interStep;
-            uint32_t posDelta = uint32_t(chn.interPos);
-            chn.interPos -= float(posDelta);
-            chn.pos += posDelta;
+                chn.interPos += interStep;
+                uint32_t posDelta = uint32_t(chn.interPos);
+                chn.interPos -= float(posDelta);
+                chn.pos += posDelta;
+            }
         }
         chn.UpdateVolFade();
     }
@@ -192,13 +217,12 @@ void SoundMixer::renderToBuffer()
     float *buf;
 
     // square 1
-    // TODO go on work and fix bullshit
     float threshold;
     switch (info.wd) { 
         case WaveDuty::D12: threshold = 0.125f; break;
         case WaveDuty::D25: threshold = 0.25f; break;
-        case WaveDuty::D50: threshold = 0.5; break;
-        case WaveDuty::D75: threshold = 0.75; break;
+        case WaveDuty::D50: threshold = 0.5f; break;
+        case WaveDuty::D75: threshold = 0.75f; break;
     }
     vol = sq1.GetVol();
     info = sq1.GetDef();
@@ -209,10 +233,9 @@ void SoundMixer::renderToBuffer()
     interStep = sq1.GetFreq() * this->sampleRateReciprocal;
     buf = &sampleBuffer[0];
 
-
     // TODO add sweep functionality
     for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
     {
-        
+
     }
 }

@@ -194,7 +194,17 @@ void CGBChannel::UpdateVolFade()
 
 void CGBChannel::SetPitch(int16_t pitch)
 {
-    freq = powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
+    switch (cType) {
+        case CGBType::SQ1:
+        case CGBType::SQ2:
+            freq = powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
+            break;
+        case CGBType::WAVE:
+            freq = 16 * powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
+        case CGBType::NOISE:
+            freq = 4096 * powf(8.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
+
+    }
 }
 
 

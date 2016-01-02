@@ -23,6 +23,11 @@ SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, u
     // if instant attack is ative directly max out the envelope to not cut off initial sound
     this->eState = EnvState::INIT;
     this->pos = 0;
+    if (sInfo.loopEnabled == true && sInfo.loopPos == 0 && sInfo.endPos == 0) {
+        this->isGS = true;
+    } else {
+        this->isGS = false;
+    }
 }
 
 SoundChannel::~SoundChannel()
@@ -68,6 +73,11 @@ uint8_t SoundChannel::GetMidiKey()
 bool SoundChannel::IsFixed()
 {
     return fixed;
+}
+
+bool SoundChannel::IsGS()
+{
+    return isGS;
 }
 
 void SoundChannel::Release()

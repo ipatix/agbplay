@@ -19,6 +19,7 @@ namespace agbplay
             ChnVol GetVol();
             uint8_t GetMidiKey();
             bool IsFixed();
+            bool IsGS();
             void Release();
             void SetPitch(int16_t pitch);
             bool TickNote(); // returns true if note remains active
@@ -32,6 +33,7 @@ namespace agbplay
             void *owner;
             float freq;
             bool fixed;
+            bool isGS;
             uint8_t envInterStep;
             ADSR env;
             Note note;

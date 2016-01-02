@@ -2,6 +2,7 @@
 *.gba
 *.sav
 DEBUG
+a.out
 agbplay*
 sappy.txt
 log

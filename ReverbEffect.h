@@ -13,10 +13,10 @@ namespace agbplay
         public:
             ReverbEffect(int intesity, uint32_t streamRate, uint8_t numAgbBuffers);
             ~ReverbEffect();
-            void ProcessData(float *buffer, uint32_t amount);
+            void ProcessData(float *buffer, uint32_t nBlocks);
         private:
-            uint32_t processNormal(float *buffer, uint32_t amount);
-            uint32_t processGS(float *buffer, uint32_t amount);
+            uint32_t processNormal(float *buffer, uint32_t nBlocks);
+            uint32_t processGS(float *buffer, uint32_t nBlocks);
             uint32_t getBlocksPerBuffer();
             enum class RevType { NONE, NORMAL, GS } rtype;
             float intensity;

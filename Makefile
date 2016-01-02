@@ -1,4 +1,4 @@
-CXX = clang++
+CXX = g++
 CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -D DEBUG -O2
 BINARY = agbplay
 LIBS = ../portaudio/libportaudio_static.a -lm -lncursesw -lboost_system -lboost_thread

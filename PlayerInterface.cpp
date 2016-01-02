@@ -11,7 +11,7 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
         ) : seq(Sequence(initSongPos, 16, _rom)), rom(_rom)
 {
     this->trackUI = trackUI;
-    this->dSoundVol = pars.vol + 1;
+    this->dSoundVol = uint8_t(pars.vol + 1);
     this->dSoundRev = pars.rev;
     this->dSoundFreq = (pars.freq == 0 || pars.freq > 12) ? freqLut[4] : freqLut[pars.freq - 1];
 }

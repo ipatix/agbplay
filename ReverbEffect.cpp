@@ -33,41 +33,41 @@ ReverbEffect::~ReverbEffect()
     delete reverbBuffer;
 }
 
-void ReverbEffect::ProcessData(float *buffer, uint32_t amount)
+void ReverbEffect::ProcessData(float *buffer, uint32_t nBlocks)
 {
     switch (rtype) {
         case RevType::NONE:
             break;
         case RevType::NORMAL:
-            while (amount > 0) {
-                uint32_t left = processNormal(buffer, amount);
-                buffer += (amount - left) * N_CHANNELS;
-                amount = left;
+            while (nBlocks > 0) {
+                uint32_t left = processNormal(buffer, nBlocks);
+                buffer += (nBlocks - left) * N_CHANNELS;
+                nBlocks = left;
             }
             break;
         case RevType::GS:
-            while (amount > 0) {
-                uint32_t left = processGS(buffer, amount);
-                buffer += (amount - left) * N_CHANNELS;
-                amount = left;
+            while (nBlocks > 0) {
+                uint32_t left = processGS(buffer, nBlocks);
+                buffer += (nBlocks - left) * N_CHANNELS;
+                nBlocks = left;
             }
             break;
     }
 }
 
-uint32_t ReverbEffect::processNormal(float *buffer, uint32_t amount)
+uint32_t ReverbEffect::processNormal(float *buffer, uint32_t nBlocks)
 {
     vector<float>& rbuf = *reverbBuffer;
     uint32_t count;
     bool reset = false, reset2 = false;
-    if (getBlocksPerBuffer() - bufferPos2 < amount) {
+    if (getBlocksPerBuffer() - bufferPos2 < nBlocks) {
         count = getBlocksPerBuffer() - bufferPos2;
         reset2 = true;
-    } else if (getBlocksPerBuffer() - bufferPos < amount) {
+    } else if (getBlocksPerBuffer() - bufferPos < nBlocks) {
         count = getBlocksPerBuffer() - bufferPos;
         reset = true;
     } else {
-        count = amount;
+        count = nBlocks;
     }
     uint32_t ipos = 0;
     for (uint32_t c = count; c > 0; c--) 
@@ -83,13 +83,13 @@ uint32_t ReverbEffect::processNormal(float *buffer, uint32_t amount)
     }
     if (reset2) bufferPos2 = 0;
     else if (reset) bufferPos = 0;
-    return amount - count;
+    return nBlocks - count;
 }
 
-uint32_t ReverbEffect::processGS(float *buffer, uint32_t amount)
+uint32_t ReverbEffect::processGS(float *buffer, uint32_t nBlocks)
 {
     (void)buffer;
-    (void)amount;
+    (void)nBlocks;
     // TODO implement
     return 0;
 }

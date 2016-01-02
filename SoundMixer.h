@@ -50,6 +50,7 @@ namespace agbplay
             uint32_t sampleRate;
             uint32_t fixedModeRate;
             uint32_t samplesPerBuffer;
+            float sampleRateReciprocal;
             bool isShuttingDown;
     };
 }

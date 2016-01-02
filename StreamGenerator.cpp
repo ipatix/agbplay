@@ -147,7 +147,7 @@ void StreamGenerator::processSequenceTick()
                             if (reader.PeekInt8(0) >= 0) {
                                 if (reader.PeekInt8(1) >= 0) {
                                     uint8_t vel = cTrk.lastNoteVel = reader.ReadUInt8();
-                                    int8_t len = cTrk.lastNoteLen + reader.ReadInt8();
+                                    int8_t len = int8_t(cTrk.lastNoteLen + reader.ReadInt8());
                                     playNote(cTrk, Note(cmd, vel, len), &cTrk);
                                     cTrk.pos += 3;
                                 } else {
@@ -234,7 +234,7 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case 0xBB:
                             // TEMPO
-                            seq.bpm = reader.ReadUInt8() * 2;
+                            seq.bpm = uint16_t(reader.ReadUInt8() * 2);
                             cTrk.pos += 2;
                             break;
                         case 0xBC:

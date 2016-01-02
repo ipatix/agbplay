@@ -19,6 +19,16 @@ namespace agbplay
         NoisePatt np;
     };
 
+    struct ChnVol
+    {
+        ChnVol(float fromVolLeft, float fromVolRight, float toVolLeft, float toVolRight);
+        ChnVol();
+        float fromVolLeft;
+        float fromVolRight;
+        float toVolLeft;
+        float toVolRight;
+    };
+
     struct ADSR
     {
         ADSR(uint8_t att, uint8_t dec, uint8_t sus, uint8_t rel);

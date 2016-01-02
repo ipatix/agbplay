@@ -15,14 +15,15 @@ namespace agbplay
             void *GetOwner();
             float GetFreq();
             void SetVol(uint8_t leftVol, uint8_t rightVol);
-            uint8_t GetVolL();
-            uint8_t GetVolR();
+            ChnVol GetVol();
+            CGBDef GetDef();
             uint8_t GetMidiKey();
             void Release();
             void SetPitch(int16_t pitch);
             bool TickNote(); // returns true if note remains active
             EnvState GetState();
             void StepEnvelope();
+            void UpdateVolFade();
             float interPos;
         private:
             void *owner;
@@ -37,8 +38,8 @@ namespace agbplay
             uint8_t rightVol;
             uint8_t envLevel;
             // these values are always 1 frame behind in order to provide a smooth transition
-            uint8_t processLeftVol;
-            uint8_t processRightVol;
-            uint8_t processEnvLevel;
+            uint8_t fromLeftVol;
+            uint8_t fromRightVol;
+            uint8_t fromEnvLevel;
     };
 }

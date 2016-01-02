@@ -22,6 +22,7 @@ SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, u
     SetPitch(pitch);
     // if instant attack is ative directly max out the envelope to not cut off initial sound
     this->eState = EnvState::INIT;
+    this->pos = 0;
 }
 
 SoundChannel::~SoundChannel()
@@ -40,18 +41,23 @@ float SoundChannel::GetFreq()
 
 void SoundChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
 {
-    this->leftVol = note.velocity * leftVol / 128;
-    this->rightVol = note.velocity * rightVol / 128;
+    if (eState < EnvState::REL) {
+        this->leftVol = note.velocity * leftVol / 128;
+        this->rightVol = note.velocity * rightVol / 128;
+    }
 }
 
-uint8_t SoundChannel::GetVolL()
+ChnVol SoundChannel::GetVol()
 {
-    return leftVol;
-}
-
-uint8_t SoundChannel::GetVolR()
-{
-    return rightVol;
+    float envBase = float(fromEnvLevel);
+    float envDelta = float(envLevel) - envBase;
+    float finalFromEnv = envBase + envDelta * float(envInterStep);
+    float finalToEnv = envBase + envDelta * float(envInterStep + 1);
+    return ChnVol(
+            float(fromLeftVol) * finalFromEnv / 65536,
+            float(fromRightVol) * finalFromEnv / 65536,
+            float(leftVol) * finalToEnv / 65536,
+            float(rightVol) * finalToEnv / 65536);
 }
 
 uint8_t SoundChannel::GetMidiKey()
@@ -59,10 +65,17 @@ uint8_t SoundChannel::GetMidiKey()
     return note.midiKey;
 }
 
+bool SoundChannel::IsFixed()
+{
+    return fixed;
+}
+
 void SoundChannel::Release()
 {
-    if (eState < EnvState::REL)
+    if (eState < EnvState::REL) {
         eState = EnvState::REL;
+        envInterStep = 0;
+    }
 }
 
 void SoundChannel::SetPitch(int16_t pitch)
@@ -93,16 +106,21 @@ EnvState SoundChannel::GetState()
     return eState;
 }
 
+SampleInfo& SoundChannel::GetInfo()
+{
+    return sInfo;
+}
+
 void SoundChannel::StepEnvelope()
 {
     switch (eState) {
         case EnvState::INIT:
-            processLeftVol = leftVol;
-            processRightVol = rightVol;
+            fromLeftVol = leftVol;
+            fromRightVol = rightVol;
             if (env.att == 0xFF) {
-                processEnvLevel = 0xFF;
+                fromEnvLevel = 0xFF;
             } else {
-                processEnvLevel = 0x0;
+                fromEnvLevel = 0x0;
             }
             envLevel = env.att;
             envInterStep = 0;
@@ -110,7 +128,7 @@ void SoundChannel::StepEnvelope()
             break;
         case EnvState::ATK:
             if (++envInterStep >= INTERFRAMES) {
-                processEnvLevel = envLevel;
+                fromEnvLevel = envLevel;
                 envInterStep = 0;
                 int newLevel = envLevel + env.att;
                 if (newLevel >= 0xFF) {
@@ -123,7 +141,7 @@ void SoundChannel::StepEnvelope()
             break;
         case EnvState::DEC:
             if (++envInterStep >= INTERFRAMES) {
-                processEnvLevel = envLevel;
+                fromEnvLevel = envLevel;
                 envInterStep = 0;
                 int newLevel = envLevel * env.dec / 256;
                 if (newLevel <= env.sus) {
@@ -136,15 +154,15 @@ void SoundChannel::StepEnvelope()
             break;
         case EnvState::SUS:
             if (++envInterStep >= INTERFRAMES) {
-                processEnvLevel = envLevel;
+                fromEnvLevel = envLevel;
                 envInterStep = 0;
             }
             break;
         case EnvState::REL:
             if (++envInterStep >= INTERFRAMES) {
-                processEnvLevel = envLevel;
+                fromEnvLevel = envLevel;
                 envInterStep = 0;
-                int newLevel = envLevel * env.rel;
+                int newLevel = envLevel * env.rel / 256;
                 if (newLevel <= 0) {
                     eState = EnvState::DIE;
                     envLevel = 0;
@@ -153,7 +171,7 @@ void SoundChannel::StepEnvelope()
             break;
         case EnvState::DIE:
             if (++envInterStep >= INTERFRAMES) {
-                processEnvLevel = envLevel;
+                fromEnvLevel = envLevel;
                 eState = EnvState::DEAD;
             }
             break;
@@ -162,3 +180,8 @@ void SoundChannel::StepEnvelope()
     }
 }
 
+void SoundChannel::UpdateVolFade()
+{
+    fromLeftVol = leftVol;
+    fromRightVol = rightVol;
+}

@@ -21,6 +21,7 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb) 
     this->fixedModeRate = fixedModeRate;
     fill_n(this->sampleBuffer.begin(), this->sampleBuffer.size(), 0.0f);
     this->isShuttingDown = false;
+    this->sampleRateReciprocal = 1.0f / float(sampleRate);
 }
 
 SoundMixer::~SoundMixer()
@@ -141,5 +142,77 @@ void SoundMixer::clearBuffer()
 }
 
 void SoundMixer::renderToBuffer()
-{
+{
+    uint32_t nBlocks = uint32_t(sampleBuffer.size());
+    float nBlocksReciprocal = 1.0f / float(nBlocks);
+
+    // process all digital channels
+    // TODO loop/end/gs handler
+    for (SoundChannel& chn : sndChannels)
+    {
+        if (chn.GetState() == EnvState::DEAD)
+            continue;
+        ChnVol vol = chn.GetVol();
+        SampleInfo& info = chn.GetInfo();
+        float lVolDeltaStep = (vol.toVolLeft - vol.toVolLeft) * nBlocksReciprocal;
+        float rVolDeltaStep = (vol.toVolRight - vol.toVolRight) * nBlocksReciprocal;
+        float lVol = vol.fromVolLeft;
+        float rVol = vol.fromVolRight;
+        float interStep = chn.GetFreq() * this->sampleRateReciprocal;
+        float *buf = &sampleBuffer[0];
+        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
+        {
+            float baseSamp = float(info.samplePtr[chn.pos]) / 128;
+            float deltaSamp = float(info.samplePtr[chn.pos+1]) / 128 - baseSamp;
+            float finalSamp = baseSamp + deltaSamp * chn.interPos;
+
+            *buf++ = finalSamp * lVol;
+            *buf++ = finalSamp * rVol;
+
+            lVol += lVolDeltaStep;
+            rVol += rVolDeltaStep;
+
+            chn.interPos += interStep;
+            uint32_t posDelta = uint32_t(chn.interPos);
+            chn.interPos -= float(posDelta);
+            chn.pos += posDelta;
+        }
+        chn.UpdateVolFade();
+    }
+
+    // process all CGB channels
+
+    ChnVol vol;
+    CGBDef info;
+    float lVolDeltaStep;
+    float rVolDeltaStep;
+    float lVol;
+    float rVol;
+    float interStep;
+    float *buf;
+
+    // square 1
+    // TODO go on work and fix bullshit
+    float threshold;
+    switch (info.wd) { 
+        case WaveDuty::D12: threshold = 0.125f; break;
+        case WaveDuty::D25: threshold = 0.25f; break;
+        case WaveDuty::D50: threshold = 0.5; break;
+        case WaveDuty::D75: threshold = 0.75; break;
+    }
+    vol = sq1.GetVol();
+    info = sq1.GetDef();
+    lVolDeltaStep = (vol.toVolLeft - vol.toVolLeft) * nBlocksReciprocal;
+    rVolDeltaStep = (vol.toVolRight - vol.toVolRight) * nBlocksReciprocal;
+    lVol = vol.fromVolLeft;
+    rVol = vol.fromVolRight;
+    interStep = sq1.GetFreq() * this->sampleRateReciprocal;
+    buf = &sampleBuffer[0];
+
+
+    // TODO add sweep functionality
+    for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
+    {
+        
+    }
 }

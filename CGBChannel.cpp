@@ -45,33 +45,40 @@ float CGBChannel::GetFreq()
 
 void CGBChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
 {
+    // FIXME check for correct type conversion
+    if (eState < EnvState::REL) {
 #ifdef CGB_PAN_SNAP
-    if (leftVol << 1 > rightVol) {
-        // snap left
-        this->leftVol = (leftVol + rightVol) >> 5;
-        this->rightVol = 0;
-    } else if (rightVol << 1 > leftVol) {
-        // snap right
-        this->rightVol= (leftVol + rightVol) >> 5;
-        this->leftVol = 0;
-    } else {
-        // snap mid
-        this->leftVol = this->rightVol = (leftVol + rightVol) >> 5;
-    }
+        if (leftVol << 1 > rightVol) {
+            // snap left
+            this->leftVol = (leftVol + rightVol) >> 5;
+            this->rightVol = 0;
+        } else if (rightVol << 1 > leftVol) {
+            // snap right
+            this->rightVol = (leftVol + rightVol) >> 5;
+            this->leftVol = 0;
+        } else {
+            // snap mid
+            this->leftVol = this->rightVol = (leftVol + rightVol) >> 5;
+        }
 #else
-    this->leftVol = leftVol >> 4;
-    this->rightVol = rightVol >> 4;
+        this->leftVol = leftVol >> 4;
+        this->rightVol = rightVol >> 4;
 #endif
+    }
 }
 
-uint8_t CGBChannel::GetVolL()
+ChnVol CGBChannel::GetVol()
 {
-    return leftVol;
+    return ChnVol(
+            float(fromLeftVol) * float(fromEnvLevel) / 256,
+            float(fromRightVol) * float(fromEnvLevel) / 256,
+            float(leftVol) * float(envLevel) / 256,
+            float(rightVol) * float(envLevel) / 256);
 }
 
-uint8_t CGBChannel::GetVolR()
+CGBDef CGBChannel::GetDef()
 {
-    return rightVol;
+    return def;
 }
 
 uint8_t CGBChannel::GetMidiKey()
@@ -81,8 +88,10 @@ uint8_t CGBChannel::GetMidiKey()
 
 void CGBChannel::Release()
 {
-    if (eState < EnvState::REL)
+    if (eState < EnvState::REL) {
         eState = EnvState::REL;
+        envInterStep = 0; // TODO check if this doesn't mess up interpolation
+    }
 }
 
 bool CGBChannel::TickNote()
@@ -112,35 +121,35 @@ void CGBChannel::StepEnvelope()
 {
     switch (eState) {
         case EnvState::INIT:
-            processLeftVol = leftVol;
-            processRightVol = rightVol;
-            if (env.att == 0xFF) {
-                processEnvLevel = 0xFF;
+            fromLeftVol = leftVol;
+            fromRightVol = rightVol;
+            if (env.att == 0) {
+                fromEnvLevel = 0xF;
             } else {
-                processEnvLevel = 0x0;
+                fromEnvLevel = 0x0;
             }
             envLevel = env.att;
             envInterStep = 0;
             eState = EnvState::ATK;
             break;
         case EnvState::ATK:
-            if (++envInterStep >= INTERFRAMES) {
-                processEnvLevel = envLevel;
+            if (++envInterStep >= INTERFRAMES * env.att) {
+                fromEnvLevel = envLevel;
                 envInterStep = 0;
-                int newLevel = envLevel + env.att;
-                if (newLevel >= 0xFF) {
+                int newLevel = envLevel + 1;
+                if (newLevel >= 0xF) {
                     eState = EnvState::DEC;
-                    envLevel = 0xFF;
+                    envLevel = 0xF;
                 } else {
                     envLevel = uint8_t(newLevel);
                 }
             }
             break;
         case EnvState::DEC:
-            if (++envInterStep >= INTERFRAMES) {
-                processEnvLevel = envLevel;
+            if (++envInterStep >= INTERFRAMES * env.dec) {
+                fromEnvLevel = envLevel;
                 envInterStep = 0;
-                int newLevel = envLevel * env.dec / 256;
+                int newLevel = envLevel - 1;
                 if (newLevel <= env.sus) {
                     eState = EnvState::SUS;
                     envLevel = env.sus;
@@ -151,15 +160,15 @@ void CGBChannel::StepEnvelope()
             break;
         case EnvState::SUS:
             if (++envInterStep >= INTERFRAMES) {
-                processEnvLevel = envLevel;
+                fromEnvLevel = envLevel;
                 envInterStep = 0;
             }
             break;
         case EnvState::REL:
-            if (++envInterStep >= INTERFRAMES) {
-                processEnvLevel = envLevel;
+            if (++envInterStep >= INTERFRAMES * env.rel) {
+                fromEnvLevel = envLevel;
                 envInterStep = 0;
-                int newLevel = envLevel * env.rel;
+                int newLevel = envLevel -1;
                 if (newLevel <= 0) {
                     eState = EnvState::DIE;
                     envLevel = 0;
@@ -167,14 +176,20 @@ void CGBChannel::StepEnvelope()
             }
             break;
         case EnvState::DIE:
-            if (++envInterStep >= INTERFRAMES) {
-                processEnvLevel = envLevel;
+            if (++envInterStep >= INTERFRAMES * env.rel) {
+                fromEnvLevel = envLevel;
                 eState = EnvState::DEAD;
             }
             break;
         case EnvState::DEAD:
             break;
     }
+}
+
+void CGBChannel::UpdateVolFade()
+{
+    fromLeftVol = leftVol;
+    fromRightVol = rightVol;
 }
 
 void CGBChannel::SetPitch(int16_t pitch)

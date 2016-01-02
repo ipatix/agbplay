@@ -246,7 +246,7 @@ SampleInfo SoundBank::GetSampInfo(uint8_t instrNum, uint8_t midiKey)
         loopEnabled = false;
     else
         throw MyException(FormatString("Invalid sample mode 0x%8X at 0x%7X", tmp, rom.GetPos()));
-    midCfreq = rom.ReadUInt32() / 1024.0f;
+    midCfreq = float(rom.ReadUInt32()) / 1024.0f;
     loopPos = rom.ReadUInt32();
     endPos = rom.ReadUInt32();
     samplePtr = (int8_t *)rom.GetPtr();
@@ -406,7 +406,7 @@ const vector<int16_t> Sequence::sineLut = {
 
 int16_t Sequence::Track::GetPitch()
 {
-    return bend * bendr + tune * 2 + sineLut[lfoPhase] / 128;
+    return int16_t(bend * bendr + tune * 2 + sineLut[lfoPhase] / 128);
 }
 
 uint8_t Sequence::Track::GetLeftVol()

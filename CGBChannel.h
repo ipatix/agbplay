@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 
 #include "SampleStructs.h"
 
@@ -24,10 +25,11 @@ namespace agbplay
             EnvState GetState();
             void StepEnvelope();
             void UpdateVolFade();
-            float *GetPat();
+            const float *GetPat();
             uint32_t pos;
             float interPos;
         private:
+            std::vector<float> waveBuffer;
             void *owner;
             const float *pat;
             float freq;

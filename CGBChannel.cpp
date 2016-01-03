@@ -12,7 +12,7 @@ using namespace agbplay;
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel(CGBType t)
+CGBChannel::CGBChannel(CGBType t) : waveBuffer(t == CGBType::WAVE ? 32 : 0, 0.0f)
 {
     this->cType = t;
     this->interPos = 0.0f;
@@ -33,7 +33,7 @@ CGBChannel::CGBChannel(CGBType t)
             this->pat = CGBPatterns::pat_sq50;
             break;
         case CGBType::WAVE:
-            this->pat = CGBPatterns::dummy_wave; 
+            this->pat = &waveBuffer[0];
             break;
         case CGBType::NOISE:
             this->pat = CGBPatterns::pat_noise_fine;
@@ -52,6 +52,26 @@ void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
     this->def = def;
     this->env = env;
     this->eState = EnvState::INIT;
+
+    if (cType == CGBType::WAVE) {
+        // generate wave pattern and convert to signed values
+        float sum = 0.0f;
+        for (size_t i = 0; i < 16; i++)
+        {
+            uint8_t twoNibbles = def.wavePtr[i];
+            float first = float(twoNibbles >> 4) * 0.125f;
+            sum += first;
+            float second = float(twoNibbles & 0xF) * 0.125f;
+            sum += second;
+            waveBuffer[i*2] = first;
+            waveBuffer[i*2+1] = second;
+        }
+        float dcCorrection = sum * 0.03125f;
+        for (size_t i = 0; i < 32; i++) {
+            waveBuffer[i] -= dcCorrection;
+        }
+        // correct DC offset
+    }
 }
 
 void *CGBChannel::GetOwner()
@@ -230,18 +250,5 @@ void CGBChannel::UpdateVolFade()
 
 const float *CGBChannel::GetPat()
 {
-    const float *pat = nullptr;
-    switch (cType) {
-        case CGBType::SQ1:
-        case CGBType::SQ2:
-            switch (def.wd) {
-                case WaveDuty::D12: pat = pat_sq12; break;
-                case WaveDuty::D25: pat = pat_sq25; break;
-                case WaveDuty::D50: pat = pat_sq50; break;
-                case WaveDuty::D75: pat = pat_sq75; break;
-            }
-            break;
-        case CGBType::WAVE:
-        case CGBType::NOISE:
-    }
+    return pat;
 }

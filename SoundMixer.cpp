@@ -147,7 +147,6 @@ void SoundMixer::renderToBuffer()
     float nBlocksReciprocal = 1.0f / float(nBlocks);
 
     // process all digital channels
-    // TODO loop/end/gs handler
     for (SoundChannel& chn : sndChannels)
     {
         if (chn.GetState() == EnvState::DEAD)
@@ -212,12 +211,7 @@ void SoundMixer::renderToBuffer()
 
     vol = sq1.GetVol();
     info = sq1.GetDef();
-    switch (info.wd) { 
-        case WaveDuty::D12: pat = pat_sq12; break;
-        case WaveDuty::D25: pat = pat_sq25; break;
-        case WaveDuty::D50: pat = pat_sq50; break;
-        case WaveDuty::D75: pat = pat_sq75; break;
-    }
+    pat = sq1.GetPat();
     assert(pat);
     lVolDeltaStep = (vol.toVolLeft - vol.toVolLeft) * nBlocksReciprocal;
     rVolDeltaStep = (vol.toVolRight - vol.toVolRight) * nBlocksReciprocal;
@@ -247,12 +241,7 @@ void SoundMixer::renderToBuffer()
 
     vol = sq2.GetVol();
     info = sq2.GetDef();
-    switch (info.wd) { 
-        case WaveDuty::D12: pat = pat_sq12; break;
-        case WaveDuty::D25: pat = pat_sq25; break;
-        case WaveDuty::D50: pat = pat_sq50; break;
-        case WaveDuty::D75: pat = pat_sq75; break;
-    }
+    pat = sq2.GetPat();
     assert(pat);
     lVolDeltaStep = (vol.toVolLeft - vol.toVolLeft) * nBlocksReciprocal;
     rVolDeltaStep = (vol.toVolRight - vol.toVolRight) * nBlocksReciprocal;
@@ -279,15 +268,10 @@ void SoundMixer::renderToBuffer()
 
     // wave
 
-    assert(pat);
     vol = wave.GetVol();
     info = wave.GetDef();
-    switch (info.wd) { 
-        case WaveDuty::D12: pat = pat_sq12; break;
-        case WaveDuty::D25: pat = pat_sq25; break;
-        case WaveDuty::D50: pat = pat_sq50; break;
-        case WaveDuty::D75: pat = pat_sq75; break;
-    }
+    pat = wave.GetPat();
+    assert(pat);
     lVolDeltaStep = (vol.toVolLeft - vol.toVolLeft) * nBlocksReciprocal;
     rVolDeltaStep = (vol.toVolRight - vol.toVolRight) * nBlocksReciprocal;
     lVol = vol.fromVolLeft;
@@ -313,15 +297,10 @@ void SoundMixer::renderToBuffer()
 
     // noise
 
-    assert(pat);
     vol = noise.GetVol();
     info = noise.GetDef();
-    switch (info.wd) { 
-        case WaveDuty::D12: pat = pat_sq12; break;
-        case WaveDuty::D25: pat = pat_sq25; break;
-        case WaveDuty::D50: pat = pat_sq50; break;
-        case WaveDuty::D75: pat = pat_sq75; break;
-    }
+    pat = noise.GetPat();
+    assert(pat);
     lVolDeltaStep = (vol.toVolLeft - vol.toVolLeft) * nBlocksReciprocal;
     rVolDeltaStep = (vol.toVolRight - vol.toVolRight) * nBlocksReciprocal;
     lVol = vol.fromVolLeft;
@@ -346,5 +325,4 @@ void SoundMixer::renderToBuffer()
         noise.interPos -= float(posDelta);
         noise.pos = (noise.pos + posDelta) & noise_bitmask;
     }
-
 }

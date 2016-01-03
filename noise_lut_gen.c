@@ -1,11 +1,17 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define FINE_NOISE
+
 static int reg;
 static bool noise_gen() {
     if ((reg & 1) == 1) {
         reg >>= 1;
-        reg ^= 0x60; // or 0x6000
+#ifdef FINE_NOISE
+        reg ^= 0x6000;
+#else
+        reg ^= 0x60;
+#endif
         return true;
     } else {
         reg >>= 1;
@@ -14,8 +20,13 @@ static bool noise_gen() {
 }
 
 int main(void) {
-    reg = 0x40; // or 0x4000
-    int count = 0x80; // or 0x8000
+#ifdef FINE_NOISE
+    reg = 0x4000;
+    int count = 0x8000;
+#else
+    reg = 0x40;
+    int count = 0x80;
+#endif
 
     printf("const float lut[] = {\n");
     for (int i = count; i > 0; i -= 0x20) {

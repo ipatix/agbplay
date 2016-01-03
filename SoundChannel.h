@@ -21,6 +21,7 @@ namespace agbplay
             bool IsFixed();
             bool IsGS();
             void Release();
+            void Kill();
             void SetPitch(int16_t pitch);
             bool TickNote(); // returns true if note remains active
             EnvState GetState();
@@ -34,11 +35,11 @@ namespace agbplay
             float freq;
             bool fixed;
             bool isGS;
-            uint8_t envInterStep;
             ADSR env;
             Note note;
             SampleInfo sInfo;
             EnvState eState;
+            uint8_t envInterStep;
             uint8_t leftVol;
             uint8_t rightVol;
             uint8_t envLevel;

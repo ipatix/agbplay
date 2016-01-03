@@ -7,6 +7,15 @@
 
 namespace agbplay
 {
+    template <typename T>
+        inline static T minmax(T min, T val, T max)
+        {
+            if (val < min) return min;
+            if (val > max) return max;
+            return val;
+        }
+    
+
     inline static std::string FormatStringRecurse(boost::format& message)
     {
         return message.str();

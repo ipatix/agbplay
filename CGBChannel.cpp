@@ -1,7 +1,9 @@
 #include <cmath>
 
 #include "CGBChannel.h"
+#include "CGBPatterns.h"
 #include "MyException.h"
+#include "Util.h"
 
 using namespace std;
 using namespace agbplay;
@@ -14,10 +16,29 @@ CGBChannel::CGBChannel(CGBType t)
 {
     this->cType = t;
     this->interPos = 0.0f;
+    this->pos = 0;
     this->owner = nullptr;
+    this->envInterStep = 0;
     this->leftVol = 0;
     this->rightVol = 0;
+    this->envLevel = 0;
+    this->fromLeftVol = 0;
+    this->fromRightVol = 0;
+    this->fromEnvLevel = 0;
     this->eState = EnvState::SUS;
+
+    switch (cType) {
+        case CGBType::SQ1:
+        case CGBType::SQ2:
+            this->pat = CGBPatterns::pat_sq50;
+            break;
+        case CGBType::WAVE:
+            this->pat = CGBPatterns::dummy_wave; 
+            break;
+        case CGBType::NOISE:
+            this->pat = CGBPatterns::pat_noise_fine;
+            break;
+    }
 }
 
 CGBChannel::~CGBChannel()
@@ -91,6 +112,21 @@ void CGBChannel::Release()
     if (eState < EnvState::REL) {
         eState = EnvState::REL;
         envInterStep = 0; // TODO check if this doesn't mess up interpolation
+    }
+}
+
+void CGBChannel::SetPitch(int16_t pitch)
+{
+    switch (cType) {
+        case CGBType::SQ1:
+        case CGBType::SQ2:
+            freq = 8 * powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
+            break;
+        case CGBType::WAVE:
+            freq = 16 * powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
+        case CGBType::NOISE:
+            freq = minmax(4.0f, 4096 * powf(8.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f), 524288.0f);
+
     }
 }
 
@@ -192,19 +228,20 @@ void CGBChannel::UpdateVolFade()
     fromRightVol = rightVol;
 }
 
-void CGBChannel::SetPitch(int16_t pitch)
+const float *CGBChannel::GetPat()
 {
+    const float *pat = nullptr;
     switch (cType) {
         case CGBType::SQ1:
         case CGBType::SQ2:
-            freq = powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
+            switch (def.wd) {
+                case WaveDuty::D12: pat = pat_sq12; break;
+                case WaveDuty::D25: pat = pat_sq25; break;
+                case WaveDuty::D50: pat = pat_sq50; break;
+                case WaveDuty::D75: pat = pat_sq75; break;
+            }
             break;
         case CGBType::WAVE:
-            freq = 16 * powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
         case CGBType::NOISE:
-            freq = 4096 * powf(8.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
-
     }
 }
-
-

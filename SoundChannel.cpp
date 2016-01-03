@@ -88,6 +88,12 @@ void SoundChannel::Release()
     }
 }
 
+void SoundChannel::Kill()
+{
+    eState = EnvState::DEAD;
+    envInterStep = 0;
+}
+
 void SoundChannel::SetPitch(int16_t pitch)
 {
     freq = sInfo.midCfreq * powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);

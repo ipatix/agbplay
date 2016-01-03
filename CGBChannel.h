@@ -24,16 +24,19 @@ namespace agbplay
             EnvState GetState();
             void StepEnvelope();
             void UpdateVolFade();
+            float *GetPat();
+            uint32_t pos;
             float interPos;
         private:
             void *owner;
+            const float *pat;
             float freq;
-            uint8_t envInterStep;
             ADSR env;
             Note note;
             CGBDef def;
             CGBType cType;
             EnvState eState;
+            uint8_t envInterStep;
             uint8_t leftVol;
             uint8_t rightVol;
             uint8_t envLevel;

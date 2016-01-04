@@ -20,8 +20,11 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb) 
     this->sampleBuffer = vector<float>(N_CHANNELS * samplesPerBuffer);
     this->fixedModeRate = fixedModeRate;
     fill_n(this->sampleBuffer.begin(), this->sampleBuffer.size(), 0.0f);
-    this->isShuttingDown = false;
     this->sampleRateReciprocal = 1.0f / float(sampleRate);
+    this->masterVolume = MASTER_VOL;
+    this->fadeMicroframesLeft = 0;
+    this->fadePos = 1.0f;
+    this->fadeStepPerMicroframe = 0.0f;
 }
 
 SoundMixer::~SoundMixer()
@@ -98,15 +101,11 @@ void SoundMixer::StopChannel(void *owner, uint8_t key)
     }
 }
 
-void *SoundMixer::ProcessAndGetAudio()
+float *SoundMixer::ProcessAndGetAudio()
 {
-    if (isShuttingDown) {
-        return nullptr;
-    } else {
-        clearBuffer();
-        renderToBuffer();
-        return (void *)&sampleBuffer[0];
-    }
+    clearBuffer();
+    renderToBuffer();
+    return &sampleBuffer[0];
 }
 
 uint32_t SoundMixer::GetBufferUnitCount()
@@ -114,17 +113,23 @@ uint32_t SoundMixer::GetBufferUnitCount()
     return samplesPerBuffer;
 }
 
-void SoundMixer::Shutdown()
+void SoundMixer::FadeOut(float millis)
 {
-    this->isShuttingDown = true;
-    for (SoundChannel& chn : sndChannels)
-    {
-        chn.Release();
-    }
-    sq1.Release();
-    sq2.Release();
-    wave.Release();
-    noise.Release();
+    fadePos = 1.0f;
+    fadeMicroframesLeft = uint32_t(millis / 1000.0f * float(AGB_FPS * INTERFRAMES));
+    fadeStepPerMicroframe = -1.0f / float(fadeMicroframesLeft);
+}
+
+void SoundMixer::FadeIn(float millis)
+{
+    fadePos = 0.0f;
+    fadeMicroframesLeft = uint32_t(millis / 1000.0f * float(AGB_FPS * INTERFRAMES));
+    fadeStepPerMicroframe = 1.0f / float(fadeMicroframesLeft);
+}
+
+bool SoundMixer::IsFadeDone()
+{
+    return fadeMicroframesLeft == 0;
 }
 
 /*
@@ -143,6 +148,15 @@ void SoundMixer::clearBuffer()
 
 void SoundMixer::renderToBuffer()
 {
+    // master volume calculation
+    float masterFrom = masterVolume;
+    float masterTo = masterVolume;
+    if (this->fadeMicroframesLeft > 0) {
+        masterFrom *= powf(this->fadePos, 10.0f / 6.0f);
+        fadePos += this->fadeStepPerMicroframe;
+        masterTo *= powf(this->fadePos, 10.0f / 6.0f);
+        this->fadeMicroframesLeft--;
+    }
     uint32_t nBlocks = uint32_t(sampleBuffer.size());
     float nBlocksReciprocal = 1.0f / float(nBlocks);
 
@@ -153,9 +167,13 @@ void SoundMixer::renderToBuffer()
             continue;
 
         ChnVol vol = chn.GetVol();
+        vol.fromVolLeft *= masterFrom;
+        vol.fromVolRight *= masterFrom;
+        vol.toVolLeft *= masterTo;
+        vol.toVolRight *= masterTo;
         SampleInfo& info = chn.GetInfo();
-        float lVolDeltaStep = (vol.toVolLeft - vol.toVolLeft) * nBlocksReciprocal;
-        float rVolDeltaStep = (vol.toVolRight - vol.toVolRight) * nBlocksReciprocal;
+        float lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
+        float rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
         float lVol = vol.fromVolLeft;
         float rVol = vol.fromVolRight;
         float interStep = chn.GetFreq() * this->sampleRateReciprocal;
@@ -210,11 +228,15 @@ void SoundMixer::renderToBuffer()
     // square 1
 
     vol = sq1.GetVol();
+    vol.fromVolLeft *= masterFrom;
+    vol.fromVolRight *= masterFrom;
+    vol.toVolLeft *= masterTo;
+    vol.toVolRight *= masterTo;
     info = sq1.GetDef();
     pat = sq1.GetPat();
     assert(pat);
-    lVolDeltaStep = (vol.toVolLeft - vol.toVolLeft) * nBlocksReciprocal;
-    rVolDeltaStep = (vol.toVolRight - vol.toVolRight) * nBlocksReciprocal;
+    lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
+    rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
     lVol = vol.fromVolLeft;
     rVol = vol.fromVolRight;
     interStep = sq1.GetFreq() * this->sampleRateReciprocal;
@@ -240,11 +262,15 @@ void SoundMixer::renderToBuffer()
     // square 2
 
     vol = sq2.GetVol();
+    vol.fromVolLeft *= masterFrom;
+    vol.fromVolRight *= masterFrom;
+    vol.toVolLeft *= masterTo;
+    vol.toVolRight *= masterTo;
     info = sq2.GetDef();
     pat = sq2.GetPat();
     assert(pat);
-    lVolDeltaStep = (vol.toVolLeft - vol.toVolLeft) * nBlocksReciprocal;
-    rVolDeltaStep = (vol.toVolRight - vol.toVolRight) * nBlocksReciprocal;
+    lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
+    rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
     lVol = vol.fromVolLeft;
     rVol = vol.fromVolRight;
     interStep = sq2.GetFreq() * this->sampleRateReciprocal;
@@ -269,11 +295,15 @@ void SoundMixer::renderToBuffer()
     // wave
 
     vol = wave.GetVol();
+    vol.fromVolLeft *= masterFrom;
+    vol.fromVolRight *= masterFrom;
+    vol.toVolLeft *= masterTo;
+    vol.toVolRight *= masterTo;
     info = wave.GetDef();
     pat = wave.GetPat();
     assert(pat);
-    lVolDeltaStep = (vol.toVolLeft - vol.toVolLeft) * nBlocksReciprocal;
-    rVolDeltaStep = (vol.toVolRight - vol.toVolRight) * nBlocksReciprocal;
+    lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
+    rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
     lVol = vol.fromVolLeft;
     rVol = vol.fromVolRight;
     interStep = wave.GetFreq() * this->sampleRateReciprocal;
@@ -298,11 +328,15 @@ void SoundMixer::renderToBuffer()
     // noise
 
     vol = noise.GetVol();
+    vol.fromVolLeft *= masterFrom;
+    vol.fromVolRight *= masterFrom;
+    vol.toVolLeft *= masterTo;
+    vol.toVolRight *= masterTo;
     info = noise.GetDef();
     pat = noise.GetPat();
     assert(pat);
-    lVolDeltaStep = (vol.toVolLeft - vol.toVolLeft) * nBlocksReciprocal;
-    rVolDeltaStep = (vol.toVolRight - vol.toVolRight) * nBlocksReciprocal;
+    lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
+    rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
     lVol = vol.fromVolLeft;
     rVol = vol.fromVolRight;
     interStep = noise.GetFreq() * this->sampleRateReciprocal;

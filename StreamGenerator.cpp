@@ -4,6 +4,9 @@
 #include "MyException.h"
 #include "Util.h"
 
+#define SONG_FADE_OUT_TIME 7000
+#define SONG_FINISH_TIME 2000
+
 using namespace std;
 using namespace agbplay;
 
@@ -44,9 +47,11 @@ const map<uint8_t, int8_t> StreamGenerator::noteLut = {
     {0xF8,76}, {0xF9,78}, {0xFA,80}, {0xFB,84}, {0xFC,88}, {0xFD,90}, {0xFE,92}, {0xFF,96}
 };
 
-StreamGenerator::StreamGenerator(Sequence& seq, uint32_t fixedModeRate, EnginePars ep) : seq(seq), sbnk(seq.GetRom(), seq.GetSndBnk()), sm(48000, fixedModeRate, seq.GetReverb() & 0x7F)
+StreamGenerator::StreamGenerator(Sequence& seq, uint32_t fixedModeRate, EnginePars ep, uint8_t maxLoops) : seq(seq), sbnk(seq.GetRom(), seq.GetSndBnk()), sm(48000, fixedModeRate, seq.GetReverb() & 0x7F)
 {
     this->ep = ep;
+    this->maxLoops = maxLoops;
+    this->isEnding = false;
 }
 
 StreamGenerator::~StreamGenerator()
@@ -58,10 +63,14 @@ uint32_t StreamGenerator::GetBufferUnitCount()
     return sm.GetBufferUnitCount();
 }
 
-void *StreamGenerator::ProcessAndGetAudio()
+float *StreamGenerator::ProcessAndGetAudio()
 {
     processSequenceFrame();
-    return sm.ProcessAndGetAudio();;
+    float *processedData = sm.ProcessAndGetAudio();
+    if (isEnding && sm.IsFadeDone())
+        return nullptr;
+    else
+        return processedData;
 }
 
 /*
@@ -82,9 +91,11 @@ void StreamGenerator::processSequenceTick()
     Rom& reader = seq.GetRom();
     // process all tracks
     bool isSongRunning = false;
+    bool isFirst = true;
     for (Sequence::Track& cTrk : seq.tracks) {
         if (!cTrk.isRunning)
             continue;
+
         isSongRunning = true;
         
         if (sm.TickTrackNotes((void *)&cTrk) > 0) {
@@ -198,6 +209,12 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case 0xB2:
                             // GOTO
+                            if (isFirst) {
+                                if (maxLoops-- <= 0) {
+                                    isEnding = true;
+                                    sm.FadeOut(SONG_FADE_OUT_TIME);
+                                }
+                            }
                             cTrk.pos = reader.ReadAGBPtrToPos();
                             break;
                         case 0xB3:
@@ -395,9 +412,11 @@ void StreamGenerator::processSequenceTick()
                     cTrk.GetRightVol(),
                     cTrk.GetPitch());
         }
+        isFirst = false;
     } // end of track iteration
-    if (isSongRunning) {
-        sm.Shutdown();
+    if (!isSongRunning) {
+        sm.FadeOut(SONG_FINISH_TIME);
+        isEnding = true;
     }
 } // end processSequenceTick
 

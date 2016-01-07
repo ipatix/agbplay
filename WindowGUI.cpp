@@ -88,7 +88,9 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
             TRACKVIEW_WIDTH(height, width),
             TRACKVIEW_YPOS(height, width),
             TRACKVIEW_XPOS(height, width));
-    
+
+    event = new Events();
+
     rom.Seek(sdata.sTable->GetSongTablePos());
     mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos(), EnginePars(15, 0, 4));
     mplay->LoadSong(sdata.sTable->GetPosOfSong(0), 16); // TODO read track limit from rom rather than using fixed value
@@ -104,6 +106,7 @@ WindowGUI::~WindowGUI()
     delete romUI;
     delete trackUI;
     delete mplay;
+    delete event;
     CursesWin::UIMutex.lock();
     endwin();
     CursesWin::UIMutex.unlock();
@@ -112,61 +115,60 @@ WindowGUI::~WindowGUI()
 void WindowGUI::Handle() 
 {
     while (true) {
-        int ch = conUI->ConGetCH();
-        switch (ch) {
-            case KEY_RESIZE:
-                getmaxyx(stdscr, height, width);
-                if (height < 24) height = 24;
-                if (width < 80) width = 80;
-                resizeWindows();
-                break;
-            case KEY_UP:
-                scrollUp();
-                break;
-            case KEY_DOWN:
-                scrollDown();
-                break;
-            case KEY_LEFT:
-                scrollLeft();
-                break;
-            case KEY_RIGHT:
-                scrollRight();
-                break;
-            case KEY_PPAGE:
-                pageUp();
-                break;
-            case KEY_NPAGE:
-                pageDown();
-                break;
-            case KEY_TAB:
-                cycleFocus();
-                break;
-            case 'a':
-                add();
-                break;
-            case 'd':
-                del();
-                break;
-            case 't':
-                if (cursorl == PLAYLIST)
-                    playUI->ToggleTick();
-                break;
-            case 'g':
-                if (cursorl == PLAYLIST)
-                    playUI->ToggleDrag();
-                break;
-            case EOF:
-            case 4: // EOT
-            case 'q':
-                conUI->WriteLn("Exiting...");
-                return;
-            default:
-                string msg = "Bad, you pressed ";
-                msg += to_string(ch);
-                conUI->WriteLn(msg.c_str());
-                __print_debug("msg");
-        }
-    }
+        int ch;
+        while ((ch = event->GetKey()) != ERR) {
+            switch (ch) {
+                case KEY_RESIZE:
+                    getmaxyx(stdscr, height, width);
+                    if (height < 24) height = 24;
+                    if (width < 80) width = 80;
+                    resizeWindows();
+                    break;
+                case KEY_UP:
+                    scrollUp();
+                    break;
+                case KEY_DOWN:
+                    scrollDown();
+                    break;
+                case KEY_LEFT:
+                    scrollLeft();
+                    break;
+                case KEY_RIGHT:
+                    scrollRight();
+                    break;
+                case KEY_PPAGE:
+                    pageUp();
+                    break;
+                case KEY_NPAGE:
+                    pageDown();
+                    break;
+                case KEY_TAB:
+                    cycleFocus();
+                    break;
+                case 'a':
+                    add();
+                    break;
+                case 'd':
+                    del();
+                    break;
+                case 't':
+                    if (cursorl == PLAYLIST)
+                        playUI->ToggleTick();
+                    break;
+                case 'g':
+                    if (cursorl == PLAYLIST)
+                        playUI->ToggleDrag();
+                    break;
+                case EOF:
+                case 4: // EOT
+                case 'q':
+                    conUI->WriteLn("Exiting...");
+                    return;
+            } // end key handling switch
+            // TODO conditional rendering
+        } // end key loop
+        event->WaitTick();
+    } // end rendering loop
 }
 
 void WindowGUI::resizeWindows() 

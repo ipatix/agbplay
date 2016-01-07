@@ -15,9 +15,6 @@ using namespace std;
 
 ConsoleGUI::ConsoleGUI(uint32_t height, uint32_t width,
         uint32_t yPos, uint32_t xPos) : CursesWin(height, width, yPos, xPos) {
-    UIMutex.lock();
-    keypad(winPtr, true);
-    UIMutex.unlock();
     textWidth = width - 2;
     textHeight = height;
     textBuffer = vector<string>();
@@ -42,13 +39,6 @@ void ConsoleGUI::WriteLn(string str) {
     // shift buffer
     writeToBuffer(str);
     update();
-}
-
-int ConsoleGUI::ConGetCH() {
-    UIMutex.lock();
-    int ret = wgetch(winPtr);
-    UIMutex.unlock();
-    return ret;
 }
 
 /*

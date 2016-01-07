@@ -18,14 +18,14 @@ all: $(BINARY)
 
 .PHONY: clean
 clean:
-	@echo "[$(BROWN)Cleaning$(NCOL)] $(WHITE)$(OBJ_FILES)$(NCOL)"
+	@printf "[$(BROWN)Cleaning$(NCOL)] $(WHITE)$(OBJ_FILES)$(NCOL)\n"
 	@rm -f $(OBJ_FILES)
 
 $(BINARY): $(OBJ_FILES)
-	@echo "[$(RED)Linking$(NCOL)] $(WHITE)$(BINARY)$(NCOL)"
+	@printf "[$(RED)Linking$(NCOL)] $(WHITE)$(BINARY)$(NCOL)\n"
 	@$(CXX) -o $@ $(CXXFLAGS) $(LIBS) $^
 
 %.o: %.cpp
-	@echo "[$(GREEN)Compiling$(NCOL)] $(WHITE)$@$(NCOL)"
+	@printf "[$(GREEN)Compiling$(NCOL)] $(WHITE)$@$(NCOL)\n"
 	@$(CXX) -c -o $@ $< $(CXXFLAGS) $(IMPORT)
 

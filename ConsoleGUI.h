@@ -17,7 +17,6 @@ namespace agbplay {
             void Resize(uint32_t height, uint32_t width,
                     uint32_t yPos, uint32_t xPos) override;
             void WriteLn(string str);
-            int ConGetCH();
         private:
             void update() override;
             void writeToBuffer(string str);

@@ -2,14 +2,14 @@
 
 #include <cstdint>
 #include <vector>
+#include <boost/thread.hpp>
 
 #include "Rom.h"
 #include "TrackviewGUI.h"
 #include "DisplayContainer.h"
-#include "SoundData.h"
-#include "PlayerModule.h"
+#include "StreamGenerator.h"
 
-namespace agbplay 
+namespace agbplay
 {
     class PlayerInterface 
     {
@@ -20,22 +20,21 @@ namespace agbplay
             void LoadSong(long songPos, uint8_t trackLimit);
             void Play();
             void Pause();
+            void Unpause();
             void Stop();
         private:
-            const std::vector<uint32_t> freqLut = {
-                5734, 7884, 10512, 13379,
-                15768, 18157, 21024, 26758,
-                31536, 36314, 40137, 42048
-            };
+            static const std::vector<uint32_t> freqLut;
 
             uint32_t dSoundFreq;
             uint8_t dSoundVol;
             uint8_t dSoundRev;
 
-            bool isPlaying;
-            bool isPaused;
+            // RESTART = 
+            enum class State : int { RESTART, PLAYING, PAUSED, STOPPING, STOPPED } playerState;
             Sequence seq;
             Rom& rom;
             TrackviewGUI *trackUI;
+
+            boost::thread playerThread;
     };
 }

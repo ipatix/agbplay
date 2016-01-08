@@ -1,9 +1,11 @@
 #include <cstdio>
 
+#include "Debug.h"
+
 static FILE *__debug_file = nullptr;
 
-void __print_debug(const char *text) {
-    fprintf(__debug_file, "%s\n", text);
+void __print_debug(std::string str) {
+    fprintf(__debug_file, "%s\n", str.c_str());
     fflush(__debug_file);
 }
 

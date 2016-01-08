@@ -1,6 +1,8 @@
 #pragma once
 
-void __print_debug(const char *);
+#include <string>
+
+void __print_debug(std::string str);
 void __print_pointer(void *);
 bool __open_debug();
 bool __close_debug();

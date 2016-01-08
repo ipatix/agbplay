@@ -48,6 +48,7 @@ float SoundChannel::GetFreq()
 
 void SoundChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
 {
+    __print_debug("SetVol: " + to_string(leftVol) + ", " + to_string(rightVol));
     if (eState < EnvState::REL) {
         this->leftVol = note.velocity * leftVol / 128;
         this->rightVol = note.velocity * rightVol / 128;
@@ -60,7 +61,7 @@ ChnVol SoundChannel::GetVol()
     float envDelta = float(envLevel) - envBase;
     float finalFromEnv = envBase + envDelta * float(envInterStep);
     float finalToEnv = envBase + envDelta * float(envInterStep + 1);
-    __print_debug(("EnvBase: " + to_string(envBase)).c_str());
+    //__print_debug(("EnvBase: " + to_string(envBase)).c_str());
     return ChnVol(
             float(fromLeftVol) * finalFromEnv / 65536.0f,
             float(fromRightVol) * finalFromEnv / 65536.0f,
@@ -197,6 +198,7 @@ void SoundChannel::StepEnvelope()
         case EnvState::DEAD:
             break;
     }
+    __print_debug("EnvLevel: " + to_string(envLevel) + ", state: " + to_string((int)eState));
 }
 
 void SoundChannel::UpdateVolFade()

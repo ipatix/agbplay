@@ -71,7 +71,7 @@ void PlayerInterface::Pause()
             // --> handled by worker
             break;
         case State::PLAYING:
-            playerState = State::RESTART;
+            playerState = State::PAUSED;
             break;
         case State::PAUSED:
             playerState = State::PLAYING;
@@ -135,7 +135,7 @@ bool PlayerInterface::IsPlaying()
 void PlayerInterface::threadWorker()
 {
     // TODO add fixed mode rate variable
-    auto sg = new StreamGenerator(seq, EnginePars(0xF, 0, 0x7), 1);
+    auto sg = new StreamGenerator(seq, EnginePars(0xF, 0, 0x4), 1);
     uint32_t nBlocks = sg->GetBufferUnitCount();
     uint32_t outSampleRate = sg->GetRenderSampleRate();
     if (Pa_OpenDefaultStream(&audioStream, 0, 2, paFloat32, outSampleRate, nBlocks, NULL, NULL) != paNoError)
@@ -149,7 +149,7 @@ void PlayerInterface::threadWorker()
         switch (playerState) {
             case State::RESTART:
                 delete sg;
-                sg = new StreamGenerator(seq, EnginePars(0xF, 0, 0x7), 1);
+                sg = new StreamGenerator(seq, EnginePars(0xF, 0, 0x4), 1);
                 playerState = State::PLAYING;
             case State::PLAYING:
                 {
@@ -157,13 +157,11 @@ void PlayerInterface::threadWorker()
                     if (processedAudio == nullptr){
                         playerState = State::SHUTDOWN;
                     }
-                    if (Pa_WriteStream(audioStream, processedAudio, nBlocks) != paNoError)
-                        assert(false);
+                    if (Pa_WriteStream(audioStream, processedAudio, nBlocks) != paNoError) ;//assert(false);
                 }
                 break;
             case State::PAUSED:
-                if (Pa_WriteStream(audioStream, &silence[0], nBlocks) != paNoError)
-                    assert(false);
+                if (Pa_WriteStream(audioStream, &silence[0], nBlocks) != paNoError) ; //assert(false);
                 break;
             default:
                 throw MyException("Internal PlayerInterface error");

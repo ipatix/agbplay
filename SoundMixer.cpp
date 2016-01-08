@@ -5,6 +5,7 @@
 #include "SoundMixer.h"
 #include "MyException.h"
 #include "Debug.h"
+#include "Util.h"
 
 using namespace std;
 using namespace agbplay;
@@ -21,6 +22,7 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, 
     this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
     this->sampleBuffer = vector<float>(N_CHANNELS * samplesPerBuffer);
     this->fixedModeRate = fixedModeRate;
+    __print_debug(FormatString("fmoder: %d", fixedModeRate));
     fill_n(this->sampleBuffer.begin(), this->sampleBuffer.size(), 0.0f);
     this->sampleRateReciprocal = 1.0f / float(sampleRate);
     this->masterVolume = MASTER_VOL * mvl;
@@ -116,7 +118,8 @@ float *SoundMixer::ProcessAndGetAudio()
     clearBuffer();
     renderToBuffer();
     purgeChannels();
-    __print_debug((to_string(sampleBuffer[0]) + " " + to_string(sampleBuffer[1]) + " " + to_string(sampleBuffer[2]) + " " + to_string(sampleBuffer[3])).c_str());
+    //for (float& f : sampleBuffer)
+    //    __print_debug(FormatString("Ret Smp %p val %f", &f, f));
     return &sampleBuffer[0];
 }
 
@@ -180,11 +183,12 @@ void SoundMixer::renderToBuffer()
     // process all digital channels
     for (SoundChannel& chn : sndChannels)
     {
+        chn.StepEnvelope();
         if (chn.GetState() == EnvState::DEAD)
             continue;
 
         ChnVol vol = chn.GetVol();
-        __print_debug(("DVol: " + to_string(vol.fromVolLeft) + ", " + to_string(vol.fromVolRight)).c_str());
+        //__print_debug(("DVol: " + to_string(vol.fromVolLeft) + ", " + to_string(vol.fromVolRight)).c_str());
         vol.fromVolLeft *= masterFrom;
         vol.fromVolRight *= masterFrom;
         vol.toVolLeft *= masterTo;
@@ -194,8 +198,14 @@ void SoundMixer::renderToBuffer()
         float rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
         float lVol = vol.fromVolLeft;
         float rVol = vol.fromVolRight;
-        float interStep = chn.GetFreq() * this->sampleRateReciprocal;
+        float interStep;
+        if (chn.IsFixed()) {
+            interStep = this->fixedModeRate * this->sampleRateReciprocal;
+        } else {
+            interStep = chn.GetFreq() * this->sampleRateReciprocal;
+        }
         float *buf = &sampleBuffer[0];
+        //__print_debug(FormatString("buf ptr before mix: %p", buf));
         if (chn.IsGS()) {
             for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
             {
@@ -210,8 +220,10 @@ void SoundMixer::renderToBuffer()
                 float deltaSamp = float(info.samplePtr[chn.pos+1]) / 128 - baseSamp;
                 float finalSamp = baseSamp + deltaSamp * chn.interPos;
 
-                *buf++ = finalSamp * lVol;
-                *buf++ = finalSamp * rVol;
+                *buf++ += finalSamp * lVol;
+                //__print_debug(FormatString("Rend Smp %p val %f", buf-1, *(buf-1)));
+                *buf++ += finalSamp * rVol;
+                //__print_debug(FormatString("Rend Smp %p val %f", buf-1, *(buf-1)));
 
                 lVol += lVolDeltaStep;
                 rVol += rVolDeltaStep;
@@ -247,6 +259,7 @@ void SoundMixer::renderToBuffer()
 
     // square 1
 
+    sq1.StepEnvelope();
     vol = sq1.GetVol();
     vol.fromVolLeft *= masterFrom;
     vol.fromVolRight *= masterFrom;
@@ -267,8 +280,8 @@ void SoundMixer::renderToBuffer()
     {
         float samp = pat[sq1.pos];
 
-        *buf++ = samp * lVol;
-        *buf++ = samp * rVol;
+        *buf++ += samp * lVol;
+        *buf++ += samp * rVol;
 
         lVol += lVolDeltaStep;
         rVol += rVolDeltaStep;
@@ -281,6 +294,7 @@ void SoundMixer::renderToBuffer()
 
     // square 2
 
+    sq2.StepEnvelope();
     vol = sq2.GetVol();
     vol.fromVolLeft *= masterFrom;
     vol.fromVolRight *= masterFrom;
@@ -300,8 +314,8 @@ void SoundMixer::renderToBuffer()
     {
         float samp = pat[sq2.pos];
 
-        *buf++ = samp * lVol;
-        *buf++ = samp * rVol;
+        *buf++ += samp * lVol;
+        *buf++ += samp * rVol;
 
         lVol += lVolDeltaStep;
         rVol += rVolDeltaStep;
@@ -314,6 +328,7 @@ void SoundMixer::renderToBuffer()
 
     // wave
 
+    wave.StepEnvelope();
     vol = wave.GetVol();
     vol.fromVolLeft *= masterFrom;
     vol.fromVolRight *= masterFrom;
@@ -333,8 +348,8 @@ void SoundMixer::renderToBuffer()
     {
         float samp = pat[wave.pos];
 
-        *buf++ = samp * lVol;
-        *buf++ = samp * rVol;
+        *buf++ += samp * lVol;
+        *buf++ += samp * rVol;
 
         lVol += lVolDeltaStep;
         rVol += rVolDeltaStep;
@@ -344,9 +359,12 @@ void SoundMixer::renderToBuffer()
         wave.interPos -= float(posDelta);
         wave.pos = (wave.pos + posDelta) & 0xF;
     }
+    //for (float& f : sampleBuffer)
+    //    __print_debug(FormatString("PR Smp %p val %f", &f, f));
 
     // noise
 
+    noise.StepEnvelope();
     vol = noise.GetVol();
     vol.fromVolLeft *= masterFrom;
     vol.fromVolRight *= masterFrom;
@@ -368,8 +386,8 @@ void SoundMixer::renderToBuffer()
     {
         float samp = pat[noise.pos];
 
-        *buf++ = samp * lVol;
-        *buf++ = samp * rVol;
+        *buf++ += samp * lVol;
+        *buf++ += samp * rVol;
 
         lVol += lVolDeltaStep;
         rVol += rVolDeltaStep;

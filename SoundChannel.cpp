@@ -1,6 +1,8 @@
 #include <cmath>
 #include <cassert>
+#include <string>
 
+#include "Debug.h"
 #include "SoundChannel.h"
 
 using namespace std;
@@ -58,11 +60,12 @@ ChnVol SoundChannel::GetVol()
     float envDelta = float(envLevel) - envBase;
     float finalFromEnv = envBase + envDelta * float(envInterStep);
     float finalToEnv = envBase + envDelta * float(envInterStep + 1);
+    __print_debug(("EnvBase: " + to_string(envBase)).c_str());
     return ChnVol(
-            float(fromLeftVol) * finalFromEnv / 65536,
-            float(fromRightVol) * finalFromEnv / 65536,
-            float(leftVol) * finalToEnv / 65536,
-            float(rightVol) * finalToEnv / 65536);
+            float(fromLeftVol) * finalFromEnv / 65536.0f,
+            float(fromRightVol) * finalFromEnv / 65536.0f,
+            float(leftVol) * finalToEnv / 65536.0f,
+            float(rightVol) * finalToEnv / 65536.0f);
 }
 
 uint8_t SoundChannel::GetMidiKey()

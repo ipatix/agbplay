@@ -4,6 +4,7 @@
 
 #include "SoundMixer.h"
 #include "MyException.h"
+#include "Debug.h"
 
 using namespace std;
 using namespace agbplay;
@@ -72,6 +73,14 @@ int SoundMixer::TickTrackNotes(void *owner)
                 active++;
         }
     }
+    if (sq1.GetOwner() == owner && sq1.TickNote())
+        active++;
+    if (sq2.GetOwner() == owner && sq2.TickNote())
+        active++;
+    if (wave.GetOwner() == owner && wave.TickNote())
+        active++;
+    if (noise.GetOwner() == owner && noise.TickNote())
+        active++;
     return active;
 }
 
@@ -106,6 +115,8 @@ float *SoundMixer::ProcessAndGetAudio()
 {
     clearBuffer();
     renderToBuffer();
+    purgeChannels();
+    __print_debug((to_string(sampleBuffer[0]) + " " + to_string(sampleBuffer[1]) + " " + to_string(sampleBuffer[2]) + " " + to_string(sampleBuffer[3])).c_str());
     return &sampleBuffer[0];
 }
 
@@ -173,6 +184,7 @@ void SoundMixer::renderToBuffer()
             continue;
 
         ChnVol vol = chn.GetVol();
+        __print_debug(("DVol: " + to_string(vol.fromVolLeft) + ", " + to_string(vol.fromVolRight)).c_str());
         vol.fromVolLeft *= masterFrom;
         vol.fromVolRight *= masterFrom;
         vol.toVolLeft *= masterTo;
@@ -190,6 +202,8 @@ void SoundMixer::renderToBuffer()
                 // TODO
             }
         } else {
+            //__print_debug("Processing Channel");
+            //__print_debug(("Vol: " + to_string(lVol) + ", " + to_string(rVol)).c_str());
             for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
             {
                 float baseSamp = float(info.samplePtr[chn.pos]) / 128;

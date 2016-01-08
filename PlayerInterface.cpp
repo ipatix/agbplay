@@ -12,7 +12,7 @@ using namespace agbplay;
  */
 
 PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos, EnginePars pars) 
-: seq(initSongPos, 16, _rom), rom(_rom)
+    : seq(initSongPos, 16, _rom), rom(_rom)
 {
     this->trackUI = trackUI;
     this->playerState = State::THREAD_DELETED;
@@ -123,6 +123,11 @@ void PlayerInterface::Stop()
     }
 }
 
+bool PlayerInterface::IsPlaying()
+{
+    return playerState != State::THREAD_DELETED;
+}
+
 /*
  * private PlayerInterface
  */
@@ -147,8 +152,14 @@ void PlayerInterface::threadWorker()
                 sg = new StreamGenerator(seq, EnginePars(0xF, 0, 0x7), 1);
                 playerState = State::PLAYING;
             case State::PLAYING:
-                if (Pa_WriteStream(audioStream, sg->ProcessAndGetAudio(), nBlocks) != paNoError)
-                    assert(false);
+                {
+                    float *processedAudio = sg->ProcessAndGetAudio();
+                    if (processedAudio == nullptr){
+                        playerState = State::SHUTDOWN;
+                    }
+                    if (Pa_WriteStream(audioStream, processedAudio, nBlocks) != paNoError)
+                        assert(false);
+                }
                 break;
             case State::PAUSED:
                 if (Pa_WriteStream(audioStream, &silence[0], nBlocks) != paNoError)

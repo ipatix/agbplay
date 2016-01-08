@@ -163,12 +163,18 @@ void WindowGUI::Handle()
                     break;
                 case 'i':
                     mplay->Play();
+                    conUI->WriteLn("Playback started");
                     break;
                 case 'o':
                     mplay->Pause();
+                    conUI->WriteLn("Paused");
                     break;
                 case 'p':
                     mplay->Stop();
+                    conUI->WriteLn("Stopped");
+                    break;
+                case 'l':
+                    conUI->WriteLn(string("Is playing: ") + to_string(mplay->IsPlaying()));
                     break;
                 case EOF:
                 case 4: // EOT

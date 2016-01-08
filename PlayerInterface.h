@@ -22,6 +22,7 @@ namespace agbplay
             void Play();
             void Pause();
             void Stop();
+            bool IsPlaying();
         private:
             void threadWorker();
 

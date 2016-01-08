@@ -111,10 +111,10 @@ void CGBChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
 ChnVol CGBChannel::GetVol()
 {
     return ChnVol(
-            float(fromLeftVol) * float(fromEnvLevel) / 256,
-            float(fromRightVol) * float(fromEnvLevel) / 256,
-            float(leftVol) * float(envLevel) / 256,
-            float(rightVol) * float(envLevel) / 256);
+            float(fromLeftVol) * float(fromEnvLevel) / 256.0f,
+            float(fromRightVol) * float(fromEnvLevel) / 256.0f,
+            float(leftVol) * float(envLevel) / 256.0f,
+            float(rightVol) * float(envLevel) / 256.0f);
 }
 
 CGBDef CGBChannel::GetDef()

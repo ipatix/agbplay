@@ -10,6 +10,7 @@
 using namespace std;
 using namespace agbplay;
 
+
 /*
  * public EnginePars
  */
@@ -29,6 +30,13 @@ EnginePars::EnginePars()
  * public StreamGenerator
  */
 
+const vector<uint32_t> StreamGenerator::freqLut = 
+{
+    5734, 7884, 10512, 13379,
+    15768, 18157, 21024, 26758,
+    31536, 36314, 40137, 42048
+};
+
 const map<uint8_t, int8_t> StreamGenerator::delayLut = {
     {0x81,1 }, {0x82,2 }, {0x83,3 }, {0x84,4 }, {0x85,5 }, {0x86,6 }, {0x87,7 }, {0x88,8 },
     {0x89,9 }, {0x8A,10}, {0x8B,11}, {0x8C,12}, {0x8D,13}, {0x8E,14}, {0x8F,15}, {0x90,16},
@@ -47,7 +55,11 @@ const map<uint8_t, int8_t> StreamGenerator::noteLut = {
     {0xF8,76}, {0xF9,78}, {0xFA,80}, {0xFB,84}, {0xFC,88}, {0xFD,90}, {0xFE,92}, {0xFF,96}
 };
 
-StreamGenerator::StreamGenerator(Sequence& seq, uint32_t fixedModeRate, EnginePars ep, uint8_t maxLoops) : seq(seq), sbnk(seq.GetRom(), seq.GetSndBnk()), sm(48000, fixedModeRate, seq.GetReverb() & 0x7F)
+StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops) 
+: seq(seq), sbnk(seq.GetRom(), seq.GetSndBnk()), 
+    sm(48000, freqLut[minmax<uint8_t>(1, ep.freq, 12)], 
+            (ep.rev >= 0x80) ? ep.rev & 0x7F : seq.GetReverb() & 0x7F,
+            float(ep.vol + 1) / 16.0f)
 {
     this->ep = ep;
     this->maxLoops = maxLoops;
@@ -61,6 +73,11 @@ StreamGenerator::~StreamGenerator()
 uint32_t StreamGenerator::GetBufferUnitCount()
 {
     return sm.GetBufferUnitCount();
+}
+
+uint32_t StreamGenerator::GetRenderSampleRate()
+{
+    return sm.GetRenderSampleRate();
 }
 
 float *StreamGenerator::ProcessAndGetAudio()

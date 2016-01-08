@@ -22,19 +22,22 @@ namespace agbplay
     class StreamGenerator
     {
         public:
-            StreamGenerator(Sequence& seq, uint32_t fixedModeRate, EnginePars ep, uint8_t maxLoops);
+            StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops);
             ~StreamGenerator();
 
             uint32_t GetBufferUnitCount();
+            uint32_t GetRenderSampleRate();
             float *ProcessAndGetAudio();
             static const std::map<uint8_t, int8_t> delayLut;
             static const std::map<uint8_t, int8_t> noteLut;
 
         private:
-            Sequence& seq;
+            Sequence seq;
             SoundBank sbnk;
             EnginePars ep;
             SoundMixer sm;
+
+            static const std::vector<uint32_t> freqLut;
 
             bool isEnding;
             uint8_t maxLoops;

@@ -100,6 +100,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
 
 WindowGUI::~WindowGUI() 
 {
+    delete mplay;
     delete conUI;
     delete hotUI;
     delete songUI;
@@ -107,7 +108,6 @@ WindowGUI::~WindowGUI()
     delete titleUI;
     delete romUI;
     delete trackUI;
-    delete mplay;
     delete event;
     CursesWin::UIMutex.lock();
     endwin();
@@ -160,6 +160,15 @@ void WindowGUI::Handle()
                 case 'g':
                     if (cursorl == PLAYLIST)
                         playUI->ToggleDrag();
+                    break;
+                case 'i':
+                    mplay->Play();
+                    break;
+                case 'o':
+                    mplay->Pause();
+                    break;
+                case 'p':
+                    mplay->Stop();
                     break;
                 case EOF:
                 case 4: // EOT

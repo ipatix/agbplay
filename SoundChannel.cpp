@@ -17,11 +17,11 @@ SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, u
     this->env = env;
     this->sInfo = sInfo;
     this->interPos = 0.0f;
+    this->eState = EnvState::INIT;
     SetVol(leftVol, rightVol);
     this->fixed = fixed;
     SetPitch(pitch);
     // if instant attack is ative directly max out the envelope to not cut off initial sound
-    this->eState = EnvState::INIT;
     this->pos = 0;
     if (sInfo.loopEnabled == true && sInfo.loopPos == 0 && sInfo.endPos == 0) {
         this->isGS = true;

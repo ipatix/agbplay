@@ -12,7 +12,8 @@ using namespace agbplay;
  * public SoundMixer
  */
 
-SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb) : sq1(CGBType::SQ1), sq2(CGBType::SQ2), wave(CGBType::WAVE), noise(CGBType::NOISE)
+SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, float mvl) 
+: sq1(CGBType::SQ1), sq2(CGBType::SQ2), wave(CGBType::WAVE), noise(CGBType::NOISE)
 {
     this->revdsp = new ReverbEffect(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)));
     this->sampleRate = sampleRate;
@@ -21,7 +22,7 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb) 
     this->fixedModeRate = fixedModeRate;
     fill_n(this->sampleBuffer.begin(), this->sampleBuffer.size(), 0.0f);
     this->sampleRateReciprocal = 1.0f / float(sampleRate);
-    this->masterVolume = MASTER_VOL;
+    this->masterVolume = MASTER_VOL * mvl;
     this->fadeMicroframesLeft = 0;
     this->fadePos = 1.0f;
     this->fadeStepPerMicroframe = 0.0f;
@@ -113,6 +114,11 @@ uint32_t SoundMixer::GetBufferUnitCount()
     return samplesPerBuffer;
 }
 
+uint32_t SoundMixer::GetRenderSampleRate()
+{
+    return sampleRate;
+}
+
 void SoundMixer::FadeOut(float millis)
 {
     fadePos = 1.0f;
@@ -157,7 +163,7 @@ void SoundMixer::renderToBuffer()
         masterTo *= powf(this->fadePos, 10.0f / 6.0f);
         this->fadeMicroframesLeft--;
     }
-    uint32_t nBlocks = uint32_t(sampleBuffer.size());
+    uint32_t nBlocks = uint32_t(sampleBuffer.size() / N_CHANNELS);
     float nBlocksReciprocal = 1.0f / float(nBlocks);
 
     // process all digital channels

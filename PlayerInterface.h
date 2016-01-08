@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <boost/thread.hpp>
+#include <portaudio.h>
 
 #include "Rom.h"
 #include "TrackviewGUI.h"
@@ -24,13 +25,8 @@ namespace agbplay
         private:
             void threadWorker();
 
-            static const std::vector<uint32_t> freqLut;
-
-            uint32_t dSoundFreq;
-            uint8_t dSoundVol;
-            uint8_t dSoundRev;
-
-            // RESTART = 
+            PaStream *audioStream;
+            EnginePars pars;
             volatile enum class State : int { RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED } playerState;
             Sequence seq;
             Rom& rom;

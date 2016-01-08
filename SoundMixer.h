@@ -22,7 +22,7 @@ namespace agbplay
     class SoundMixer
     {
         public:
-            SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb);
+            SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, float mvl);
             ~SoundMixer();
             void NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, bool fixed);
             void NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, CGBType type);
@@ -32,6 +32,7 @@ namespace agbplay
             void StopChannel(void *owner, uint8_t key);
             float *ProcessAndGetAudio();
             uint32_t GetBufferUnitCount();
+            uint32_t GetRenderSampleRate();
             void FadeOut(float millis);
             void FadeIn(float millis);
             bool IsFadeDone();

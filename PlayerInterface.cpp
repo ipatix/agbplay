@@ -1,31 +1,22 @@
 #include <thread>
 #include <chrono>
-#include <boost/bind.hpp>
 
 #include "PlayerInterface.h"
+#include "MyException.h"
 
 using namespace std;
 using namespace agbplay;
-
-const vector<uint32_t> PlayerInterface::freqLut = 
-{
-    5734, 7884, 10512, 13379,
-    15768, 18157, 21024, 26758,
-    31536, 36314, 40137, 42048
-};
 
 /*
  * public PlayerInterface
  */
 
 PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos, EnginePars pars) 
-: seq(Sequence(initSongPos, 16, _rom)), rom(_rom)
+: seq(initSongPos, 16, _rom), rom(_rom)
 {
     this->trackUI = trackUI;
-    this->dSoundVol = uint8_t(pars.vol + 1);
-    this->dSoundRev = pars.rev;
-    this->dSoundFreq = (pars.freq == 0 || pars.freq > 12) ? freqLut[4] : freqLut[pars.freq - 1];
     this->playerState = State::THREAD_DELETED;
+    this->pars = pars;
 }
 
 PlayerInterface::~PlayerInterface() 
@@ -66,7 +57,7 @@ void PlayerInterface::Play()
             // --> handled by worker
             break;
         case State::THREAD_DELETED:
-            playerState = State::RESTART;
+            playerState = State::PLAYING;
             playerThread = new boost::thread(&PlayerInterface::threadWorker, this);
             // start thread and play back song
             break;
@@ -138,5 +129,41 @@ void PlayerInterface::Stop()
 
 void PlayerInterface::threadWorker()
 {
-    // TODO process data
+    // TODO add fixed mode rate variable
+    auto sg = new StreamGenerator(seq, EnginePars(0xF, 0, 0x7), 1);
+    uint32_t nBlocks = sg->GetBufferUnitCount();
+    uint32_t outSampleRate = sg->GetRenderSampleRate();
+    if (Pa_OpenDefaultStream(&audioStream, 0, 2, paFloat32, outSampleRate, nBlocks, NULL, NULL) != paNoError)
+        throw MyException("Failed opening the default portaudio stream");
+    if (Pa_StartStream(audioStream) != paNoError)
+        throw MyException("Failed to start the audiostream");
+
+    vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
+
+    while (playerState != State::SHUTDOWN) {
+        switch (playerState) {
+            case State::RESTART:
+                delete sg;
+                sg = new StreamGenerator(seq, EnginePars(0xF, 0, 0x7), 1);
+                playerState = State::PLAYING;
+            case State::PLAYING:
+                if (Pa_WriteStream(audioStream, sg->ProcessAndGetAudio(), nBlocks) != paNoError)
+                    assert(false);
+                break;
+            case State::PAUSED:
+                if (Pa_WriteStream(audioStream, &silence[0], nBlocks) != paNoError)
+                    assert(false);
+                break;
+            default:
+                throw MyException("Internal PlayerInterface error");
+        }
+    }
+
+    if (Pa_StopStream(audioStream) != paNoError)
+        throw MyException("Failed to stop the audiostream");
+    if (Pa_CloseStream(audioStream) != paNoError)
+        throw MyException("Failed closing the default portaudio stream");
+
+    delete sg;
+    playerState = State::TERMINATED;
 }

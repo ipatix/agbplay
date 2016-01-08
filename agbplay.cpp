@@ -2,6 +2,8 @@
 #include <cstring>
 #include <cstdio>
 #include <ncurses.h>
+#include <portaudio.h>
+
 #include "Rom.h"
 #include "SoundData.h"
 #include "Debug.h"
@@ -21,6 +23,8 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     try {
+        if (Pa_Initialize() != paNoError)
+            throw MyException("Couldn't init portaudio");
         cout << "Loading ROM..." << endl;
         FileContainer fc(argv[1]);
         cout << "Loaded ROM successfully" << endl;
@@ -37,6 +41,8 @@ int main(int argc, char *argv[]) {
         cout << e.what() << endl;
         return EXIT_FAILURE;
     }
+    if (Pa_Terminate() != paNoError)
+        throw MyException("Error while terminating portaudio");
     __close_debug();
     return 0;
 }

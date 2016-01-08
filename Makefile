@@ -1,7 +1,7 @@
 CXX = clang++
-CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -D DEBUG -O2
+CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -D DEBUG -g -O2
 BINARY = agbplay
-LIBS = ../portaudio/libportaudio_static.a -lm -lncursesw -lboost_system -lboost_thread
+LIBS = ../portaudio/lib/.libs/libportaudio.a -lm -lncursesw -lboost_system -lboost_thread -pthread -lasound
 IMPORT = -I ../portaudio/include
 
 GREEN = \033[1;32m
@@ -23,7 +23,7 @@ clean:
 
 $(BINARY): $(OBJ_FILES)
 	@printf "[$(RED)Linking$(NCOL)] $(WHITE)$(BINARY)$(NCOL)\n"
-	@$(CXX) -o $@ $(CXXFLAGS) $(LIBS) $^
+	@$(CXX) -o $@ $(CXXFLAGS) $^ $(LIBS)
 
 %.o: %.cpp
 	@printf "[$(GREEN)Compiling$(NCOL)] $(WHITE)$@$(NCOL)\n"

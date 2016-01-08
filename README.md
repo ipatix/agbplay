@@ -5,7 +5,8 @@ The code itself is written in C++.
 Current state of things:
 - The GUI is more or less finished
 - ROMs can be loaded and scanned for the songtable
-- Work on the player itself isn't really started yet
+- Player Engine is theoretically done but not tested yet
+- Minor controls for actual playback are still missing
 
 Depenencies:
 - Boost

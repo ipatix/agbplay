@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Events.h"
+#include "ControlGUI.h"
 
 /* window size definition
  * (h,w) = height and width of stdscr */
@@ -93,7 +93,7 @@ namespace agbplay
             TitlebarGUI *titleUI;
             RomviewGUI *romUI;
             TrackviewGUI *trackUI;
-            Events *event;
+            ControlGUI *event;
 
             // resource
             Rom& rom;

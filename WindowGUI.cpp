@@ -3,6 +3,8 @@
 #include <iomanip>
 #include <cstdlib>
 #include <stdexcept>
+#include <thread>
+#include <chrono>
 
 #include "MyException.h"
 #include "Debug.h"
@@ -89,7 +91,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
             TRACKVIEW_YPOS(height, width),
             TRACKVIEW_XPOS(height, width));
 
-    event = new Events();
+    event = new ControlGUI();
 
     rom.Seek(sdata.sTable->GetSongTablePos());
     mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos(), EnginePars(15, 0, 4));
@@ -167,7 +169,7 @@ void WindowGUI::Handle()
             } // end key handling switch
             // TODO conditional rendering
         } // end key loop
-        event->WaitTick();
+        this_thread::sleep_for(chrono::milliseconds(25));
     } // end rendering loop
 }
 

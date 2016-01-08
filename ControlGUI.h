@@ -4,13 +4,12 @@
 
 namespace agbplay
 {
-    class Events : public CursesWin
+    class ControlGUI : public CursesWin
     {
         public:
-            Events();
-            ~Events();
+            ControlGUI();
+            ~ControlGUI();
 
             int GetKey();
-            void WaitTick();
     };
 }

@@ -22,6 +22,7 @@ SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, u
     this->sInfo = sInfo;
     this->interPos = 0.0f;
     this->eState = EnvState::INIT;
+    this->envInterStep = 0;
     SetVol(leftVol, rightVol);
     this->fixed = fixed;
     SetPitch(pitch);
@@ -52,8 +53,8 @@ void SoundChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
 {
     __print_debug(FormatString("SetVol: %d, %d", (int)leftVol, (int)rightVol));
     if (eState < EnvState::REL) {
-        this->leftVol = note.velocity * leftVol / 128;
-        this->rightVol = note.velocity * rightVol / 128;
+        this->leftVol = uint8_t(note.velocity * leftVol / 128);
+        this->rightVol = uint8_t(note.velocity * rightVol / 128);
     }
 }
 
@@ -188,6 +189,8 @@ void SoundChannel::StepEnvelope()
                 if (newLevel <= 0) {
                     eState = EnvState::DIE;
                     envLevel = 0;
+                } else {
+                    envLevel = uint8_t(newLevel);
                 }
             }
             break;
@@ -200,7 +203,6 @@ void SoundChannel::StepEnvelope()
         case EnvState::DEAD:
             break;
     }
-    __print_debug(FormatString("%p: EL=%d st=%d del=%d", this, (int)envLevel, (int)eState, (int)note.length));
 }
 
 void SoundChannel::UpdateVolFade()

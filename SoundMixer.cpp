@@ -22,7 +22,6 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, 
     this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
     this->sampleBuffer = vector<float>(N_CHANNELS * samplesPerBuffer);
     this->fixedModeRate = fixedModeRate;
-    __print_debug(FormatString("fmoder: %d", fixedModeRate));
     fill_n(this->sampleBuffer.begin(), this->sampleBuffer.size(), 0.0f);
     this->sampleRateReciprocal = 1.0f / float(sampleRate);
     this->masterVolume = MASTER_VOL * mvl;
@@ -232,7 +231,7 @@ void SoundMixer::renderToBuffer()
                 uint32_t posDelta = uint32_t(chn.interPos);
                 chn.interPos -= float(posDelta);
                 chn.pos += posDelta;
-                if (chn.pos > info.endPos) {
+                if (chn.pos >= info.endPos) {
                     if (info.loopEnabled) {
                         chn.pos = info.loopPos;
                     } else {

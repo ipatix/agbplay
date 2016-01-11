@@ -194,6 +194,7 @@ void WindowGUI::Handle()
                 case 4: // EOT
                 case 'q':
                     conUI->WriteLn("Exiting...");
+                    mplay->Stop();
                     return;
             } // end key handling switch
             // TODO conditional rendering

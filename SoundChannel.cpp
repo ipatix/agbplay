@@ -51,7 +51,6 @@ float SoundChannel::GetFreq()
 
 void SoundChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
 {
-    __print_debug(FormatString("SetVol: %d, %d", (int)leftVol, (int)rightVol));
     if (eState < EnvState::REL) {
         this->leftVol = uint8_t(note.velocity * leftVol / 128);
         this->rightVol = uint8_t(note.velocity * rightVol / 128);

@@ -4,6 +4,7 @@
 #include "PlayerInterface.h"
 #include "MyException.h"
 #include "Debug.h"
+#include "Util.h"
 
 using namespace std;
 using namespace agbplay;
@@ -145,12 +146,13 @@ void PlayerInterface::threadWorker()
 {
     // TODO add fixed mode rate variable
     sg = StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1);
+    PaError err;
     uint32_t nBlocks = sg.GetBufferUnitCount();
     uint32_t outSampleRate = sg.GetRenderSampleRate();
-    if (Pa_OpenDefaultStream(&audioStream, 0, 2, paFloat32, outSampleRate, nBlocks, NULL, NULL) != paNoError)
-        throw MyException("Failed opening the default portaudio stream");
-    if (Pa_StartStream(audioStream) != paNoError)
-        throw MyException("Failed to start the audiostream");
+    if ((err = Pa_OpenDefaultStream(&audioStream, 0, 2, paFloat32, outSampleRate, nBlocks, NULL, NULL)) != paNoError)
+        throw MyException(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+    if ((err = Pa_StartStream(audioStream)) != paNoError)
+        throw MyException(FormatString("PA Error: %s", Pa_GetErrorText(err)));
 
     vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
 
@@ -166,16 +168,14 @@ void PlayerInterface::threadWorker()
                         playerState = State::SHUTDOWN;
                         break;
                     }
-                    if (Pa_WriteStream(audioStream, processedAudio, nBlocks) != paNoError) {
-                        __print_debug("Error while writing audio stream");
-                        //assert(false);
+                    if ((err = Pa_WriteStream(audioStream, processedAudio, nBlocks)) != paNoError) {
+                        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
                     };
                 }
                 break;
             case State::PAUSED:
-                if (Pa_WriteStream(audioStream, &silence[0], nBlocks) != paNoError) {
-                    __print_debug("Error while writing silence to audio stream");
-                    //assert(false);
+                if ((err = Pa_WriteStream(audioStream, &silence[0], nBlocks)) != paNoError) {
+                    __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
                 };
                 break;
             default:
@@ -183,9 +183,9 @@ void PlayerInterface::threadWorker()
         }
     }
 
-    if (Pa_StopStream(audioStream) != paNoError)
-        throw MyException("Failed to stop the audiostream");
-    if (Pa_CloseStream(audioStream) != paNoError)
-        throw MyException("Failed closing the default portaudio stream");
+    if ((err = Pa_StopStream(audioStream)) != paNoError)
+        throw MyException(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+    if ((err = Pa_CloseStream(audioStream)) != paNoError)
+        throw MyException(FormatString("PA Error: %s", Pa_GetErrorText(err)));
     playerState = State::TERMINATED;
 }

@@ -43,16 +43,16 @@ void SoundMixer::NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note n
 
 void SoundMixer::NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, CGBType type)
 {
-    CGBChannel *nChn;
+    CGBChannel& nChn = sq1;
     switch (type) {
-        case CGBType::SQ1: nChn = &sq1; break;
-        case CGBType::SQ2: nChn = &sq2; break;
-        case CGBType::WAVE: nChn = &wave; break;
-        case CGBType::NOISE: nChn = &noise; break;
+        case CGBType::SQ1: nChn = sq1; break;
+        case CGBType::SQ2: nChn = sq2; break;
+        case CGBType::WAVE: nChn = wave; break;
+        case CGBType::NOISE: nChn = noise; break;
     }
-    nChn->Init(owner, def, note, env);
-    nChn->SetVol(leftVol, rightVol);
-    nChn->SetPitch(pitch);
+    nChn.Init(owner, def, note, env);
+    nChn.SetVol(leftVol, rightVol);
+    nChn.SetPitch(pitch);
 }
 
 void SoundMixer::SetTrackPV(void *owner, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
@@ -200,7 +200,7 @@ void SoundMixer::renderToBuffer()
         float rVol = vol.fromVolRight;
         float interStep;
         if (chn.IsFixed()) {
-            interStep = this->fixedModeRate * this->sampleRateReciprocal;
+            interStep = float(this->fixedModeRate) * this->sampleRateReciprocal;
         } else {
             interStep = chn.GetFreq() * this->sampleRateReciprocal;
         }

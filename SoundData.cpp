@@ -159,7 +159,7 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
                     throw MyException(FormatString("Invalid Noise Pattern at 0x%7X", rom.GetPos()));
             }
         } else {
-            assert(false);
+            throw MyException(FormatString("Illegal Instrument at 0x%7X", rom.GetPos()));
         }
     } else if (instr->type == 0x80) {
         rom.SeekAGBPtr(instr->field_4.subTable + midiKey * 12);
@@ -184,7 +184,7 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
                     throw MyException(FormatString("Invalid Noise Pattern at 0x%7X", rom.GetPos()));
             }
         } else {
-            assert(false);
+            throw MyException(FormatString("Illegal Instrument at 0x%7X", rom.GetPos()));
         }
     } else {
         if (instr->type == 0x1 || instr->type == 0x9 || instr->type == 0x2 || instr->type == 0xA) {
@@ -207,7 +207,7 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
                     throw MyException(FormatString("Invalid Noise Pattern at 0x%7X", rom.GetPos()));
             }
         } else {
-            assert(false);
+            throw MyException(FormatString("Illegal Instrument at 0x%7X", rom.GetPos()));
         }
     }
     return def;
@@ -311,7 +311,6 @@ Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom& rom) : rom(rom)
         rom.Seek(songHeader + 8 + 4 * i);
         tracks.push_back(Track(rom.ReadAGBPtrToPos()));
     }
-    dcont = DisplayContainer(nTracks);
 
     // reset runtime variables
     bpmStack = 0;
@@ -320,26 +319,6 @@ Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom& rom) : rom(rom)
 
 Sequence::~Sequence() 
 {
-}
-
-DisplayContainer& Sequence::GetUpdatedDisp()
-{
-    for (uint32_t i = 0; i < tracks.size(); i++) 
-    {
-        dcont.data[i].trackPtr = (uint32_t) tracks[i].pos;
-        dcont.data[i].isCalling = tracks[i].isCalling;
-        dcont.data[i].isMuted = tracks[i].muted;
-        dcont.data[i].vol = tracks[i].vol;
-        dcont.data[i].mod = tracks[i].mod;
-        dcont.data[i].prog = tracks[i].prog;
-        dcont.data[i].pan = tracks[i].pan;
-        dcont.data[i].pitch = int16_t(tracks[i].bendr * tracks[i].bend + tracks[i].tune * 2);
-        dcont.data[i].envL = 0; // FIXME do proper volume scale updating
-        dcont.data[i].envR = 0;
-        dcont.data[i].delay = uint8_t((tracks[i].delay < 0) ? 0 : tracks[i].delay);
-        // TODO do active notes updates
-    }
-    return dcont;
 }
 
 Rom& Sequence::GetRom()

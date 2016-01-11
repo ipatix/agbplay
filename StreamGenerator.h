@@ -2,10 +2,9 @@
 
 #include <map>
 
+#include "Constants.h"
 #include "SoundData.h"
 #include "SoundMixer.h"
-
-#define BPM_PER_FRAME 150
 
 namespace agbplay
 {
@@ -28,6 +27,8 @@ namespace agbplay
             uint32_t GetBufferUnitCount();
             uint32_t GetRenderSampleRate();
             float *ProcessAndGetAudio();
+            Sequence& GetWorkingSequence();
+
             static const std::map<uint8_t, int8_t> delayLut;
             static const std::map<uint8_t, int8_t> noteLut;
 

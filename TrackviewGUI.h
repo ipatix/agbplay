@@ -5,6 +5,7 @@
 #include <boost/thread/mutex.hpp>
 
 #include "CursesWin.h"
+#include "SoundData.h"
 #include "DisplayContainer.h"
 
 namespace agbplay 
@@ -16,7 +17,7 @@ namespace agbplay
             ~TrackviewGUI();
 
             void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;
-            void SetState (DisplayContainer& disp);
+            void SetState(Sequence& seq);
             void Enter();
             void Leave();
             void PageDown();
@@ -25,10 +26,11 @@ namespace agbplay
             void ScrollUp();
             
         private:
-            DisplayContainer disp;
             void update() override;
             void scrollDownNoUpdate();
             void scrollUpNoUpdate();
+
+            DisplayContainer disp;
 
             uint32_t cursorPos;
             bool cursorVisible;

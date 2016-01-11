@@ -10,6 +10,7 @@ using namespace std;
  */
 
 ReverbEffect::ReverbEffect(int intensity, uint32_t streamRate, uint8_t numAgbBuffers)
+    : reverbBuffer((streamRate / AGB_FPS) * N_CHANNELS * numAgbBuffers)
 {
     this->intensity = 0.0f;
     if (intensity <= 0) {
@@ -22,15 +23,13 @@ ReverbEffect::ReverbEffect(int intensity, uint32_t streamRate, uint8_t numAgbBuf
         rtype = RevType::GS;
     }
     uint32_t bufferLen = streamRate / AGB_FPS;
-    this->reverbBuffer = new vector<float>(bufferLen * N_CHANNELS * numAgbBuffers);
-    fill(reverbBuffer->begin(), reverbBuffer->end(), 0.0f);
+    fill(reverbBuffer.begin(), reverbBuffer.end(), 0.0f);
     this->bufferPos = 0;
     this->bufferPos2 = bufferLen;
 }
 
 ReverbEffect::~ReverbEffect()
 {
-    delete reverbBuffer;
 }
 
 void ReverbEffect::ProcessData(float *buffer, uint32_t nBlocks)
@@ -57,7 +56,7 @@ void ReverbEffect::ProcessData(float *buffer, uint32_t nBlocks)
 
 uint32_t ReverbEffect::processNormal(float *buffer, uint32_t nBlocks)
 {
-    vector<float>& rbuf = *reverbBuffer;
+    vector<float>& rbuf = reverbBuffer;
     uint32_t count;
     bool reset = false, reset2 = false;
     if (getBlocksPerBuffer() - bufferPos2 < nBlocks) {
@@ -96,5 +95,5 @@ uint32_t ReverbEffect::processGS(float *buffer, uint32_t nBlocks)
 
 uint32_t ReverbEffect::getBlocksPerBuffer()
 {
-    return uint32_t(reverbBuffer->size() / N_CHANNELS);
+    return uint32_t(reverbBuffer.size() / N_CHANNELS);
 }

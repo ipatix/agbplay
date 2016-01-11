@@ -1,7 +1,19 @@
-CXX = clang++
+CXX = g++
 CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -D DEBUG -g -O2
 BINARY = agbplay
-LIBS = ../portaudio/lib/.libs/libportaudio.a -lm -lncursesw -lboost_system -lboost_thread -pthread -lasound
+
+SYS = $(shell $(CXX) -dumpmachine)
+
+ifneq (, $(findstring linux, $(SYS)))
+	# clang doesn't seem to compile correctly on windows but on linux it works
+	CXX = clang++
+	LIBS = ../portaudio/lib/.libs/libportaudio.a -lm -lncursesw -lboost_system -lboost_thread -pthread -lasound
+else ifneq (, $(findstring cygwin, $(SYS))$(findstring windows, $(SYS)))
+	LIBS = ../portaudio/lib/.libs/libportaudio.dll.a -lm -lncursesw -lboost_system -lboost_thread -pthread
+else
+	@echo "Unsupported Platform: $(SYS)"
+endif
+
 IMPORT = -I ../portaudio/include
 
 GREEN = \033[1;32m
@@ -23,7 +35,7 @@ clean:
 
 $(BINARY): $(OBJ_FILES)
 	@printf "[$(RED)Linking$(NCOL)] $(WHITE)$(BINARY)$(NCOL)\n"
-	@$(CXX) -o $@ $(CXXFLAGS) $^ $(LIBS)
+	@gcc -o $@ $(CXXFLAGS) $^ $(LIBS) -lstdc++
 
 %.o: %.cpp
 	@printf "[$(GREEN)Compiling$(NCOL)] $(WHITE)$@$(NCOL)\n"

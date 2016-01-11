@@ -46,17 +46,23 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
             CONSOLE_YPOS(height, width),
             CONSOLE_XPOS(height, width));
 
+    conUI->WriteLn("Started Console"); 
+
     hotUI = new HotkeybarGUI(
             HOTKEYBAR_HEIGHT(height, width),
             HOTKEYBAR_WIDTH(height, width),
             HOTKEYBAR_YPOS(height, width),
             HOTKEYBAR_XPOS(height, width));
 
+    conUI->WriteLn("Started Hotkeybar");
+
     songUI = new SonglistGUI(
             SONGLIST_HEIGHT(height, width),
             SONGLIST_WIDTH(height, width),
             SONGLIST_YPOS(height, width),
             SONGLIST_XPOS(height, width), true);
+
+    conUI->WriteLn("Started Songlist");
 
     // add songs to table
     for (uint16_t i = 0; i < sdata.sTable->GetNumSongs(); i++) {
@@ -72,11 +78,15 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
             PLAYLIST_YPOS(height, width),
             PLAYLIST_XPOS(height, width));
 
+    conUI->WriteLn("Started Playlist");
+
     titleUI = new TitlebarGUI(
             TITLEBAR_HEIGHT(height, width),
             TITLEBAR_WIDTH(height, width),
             TITLEBAR_YPOS(height, width),
             TITLEBAR_XPOS(height, width));
+
+    conUI->WriteLn("Started Titlebar");
 
     romUI = new RomviewGUI(
             ROMVIEW_HEIGHT(height, width),
@@ -85,11 +95,15 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
             ROMVIEW_XPOS(height, width),
             rom, sdata);
 
+    conUI->WriteLn("Started Romview");
+
     trackUI = new TrackviewGUI(
             TRACKVIEW_HEIGHT(height, width),
             TRACKVIEW_WIDTH(height, width),
             TRACKVIEW_YPOS(height, width),
             TRACKVIEW_XPOS(height, width));
+
+    conUI->WriteLn("Started Trackview");
 
     event = new ControlGUI();
 
@@ -174,7 +188,7 @@ void WindowGUI::Handle()
                     conUI->WriteLn("Stopped");
                     break;
                 case 'l':
-                    conUI->WriteLn(string("Is playing: ") + to_string(mplay->IsPlaying()));
+                    conUI->WriteLn(FormatString("Is Playing: %s", mplay->IsPlaying() ? "yes" : "no"));
                     break;
                 case EOF:
                 case 4: // EOT
@@ -184,6 +198,7 @@ void WindowGUI::Handle()
             } // end key handling switch
             // TODO conditional rendering
         } // end key loop
+        mplay->UpdateView();
         this_thread::sleep_for(chrono::milliseconds(25));
     } // end rendering loop
 }

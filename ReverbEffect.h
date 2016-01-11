@@ -21,7 +21,7 @@ namespace agbplay
             enum class RevType { NONE, NORMAL, GS } rtype;
             float intensity;
             //uint32_t streamRate;
-            std::vector<float> *reverbBuffer;
+            std::vector<float> reverbBuffer;
             uint32_t bufferPos;
             uint32_t bufferPos2;
     };

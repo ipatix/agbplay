@@ -9,6 +9,7 @@
 #include "TrackviewGUI.h"
 #include "DisplayContainer.h"
 #include "StreamGenerator.h"
+#include "Constants.h"
 
 namespace agbplay
 {
@@ -23,14 +24,16 @@ namespace agbplay
             void Pause();
             void Stop();
             bool IsPlaying();
+            void UpdateView();
         private:
             void threadWorker();
 
             PaStream *audioStream;
             EnginePars pars;
             volatile enum class State : int { RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED } playerState;
-            Sequence seq;
             Rom& rom;
+            Sequence seq;
+            StreamGenerator sg;
             TrackviewGUI *trackUI;
 
             boost::thread *playerThread;

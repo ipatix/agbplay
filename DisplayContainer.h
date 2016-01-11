@@ -3,8 +3,7 @@
 #include <bitset>
 #include <vector>
 
-#define NUM_NOTES 128
-#define PROG_UNDEFINED 0xFF
+#include "Constants.h"
 
 namespace agbplay 
 {
@@ -23,17 +22,16 @@ namespace agbplay
         int16_t pitch; // range -32768 to 32767
         uint8_t envL;  // range 0 to 255
         uint8_t envR;  // range 0 to 255
-        uint8_t delay; // range 0 to 96
+        int8_t delay; // range 0 to 96
         std::bitset<NUM_NOTES> activeNotes;
     };
 
-    class DisplayContainer 
+    struct DisplayContainer 
     {
-        public:
-            DisplayContainer();
-            DisplayContainer(uint8_t nTracks);
-            ~DisplayContainer();
-            
-            std::vector<DisplayData> data;
+        DisplayContainer();
+        DisplayContainer(uint8_t nTracks);
+        ~DisplayContainer();
+
+        std::vector<DisplayData> data;
     };
 }

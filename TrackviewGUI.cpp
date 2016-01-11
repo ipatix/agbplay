@@ -1,5 +1,6 @@
 #include <boost/bind.hpp>
 
+#include "Util.h"
 #include "TrackviewGUI.h"
 #include "ColorDef.h"
 
@@ -29,9 +30,26 @@ void TrackviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32
     update();
 }
 
-void TrackviewGUI::SetState(DisplayContainer& disp) 
+void TrackviewGUI::SetState(Sequence& seq)
 {
-    this->disp = disp;
+    size_t sz;
+    if (disp.data.size() != (sz = seq.tracks.size())) {
+        disp.data.resize(sz);
+    }
+    for (size_t i = 0; i < sz; i++)
+    {
+        disp.data[i].trackPtr = uint32_t(seq.tracks[i].pos);
+        disp.data[i].isCalling = seq.tracks[i].isCalling;
+        disp.data[i].isMuted = false;
+        disp.data[i].vol = seq.tracks[i].vol;
+        disp.data[i].mod = seq.tracks[i].mod;
+        disp.data[i].prog = seq.tracks[i].prog;
+        disp.data[i].pan = seq.tracks[i].pan;
+        disp.data[i].pitch = seq.tracks[i].pitch;
+        disp.data[i].envL = 0;
+        disp.data[i].envR = 0;
+        disp.data[i].delay = max((int8_t)0, seq.tracks[i].delay);
+    }
     update();
 }
 

@@ -6,6 +6,7 @@
 #include "Rom.h"
 #include "MyException.h"
 #include "Debug.h"
+#include "Util.h"
 
 using namespace agbplay;
 using namespace std;
@@ -168,7 +169,7 @@ bool Rom::ValidPointer(agbptr_t ptr)
 
 void Rom::checkBounds(long pos, size_t typesz) {
     if (pos < 0 || ((size_t)pos + typesz) > (*data).size())
-        throw MyException(string("ROM Reader position out of range: ") + to_string(pos));
+        throw MyException(FormatString("Rom Reader position out of range: %7X", pos));
 }
 
 void Rom::verify() 

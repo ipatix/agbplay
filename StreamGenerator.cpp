@@ -57,7 +57,7 @@ const map<uint8_t, int8_t> StreamGenerator::noteLut = {
 
 StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops) 
 : seq(seq), sbnk(seq.GetRom(), seq.GetSndBnk()), 
-    sm(48000, freqLut[minmax<uint8_t>(0, ep.freq-1, 11)], 
+    sm(48000, freqLut[minmax<uint8_t>(0, uint8_t(ep.freq-1), 11)], 
             (ep.rev >= 0x80) ? ep.rev & 0x7F : seq.GetReverb() & 0x7F,
             float(ep.vol + 1) / 16.0f)
 {
@@ -90,17 +90,22 @@ float *StreamGenerator::ProcessAndGetAudio()
         return processedData;
 }
 
+Sequence& StreamGenerator::GetWorkingSequence()
+{
+    return seq;
+}
+
 /*
  * private StreamGenerator
  */
 
 void StreamGenerator::processSequenceFrame()
 {
-    while (seq.bpmStack >= 0) {
+    seq.bpmStack += seq.bpm;
+    while (seq.bpmStack < BPM_PER_FRAME * INTERFRAMES) {
         processSequenceTick();
-        seq.bpmStack -= seq.bpm * INTERFRAMES;
+        seq.bpmStack -= BPM_PER_FRAME * INTERFRAMES;
     }
-    seq.bpmStack += BPM_PER_FRAME;
 }
 
 void StreamGenerator::processSequenceTick()
@@ -387,7 +392,7 @@ void StreamGenerator::processSequenceTick()
                             }
                             break;
                         default:
-                            throw MyException(string("unsupported command (decimal): ") + to_string(cmd));
+                            throw MyException(FormatString("Unsupported command: 0x%2X", cmd));
                     } // end main cmd switch
                 } else {
                     int8_t len = cTrk.lastNoteLen = noteLut.at(cmd);
@@ -427,7 +432,7 @@ void StreamGenerator::processSequenceTick()
             sm.SetTrackPV((void *)&cTrk, 
                     cTrk.GetLeftVol(),
                     cTrk.GetRightVol(),
-                    cTrk.GetPitch());
+                    cTrk.pitch = cTrk.GetPitch());
         }
         isFirst = false;
     } // end of track iteration

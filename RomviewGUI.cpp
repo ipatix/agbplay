@@ -1,5 +1,7 @@
 #include "RomviewGUI.h"
 #include "ColorDef.h"
+#include "Util.h"
+#include "Debug.h"
 
 using namespace agbplay;
 using namespace std;
@@ -50,11 +52,9 @@ void RomviewGUI::update() {
     mvwprintw(winPtr, 5, 2, "ROM Code:");
     mvwprintw(winPtr, 6, 2, gameCode.c_str());
     mvwprintw(winPtr, 8, 2, "Songtable Offset:");
-    char buf[32];
-    snprintf(buf, sizeof(buf), "0x%lX", songTable);
-    mvwprintw(winPtr, 9, 2, buf);
+    mvwprintw(winPtr, 9, 2, "0x%lX", songTable);
     mvwprintw(winPtr, 11, 2, "Song Amount:");
-    mvwprintw(winPtr, 12, 2, to_string(numSongs).c_str());
+    mvwprintw(winPtr, 12, 2, "%d", numSongs);
     wrefresh(winPtr);
     UIMutex.unlock();
 }

@@ -38,7 +38,7 @@ DisplayContainer::DisplayContainer()
 
 DisplayContainer::DisplayContainer(uint8_t nTracks) 
 {
-    data = vector<DisplayData>(nTracks);
+    data.resize(nTracks);
 }
 
 DisplayContainer::~DisplayContainer() 

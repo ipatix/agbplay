@@ -36,13 +36,14 @@ int main(int argc, char *argv[]) {
 
         // blocking call until program get's closed
         wgui.Handle();
+        if (Pa_Terminate() != paNoError)
+            throw MyException("Error while terminating portaudio");
     } catch (const exception& e) {
         endwin();
         cout << e.what() << endl;
+        __print_debug(e.what());
         return EXIT_FAILURE;
     }
-    if (Pa_Terminate() != paNoError)
-        throw MyException("Error while terminating portaudio");
     __close_debug();
     return 0;
 }

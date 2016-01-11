@@ -3,11 +3,8 @@
 #include <vector>
 
 #include "Rom.h"
-#include "DisplayContainer.h"
 #include "SampleStructs.h"
-
-#define UNKNOWN_TABLE -1
-#define MIN_SONG_NUM 32
+#include "Constants.h"
 
 namespace agbplay 
 {
@@ -46,7 +43,6 @@ namespace agbplay
             Sequence(long songHeader, uint8_t trackLimit, Rom& rom);
             ~Sequence();
 
-            DisplayContainer& GetUpdatedDisp();
             struct Track 
             {
                 Track(long pos);
@@ -60,6 +56,7 @@ namespace agbplay
                 long patBegin;
                 MODT modt;
                 LEvent lastEvent;
+                int16_t pitch;
                 uint8_t lastNoteKey, lastNoteVel;
                 int8_t lastNoteLen;
                 uint8_t reptCount;
@@ -83,7 +80,6 @@ namespace agbplay
             long GetSndBnk();
             uint8_t GetReverb();
         private:
-            DisplayContainer dcont;
             Rom rom;
             long songHeader;
             long soundBank;

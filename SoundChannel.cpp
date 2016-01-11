@@ -4,6 +4,8 @@
 
 #include "Debug.h"
 #include "SoundChannel.h"
+#include "Util.h"
+#include "MyException.h"
 
 using namespace std;
 using namespace agbplay;
@@ -48,7 +50,7 @@ float SoundChannel::GetFreq()
 
 void SoundChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
 {
-    __print_debug("SetVol: " + to_string(leftVol) + ", " + to_string(rightVol));
+    __print_debug(FormatString("SetVol: %d, %d", (int)leftVol, (int)rightVol));
     if (eState < EnvState::REL) {
         this->leftVol = note.velocity * leftVol / 128;
         this->rightVol = note.velocity * rightVol / 128;
@@ -115,7 +117,7 @@ bool SoundChannel::TickNote()
             return true;
         } else if (note.length == -1) {
             return true;
-        } else assert(false);
+        } else throw MyException(FormatString("Illegal Note countdown: %d", (int)note.length));
     } else {
         return false;
     }
@@ -198,7 +200,7 @@ void SoundChannel::StepEnvelope()
         case EnvState::DEAD:
             break;
     }
-    __print_debug("EnvLevel: " + to_string(envLevel) + ", state: " + to_string((int)eState));
+    __print_debug(FormatString("%p: EL=%d st=%d del=%d", this, (int)envLevel, (int)eState, (int)note.length));
 }
 
 void SoundChannel::UpdateVolFade()

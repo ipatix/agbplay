@@ -3,6 +3,7 @@
 #include "CGBChannel.h"
 #include "CGBPatterns.h"
 #include "MyException.h"
+#include "Debug.h"
 #include "Util.h"
 
 using namespace std;
@@ -140,13 +141,12 @@ void CGBChannel::SetPitch(int16_t pitch)
     switch (cType) {
         case CGBType::SQ1:
         case CGBType::SQ2:
-            freq = 8 * powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
+            freq = 3520.0f * powf(2.0f, float(note.midiKey - 69) / 12.0f + float(pitch) / 768.0f);
             break;
         case CGBType::WAVE:
-            freq = 16 * powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
+            freq = 7040.0f * powf(2.0f, float(note.midiKey - 69) / 12.0f + float(pitch) / 768.0f);
         case CGBType::NOISE:
-            freq = minmax(4.0f, 4096 * powf(8.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f), 524288.0f);
-
+            freq = minmax(4.0f, 4096.0f * powf(8.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f), 524288.0f);
     }
 }
 

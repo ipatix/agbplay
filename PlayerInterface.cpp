@@ -164,8 +164,9 @@ void PlayerInterface::threadWorker()
                     float *processedAudio = sg.ProcessAndGetAudio();
                     if (processedAudio == nullptr){
                         playerState = State::SHUTDOWN;
+                        break;
                     }
-                    else if (Pa_WriteStream(audioStream, processedAudio, nBlocks) != paNoError) {
+                    if (Pa_WriteStream(audioStream, processedAudio, nBlocks) != paNoError) {
                         __print_debug("Error while writing audio stream");
                         //assert(false);
                     };

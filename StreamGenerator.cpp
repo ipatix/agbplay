@@ -3,6 +3,7 @@
 #include "StreamGenerator.h"
 #include "MyException.h"
 #include "Util.h"
+#include "Debug.h"
 
 #define SONG_FADE_OUT_TIME 7000
 #define SONG_FINISH_TIME 2000
@@ -102,7 +103,7 @@ Sequence& StreamGenerator::GetWorkingSequence()
 void StreamGenerator::processSequenceFrame()
 {
     seq.bpmStack += seq.bpm;
-    while (seq.bpmStack < BPM_PER_FRAME * INTERFRAMES) {
+    while (seq.bpmStack >= BPM_PER_FRAME * INTERFRAMES) {
         processSequenceTick();
         seq.bpmStack -= BPM_PER_FRAME * INTERFRAMES;
     }
@@ -345,7 +346,7 @@ void StreamGenerator::processSequenceTick()
                         case 0xC8:
                             // TUNE
                             cTrk.lastEvent = LEvent::TUNE;
-                            cTrk.tune = int8_t(reader.ReadUInt8() - 128);
+                            cTrk.tune = int8_t(reader.ReadUInt8() - 0x40);
                             cTrk.pos += 2;
                             updatePV = true;
                             break;
@@ -392,7 +393,7 @@ void StreamGenerator::processSequenceTick()
                             }
                             break;
                         default:
-                            throw MyException(FormatString("Unsupported command: 0x%2X", cmd));
+                            throw MyException(FormatString("Unsupported command: 0x%2X", (int)cmd));
                     } // end main cmd switch
                 } else {
                     int8_t len = cTrk.lastNoteLen = noteLut.at(cmd);
@@ -458,6 +459,7 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
                     trk.GetRightVol(),
                     trk.GetPitch(),
                     false);
+            break;
         case InstrType::PCM_FIXED:
             sm.NewSoundChannel(
                     owner, 

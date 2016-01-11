@@ -358,6 +358,7 @@ Sequence::Track::Track(long pos)
     pan = bend = tune = keyShift = 0;
     muted = isCalling = false;
     isRunning = true;
+    pitch = 0;
 }
 
 Sequence::Track::~Track() 
@@ -385,7 +386,8 @@ const vector<int16_t> Sequence::sineLut = {
 
 int16_t Sequence::Track::GetPitch()
 {
-    return int16_t(bend * bendr + tune * 2 + sineLut[lfoPhase] / 128);
+    int16_t m = modt == MODT::PITCH ? int16_t((sineLut[lfoPhase] * mod) >> 7) : 0;
+    return int16_t(bend * bendr + tune * 2 + m);
 }
 
 uint8_t Sequence::Track::GetLeftVol()

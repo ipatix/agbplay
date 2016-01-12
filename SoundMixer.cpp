@@ -203,17 +203,20 @@ void SoundMixer::renderToBuffer()
         float *buf = &sampleBuffer[0];
         if (chn.IsGS()) {
             uint8_t *uSamplePtr = (uint8_t *)info.samplePtr;
-            __print_debug(FormatString("GS: %2X %2X %2X %2X %2X %2X", (int)uSamplePtr[0], (int)uSamplePtr[1], (int)uSamplePtr[2], (int)uSamplePtr[3], (int)uSamplePtr[4], (int)uSamplePtr[5]));
             // switch by GS type
             if (uSamplePtr[1] == 0) {
                 // pulse wave
-                chn.pos += uSamplePtr[3] << 24;
-                uint32_t iThreshold = (uSamplePtr[5] << 24) + chn.pos;
+                if ((chn.pos & 0x3) == 0) {
+                    chn.pos += uint32_t(uSamplePtr[3] << 24);
+                    chn.pos |= 0x3;
+                } else {
+                    chn.pos -= 1;
+                }
+                uint32_t iThreshold = uint32_t(uSamplePtr[5] << 24) + chn.pos;
                 iThreshold = int32_t(iThreshold) < 0 ? uint32_t(int32_t(iThreshold) * -1) >> 8 : iThreshold >> 8;
-                iThreshold = iThreshold * uSamplePtr[4] + (uSamplePtr[2] << 24);
+                iThreshold = iThreshold * uSamplePtr[4] + uint32_t(uSamplePtr[2] << 24);
                 float fThreshold = float(iThreshold >> 16) / 65536.0f;
                 interStep *= 0.015625f;
-                __print_debug(FormatString("cPos=%8X fThr=%f iSte=%f iPos= %f", chn.pos, fThreshold, interStep, chn.interPos));
                 for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
                 {
                     float baseSamp = chn.interPos < fThreshold ? 0.5f : -0.5f;

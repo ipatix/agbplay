@@ -129,7 +129,7 @@ void PlayerInterface::Stop()
 
 bool PlayerInterface::IsPlaying()
 {
-    return playerState != State::THREAD_DELETED;
+    return playerState != State::THREAD_DELETED && playerState != State::TERMINATED;
 }
 
 void PlayerInterface::UpdateView()

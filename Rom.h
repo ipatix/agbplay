@@ -29,7 +29,7 @@ namespace agbplay {
             long ReadAGBPtrToPos();
             std::string ReadString(size_t limit);
             void ReadData(void *dest, size_t bytes);
-            uint8_t operator[](const long oPos);
+            uint8_t& operator[](const long oPos);
             void *GetPtr();
             long GetPos();
             size_t Size();

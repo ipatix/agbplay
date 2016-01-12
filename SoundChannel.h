@@ -18,6 +18,7 @@ namespace agbplay
             //uint8_t GetVolR();
             ChnVol GetVol();
             uint8_t GetMidiKey();
+            int8_t GetNoteLength();
             bool IsFixed();
             bool IsGS();
             void Release();

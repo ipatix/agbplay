@@ -39,7 +39,7 @@ void TrackviewGUI::SetState(Sequence& seq)
     for (size_t i = 0; i < sz; i++)
     {
         disp.data[i].trackPtr = uint32_t(seq.tracks[i].pos);
-        disp.data[i].isCalling = seq.tracks[i].isCalling;
+        disp.data[i].isCalling = seq.tracks[i].reptCount > 0;
         disp.data[i].isMuted = false;
         disp.data[i].vol = seq.tracks[i].vol;
         disp.data[i].mod = seq.tracks[i].mod;

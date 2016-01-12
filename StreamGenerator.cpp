@@ -134,7 +134,7 @@ void StreamGenerator::processSequenceTick()
         // count down last delay and process
         bool updatePV = false;
         if (--cTrk.delay <= 0) {
-            while (true) {
+            while (cTrk.isRunning) {
                 uint8_t cmd = reader[cTrk.pos++];
                 // check if a previous command should be repeated
                 if (cmd <= 0x7F) {
@@ -229,41 +229,35 @@ void StreamGenerator::processSequenceTick()
                                     sm.FadeOut(SONG_FADE_OUT_TIME);
                                 }
                             }
-                            reader.Seek(cTrk.pos);
-                            cTrk.pos = reader.ReadAGBPtrToPos();
+                            cTrk.pos = reader.AGBPtrToPos(*(uint32_t *)&reader[cTrk.pos]);
                             break;
                         case 0xB3:
                             // PATT, call sub
-                            if (cTrk.isCalling)
+                            if (cTrk.reptCount > 0)
                                 throw MyException(FormatString("Nested track calls are not allowed: 0x%7X", cTrk.pos));
 
-                            reader.Seek(cTrk.pos);
                             cTrk.returnPos = cTrk.pos + 4;
                             cTrk.reptCount = 1;
-                            cTrk.pos = cTrk.patBegin = reader.ReadAGBPtrToPos();
-                            cTrk.isCalling = true;
+                            cTrk.pos = cTrk.patBegin = reader.AGBPtrToPos(*(uint32_t *)&reader[cTrk.pos]);
                             break;
                         case 0xB4:
                             // PEND, end of sub
-                            if (cTrk.isCalling) {
+                            if (cTrk.reptCount > 0) {
                                 if (--cTrk.reptCount > 0) {
                                     cTrk.pos = cTrk.patBegin;
                                 } else {
                                     cTrk.pos = cTrk.returnPos;
-                                    cTrk.isCalling = false;
                                 }
                             }
                             break;
                         case 0xB5:
                             // REPT
-                            if (cTrk.isCalling)
+                            if (cTrk.reptCount > 0)
                                 throw MyException(FormatString("Nested track calls are not allowed: 0x%7X", cTrk.pos));
 
                             cTrk.reptCount = reader[cTrk.pos++];
-                            reader.Seek(cTrk.pos);
                             cTrk.returnPos = cTrk.pos + 4;
-                            cTrk.pos = reader.ReadAGBPtrToPos();
-                            cTrk.isCalling = true;
+                            cTrk.pos = reader.AGBPtrToPos(*(uint32_t *)&reader[cTrk.pos]);
                             break;
                         case 0xBB:
                             // TEMPO
@@ -425,12 +419,14 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
     if (trk.prog > 127)
         return;
 
-    switch (sbnk.GetInstrType(trk.prog, note.midiKey)) {
+    uint8_t oldKey = note.midiKey;
+    note.midiKey = sbnk.GetMidiKey(trk.prog, oldKey);
+    switch (sbnk.GetInstrType(trk.prog, oldKey)) {
         case InstrType::PCM:
             sm.NewSoundChannel(
                     owner, 
-                    sbnk.GetSampInfo(trk.prog, note.midiKey),
-                    sbnk.GetADSR(trk.prog, note.midiKey),
+                    sbnk.GetSampInfo(trk.prog, oldKey),
+                    sbnk.GetADSR(trk.prog, oldKey),
                     note,
                     trk.GetLeftVol(),
                     trk.GetRightVol(),
@@ -440,8 +436,8 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
         case InstrType::PCM_FIXED:
             sm.NewSoundChannel(
                     owner, 
-                    sbnk.GetSampInfo(trk.prog, note.midiKey),
-                    sbnk.GetADSR(trk.prog, note.midiKey),
+                    sbnk.GetSampInfo(trk.prog, oldKey),
+                    sbnk.GetADSR(trk.prog, oldKey),
                     note,
                     trk.GetLeftVol(),
                     trk.GetRightVol(),
@@ -451,8 +447,8 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
         case InstrType::SQ1:
             sm.NewCGBNote(
                     owner, 
-                    sbnk.GetCGBDef(trk.prog, note.midiKey),
-                    sbnk.GetADSR(trk.prog, note.midiKey),
+                    sbnk.GetCGBDef(trk.prog, oldKey),
+                    sbnk.GetADSR(trk.prog, oldKey),
                     note, 
                     trk.GetLeftVol(), 
                     trk.GetRightVol(), 
@@ -462,8 +458,8 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
         case InstrType::SQ2:
             sm.NewCGBNote(
                     owner, 
-                    sbnk.GetCGBDef(trk.prog, note.midiKey),
-                    sbnk.GetADSR(trk.prog, note.midiKey),
+                    sbnk.GetCGBDef(trk.prog, oldKey),
+                    sbnk.GetADSR(trk.prog, oldKey),
                     note, 
                     trk.GetLeftVol(), 
                     trk.GetRightVol(), 
@@ -473,8 +469,8 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
         case InstrType::WAVE:
             sm.NewCGBNote(
                     owner, 
-                    sbnk.GetCGBDef(trk.prog, note.midiKey),
-                    sbnk.GetADSR(trk.prog, note.midiKey),
+                    sbnk.GetCGBDef(trk.prog, oldKey),
+                    sbnk.GetADSR(trk.prog, oldKey),
                     note, 
                     trk.GetLeftVol(), 
                     trk.GetRightVol(), 
@@ -484,8 +480,8 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
         case InstrType::NOISE:
             sm.NewCGBNote(
                     owner, 
-                    sbnk.GetCGBDef(trk.prog, note.midiKey),
-                    sbnk.GetADSR(trk.prog, note.midiKey),
+                    sbnk.GetCGBDef(trk.prog, oldKey),
+                    sbnk.GetADSR(trk.prog, oldKey),
                     note, 
                     trk.GetLeftVol(), 
                     trk.GetRightVol(), 

@@ -60,16 +60,18 @@ void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
         for (size_t i = 0; i < 16; i++)
         {
             uint8_t twoNibbles = def.wavePtr[i];
-            float first = float(twoNibbles >> 4) * 0.125f;
+            float first = float(twoNibbles >> 4) / 16.0f;
             sum += first;
-            float second = float(twoNibbles & 0xF) * 0.125f;
+            float second = float(twoNibbles & 0xF) / 16.0f;
             sum += second;
             waveBuffer[i*2] = first;
             waveBuffer[i*2+1] = second;
         }
         float dcCorrection = sum * 0.03125f;
+        __print_debug("Loading wave:");
         for (size_t i = 0; i < 32; i++) {
             waveBuffer[i] -= dcCorrection;
+            __print_debug(FormatString("%d: %f", i, waveBuffer[i]));
         }
         // correct DC offset
     }
@@ -128,6 +130,11 @@ uint8_t CGBChannel::GetMidiKey()
     return note.midiKey;
 }
 
+int8_t CGBChannel::GetNoteLength()
+{
+    return note.length;
+}
+
 void CGBChannel::Release()
 {
     if (eState < EnvState::REL) {
@@ -157,6 +164,7 @@ bool CGBChannel::TickNote()
             note.length--;
             if (note.length == 0) {
                 eState = EnvState::REL;
+                envInterStep = 0;
                 return false;
             }
             return true;

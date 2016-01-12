@@ -19,6 +19,7 @@ namespace agbplay
             ChnVol GetVol();
             CGBDef GetDef();
             uint8_t GetMidiKey();
+            int8_t GetNoteLength();
             void Release();
             void SetPitch(int16_t pitch);
             bool TickNote(); // returns true if note remains active

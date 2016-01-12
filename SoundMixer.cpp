@@ -15,7 +15,7 @@ using namespace agbplay;
  */
 
 SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, float mvl) 
-: sq1(CGBType::SQ1), sq2(CGBType::SQ2), wave(CGBType::WAVE), noise(CGBType::NOISE)
+    : sq1(CGBType::SQ1), sq2(CGBType::SQ2), wave(CGBType::WAVE), noise(CGBType::NOISE)
 {
     this->revdsp = new ReverbEffect(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)));
     this->sampleRate = sampleRate;
@@ -89,26 +89,26 @@ void SoundMixer::StopChannel(void *owner, uint8_t key)
 {
     for (SoundChannel& chn : sndChannels) 
     {
-        if (chn.GetOwner() == owner && chn.GetMidiKey() == key && chn.GetState() < EnvState::REL) {
+        if (chn.GetOwner() == owner && chn.GetMidiKey() == key && chn.GetState() < EnvState::REL && chn.GetNoteLength() == NOTE_TIE) {
             chn.Release();
-            return;
+            //return;
         }
     }
-    if (sq1.GetOwner() == owner && sq1.GetMidiKey() == key && sq1.GetState() < EnvState::REL) {
+    if (sq1.GetOwner() == owner && sq1.GetMidiKey() == key && sq1.GetState() < EnvState::REL && sq1.GetNoteLength() == NOTE_TIE) {
         sq1.Release();
-        return;
+        //return;
     }
-    if (sq2.GetOwner() == owner && sq2.GetMidiKey() == key && sq2.GetState() < EnvState::REL) {
+    if (sq2.GetOwner() == owner && sq2.GetMidiKey() == key && sq2.GetState() < EnvState::REL && sq2.GetNoteLength() == NOTE_TIE) {
         sq2.Release();
-        return;
+        //return;
     }
-    if (wave.GetOwner() == owner && wave.GetMidiKey() == key && wave.GetState() < EnvState::REL) {
+    if (wave.GetOwner() == owner && wave.GetMidiKey() == key && wave.GetState() < EnvState::REL && wave.GetNoteLength() == NOTE_TIE) {
         wave.Release();
-        return;
+        //return;
     }
-    if (noise.GetOwner() == owner && noise.GetMidiKey() == key && noise.GetState() < EnvState::REL) {
+    if (noise.GetOwner() == owner && noise.GetMidiKey() == key && noise.GetState() < EnvState::REL && noise.GetNoteLength() == NOTE_TIE) {
         noise.Release();
-        return;
+        //return;
     }
 }
 
@@ -227,20 +227,40 @@ void SoundMixer::renderToBuffer()
                     rVol += rVolDeltaStep;
 
                     chn.interPos += interStep;
-                    if (chn.interPos > 1.0f) chn.interPos -= 1.0f;
+                    if (chn.interPos >= 1.0f) chn.interPos -= 1.0f;
                 }
             } else if (uSamplePtr[1] == 1) {
-                // traingluar shaped wave
-            } else {
                 // saw wave
+            } else {
+                // traingluar shaped wave
+                interStep *= 0.015625f;
+                const uint32_t fix = 0x70;
+
+                for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
+                {
+                    chn.interPos += interStep;
+                    if (chn.interPos >= 1.0f) chn.interPos -= 1.0f;
+                    uint32_t var1 = uint32_t(chn.interPos * 256) - fix;
+                    uint32_t var2 = uint32_t(chn.interPos * 65536.0f) << 17;
+                    uint32_t var3 = var1 - (var2 >> 27);
+                    chn.pos = var3 + uint32_t(int32_t(chn.pos) >> 1);
+
+                    float baseSamp = float(chn.pos) / 256.0f;
+
+                    *buf++ += baseSamp * lVol;
+                    *buf++ += baseSamp * rVol;
+
+                    lVol += lVolDeltaStep;
+                    rVol += rVolDeltaStep;
+                }
             }
         } else {
             //__print_debug("Processing Channel");
             //__print_debug(("Vol: " + to_string(lVol) + ", " + to_string(rVol)).c_str());
             for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
             {
-                float baseSamp = float(info.samplePtr[chn.pos]) / 128;
-                float deltaSamp = float(info.samplePtr[chn.pos+1]) / 128 - baseSamp;
+                float baseSamp = float(info.samplePtr[chn.pos]) / 128.0f;
+                float deltaSamp = float(info.samplePtr[chn.pos+1]) / 128.0f - baseSamp;
                 float finalSamp = baseSamp + deltaSamp * chn.interPos;
 
                 *buf++ += finalSamp * lVol;
@@ -280,144 +300,150 @@ void SoundMixer::renderToBuffer()
     float *buf = nullptr;
     const float *pat = nullptr;
 
-    // square 1
+    if (sq1.GetState() < EnvState::DEAD) {
+        // square 1
 
-    sq1.StepEnvelope();
-    vol = sq1.GetVol();
-    vol.fromVolLeft *= masterFrom;
-    vol.fromVolRight *= masterFrom;
-    vol.toVolLeft *= masterTo;
-    vol.toVolRight *= masterTo;
-    info = sq1.GetDef();
-    pat = sq1.GetPat();
-    assert(pat);
-    lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-    rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-    lVol = vol.fromVolLeft;
-    rVol = vol.fromVolRight;
-    interStep = sq1.GetFreq() * this->sampleRateReciprocal;
-    buf = &sampleBuffer[0];
+        sq1.StepEnvelope();
+        vol = sq1.GetVol();
+        vol.fromVolLeft *= masterFrom;
+        vol.fromVolRight *= masterFrom;
+        vol.toVolLeft *= masterTo;
+        vol.toVolRight *= masterTo;
+        info = sq1.GetDef();
+        pat = sq1.GetPat();
+        assert(pat);
+        lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
+        rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
+        lVol = vol.fromVolLeft;
+        rVol = vol.fromVolRight;
+        interStep = sq1.GetFreq() * this->sampleRateReciprocal;
+        buf = &sampleBuffer[0];
 
-    // TODO add sweep functionality
-    for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-    {
-        float samp = pat[sq1.pos];
+        // TODO add sweep functionality
+        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
+        {
+            float samp = pat[sq1.pos];
 
-        *buf++ += samp * lVol;
-        *buf++ += samp * rVol;
+            *buf++ += samp * lVol;
+            *buf++ += samp * rVol;
 
-        lVol += lVolDeltaStep;
-        rVol += rVolDeltaStep;
+            lVol += lVolDeltaStep;
+            rVol += rVolDeltaStep;
 
-        sq1.interPos += interStep;
-        uint32_t posDelta = uint32_t(sq1.interPos);
-        sq1.interPos -= float(posDelta);
-        sq1.pos = (sq1.pos + posDelta) & 0x7;
+            sq1.interPos += interStep;
+            uint32_t posDelta = uint32_t(sq1.interPos);
+            sq1.interPos -= float(posDelta);
+            sq1.pos = (sq1.pos + posDelta) & 0x7;
+        }
     }
 
     // square 2
 
-    sq2.StepEnvelope();
-    vol = sq2.GetVol();
-    vol.fromVolLeft *= masterFrom;
-    vol.fromVolRight *= masterFrom;
-    vol.toVolLeft *= masterTo;
-    vol.toVolRight *= masterTo;
-    info = sq2.GetDef();
-    pat = sq2.GetPat();
-    assert(pat);
-    lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-    rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-    lVol = vol.fromVolLeft;
-    rVol = vol.fromVolRight;
-    interStep = sq2.GetFreq() * this->sampleRateReciprocal;
-    buf = &sampleBuffer[0];
+    if (sq2.GetState() < EnvState::DEAD) {
+        sq2.StepEnvelope();
+        vol = sq2.GetVol();
+        vol.fromVolLeft *= masterFrom;
+        vol.fromVolRight *= masterFrom;
+        vol.toVolLeft *= masterTo;
+        vol.toVolRight *= masterTo;
+        info = sq2.GetDef();
+        pat = sq2.GetPat();
+        assert(pat);
+        lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
+        rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
+        lVol = vol.fromVolLeft;
+        rVol = vol.fromVolRight;
+        interStep = sq2.GetFreq() * this->sampleRateReciprocal;
+        buf = &sampleBuffer[0];
 
-    for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-    {
-        float samp = pat[sq2.pos];
+        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
+        {
+            float samp = pat[sq2.pos];
 
-        *buf++ += samp * lVol;
-        *buf++ += samp * rVol;
+            *buf++ += samp * lVol;
+            *buf++ += samp * rVol;
 
-        lVol += lVolDeltaStep;
-        rVol += rVolDeltaStep;
+            lVol += lVolDeltaStep;
+            rVol += rVolDeltaStep;
 
-        sq2.interPos += interStep;
-        uint32_t posDelta = uint32_t(sq2.interPos);
-        sq2.interPos -= float(posDelta);
-        sq2.pos = (sq2.pos + posDelta) & 0x7;
+            sq2.interPos += interStep;
+            uint32_t posDelta = uint32_t(sq2.interPos);
+            sq2.interPos -= float(posDelta);
+            sq2.pos = (sq2.pos + posDelta) & 0x7;
+        }
     }
 
     // wave
 
-    wave.StepEnvelope();
-    vol = wave.GetVol();
-    vol.fromVolLeft *= masterFrom;
-    vol.fromVolRight *= masterFrom;
-    vol.toVolLeft *= masterTo;
-    vol.toVolRight *= masterTo;
-    info = wave.GetDef();
-    pat = wave.GetPat();
-    assert(pat);
-    lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-    rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-    lVol = vol.fromVolLeft;
-    rVol = vol.fromVolRight;
-    interStep = wave.GetFreq() * this->sampleRateReciprocal;
-    buf = &sampleBuffer[0];
+    if (wave.GetState() < EnvState::DEAD) {
+        wave.StepEnvelope();
+        vol = wave.GetVol();
+        vol.fromVolLeft *= masterFrom;
+        vol.fromVolRight *= masterFrom;
+        vol.toVolLeft *= masterTo;
+        vol.toVolRight *= masterTo;
+        info = wave.GetDef();
+        pat = wave.GetPat();
+        assert(pat);
+        lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
+        rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
+        lVol = vol.fromVolLeft;
+        rVol = vol.fromVolRight;
+        interStep = wave.GetFreq() * this->sampleRateReciprocal;
+        buf = &sampleBuffer[0];
 
-    for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-    {
-        float samp = pat[wave.pos];
+        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
+        {
+            float samp = pat[wave.pos];
 
-        *buf++ += samp * lVol;
-        *buf++ += samp * rVol;
+            *buf++ += samp * lVol;
+            *buf++ += samp * rVol;
 
-        lVol += lVolDeltaStep;
-        rVol += rVolDeltaStep;
+            lVol += lVolDeltaStep;
+            rVol += rVolDeltaStep;
 
-        wave.interPos += interStep;
-        uint32_t posDelta = uint32_t(wave.interPos);
-        wave.interPos -= float(posDelta);
-        wave.pos = (wave.pos + posDelta) & 0xF;
+            wave.interPos += interStep;
+            uint32_t posDelta = uint32_t(wave.interPos);
+            wave.interPos -= float(posDelta);
+            wave.pos = (wave.pos + posDelta) & 0xF;
+        }
     }
-    //for (float& f : sampleBuffer)
-    //    __print_debug(FormatString("PR Smp %p val %f", &f, f));
 
     // noise
 
-    noise.StepEnvelope();
-    vol = noise.GetVol();
-    vol.fromVolLeft *= masterFrom;
-    vol.fromVolRight *= masterFrom;
-    vol.toVolLeft *= masterTo;
-    vol.toVolRight *= masterTo;
-    info = noise.GetDef();
-    pat = noise.GetPat();
-    assert(pat);
-    lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-    rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-    lVol = vol.fromVolLeft;
-    rVol = vol.fromVolRight;
-    interStep = noise.GetFreq() * this->sampleRateReciprocal;
-    buf = &sampleBuffer[0];
+    if (noise.GetState() < EnvState::DEAD) {
+        noise.StepEnvelope();
+        vol = noise.GetVol();
+        vol.fromVolLeft *= masterFrom;
+        vol.fromVolRight *= masterFrom;
+        vol.toVolLeft *= masterTo;
+        vol.toVolRight *= masterTo;
+        info = noise.GetDef();
+        pat = noise.GetPat();
+        assert(pat);
+        lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
+        rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
+        lVol = vol.fromVolLeft;
+        rVol = vol.fromVolRight;
+        interStep = noise.GetFreq() * this->sampleRateReciprocal;
+        buf = &sampleBuffer[0];
 
-    uint32_t noise_bitmask = (info.np == NoisePatt::FINE) ? 0x7FFF : 0x7F;
+        uint32_t noise_bitmask = (info.np == NoisePatt::FINE) ? 0x7FFF : 0x7F;
 
-    for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-    {
-        float samp = pat[noise.pos];
+        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
+        {
+            float samp = pat[noise.pos];
 
-        *buf++ += samp * lVol;
-        *buf++ += samp * rVol;
+            *buf++ += samp * lVol;
+            *buf++ += samp * rVol;
 
-        lVol += lVolDeltaStep;
-        rVol += rVolDeltaStep;
+            lVol += lVolDeltaStep;
+            rVol += rVolDeltaStep;
 
-        noise.interPos += interStep;
-        uint32_t posDelta = uint32_t(noise.interPos);
-        noise.interPos -= float(posDelta);
-        noise.pos = (noise.pos + posDelta) & noise_bitmask;
+            noise.interPos += interStep;
+            uint32_t posDelta = uint32_t(noise.interPos);
+            noise.interPos -= float(posDelta);
+            noise.pos = (noise.pos + posDelta) & noise_bitmask;
+        }
     }
 }

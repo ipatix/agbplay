@@ -76,6 +76,11 @@ uint8_t SoundChannel::GetMidiKey()
     return note.midiKey;
 }
 
+int8_t SoundChannel::GetNoteLength()
+{
+    return note.length;
+}
+
 bool SoundChannel::IsFixed()
 {
     return fixed;
@@ -91,6 +96,7 @@ void SoundChannel::Release()
     if (eState < EnvState::REL) {
         eState = EnvState::REL;
         envInterStep = 0;
+        fromEnvLevel = envLevel;
     }
 }
 
@@ -112,6 +118,7 @@ bool SoundChannel::TickNote()
             note.length--;
             if (note.length == 0) {
                 eState = EnvState::REL;
+                envInterStep = 0;
                 return false;
             }
             return true;

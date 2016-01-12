@@ -139,7 +139,7 @@ void Rom::ReadData(void *dest, size_t bytes)
     pos += (long)bytes;
 }
 
-uint8_t Rom::operator[](const long oPos)
+uint8_t& Rom::operator[](const long oPos)
 {
     checkBounds(oPos, sizeof(uint8_t));
     return (*data)[(size_t)oPos];

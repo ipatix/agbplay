@@ -68,7 +68,6 @@ namespace agbplay
                 int8_t keyShift;
                 bool muted;
                 bool isRunning;
-                bool isCalling;
             }; // end Track
 
             static const std::vector<int16_t> sineLut;

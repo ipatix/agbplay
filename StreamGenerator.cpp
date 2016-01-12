@@ -375,6 +375,7 @@ void StreamGenerator::processSequenceTick()
                     } // end main cmd switch
                 } else {
                     // every other command is a note command
+                    cTrk.lastEvent = LEvent::NOTE;
                     int8_t len = cTrk.lastNoteLen = noteLut.at(cmd);
                     // is midi key parameter provided?
                     if (reader[cTrk.pos] < 128) {
@@ -421,8 +422,6 @@ void StreamGenerator::processSequenceTick()
 
 void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
 {
-    __print_debug(FormatString("%p: key=%d vel=%d len=%d", owner, (int)note.midiKey, (int)note.velocity, (int)note.length));
-
     if (trk.prog > 127)
         return;
 

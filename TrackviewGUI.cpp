@@ -151,7 +151,7 @@ void TrackviewGUI::update()
         wprintw(winPtr, "%02d", i);
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         wprintw(winPtr, "] ");
-        wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | aFlag);
+        wattrset(winPtr, disp.data[i].isCalling ? COLOR_PAIR(Color::YEL_DEF) : COLOR_PAIR(Color::GRN_DEF) | aFlag);
         wprintw(winPtr, "0x%07X", disp.data[i].trackPtr);
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         wprintw(winPtr, " ");

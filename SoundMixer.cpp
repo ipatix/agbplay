@@ -117,8 +117,6 @@ float *SoundMixer::ProcessAndGetAudio()
     clearBuffer();
     renderToBuffer();
     purgeChannels();
-    //for (float& f : sampleBuffer)
-    //    __print_debug(FormatString("Ret Smp %p val %f", &f, f));
     return &sampleBuffer[0];
 }
 
@@ -187,7 +185,6 @@ void SoundMixer::renderToBuffer()
             continue;
 
         ChnVol vol = chn.GetVol();
-        //__print_debug(("DVol: " + to_string(vol.fromVolLeft) + ", " + to_string(vol.fromVolRight)).c_str());
         vol.fromVolLeft *= masterFrom;
         vol.fromVolRight *= masterFrom;
         vol.toVolLeft *= masterTo;
@@ -204,11 +201,35 @@ void SoundMixer::renderToBuffer()
             interStep = chn.GetFreq() * this->sampleRateReciprocal;
         }
         float *buf = &sampleBuffer[0];
-        //__print_debug(FormatString("buf ptr before mix: %p", buf));
         if (chn.IsGS()) {
-            for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-            {
-                // TODO
+            uint8_t *uSamplePtr = (uint8_t *)info.samplePtr;
+            __print_debug(FormatString("GS: %2X %2X %2X %2X %2X %2X", (int)uSamplePtr[0], (int)uSamplePtr[1], (int)uSamplePtr[2], (int)uSamplePtr[3], (int)uSamplePtr[4], (int)uSamplePtr[5]));
+            // switch by GS type
+            if (uSamplePtr[1] == 0) {
+                // pulse wave
+                chn.pos += uSamplePtr[3] << 24;
+                uint32_t iThreshold = (uSamplePtr[5] << 24) + chn.pos;
+                iThreshold = int32_t(iThreshold) < 0 ? uint32_t(int32_t(iThreshold) * -1) >> 8 : iThreshold >> 8;
+                iThreshold = iThreshold * uSamplePtr[4] + (uSamplePtr[2] << 24);
+                float fThreshold = float(iThreshold >> 16) / 65536.0f;
+                interStep *= 0.015625f;
+                __print_debug(FormatString("cPos=%8X fThr=%f iSte=%f iPos= %f", chn.pos, fThreshold, interStep, chn.interPos));
+                for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
+                {
+                    float baseSamp = chn.interPos < fThreshold ? 0.5f : -0.5f;
+                    *buf++ += baseSamp * lVol;
+                    *buf++ += baseSamp * rVol;
+
+                    lVol += lVolDeltaStep;
+                    rVol += rVolDeltaStep;
+
+                    chn.interPos += interStep;
+                    if (chn.interPos > 1.0f) chn.interPos -= 1.0f;
+                }
+            } else if (uSamplePtr[1] == 1) {
+                // traingluar shaped wave
+            } else {
+                // saw wave
             }
         } else {
             //__print_debug("Processing Channel");

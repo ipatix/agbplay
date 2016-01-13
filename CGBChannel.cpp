@@ -54,7 +54,31 @@ void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
     this->env = env;
     this->eState = EnvState::INIT;
 
-    if (cType == CGBType::WAVE) {
+    if (cType == CGBType::SQ1 || cType == CGBType::SQ2) {
+        switch (def.wd) {
+            case WaveDuty::D12:
+                pat = CGBPatterns::pat_sq12;
+                break;
+            case WaveDuty::D25:
+                pat = CGBPatterns::pat_sq25;
+                break;
+            case WaveDuty::D50:
+                pat = CGBPatterns::pat_sq50;
+                break;
+            case WaveDuty::D75:
+                pat = CGBPatterns::pat_sq75;
+                break;
+        }
+    } else if (cType == CGBType::NOISE) {
+        switch (def.np) {
+            case NoisePatt::ROUGH:
+                pat = CGBPatterns::pat_noise_rough;
+                break;
+            case NoisePatt::FINE:
+                pat = CGBPatterns::pat_noise_fine;
+                break;
+        }
+    } else if (cType == CGBType::WAVE) {
         // generate wave pattern and convert to signed values
         float sum = 0.0f;
         for (size_t i = 0; i < 16; i++)
@@ -113,11 +137,34 @@ void CGBChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
 
 ChnVol CGBChannel::GetVol()
 {
+    float envBase = float(fromEnvLevel);
+    uint32_t stepDiv;
+    switch (eState) {
+        case EnvState::ATK:
+            stepDiv = env.att;
+            break;
+        case EnvState::DEC:
+            stepDiv = env.dec;
+            break;
+        case EnvState::SUS:
+            stepDiv = 1;
+            break;
+        case EnvState::REL:
+        case EnvState::DIE:
+            stepDiv = env.rel;
+            break;
+        default:
+            stepDiv = 1;
+            break;
+    }
+    float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES * stepDiv) ;
+    float finalFromEnv = envBase + envDelta * float(envInterStep);
+    float finalToEnv = envBase + envDelta * float(envInterStep + 1);
     return ChnVol(
-            float(fromLeftVol) * float(fromEnvLevel) / 256.0f,
-            float(fromRightVol) * float(fromEnvLevel) / 256.0f,
-            float(leftVol) * float(envLevel) / 256.0f,
-            float(rightVol) * float(envLevel) / 256.0f);
+            float(fromLeftVol) * finalFromEnv / 256.0f,
+            float(fromRightVol) * finalFromEnv / 256.0f,
+            float(leftVol) * finalToEnv / 256.0f,
+            float(rightVol) * finalToEnv / 256.0f);
 }
 
 CGBDef CGBChannel::GetDef()
@@ -139,7 +186,6 @@ void CGBChannel::Release()
 {
     if (eState < EnvState::REL) {
         eState = EnvState::REL;
-        envInterStep = 0; // TODO check if this doesn't mess up interpolation
     }
 }
 
@@ -189,13 +235,16 @@ void CGBChannel::StepEnvelope()
             fromRightVol = rightVol;
             if (env.att == 0) {
                 fromEnvLevel = 0xF;
+                envInterStep = 0;
+                goto env_att_label;
             } else {
                 fromEnvLevel = 0x0;
+                envLevel = 0xF;
+                envInterStep = 0;
             }
-            envLevel = env.att;
-            envInterStep = 0;
             eState = EnvState::ATK;
             break;
+env_att_label:
         case EnvState::ATK:
             if (++envInterStep >= INTERFRAMES * env.att) {
                 fromEnvLevel = envLevel;
@@ -204,11 +253,15 @@ void CGBChannel::StepEnvelope()
                 if (newLevel >= 0xF) {
                     eState = EnvState::DEC;
                     envLevel = 0xF;
+                    if (env.dec == 0) {
+                        goto env_dec_label;
+                    }
                 } else {
                     envLevel = uint8_t(newLevel);
                 }
             }
             break;
+env_dec_label:
         case EnvState::DEC:
             if (++envInterStep >= INTERFRAMES * env.dec) {
                 fromEnvLevel = envLevel;
@@ -232,10 +285,12 @@ void CGBChannel::StepEnvelope()
             if (++envInterStep >= INTERFRAMES * env.rel) {
                 fromEnvLevel = envLevel;
                 envInterStep = 0;
-                int newLevel = envLevel -1;
+                int newLevel = envLevel - 1;
                 if (newLevel <= 0) {
                     eState = EnvState::DIE;
                     envLevel = 0;
+                } else {
+                    envLevel = uint8_t(newLevel);
                 }
             }
             break;
@@ -246,6 +301,18 @@ void CGBChannel::StepEnvelope()
             }
             break;
         case EnvState::DEAD:
+            break;
+    }
+    switch (cType) {
+        case CGBType::SQ1:
+            __print_debug(FormatString("sq1: l=%d r=%d frome=%d toe=%d", (int)leftVol, (int)rightVol, (int)fromEnvLevel, (int)envLevel));
+            break;
+        case CGBType::SQ2:
+            __print_debug(FormatString("sq2: l=%d r=%d frome=%d toe=%d", (int)leftVol, (int)rightVol, (int)fromEnvLevel, (int)envLevel));
+            break;
+        case CGBType::WAVE:
+            break;
+        case CGBType::NOISE:
             break;
     }
 }

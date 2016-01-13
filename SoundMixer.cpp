@@ -300,7 +300,7 @@ void SoundMixer::renderToBuffer()
     float *buf = nullptr;
     const float *pat = nullptr;
 
-    if (sq1.GetState() < EnvState::DEAD) {
+    if (sq1.GetState() != EnvState::DEAD) {
         // square 1
 
         sq1.StepEnvelope();
@@ -336,10 +336,11 @@ void SoundMixer::renderToBuffer()
             sq1.pos = (sq1.pos + posDelta) & 0x7;
         }
     }
+    sq1.UpdateVolFade();
 
     // square 2
 
-    if (sq2.GetState() < EnvState::DEAD) {
+    if (sq2.GetState() != EnvState::DEAD) {
         sq2.StepEnvelope();
         vol = sq2.GetVol();
         vol.fromVolLeft *= masterFrom;
@@ -372,10 +373,11 @@ void SoundMixer::renderToBuffer()
             sq2.pos = (sq2.pos + posDelta) & 0x7;
         }
     }
+    sq2.UpdateVolFade();
 
     // wave
 
-    if (wave.GetState() < EnvState::DEAD) {
+    if (wave.GetState() != EnvState::DEAD) {
         wave.StepEnvelope();
         vol = wave.GetVol();
         vol.fromVolLeft *= masterFrom;
@@ -408,10 +410,11 @@ void SoundMixer::renderToBuffer()
             wave.pos = (wave.pos + posDelta) & 0xF;
         }
     }
+    wave.UpdateVolFade();
 
     // noise
 
-    if (noise.GetState() < EnvState::DEAD) {
+    if (noise.GetState() != EnvState::DEAD) {
         noise.StepEnvelope();
         vol = noise.GetVol();
         vol.fromVolLeft *= masterFrom;
@@ -446,4 +449,5 @@ void SoundMixer::renderToBuffer()
             noise.pos = (noise.pos + posDelta) & noise_bitmask;
         }
     }
+    noise.UpdateVolFade();
 }

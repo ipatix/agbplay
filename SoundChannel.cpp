@@ -60,7 +60,7 @@ void SoundChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
 ChnVol SoundChannel::GetVol()
 {
     float envBase = float(fromEnvLevel);
-    float envDelta = float(envLevel) - envBase;
+    float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES);
     float finalFromEnv = envBase + envDelta * float(envInterStep);
     float finalToEnv = envBase + envDelta * float(envInterStep + 1);
     //__print_debug(("EnvBase: " + to_string(envBase)).c_str());

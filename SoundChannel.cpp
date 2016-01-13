@@ -95,8 +95,6 @@ void SoundChannel::Release()
 {
     if (eState < EnvState::REL) {
         eState = EnvState::REL;
-        envInterStep = 0;
-        fromEnvLevel = envLevel;
     }
 }
 
@@ -118,7 +116,6 @@ bool SoundChannel::TickNote()
             note.length--;
             if (note.length == 0) {
                 eState = EnvState::REL;
-                envInterStep = 0;
                 return false;
             }
             return true;

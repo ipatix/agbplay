@@ -63,7 +63,6 @@ ChnVol SoundChannel::GetVol()
     float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES);
     float finalFromEnv = envBase + envDelta * float(envInterStep);
     float finalToEnv = envBase + envDelta * float(envInterStep + 1);
-    //__print_debug(("EnvBase: " + to_string(envBase)).c_str());
     return ChnVol(
             float(fromLeftVol) * finalFromEnv / 65536.0f,
             float(fromRightVol) * finalFromEnv / 65536.0f,

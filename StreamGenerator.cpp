@@ -446,7 +446,6 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
                     true);
             break;
         case InstrType::SQ1:
-            __print_debug(FormatString("Started SQ1: key=%d len=%d vel=%d", (int)note.midiKey, (int)note.length, (int)note.velocity));
             sm.NewCGBNote(
                     owner, 
                     sbnk.GetCGBDef(trk.prog, oldKey),
@@ -458,7 +457,6 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
                     CGBType::SQ1);
             break;
         case InstrType::SQ2:
-            __print_debug(FormatString("Started SQ2: key=%d len=%d vel=%d", (int)note.midiKey, (int)note.length, (int)note.velocity));
             sm.NewCGBNote(
                     owner, 
                     sbnk.GetCGBDef(trk.prog, oldKey),
@@ -470,7 +468,6 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
                     CGBType::SQ2);
             break;
         case InstrType::WAVE:
-            __print_debug(FormatString("Started wave: key=%d len=%d vel=%d", (int)note.midiKey, (int)note.length, (int)note.velocity));
             sm.NewCGBNote(
                     owner, 
                     sbnk.GetCGBDef(trk.prog, oldKey),
@@ -482,7 +479,6 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
                     CGBType::WAVE);
             break;
         case InstrType::NOISE:
-            __print_debug(FormatString("Started noise: key=%d len=%d vel=%d", (int)note.midiKey, (int)note.length, (int)note.velocity));
             sm.NewCGBNote(
                     owner, 
                     sbnk.GetCGBDef(trk.prog, oldKey),

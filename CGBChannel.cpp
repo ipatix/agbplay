@@ -51,7 +51,10 @@ void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
     this->owner = owner;
     this->note = note;
     this->def = def;
-    this->env = env;
+    this->env.att = env.att & 0x7;
+    this->env.dec = env.dec & 0x7;
+    this->env.sus = env.sus & 0xF;
+    this->env.rel = env.rel & 0x7;
     this->eState = EnvState::INIT;
 
     if (cType == CGBType::SQ1 || cType == CGBType::SQ2) {
@@ -147,7 +150,7 @@ ChnVol CGBChannel::GetVol()
             stepDiv = env.dec;
             break;
         case EnvState::SUS:
-            stepDiv = 1;
+            stepDiv = env.dec;
             break;
         case EnvState::REL:
         case EnvState::DIE:
@@ -157,7 +160,8 @@ ChnVol CGBChannel::GetVol()
             stepDiv = 1;
             break;
     }
-    float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES * stepDiv) ;
+    __print_debug(FormatString("stepdiv=%d state=%d", (int)stepDiv, (int)eState));
+    float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES * stepDiv + 1) ;
     float finalFromEnv = envBase + envDelta * float(envInterStep);
     float finalToEnv = envBase + envDelta * float(envInterStep + 1);
     return ChnVol(
@@ -185,7 +189,12 @@ int8_t CGBChannel::GetNoteLength()
 void CGBChannel::Release()
 {
     if (eState < EnvState::REL) {
-        eState = EnvState::REL;
+        if (env.rel == 0) {
+            envLevel = 0;
+            eState = EnvState::DIE;
+        } else {
+            eState = EnvState::REL;
+        }
     }
 }
 
@@ -210,7 +219,6 @@ bool CGBChannel::TickNote()
             note.length--;
             if (note.length == 0) {
                 eState = EnvState::REL;
-                envInterStep = 0;
                 return false;
             }
             return true;
@@ -229,93 +237,80 @@ EnvState CGBChannel::GetState()
 
 void CGBChannel::StepEnvelope()
 {
-    switch (eState) {
-        case EnvState::INIT:
-            fromLeftVol = leftVol;
-            fromRightVol = rightVol;
-            if (env.att == 0) {
-                fromEnvLevel = 0xF;
-                envInterStep = 0;
-                goto env_att_label;
-            } else {
-                fromEnvLevel = 0x0;
-                envLevel = 0xF;
-                envInterStep = 0;
-            }
+    if (eState == EnvState::INIT) {
+        fromLeftVol = leftVol;
+        fromRightVol = rightVol;
+        envInterStep = 0;
+        if ((env.att | env.dec) == 0) {
+            eState = EnvState::SUS;
+            fromEnvLevel = env.sus;
+            envLevel = 0;
+            return;
+        } else if (env.att == 0 && env.sus < 0xF) {
+            eState = EnvState::DEC;
+            fromEnvLevel = 0xF;
+            envLevel = 0xE;
+            return;
+        } else if (env.att == 0) {
+            eState = EnvState::DEC;
+            fromEnvLevel = 0xF;
+            envLevel = 0xF;
+            return;
+        } else {
             eState = EnvState::ATK;
-            break;
-env_att_label:
-        case EnvState::ATK:
-            if (++envInterStep >= INTERFRAMES * env.att) {
-                fromEnvLevel = envLevel;
-                envInterStep = 0;
-                int newLevel = envLevel + 1;
-                if (newLevel >= 0xF) {
-                    eState = EnvState::DEC;
-                    envLevel = 0xF;
-                    if (env.dec == 0) {
-                        goto env_dec_label;
-                    }
-                } else {
-                    envLevel = uint8_t(newLevel);
-                }
-            }
-            break;
-env_dec_label:
-        case EnvState::DEC:
-            if (++envInterStep >= INTERFRAMES * env.dec) {
-                fromEnvLevel = envLevel;
-                envInterStep = 0;
-                int newLevel = envLevel - 1;
-                if (newLevel <= env.sus) {
-                    eState = EnvState::SUS;
-                    envLevel = env.sus;
-                } else {
-                    envLevel = uint8_t(newLevel);
-                }
-            }
-            break;
-        case EnvState::SUS:
-            if (++envInterStep >= INTERFRAMES) {
-                fromEnvLevel = envLevel;
-                envInterStep = 0;
-            }
-            break;
-        case EnvState::REL:
-            if (++envInterStep >= INTERFRAMES * env.rel) {
-                fromEnvLevel = envLevel;
-                envInterStep = 0;
-                int newLevel = envLevel - 1;
-                if (newLevel <= 0) {
-                    eState = EnvState::DIE;
-                    envLevel = 0;
-                } else {
-                    envLevel = uint8_t(newLevel);
-                }
-            }
-            break;
-        case EnvState::DIE:
-            if (++envInterStep >= INTERFRAMES * env.rel) {
-                fromEnvLevel = envLevel;
-                eState = EnvState::DEAD;
-            }
-            break;
-        case EnvState::DEAD:
-            break;
+            fromEnvLevel = 0x0;
+            envLevel = 0x1;
+            return;
+        }
     }
-    switch (cType) {
-        case CGBType::SQ1:
-            __print_debug(FormatString("sq1: l=%d r=%d frome=%d toe=%d", (int)leftVol, (int)rightVol, (int)fromEnvLevel, (int)envLevel));
-            break;
-        case CGBType::SQ2:
-            __print_debug(FormatString("sq2: l=%d r=%d frome=%d toe=%d", (int)leftVol, (int)rightVol, (int)fromEnvLevel, (int)envLevel));
-            break;
-        case CGBType::WAVE:
-            break;
-        case CGBType::NOISE:
-            break;
+    else if (eState == EnvState::ATK) {
+        if (++envInterStep >= INTERFRAMES * env.att + 1) {
+            fromEnvLevel = envLevel;
+            envInterStep = 0;
+            if (++envLevel >= 0xF) {
+                if (env.dec == 0) {
+                    fromEnvLevel = env.sus;
+                    envLevel = env.sus;
+                    eState = EnvState::SUS;
+                } else {
+                    envLevel = 0xF;
+                    eState = EnvState::DEC;
+                }
+            }
+        }
+    }
+    else if (eState == EnvState::DEC) {
+        if (++envInterStep >= INTERFRAMES * env.dec + 1) {
+            fromEnvLevel = envLevel;
+            envInterStep = 0;
+            if (--envLevel <= env.sus) {
+                eState = EnvState::SUS;
+            }
+        }
+    } 
+    else if (eState == EnvState::SUS) {
+        if (++envInterStep >= INTERFRAMES) {
+            fromEnvLevel = envLevel;
+            envInterStep = 0;
+        }
+    }
+    else if (eState == EnvState::REL) {
+        if (++envInterStep >= INTERFRAMES * env.rel + 1) {
+            fromEnvLevel = envLevel;
+            envInterStep = 0;
+            if (--envLevel <= 0) {
+                eState = EnvState::DIE;
+            }
+        }
+    } 
+    else if (eState == EnvState::DIE) {
+        if (++envInterStep >= INTERFRAMES * env.rel + 1) {
+            fromEnvLevel = envLevel;
+            eState = EnvState::DEAD;
+        }
     }
 }
+
 
 void CGBChannel::UpdateVolFade()
 {

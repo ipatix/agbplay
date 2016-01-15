@@ -42,16 +42,25 @@ void SoundMixer::NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note n
 
 void SoundMixer::NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, CGBType type)
 {
-    CGBChannel& nChn = sq1;
+    CGBChannel *nChn = &sq1;
     switch (type) {
-        case CGBType::SQ1: nChn = sq1; break;
-        case CGBType::SQ2: nChn = sq2; break;
-        case CGBType::WAVE: nChn = wave; break;
-        case CGBType::NOISE: nChn = noise; break;
+        case CGBType::SQ1:
+            nChn = &sq1; 
+            break;
+        case CGBType::SQ2: 
+            nChn = &sq2; 
+            break;
+        case CGBType::WAVE: 
+            nChn = &wave; 
+            break;
+        case CGBType::NOISE: 
+            nChn = &noise; 
+            break;
+        default: throw MyException("FATAL ERROR");
     }
-    nChn.Init(owner, def, note, env);
-    nChn.SetVol(leftVol, rightVol);
-    nChn.SetPitch(pitch);
+    nChn->Init(owner, def, note, env);
+    nChn->SetVol(leftVol, rightVol);
+    nChn->SetPitch(pitch);
 }
 
 void SoundMixer::SetTrackPV(void *owner, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
@@ -255,8 +264,6 @@ void SoundMixer::renderToBuffer()
                 }
             }
         } else {
-            //__print_debug("Processing Channel");
-            //__print_debug(("Vol: " + to_string(lVol) + ", " + to_string(rVol)).c_str());
             for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
             {
                 float baseSamp = float(info.samplePtr[chn.pos]) / 128.0f;
@@ -264,9 +271,7 @@ void SoundMixer::renderToBuffer()
                 float finalSamp = baseSamp + deltaSamp * chn.interPos;
 
                 *buf++ += finalSamp * lVol;
-                //__print_debug(FormatString("Rend Smp %p val %f", buf-1, *(buf-1)));
                 *buf++ += finalSamp * rVol;
-                //__print_debug(FormatString("Rend Smp %p val %f", buf-1, *(buf-1)));
 
                 lVol += lVolDeltaStep;
                 rVol += rVolDeltaStep;
@@ -309,6 +314,7 @@ void SoundMixer::renderToBuffer()
         vol.fromVolRight *= masterFrom;
         vol.toVolLeft *= masterTo;
         vol.toVolRight *= masterTo;
+        __print_debug(FormatString("fL=%f fR=%f tL=%f tR=%f", vol.fromVolLeft, vol.fromVolRight, vol.toVolLeft, vol.toVolRight));
         info = sq1.GetDef();
         pat = sq1.GetPat();
         assert(pat);

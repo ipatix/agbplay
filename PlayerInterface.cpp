@@ -14,17 +14,18 @@ using namespace agbplay;
  */
 
 PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos, EnginePars pars) 
-    : rom(_rom), seq(initSongPos, 16, _rom), sg(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1)
-{
+    : rom(_rom), seq(initSongPos, 16, _rom) {
     this->trackUI = trackUI;
     this->playerState = State::THREAD_DELETED;
     this->pars = pars;
+    sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1);
 }
 
 PlayerInterface::~PlayerInterface() 
 {
     // stop and deallocate player thread if required
     Stop();
+    delete sg;
 }
 
 void PlayerInterface::LoadSong(long songPos, uint8_t trackLimit)
@@ -33,7 +34,8 @@ void PlayerInterface::LoadSong(long songPos, uint8_t trackLimit)
     Stop();
     seq = Sequence(songPos, trackLimit, rom);
     trackUI->SetState(seq);
-    sg = StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1);
+    delete sg;
+    sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1);
     if (play)
         Play();
 }
@@ -63,6 +65,7 @@ void PlayerInterface::Play()
         case State::THREAD_DELETED:
             playerState = State::PLAYING;
             playerThread = new boost::thread(&PlayerInterface::threadWorker, this);
+            __print_debug("Started new player thread");
             // start thread and play back song
             break;
     }
@@ -135,7 +138,7 @@ bool PlayerInterface::IsPlaying()
 void PlayerInterface::UpdateView()
 {
     if (playerState != State::THREAD_DELETED && playerState != State::SHUTDOWN)
-        trackUI->SetState(sg.GetWorkingSequence());
+        trackUI->SetState(sg->GetWorkingSequence());
 }
 
 /*
@@ -145,10 +148,9 @@ void PlayerInterface::UpdateView()
 void PlayerInterface::threadWorker()
 {
     // TODO add fixed mode rate variable
-    sg = StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1);
     PaError err;
-    uint32_t nBlocks = sg.GetBufferUnitCount();
-    uint32_t outSampleRate = sg.GetRenderSampleRate();
+    uint32_t nBlocks = sg->GetBufferUnitCount();
+    uint32_t outSampleRate = sg->GetRenderSampleRate();
     if ((err = Pa_OpenDefaultStream(&audioStream, 0, 2, paFloat32, outSampleRate, nBlocks, NULL, NULL)) != paNoError)
         throw MyException(FormatString("PA Error: %s", Pa_GetErrorText(err)));
     if ((err = Pa_StartStream(audioStream)) != paNoError)
@@ -159,11 +161,12 @@ void PlayerInterface::threadWorker()
     while (playerState != State::SHUTDOWN) {
         switch (playerState) {
             case State::RESTART:
-                sg = StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1);
+                delete sg;
+                sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1);
                 playerState = State::PLAYING;
             case State::PLAYING:
                 {
-                    float *processedAudio = sg.ProcessAndGetAudio();
+                    float *processedAudio = sg->ProcessAndGetAudio();
                     if (processedAudio == nullptr){
                         playerState = State::SHUTDOWN;
                         break;

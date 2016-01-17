@@ -13,7 +13,7 @@ using namespace agbplay;
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel(CGBType t) : waveBuffer(t == CGBType::WAVE ? 32 : 0, 0.0f)
+CGBChannel::CGBChannel(CGBType t)
 {
     this->cType = t;
     this->interPos = 0.0f;
@@ -27,6 +27,11 @@ CGBChannel::CGBChannel(CGBType t) : waveBuffer(t == CGBType::WAVE ? 32 : 0, 0.0f
     this->fromRightVol = 0;
     this->fromEnvLevel = 0;
     this->eState = EnvState::SUS;
+
+    for (unsigned int i = 0; i < sizeof(waveBuffer) / sizeof(float); i++)
+    {
+        waveBuffer[i] = 0.0f;
+    }
 
     switch (cType) {
         case CGBType::SQ1:
@@ -100,6 +105,8 @@ void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
             waveBuffer[i] -= dcCorrection;
             __print_debug(FormatString("%d: %f", i, waveBuffer[i]));
         }
+        this->pat = &waveBuffer[0];
+        __print_debug(FormatString("pat=%p", this->pat));
         // correct DC offset
     }
 }
@@ -160,15 +167,14 @@ ChnVol CGBChannel::GetVol()
             stepDiv = 1;
             break;
     }
-    __print_debug(FormatString("stepdiv=%d state=%d", (int)stepDiv, (int)eState));
     float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES * stepDiv + 1) ;
     float finalFromEnv = envBase + envDelta * float(envInterStep);
     float finalToEnv = envBase + envDelta * float(envInterStep + 1);
     return ChnVol(
-            float(fromLeftVol) * finalFromEnv / 256.0f,
-            float(fromRightVol) * finalFromEnv / 256.0f,
-            float(leftVol) * finalToEnv / 256.0f,
-            float(rightVol) * finalToEnv / 256.0f);
+            float(fromLeftVol) * finalFromEnv / 512.0f,
+            float(fromRightVol) * finalFromEnv / 512.0f,
+            float(leftVol) * finalToEnv / 512.0f,
+            float(rightVol) * finalToEnv / 512.0f);
 }
 
 CGBDef CGBChannel::GetDef()
@@ -207,8 +213,10 @@ void CGBChannel::SetPitch(int16_t pitch)
             break;
         case CGBType::WAVE:
             freq = 7040.0f * powf(2.0f, float(note.midiKey - 69) / 12.0f + float(pitch) / 768.0f);
+            break;
         case CGBType::NOISE:
             freq = minmax(4.0f, 4096.0f * powf(8.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f), 524288.0f);
+            break;
     }
 }
 

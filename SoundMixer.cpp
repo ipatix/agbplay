@@ -125,6 +125,7 @@ float *SoundMixer::ProcessAndGetAudio()
 {
     clearBuffer();
     renderToBuffer();
+    revdsp->ProcessData(sampleBuffer.data(), samplesPerBuffer);
     purgeChannels();
     return &sampleBuffer[0];
 }
@@ -314,7 +315,6 @@ void SoundMixer::renderToBuffer()
         vol.fromVolRight *= masterFrom;
         vol.toVolLeft *= masterTo;
         vol.toVolRight *= masterTo;
-        __print_debug(FormatString("fL=%f fR=%f tL=%f tR=%f", vol.fromVolLeft, vol.fromVolRight, vol.toVolLeft, vol.toVolRight));
         info = sq1.GetDef();
         pat = sq1.GetPat();
         assert(pat);
@@ -397,8 +397,15 @@ void SoundMixer::renderToBuffer()
         rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
         lVol = vol.fromVolLeft;
         rVol = vol.fromVolRight;
+        __print_debug(FormatString("fL=%f fR=%f tL=%f tR=%f", vol.fromVolLeft, vol.fromVolRight, vol.toVolLeft, vol.toVolRight));
         interStep = wave.GetFreq() * this->sampleRateReciprocal;
         buf = &sampleBuffer[0];
+
+        __print_debug(FormatString("pat mixer: %p", pat));
+        for (int i = 0; i < 32; i++) 
+        {
+            __print_debug(FormatString("%f", pat[i]));
+        }
 
         for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
         {
@@ -413,7 +420,7 @@ void SoundMixer::renderToBuffer()
             wave.interPos += interStep;
             uint32_t posDelta = uint32_t(wave.interPos);
             wave.interPos -= float(posDelta);
-            wave.pos = (wave.pos + posDelta) & 0xF;
+            wave.pos = (wave.pos + posDelta) & 0x1F;
         }
     }
     wave.UpdateVolFade();

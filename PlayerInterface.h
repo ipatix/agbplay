@@ -33,7 +33,7 @@ namespace agbplay
             volatile enum class State : int { RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED } playerState;
             Rom& rom;
             Sequence seq;
-            StreamGenerator sg;
+            StreamGenerator *sg;
             TrackviewGUI *trackUI;
 
             boost::thread *playerThread;

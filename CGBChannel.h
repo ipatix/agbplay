@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
 
 #include "SampleStructs.h"
 
@@ -30,7 +29,7 @@ namespace agbplay
             uint32_t pos;
             float interPos;
         private:
-            std::vector<float> waveBuffer;
+            float waveBuffer[32];
             void *owner;
             const float *pat;
             float freq;

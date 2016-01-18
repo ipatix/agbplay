@@ -341,8 +341,16 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case 0xCE:
                             // EOT
-                            cTrk.lastEvent = LEvent::EOT;
-                            sm.StopChannel(&cTrk, reader[cTrk.pos++]);
+                            {
+                                cTrk.lastEvent = LEvent::EOT;
+                                uint8_t next = reader[cTrk.pos];
+                                if (next < 128) {
+                                    sm.StopChannel(&cTrk, next);
+                                    cTrk.pos++;
+                                } else {
+                                    sm.StopChannel(&cTrk, cTrk.lastNoteKey);
+                                }
+                            }
                             break;
                         case 0xCF:
                             // TIE

@@ -96,8 +96,8 @@ void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
             sum += first;
             float second = float(twoNibbles & 0xF) / 16.0f;
             sum += second;
-            waveBuffer[i*2] = first;
-            waveBuffer[i*2+1] = second;
+            waveBuffer[i*2] = first * 4.0f;
+            waveBuffer[i*2+1] = second * 4.0f;
         }
         float dcCorrection = sum * 0.03125f;
         __print_debug("Loading wave:");

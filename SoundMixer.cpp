@@ -213,6 +213,7 @@ void SoundMixer::renderToBuffer()
         float *buf = &sampleBuffer[0];
         if (chn.IsGS()) {
             uint8_t *uSamplePtr = (uint8_t *)info.samplePtr;
+            interStep *= 0.015625f; // gs instruments use a different step scale
             // switch by GS type
             if (uSamplePtr[1] == 0) {
                 // pulse wave
@@ -226,7 +227,6 @@ void SoundMixer::renderToBuffer()
                 iThreshold = int32_t(iThreshold) < 0 ? uint32_t(int32_t(iThreshold) * -1) >> 8 : iThreshold >> 8;
                 iThreshold = iThreshold * uSamplePtr[4] + uint32_t(uSamplePtr[2] << 24);
                 float fThreshold = float(iThreshold >> 16) / 65536.0f;
-                interStep *= 0.015625f;
                 for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
                 {
                     float baseSamp = chn.interPos < fThreshold ? 0.5f : -0.5f;
@@ -241,13 +241,14 @@ void SoundMixer::renderToBuffer()
                 }
             } else if (uSamplePtr[1] == 1) {
                 // saw wave
-            } else {
-                // traingluar shaped wave
-                interStep *= 0.015625f;
                 const uint32_t fix = 0x70;
 
                 for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
                 {
+                    /*
+                     * Sorry that the baseSamp calculation looks ugly.
+                     * For accuracy it's a 1 to 1 translation of the original assembly code
+                     */
                     chn.interPos += interStep;
                     if (chn.interPos >= 1.0f) chn.interPos -= 1.0f;
                     uint32_t var1 = uint32_t(chn.interPos * 256) - fix;
@@ -255,7 +256,26 @@ void SoundMixer::renderToBuffer()
                     uint32_t var3 = var1 - (var2 >> 27);
                     chn.pos = var3 + uint32_t(int32_t(chn.pos) >> 1);
 
-                    float baseSamp = float(chn.pos) / 256.0f;
+                    float baseSamp = float((int32_t)chn.pos) / 256.0f;
+
+                    *buf++ += baseSamp * lVol;
+                    *buf++ += baseSamp * rVol;
+
+                    lVol += lVolDeltaStep;
+                    rVol += rVolDeltaStep;
+                }
+            } else {
+                // triangluar shaped wave
+                for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
+                {
+                    chn.interPos += interStep;
+                    if (chn.interPos >= 1.0f) chn.interPos -= 1.0f;
+                    float baseSamp;
+                    if (chn.interPos < 0.5f) {
+                        baseSamp = (4.0f * chn.interPos) - 1.0f;
+                    } else {
+                        baseSamp = 3.0f - (4.0f * chn.interPos);
+                    }
 
                     *buf++ += baseSamp * lVol;
                     *buf++ += baseSamp * rVol;
@@ -397,14 +417,14 @@ void SoundMixer::renderToBuffer()
         rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
         lVol = vol.fromVolLeft;
         rVol = vol.fromVolRight;
-        __print_debug(FormatString("fL=%f fR=%f tL=%f tR=%f", vol.fromVolLeft, vol.fromVolRight, vol.toVolLeft, vol.toVolRight));
+        //__print_debug(FormatString("fL=%f fR=%f tL=%f tR=%f", vol.fromVolLeft, vol.fromVolRight, vol.toVolLeft, vol.toVolRight));
         interStep = wave.GetFreq() * this->sampleRateReciprocal;
         buf = &sampleBuffer[0];
 
-        __print_debug(FormatString("pat mixer: %p", pat));
+        //__print_debug(FormatString("pat mixer: %p", pat));
         for (int i = 0; i < 32; i++) 
         {
-            __print_debug(FormatString("%f", pat[i]));
+            //__print_debug(FormatString("%f", pat[i]));
         }
 
         for (uint32_t cnt = nBlocks; cnt > 0; cnt--)

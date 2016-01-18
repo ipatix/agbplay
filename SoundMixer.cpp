@@ -15,7 +15,7 @@ using namespace agbplay;
  */
 
 SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, float mvl) 
-    : sq1(CGBType::SQ1), sq2(CGBType::SQ2), wave(CGBType::WAVE), noise(CGBType::NOISE)
+    : sq1(), sq2(), wave(), noise()
 {
     this->revdsp = new ReverbEffect(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)));
     this->sampleRate = sampleRate;
@@ -125,7 +125,7 @@ float *SoundMixer::ProcessAndGetAudio()
 {
     clearBuffer();
     renderToBuffer();
-    revdsp->ProcessData(sampleBuffer.data(), samplesPerBuffer);
+    //revdsp->ProcessData(sampleBuffer.data(), samplesPerBuffer);
     purgeChannels();
     return &sampleBuffer[0];
 }

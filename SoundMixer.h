@@ -44,10 +44,10 @@ namespace agbplay
 
             // channel management
             std::list<SoundChannel> sndChannels;
-            CGBChannel sq1;
-            CGBChannel sq2;
-            CGBChannel wave;
-            CGBChannel noise;
+            SquareChannel sq1;
+            SquareChannel sq2;
+            WaveChannel wave;
+            NoiseChannel noise;
 
             ReverbEffect *revdsp;
             std::vector<float> sampleBuffer;

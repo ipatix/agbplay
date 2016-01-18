@@ -9,9 +9,9 @@ namespace agbplay
     class CGBChannel
     {
         public: 
-            CGBChannel(CGBType t);
+            CGBChannel();
             ~CGBChannel();
-            void Init(void *owner, CGBDef def, Note note, ADSR env);
+            virtual void Init(void *owner, CGBDef def, Note note, ADSR env);
             void *GetOwner();
             float GetFreq();
             void SetVol(uint8_t leftVol, uint8_t rightVol);
@@ -20,23 +20,21 @@ namespace agbplay
             uint8_t GetMidiKey();
             int8_t GetNoteLength();
             void Release();
-            void SetPitch(int16_t pitch);
+            virtual void SetPitch(int16_t pitch) = 0;
             bool TickNote(); // returns true if note remains active
             EnvState GetState();
-            void StepEnvelope();
+            virtual void StepEnvelope();
             void UpdateVolFade();
             const float *GetPat();
             uint32_t pos;
             float interPos;
-        private:
-            float waveBuffer[32];
+        protected:
             void *owner;
             const float *pat;
             float freq;
             ADSR env;
             Note note;
             CGBDef def;
-            CGBType cType;
             EnvState eState;
             uint8_t envInterStep;
             uint8_t leftVol;
@@ -46,5 +44,37 @@ namespace agbplay
             uint8_t fromLeftVol;
             uint8_t fromRightVol;
             uint8_t fromEnvLevel;
+    };
+
+    class SquareChannel : public CGBChannel
+    {
+        public:
+            SquareChannel();
+            ~SquareChannel();
+
+            void Init(void *owner, CGBDef def, Note note, ADSR env) override;
+            void SetPitch(int16_t pitch);
+    };
+
+    class WaveChannel : public CGBChannel
+    {
+        public:
+            WaveChannel();
+            ~WaveChannel();
+
+            void Init(void *owner, CGBDef def, Note note, ADSR env) override;
+            void SetPitch(int16_t pitch) override;
+        private:
+            float waveBuffer[32];
+    };
+
+    class NoiseChannel : public CGBChannel
+    {
+        public:
+            NoiseChannel();
+            ~NoiseChannel();
+
+            void Init(void *owner, CGBDef def, Note note, ADSR env) override;
+            void SetPitch(int16_t pitch) override;
     };
 }

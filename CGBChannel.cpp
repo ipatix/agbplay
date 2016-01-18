@@ -13,9 +13,8 @@ using namespace agbplay;
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel(CGBType t)
+CGBChannel::CGBChannel()
 {
-    this->cType = t;
     this->interPos = 0.0f;
     this->pos = 0;
     this->owner = nullptr;
@@ -27,24 +26,6 @@ CGBChannel::CGBChannel(CGBType t)
     this->fromRightVol = 0;
     this->fromEnvLevel = 0;
     this->eState = EnvState::SUS;
-
-    for (unsigned int i = 0; i < sizeof(waveBuffer) / sizeof(float); i++)
-    {
-        waveBuffer[i] = 0.0f;
-    }
-
-    switch (cType) {
-        case CGBType::SQ1:
-        case CGBType::SQ2:
-            this->pat = CGBPatterns::pat_sq50;
-            break;
-        case CGBType::WAVE:
-            this->pat = &waveBuffer[0];
-            break;
-        case CGBType::NOISE:
-            this->pat = CGBPatterns::pat_noise_fine;
-            break;
-    }
 }
 
 CGBChannel::~CGBChannel()
@@ -61,54 +42,6 @@ void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
     this->env.sus = env.sus & 0xF;
     this->env.rel = env.rel & 0x7;
     this->eState = EnvState::INIT;
-
-    if (cType == CGBType::SQ1 || cType == CGBType::SQ2) {
-        switch (def.wd) {
-            case WaveDuty::D12:
-                pat = CGBPatterns::pat_sq12;
-                break;
-            case WaveDuty::D25:
-                pat = CGBPatterns::pat_sq25;
-                break;
-            case WaveDuty::D50:
-                pat = CGBPatterns::pat_sq50;
-                break;
-            case WaveDuty::D75:
-                pat = CGBPatterns::pat_sq75;
-                break;
-        }
-    } else if (cType == CGBType::NOISE) {
-        switch (def.np) {
-            case NoisePatt::ROUGH:
-                pat = CGBPatterns::pat_noise_rough;
-                break;
-            case NoisePatt::FINE:
-                pat = CGBPatterns::pat_noise_fine;
-                break;
-        }
-    } else if (cType == CGBType::WAVE) {
-        // generate wave pattern and convert to signed values
-        float sum = 0.0f;
-        for (size_t i = 0; i < 16; i++)
-        {
-            uint8_t twoNibbles = def.wavePtr[i];
-            float first = float(twoNibbles >> 4) / 16.0f;
-            sum += first;
-            float second = float(twoNibbles & 0xF) / 16.0f;
-            sum += second;
-            waveBuffer[i*2] = first * 4.0f;
-            waveBuffer[i*2+1] = second * 4.0f;
-        }
-        float dcCorrection = sum * 0.03125f;
-        __print_debug("Loading wave:");
-        for (size_t i = 0; i < 32; i++) {
-            waveBuffer[i] -= dcCorrection;
-            __print_debug(FormatString("%d: %f", i, waveBuffer[i]));
-        }
-        this->pat = &waveBuffer[0];
-        __print_debug(FormatString("pat=%p", this->pat));
-        // correct DC offset
-    }
 }
 
 void *CGBChannel::GetOwner()
@@ -201,22 +134,6 @@ void CGBChannel::Release()
         } else {
             eState = EnvState::REL;
         }
-    }
-}
-
-void CGBChannel::SetPitch(int16_t pitch)
-{
-    switch (cType) {
-        case CGBType::SQ1:
-        case CGBType::SQ2:
-            freq = 3520.0f * powf(2.0f, float(note.midiKey - 69) / 12.0f + float(pitch) / 768.0f);
-            break;
-        case CGBType::WAVE:
-            freq = 7040.0f * powf(2.0f, float(note.midiKey - 69) / 12.0f + float(pitch) / 768.0f);
-            break;
-        case CGBType::NOISE:
-            freq = minmax(4.0f, 4096.0f * powf(8.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f), 524288.0f);
-            break;
     }
 }
 
@@ -329,4 +246,120 @@ void CGBChannel::UpdateVolFade()
 const float *CGBChannel::GetPat()
 {
     return pat;
+}
+
+/*
+ * public SquareChannel
+ */
+
+SquareChannel::SquareChannel() : CGBChannel()
+{
+    this->pat = CGBPatterns::pat_sq50;
+}
+
+SquareChannel::~SquareChannel()
+{
+}
+
+void SquareChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
+{
+    CGBChannel::Init(owner, def, note, env);
+    switch (def.wd) {
+        case WaveDuty::D12:
+            pat = CGBPatterns::pat_sq12;
+            break;
+        case WaveDuty::D25:
+            pat = CGBPatterns::pat_sq25;
+            break;
+        case WaveDuty::D50:
+            pat = CGBPatterns::pat_sq50;
+            break;
+        case WaveDuty::D75:
+            pat = CGBPatterns::pat_sq75;
+            break;
+        default:
+            throw MyException("Illegal Square Initializer");
+    }
+}
+
+void SquareChannel::SetPitch(int16_t pitch)
+{
+    freq = 3520.0f * powf(2.0f, float(note.midiKey - 69) / 12.0f + float(pitch) / 768.0f);
+}
+
+/*
+ * public WaveChannel
+ */
+
+WaveChannel::WaveChannel() : CGBChannel()
+{
+    for (int i = 0; i < 32; i++)
+    {
+        waveBuffer[i] = 0.0f;
+    }
+    this->pat = &waveBuffer[0];
+}
+
+WaveChannel::~WaveChannel()
+{
+}
+
+void WaveChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
+{
+    CGBChannel::Init(owner, def, note, env);
+
+    float sum = 0.0f;
+    for (size_t i = 0; i < 16; i++)
+    {
+        uint8_t twoNibbles = def.wavePtr[i];
+        float first = float(twoNibbles >> 4) / 16.0f;
+        sum += first;
+        float second = float(twoNibbles & 0xF) / 16.0f;
+        sum += second;
+        waveBuffer[i*2] = first;
+        waveBuffer[i*2+1] = second;
+    }
+    float dcCorrection = sum * 0.03125f;
+    for (size_t i = 0; i < 32; i++)
+    {
+        waveBuffer[i] -= dcCorrection;
+    }
+}
+
+void WaveChannel::SetPitch(int16_t pitch)
+{
+    freq = 7040.0f * powf(2.0f, float(note.midiKey - 69) / 12.0f + float(pitch) / 768.0f);
+}
+
+/*
+ * public NoiseChannel
+ */
+
+NoiseChannel::NoiseChannel() : CGBChannel()
+{
+    this->pat = CGBPatterns::pat_noise_fine;
+}
+
+NoiseChannel::~NoiseChannel()
+{
+}
+
+void NoiseChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
+{
+    CGBChannel::Init(owner, def, note, env);
+    switch (def.np) {
+        case NoisePatt::ROUGH:
+            pat = CGBPatterns::pat_noise_rough;
+            break;
+        case NoisePatt::FINE:
+            pat = CGBPatterns::pat_noise_fine;
+            break;
+        default:
+            throw MyException("Illegal Noise Pattern");
+    }
+}
+
+void NoiseChannel::SetPitch(int16_t pitch)
+{
+    freq = minmax(4.0f, 4096.0f * powf(8.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f), 524288.0f);
 }

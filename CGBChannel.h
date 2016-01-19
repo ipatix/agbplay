@@ -53,7 +53,7 @@ namespace agbplay
             ~SquareChannel();
 
             void Init(void *owner, CGBDef def, Note note, ADSR env) override;
-            void SetPitch(int16_t pitch);
+            void SetPitch(int16_t pitch) override;
     };
 
     class WaveChannel : public CGBChannel

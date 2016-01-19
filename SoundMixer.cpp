@@ -125,7 +125,7 @@ float *SoundMixer::ProcessAndGetAudio()
 {
     clearBuffer();
     renderToBuffer();
-    //revdsp->ProcessData(sampleBuffer.data(), samplesPerBuffer);
+    revdsp->ProcessData(sampleBuffer.data(), samplesPerBuffer);
     purgeChannels();
     return &sampleBuffer[0];
 }

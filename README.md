@@ -5,7 +5,9 @@ The code itself is written in C++.
 Current state of things:
 - The GUI is more or less finished
 - ROMs can be loaded and scanned for the songtable
-- Player Engine is theoretically done but not tested yet
+- PCM playback works pretty much perfect, GB instruments still broken as hell
+- Reverb algorithm of Camelot games still not implemented
+- Regular reverb algorithm falsly affects GB instruments
 - Minor controls for actual playback are still missing
 
 Depenencies:

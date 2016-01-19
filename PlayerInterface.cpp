@@ -200,7 +200,7 @@ void PlayerInterface::threadWorker()
                 };
                 break;
             default:
-                throw MyException(FormatString("Internal PlayerInterface error: %d", playerState));
+                throw MyException(FormatString("Internal PlayerInterface error: %d", (int)playerState));
         }
     }
 

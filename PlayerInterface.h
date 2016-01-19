@@ -23,6 +23,8 @@ namespace agbplay
             void Play();
             void Pause();
             void Stop();
+            void SpeedDouble();
+            void SpeedHalve();
             bool IsPlaying();
             void UpdateView();
         private:
@@ -30,6 +32,7 @@ namespace agbplay
 
             PaStream *audioStream;
             EnginePars pars;
+            uint32_t speedFactor; // 64 = normal
             volatile enum class State : int { RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED } playerState;
             Rom& rom;
             Sequence seq;

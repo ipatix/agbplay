@@ -18,7 +18,8 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     this->trackUI = trackUI;
     this->playerState = State::THREAD_DELETED;
     this->pars = pars;
-    sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1);
+    this->speedFactor = 64;
+    sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1, float(speedFactor) / 64.0f);
 }
 
 PlayerInterface::~PlayerInterface() 
@@ -35,7 +36,7 @@ void PlayerInterface::LoadSong(long songPos, uint8_t trackLimit)
     seq = Sequence(songPos, trackLimit, rom);
     trackUI->SetState(seq);
     delete sg;
-    sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1);
+    sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1, float(speedFactor) / 64.0f);
     if (play)
         Play();
 }
@@ -130,6 +131,22 @@ void PlayerInterface::Stop()
     }
 }
 
+void PlayerInterface::SpeedDouble()
+{
+    speedFactor <<= 1;
+    if (speedFactor > 1024)
+        speedFactor = 1024;
+    sg->SetSpeedFactor(float(speedFactor) / 64.0f);
+}
+
+void PlayerInterface::SpeedHalve()
+{
+    speedFactor >>= 1;
+    if (speedFactor < 1)
+        speedFactor = 1;
+    sg->SetSpeedFactor(float(speedFactor) / 64.0f);
+}
+
 bool PlayerInterface::IsPlaying()
 {
     return playerState != State::THREAD_DELETED && playerState != State::TERMINATED;
@@ -162,7 +179,7 @@ void PlayerInterface::threadWorker()
         switch (playerState) {
             case State::RESTART:
                 delete sg;
-                sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1);
+                sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1, float(speedFactor) / 64.0f);
                 playerState = State::PLAYING;
             case State::PLAYING:
                 {

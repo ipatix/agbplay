@@ -357,7 +357,7 @@ const vector<int16_t> Sequence::sineLut = {
 
 int16_t Sequence::Track::GetPitch()
 {
-    int16_t m = modt == MODT::PITCH ? int16_t((sineLut[lfoPhase] * mod) >> 8) : 0;
+    int16_t m = modt == MODT::PITCH ? int16_t((sineLut[lfoPhase] * mod) >> 7) : 0;
     return int16_t(bend * bendr + tune + m);
 }
 

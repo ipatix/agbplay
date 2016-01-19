@@ -78,7 +78,7 @@ void PlaylistGUI::Leave() {
  */
 
 void PlaylistGUI::update() {
-    UIMutex.lock();
+    //UIMutex.lock();
     string bar = "Playlist:";
     bar.resize(contentWidth, ' ');
     wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
@@ -105,7 +105,7 @@ void PlaylistGUI::update() {
         mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, songText.c_str());
     }
     wrefresh(winPtr);
-    UIMutex.unlock();
+    //UIMutex.unlock();
 }
 
 void PlaylistGUI::scrollDownNoUpdate() {

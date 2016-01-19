@@ -100,7 +100,7 @@ void TrackviewGUI::ScrollUp()
 void TrackviewGUI::update() 
 {
     // init draw
-    UIMutex.lock();
+    //UIMutex.lock();
     const uint32_t yBias = 1;
     const uint32_t xBias = 1;
     // clear field
@@ -192,7 +192,7 @@ void TrackviewGUI::update()
     }
 
     wrefresh(winPtr);
-    UIMutex.unlock();
+    //UIMutex.unlock();
 }
 
 void TrackviewGUI::scrollDownNoUpdate() 

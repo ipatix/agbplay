@@ -104,6 +104,7 @@ namespace agbplay
             WINDOW *containerWin;
             
             uint32_t width, height;
+            bool play;
             enum {
                 PLAYLIST, SONGLIST, TRACKS, SETTINGS
             } cursorl;

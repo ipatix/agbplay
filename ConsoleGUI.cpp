@@ -27,9 +27,9 @@ ConsoleGUI::~ConsoleGUI() {
 void ConsoleGUI::Resize(uint32_t height, uint32_t width,
         uint32_t yPos, uint32_t xPos) {
     CursesWin::Resize(height, width, yPos, xPos);
-    UIMutex.lock();
+    //UIMutex.lock();
     keypad(winPtr, true);
-    UIMutex.unlock();
+    //UIMutex.unlock();
     textHeight = height;
     textWidth = width - 2;
     update();    
@@ -46,7 +46,7 @@ void ConsoleGUI::WriteLn(string str) {
  */
 
 void ConsoleGUI::update() {
-    UIMutex.lock();
+    //UIMutex.lock();
     for (uint32_t i = 0; i < textHeight; i++) {
         wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
         mvwprintw(winPtr, (int)i, 0, ">");
@@ -62,7 +62,7 @@ void ConsoleGUI::update() {
         mvwprintw(winPtr, (int)i, 2, txt.c_str());
     }
     wrefresh(winPtr);
-    UIMutex.unlock();
+    //UIMutex.unlock();
 }
 
 void ConsoleGUI::writeToBuffer(string str) {

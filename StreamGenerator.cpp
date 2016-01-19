@@ -43,7 +43,7 @@ const map<uint8_t, int8_t> StreamGenerator::delayLut = {
     {0x89,9 }, {0x8A,10}, {0x8B,11}, {0x8C,12}, {0x8D,13}, {0x8E,14}, {0x8F,15}, {0x90,16},
     {0x91,17}, {0x92,18}, {0x93,19}, {0x94,20}, {0x95,21}, {0x96,22}, {0x97,23}, {0x98,24},
     {0x99,28}, {0x9A,30}, {0x9B,32}, {0x9C,36}, {0x9D,40}, {0x9E,42}, {0x9F,44}, {0xA0,48},
-    {0xA1,52}, {0xA2,52}, {0xA3,56}, {0xA4,60}, {0xA5,64}, {0xA6,66}, {0xA7,68}, {0xA8,72},
+    {0xA1,52}, {0xA2,54}, {0xA3,56}, {0xA4,60}, {0xA5,64}, {0xA6,66}, {0xA7,68}, {0xA8,72},
     {0xA9,76}, {0xAA,78}, {0xAB,80}, {0xAC,84}, {0xAD,88}, {0xAE,90}, {0xAF,92}, {0xB0,96}
 };
 
@@ -52,11 +52,11 @@ const map<uint8_t, int8_t> StreamGenerator::noteLut = {
     {0xD8,9 }, {0xD9,10}, {0xDA,11}, {0xDB,12}, {0xDC,13}, {0xDD,14}, {0xDE,15}, {0xDF,16},
     {0xE0,17}, {0xE1,18}, {0xE2,19}, {0xE3,20}, {0xE4,21}, {0xE5,22}, {0xE6,23}, {0xE7,24},
     {0xE8,28}, {0xE9,30}, {0xEA,32}, {0xEB,36}, {0xEC,40}, {0xED,42}, {0xEE,44}, {0xEF,48},
-    {0xF0,52}, {0xF1,52}, {0xF2,56}, {0xF3,60}, {0xF4,64}, {0xF5,66}, {0xF6,68}, {0xF7,72},
+    {0xF0,52}, {0xF1,54}, {0xF2,56}, {0xF3,60}, {0xF4,64}, {0xF5,66}, {0xF6,68}, {0xF7,72},
     {0xF8,76}, {0xF9,78}, {0xFA,80}, {0xFB,84}, {0xFC,88}, {0xFD,90}, {0xFE,92}, {0xFF,96}
 };
 
-StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops) 
+StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor) 
 : seq(seq), sbnk(seq.GetRom(), seq.GetSndBnk()), 
     sm(48000, freqLut[minmax<uint8_t>(0, uint8_t(ep.freq-1), 11)], 
             (ep.rev >= 0x80) ? ep.rev & 0x7F : seq.GetReverb() & 0x7F,
@@ -64,6 +64,7 @@ StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops)
 {
     this->ep = ep;
     this->maxLoops = maxLoops;
+    this->speedFactor = speedFactor;
     this->isEnding = false;
 }
 
@@ -96,13 +97,19 @@ Sequence& StreamGenerator::GetWorkingSequence()
     return seq;
 }
 
+void StreamGenerator::SetSpeedFactor(float speedFactor)
+{
+    this->speedFactor = speedFactor;
+}
+
 /*
  * private StreamGenerator
  */
 
 void StreamGenerator::processSequenceFrame()
 {
-    seq.bpmStack += seq.bpm;
+    __print_debug(FormatString("Speed Factor: %f", speedFactor));
+    seq.bpmStack += uint32_t(float(seq.bpm) * speedFactor);
     while (seq.bpmStack >= BPM_PER_FRAME * INTERFRAMES) {
         processSequenceTick();
         seq.bpmStack -= BPM_PER_FRAME * INTERFRAMES;

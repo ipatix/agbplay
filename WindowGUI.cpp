@@ -20,19 +20,20 @@ using namespace std;
 WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata) 
 {
     // init ncurses stuff
-    CursesWin::UIMutex.lock();
+    //CursesWin::UIMutex.lock();
     this->containerWin = initscr();
     getmaxyx(stdscr, height, width);
     if (has_colors() == false)
         throw MyException("Error, your terminal doesn't support colors");
-    CursesWin::UIMutex.unlock();
+    //CursesWin::UIMutex.unlock();
     initColors();
-    CursesWin::UIMutex.lock();
+    //CursesWin::UIMutex.lock();
     noecho();
     curs_set(0);
     keypad(stdscr, true);
-    CursesWin::UIMutex.unlock();
+    //CursesWin::UIMutex.unlock();
 
+    this->play = false;
     this->cursorl = SONGLIST;
 
     // cap small terminal sizes
@@ -123,9 +124,9 @@ WindowGUI::~WindowGUI()
     delete romUI;
     delete trackUI;
     delete event;
-    CursesWin::UIMutex.lock();
+    //CursesWin::UIMutex.lock();
     endwin();
-    CursesWin::UIMutex.unlock();
+    //CursesWin::UIMutex.unlock();
 }
 
 void WindowGUI::Handle() 
@@ -177,18 +178,20 @@ void WindowGUI::Handle()
                     break;
                 case 'i':
                     mplay->Play();
-                    conUI->WriteLn("Playback started");
+                    play = true;
                     break;
                 case 'o':
                     mplay->Pause();
-                    conUI->WriteLn("Paused");
                     break;
                 case 'p':
+                    play = false;
                     mplay->Stop();
-                    conUI->WriteLn("Stopped");
                     break;
-                case 'l':
-                    conUI->WriteLn(FormatString("Is Playing: %s", mplay->IsPlaying() ? "yes" : "no"));
+                case '+':
+                    mplay->SpeedDouble();
+                    break;
+                case '-':
+                    mplay->SpeedHalve();
                     break;
                 case EOF:
                 case 4: // EOT
@@ -197,9 +200,16 @@ void WindowGUI::Handle()
                     mplay->Stop();
                     return;
             } // end key handling switch
-            // TODO conditional rendering
         } // end key loop
         mplay->UpdateView();
+        if (!mplay->IsPlaying() && play) {
+            if (cursorl != PLAYLIST && cursorl != SONGLIST) {
+                play = false;
+            } else {
+                scrollDown();
+                mplay->Play();
+            }
+        }
         this_thread::sleep_for(chrono::milliseconds(25));
     } // end rendering loop
 }
@@ -246,7 +256,7 @@ void WindowGUI::resizeWindows()
 
 void WindowGUI::initColors() 
 {
-    CursesWin::UIMutex.lock();
+    //CursesWin::UIMutex.lock();
     start_color();
     if (use_default_colors() == ERR)
         throw MyException("Using default terminal colors failed");
@@ -256,7 +266,7 @@ void WindowGUI::initColors()
     init_pair((int)Color::YEL_DEF, COLOR_YELLOW, -1);
     init_pair((int)Color::CYN_DEF, COLOR_CYAN, -1);
     init_pair((int)Color::MAG_DEF, COLOR_MAGENTA, -1);
-    CursesWin::UIMutex.unlock();
+    //CursesWin::UIMutex.unlock();
 }
 
 void WindowGUI::cycleFocus() 

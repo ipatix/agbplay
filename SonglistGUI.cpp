@@ -124,7 +124,7 @@ void SonglistGUI::scrollUpNoUpdate() {
 }
 
 void SonglistGUI::update() {
-    UIMutex.lock();
+    //UIMutex.lock();
     string bar = "Songlist:";
     bar.resize(contentWidth, ' ');
     wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
@@ -145,7 +145,7 @@ void SonglistGUI::update() {
         mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, songText.c_str());
     }
     wrefresh(winPtr);
-    UIMutex.unlock();
+    //UIMutex.unlock();
 }
 
 void SonglistGUI::checkDimensions(uint32_t height, uint32_t width) {

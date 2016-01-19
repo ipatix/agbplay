@@ -18,7 +18,7 @@ HotkeybarGUI::~HotkeybarGUI() {
 }
 
 void HotkeybarGUI::update() {
-    UIMutex.lock();
+    //UIMutex.lock();
     wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
     // draw initial border
     std::string hkText = " [q=QUIT] [tab=SWITCH] [a=ADD] [d=DEL] [g=DRAG]";
@@ -31,7 +31,7 @@ void HotkeybarGUI::update() {
         mvwprintw(winPtr, (int)i, 0, fillText.c_str());
     }
     wrefresh(winPtr);
-    UIMutex.unlock();
+    //UIMutex.unlock();
 }
 
 void HotkeybarGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) {

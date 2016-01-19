@@ -4,10 +4,10 @@ using namespace agbplay;
 
 ControlGUI::ControlGUI() : CursesWin(1, 1, 0, 0)
 {
-    UIMutex.lock();
+    //UIMutex.lock();
     keypad(winPtr, true);
     nodelay(winPtr, true);
-    UIMutex.unlock();
+    //UIMutex.unlock();
 }
 
 ControlGUI::~ControlGUI()

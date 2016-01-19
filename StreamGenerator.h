@@ -21,13 +21,14 @@ namespace agbplay
     class StreamGenerator
     {
         public:
-            StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops);
+            StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor);
             ~StreamGenerator();
 
             uint32_t GetBufferUnitCount();
             uint32_t GetRenderSampleRate();
             float *ProcessAndGetAudio();
             Sequence& GetWorkingSequence();
+            void SetSpeedFactor(float speedFactor);
 
             static const std::map<uint8_t, int8_t> delayLut;
             static const std::map<uint8_t, int8_t> noteLut;
@@ -42,6 +43,7 @@ namespace agbplay
 
             bool isEnding;
             uint8_t maxLoops;
+            float speedFactor;
 
             void processSequenceFrame();
             void processSequenceTick();

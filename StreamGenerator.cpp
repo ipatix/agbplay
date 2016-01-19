@@ -304,7 +304,7 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case 0xC3:
                             // LFODL
-                            cTrk.lfodl = reader[cTrk.pos++];
+                            cTrk.lfodlCount = cTrk.lfodl = reader[cTrk.pos++];
                             break;
                         case 0xC4:
                             // MOD

@@ -175,6 +175,7 @@ void PlayerInterface::threadWorker()
 
     vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
 
+    // FIXME seems to still have an issue with a race condition and default case occuring
     while (playerState != State::SHUTDOWN) {
         switch (playerState) {
             case State::RESTART:
@@ -199,7 +200,7 @@ void PlayerInterface::threadWorker()
                 };
                 break;
             default:
-                throw MyException("Internal PlayerInterface error");
+                throw MyException(FormatString("Internal PlayerInterface error: %d", playerState));
         }
     }
 

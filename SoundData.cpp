@@ -323,7 +323,8 @@ Sequence::Track::Track(long pos)
     lastNoteLen = 96;
     prog = PROG_UNDEFINED;
     vol = 100;
-    delay = mod = reptCount = lfos = lfodl = 
+    lfos = 22;
+    delay = mod = reptCount = lfodl = 
         lfodlCount = lfoPhase = echoVol = echoLen = 0;
     bendr = 2;
     pan = bend = tune = keyShift = 0;

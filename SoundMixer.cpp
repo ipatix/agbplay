@@ -71,6 +71,22 @@ void SoundMixer::SetTrackPV(void *owner, uint8_t leftVol, uint8_t rightVol, int1
             sc.SetPitch(pitch);
         }
     }
+    if (sq1.GetOwner() == owner) {
+        sq1.SetVol(leftVol, rightVol);
+        sq1.SetPitch(pitch);
+    }
+    if (sq2.GetOwner() == owner) {
+        sq2.SetVol(leftVol, rightVol);
+        sq2.SetPitch(pitch);
+    }
+    if (wave.GetOwner() == owner) {
+        wave.SetVol(leftVol, rightVol);
+        wave.SetPitch(pitch);
+    }
+    if (noise.GetOwner() == owner) {
+        noise.SetVol(leftVol, rightVol);
+        noise.SetPitch(pitch);
+    }
 }
 
 int SoundMixer::TickTrackNotes(void *owner)
@@ -125,7 +141,6 @@ float *SoundMixer::ProcessAndGetAudio()
 {
     clearBuffer();
     renderToBuffer();
-    revdsp->ProcessData(sampleBuffer.data(), samplesPerBuffer);
     purgeChannels();
     return &sampleBuffer[0];
 }
@@ -313,6 +328,10 @@ void SoundMixer::renderToBuffer()
         }
         chn.UpdateVolFade();
     }
+
+    // apply PCM reverb
+
+    revdsp->ProcessData(sampleBuffer.data(), samplesPerBuffer);
 
     // process all CGB channels
 

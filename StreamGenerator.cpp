@@ -108,7 +108,6 @@ void StreamGenerator::SetSpeedFactor(float speedFactor)
 
 void StreamGenerator::processSequenceFrame()
 {
-    __print_debug(FormatString("Speed Factor: %f", speedFactor));
     seq.bpmStack += uint32_t(float(seq.bpm) * speedFactor);
     while (seq.bpmStack >= BPM_PER_FRAME * INTERFRAMES) {
         processSequenceTick();

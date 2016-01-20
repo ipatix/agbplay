@@ -1,10 +1,13 @@
 #include <cmath>
+#include <cassert>
 
 #include "CGBChannel.h"
 #include "CGBPatterns.h"
 #include "MyException.h"
 #include "Debug.h"
 #include "Util.h"
+
+#define WEIRD_CGB_ENV_FIX 2
 
 using namespace std;
 using namespace agbplay;
@@ -90,7 +93,7 @@ ChnVol CGBChannel::GetVol()
             stepDiv = env.dec;
             break;
         case EnvState::SUS:
-            stepDiv = env.dec;
+            stepDiv = (env.dec == 0) ? 1 : env.dec;
             break;
         case EnvState::REL:
         case EnvState::DIE:
@@ -100,9 +103,10 @@ ChnVol CGBChannel::GetVol()
             stepDiv = 1;
             break;
     }
-    float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES * stepDiv + 1) ;
+    assert(stepDiv);
+    float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES / WEIRD_CGB_ENV_FIX * stepDiv) ;
     float finalFromEnv = envBase + envDelta * float(envInterStep);
-    float finalToEnv = envBase + envDelta * float(envInterStep + 1);
+    float finalToEnv = envBase + envDelta * float(envInterStep);
     return ChnVol(
             float(fromLeftVol) * finalFromEnv / 512.0f,
             float(fromRightVol) * finalFromEnv / 512.0f,
@@ -130,7 +134,10 @@ void CGBChannel::Release()
     if (eState < EnvState::REL) {
         if (env.rel == 0) {
             envLevel = 0;
-            eState = EnvState::DIE;
+            eState = EnvState::DEAD;
+        } else if (envLevel == 0) {
+            // TODO check if this doesn't short cut releasing tones
+            eState = EnvState::DEAD;
         } else {
             eState = EnvState::REL;
         }
@@ -143,7 +150,11 @@ bool CGBChannel::TickNote()
         if (note.length > 0) {
             note.length--;
             if (note.length == 0) {
-                eState = EnvState::REL;
+                if (envLevel == 0) {
+                    eState = EnvState::DEAD;
+                } else {
+                    eState = EnvState::REL;
+                }
                 return false;
             }
             return true;
@@ -169,7 +180,7 @@ void CGBChannel::StepEnvelope()
         if ((env.att | env.dec) == 0) {
             eState = EnvState::SUS;
             fromEnvLevel = env.sus;
-            envLevel = 0;
+            envLevel = env.sus;
             return;
         } else if (env.att == 0 && env.sus < 0xF) {
             eState = EnvState::DEC;
@@ -189,7 +200,7 @@ void CGBChannel::StepEnvelope()
         }
     }
     else if (eState == EnvState::ATK) {
-        if (++envInterStep >= INTERFRAMES * env.att + 1) {
+        if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.att) {
             fromEnvLevel = envLevel;
             envInterStep = 0;
             if (++envLevel >= 0xF) {
@@ -205,7 +216,7 @@ void CGBChannel::StepEnvelope()
         }
     }
     else if (eState == EnvState::DEC) {
-        if (++envInterStep >= INTERFRAMES * env.dec + 1) {
+        if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.dec) {
             fromEnvLevel = envLevel;
             envInterStep = 0;
             if (--envLevel <= env.sus) {
@@ -214,22 +225,28 @@ void CGBChannel::StepEnvelope()
         }
     } 
     else if (eState == EnvState::SUS) {
-        if (++envInterStep >= INTERFRAMES) {
+        if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.dec) {
             fromEnvLevel = envLevel;
             envInterStep = 0;
         }
     }
     else if (eState == EnvState::REL) {
-        if (++envInterStep >= INTERFRAMES * env.rel + 1) {
-            fromEnvLevel = envLevel;
-            envInterStep = 0;
-            if (--envLevel <= 0) {
-                eState = EnvState::DIE;
+        if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.rel) {
+            if (env.rel == 0) {
+                fromEnvLevel = 0;
+                envLevel = 0;
+                eState = EnvState::DEAD;
+            } else {
+                fromEnvLevel = envLevel;
+                envInterStep = 0;
+                if (--envLevel <= 0) {
+                    eState = EnvState::DIE;
+                }
             }
         }
     } 
     else if (eState == EnvState::DIE) {
-        if (++envInterStep >= INTERFRAMES * env.rel + 1) {
+        if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.rel) {
             fromEnvLevel = envLevel;
             eState = EnvState::DEAD;
         }

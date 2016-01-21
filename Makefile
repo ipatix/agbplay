@@ -22,8 +22,8 @@ BROWN = \033[1;33m
 WHITE = \033[1;37m
 NCOL = \033[0m
 
-SRC_FILES = $(wildcard *.cpp)
-OBJ_FILES = $(SRC_FILES:.cpp=.o)
+SRC_FILES = $(wildcard src/*.cpp)
+OBJ_FILES = $(addprefix obj/,$(notdir $(SRC_FILES:.cpp=.o)))
 
 .PHONY: all
 all: $(BINARY)
@@ -37,7 +37,7 @@ $(BINARY): $(OBJ_FILES)
 	@printf "[$(RED)Linking$(NCOL)] $(WHITE)$(BINARY)$(NCOL)\n"
 	@gcc -o $@ $(CXXFLAGS) $^ $(LIBS) -lstdc++
 
-%.o: %.cpp
+obj/%.o: src/%.cpp
 	@printf "[$(GREEN)Compiling$(NCOL)] $(WHITE)$@$(NCOL)\n"
 	@$(CXX) -c -o $@ $< $(CXXFLAGS) $(IMPORT)
 

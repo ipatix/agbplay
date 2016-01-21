@@ -1,9 +1,11 @@
 *.o
+*.obj
 *.gba
 *.sav
 DEBUG
 a.out
-agbplay*
+agbplay
+agbplay.exe*
 sappy.txt
 log
 notes

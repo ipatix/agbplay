@@ -383,5 +383,5 @@ void NoiseChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
 
 void NoiseChannel::SetPitch(int16_t pitch)
 {
-    freq = minmax(4.0f, 4096.0f * powf(8.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f), 524288.0f);
+    freq = minmax(8.0f, 4096.0f * powf(8.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f), 524288.0f);
 }

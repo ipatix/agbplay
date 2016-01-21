@@ -1,4 +1,3 @@
-#include <ncurses.h>
 #include <cstdint>
 #include "ColorDef.h"
 #include "CursesWin.h"

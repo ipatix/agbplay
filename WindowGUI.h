@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ControlGUI.h"
-
 /* window size definition
  * (h,w) = height and width of stdscr */
 
@@ -44,10 +42,8 @@
 
 #define CONTROL(x) (x & 0x1F)
 
-
-#include <ncurses.h>
-
 #include "Rom.h"
+#include "ControlGUI.h"
 #include "ConsoleGUI.h"
 #include "HotkeybarGUI.h"
 #include "SonglistGUI.h"

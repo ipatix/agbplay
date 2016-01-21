@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ncurses.h>
+#include <curses.h>
 #include <cstdint>
 #include <boost/thread/mutex.hpp>
 

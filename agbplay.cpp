@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstring>
 #include <cstdio>
-#include <ncurses.h>
+#include <curses.h>
 #include <portaudio.h>
 
 #include "Rom.h"

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ncurses.h>
 #include "CursesWin.h"
 
 namespace agbplay {

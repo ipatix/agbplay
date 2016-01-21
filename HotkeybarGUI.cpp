@@ -1,7 +1,6 @@
 #include "HotkeybarGUI.h"
 #include "ColorDef.h"
 #include "MyException.h"
-#include <ncurses.h>
 #include <string>
 #include <cstdint>
 

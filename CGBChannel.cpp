@@ -173,83 +173,87 @@ EnvState CGBChannel::GetState()
 
 void CGBChannel::StepEnvelope()
 {
-    if (eState == EnvState::INIT) {
-        fromLeftVol = leftVol;
-        fromRightVol = rightVol;
-        envInterStep = 0;
-        if ((env.att | env.dec) == 0) {
-            eState = EnvState::SUS;
-            fromEnvLevel = env.sus;
-            envLevel = env.sus;
-            return;
-        } else if (env.att == 0 && env.sus < 0xF) {
-            eState = EnvState::DEC;
-            fromEnvLevel = 0xF;
-            envLevel = 0xE;
-            return;
-        } else if (env.att == 0) {
-            eState = EnvState::DEC;
-            fromEnvLevel = 0xF;
-            envLevel = 0xF;
-            return;
-        } else {
-            eState = EnvState::ATK;
-            fromEnvLevel = 0x0;
-            envLevel = 0x1;
-            return;
-        }
-    }
-    else if (eState == EnvState::ATK) {
-        if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.att) {
-            fromEnvLevel = envLevel;
+    switch (eState) {
+        case EnvState::INIT:
+            fromLeftVol = leftVol;
+            fromRightVol = rightVol;
             envInterStep = 0;
-            if (++envLevel >= 0xF) {
-                if (env.dec == 0) {
-                    fromEnvLevel = env.sus;
-                    envLevel = env.sus;
-                    eState = EnvState::SUS;
-                } else {
-                    envLevel = 0xF;
-                    eState = EnvState::DEC;
-                }
-            }
-        }
-    }
-    else if (eState == EnvState::DEC) {
-        if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.dec) {
-            fromEnvLevel = envLevel;
-            envInterStep = 0;
-            if (--envLevel <= env.sus) {
+            if ((env.att | env.dec) == 0) {
                 eState = EnvState::SUS;
-            }
-        }
-    } 
-    else if (eState == EnvState::SUS) {
-        if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.dec) {
-            fromEnvLevel = envLevel;
-            envInterStep = 0;
-        }
-    }
-    else if (eState == EnvState::REL) {
-        if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.rel) {
-            if (env.rel == 0) {
-                fromEnvLevel = 0;
-                envLevel = 0;
-                eState = EnvState::DEAD;
+                fromEnvLevel = env.sus;
+                envLevel = env.sus;
+                return;
+            } else if (env.att == 0 && env.sus < 0xF) {
+                eState = EnvState::DEC;
+                fromEnvLevel = 0xF;
+                envLevel = 0xE;
+                return;
+            } else if (env.att == 0) {
+                eState = EnvState::DEC;
+                fromEnvLevel = 0xF;
+                envLevel = 0xF;
+                return;
             } else {
+                eState = EnvState::ATK;
+                fromEnvLevel = 0x0;
+                envLevel = 0x1;
+                return;
+            }
+            break;
+        case EnvState::ATK:
+            if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.att) {
                 fromEnvLevel = envLevel;
                 envInterStep = 0;
-                if (--envLevel <= 0) {
-                    eState = EnvState::DIE;
+                if (++envLevel >= 0xF) {
+                    if (env.dec == 0) {
+                        fromEnvLevel = env.sus;
+                        envLevel = env.sus;
+                        eState = EnvState::SUS;
+                    } else {
+                        envLevel = 0xF;
+                        eState = EnvState::DEC;
+                    }
                 }
             }
-        }
-    } 
-    else if (eState == EnvState::DIE) {
-        if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.rel) {
-            fromEnvLevel = envLevel;
-            eState = EnvState::DEAD;
-        }
+            break;
+        case EnvState::DEC:
+            if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.dec) {
+                fromEnvLevel = envLevel;
+                envInterStep = 0;
+                if (--envLevel <= env.sus) {
+                    eState = EnvState::SUS;
+                }
+            }
+            break;
+        case EnvState::SUS:
+            if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.dec) {
+                fromEnvLevel = envLevel;
+                envInterStep = 0;
+            }
+            break;
+        case EnvState::REL:
+            if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.rel) {
+                if (env.rel == 0) {
+                    fromEnvLevel = 0;
+                    envLevel = 0;
+                    eState = EnvState::DEAD;
+                } else {
+                    fromEnvLevel = envLevel;
+                    envInterStep = 0;
+                    if (--envLevel <= 0) {
+                        eState = EnvState::DIE;
+                    }
+                }
+            }
+            break;
+        case EnvState::DIE:
+            if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.rel) {
+                fromEnvLevel = envLevel;
+                eState = EnvState::DEAD;
+            }
+            break;
+        default:
+            break;
     }
 }
 

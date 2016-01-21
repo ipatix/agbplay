@@ -420,6 +420,8 @@ void StreamGenerator::processSequenceTick()
                     cTrk.GetLeftVol(),
                     cTrk.GetRightVol(),
                     cTrk.pitch = cTrk.GetPitch());
+        } else {
+            cTrk.pitch = cTrk.GetPitch();
         }
         isFirst = false;
     } // end of track iteration

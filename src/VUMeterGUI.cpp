@@ -61,10 +61,10 @@ void VUMeterGUI::update()
     line = "\u2503";
     float leftLevel = vuLevelLeft * levelFactor;
     int bLeftLevel = int(leftLevel);
-    int bPartLeftLevel = int((leftLevel - float(bLeftLevel)) * 8.0f);
+    //int bPartLeftLevel = int((leftLevel - float(bLeftLevel)) * 8.0f);
     mvwprintw(winPtr, 1, 0, "%s", line.c_str());
 
-    auto getPart = [](int part) {
+    /*auto getPart = [](int part) {
         switch (part) {
             case 0:
                 return " ";
@@ -85,15 +85,15 @@ void VUMeterGUI::update()
             default:
                 return " ";
         }
-    };
+    };*/
 
     line.clear();
     wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_BOLD);
     for (int i = 0; i < meterYel; i++) {
         if (i < bLeftLevel) {
             line += "\u2588";
-        } else if (i == bLeftLevel) {
-            line += getPart(bPartLeftLevel);
+        /*} else if (i == bLeftLevel) {
+            line += getPart(bPartLeftLevel);*/
         } else {
             line += "\u2591";
         }
@@ -105,8 +105,8 @@ void VUMeterGUI::update()
     for (int i = meterYel; i < meterRed; i++) {
         if (i < bLeftLevel) {
             line += "\u2588";
-        } else if (i == bLeftLevel) {
-            line += getPart(bPartLeftLevel);
+        /*} else if (i == bLeftLevel) {
+            line += getPart(bPartLeftLevel);*/
         } else {
             line += "\u2591";
         }
@@ -118,8 +118,8 @@ void VUMeterGUI::update()
     for (int i = meterRed; i < meterWidth; i++) {
         if (i < bLeftLevel) {
             line += "\u2588";
-        } else if (i == bLeftLevel) {
-            line += getPart(bPartLeftLevel);
+        /*} else if (i == bLeftLevel) {
+            line += getPart(bPartLeftLevel);*/
         } else {
             line += "\u2591";
         }
@@ -141,7 +141,7 @@ void VUMeterGUI::update()
     line = "\u2503";
     float rightLevel = vuLevelRight * levelFactor;
     int bRightLevel = int(rightLevel);
-    int bPartRightLevel = int((rightLevel - float(bRightLevel)) * 8.0f);
+    //int bPartRightLevel = int((rightLevel - float(bRightLevel)) * 8.0f);
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF));
     mvwprintw(winPtr, 3, 0, "%s", line.c_str());
 
@@ -150,8 +150,8 @@ void VUMeterGUI::update()
     for (int i = 0; i < meterYel; i++) {
         if (i < bRightLevel) {
             line += "\u2588";
-        } else if (i == bRightLevel) {
-            line += getPart(bPartRightLevel);
+        /*} else if (i == bRightLevel) {
+            line += getPart(bPartRightLevel);*/
         } else {
             line += "\u2591";
         }
@@ -163,8 +163,8 @@ void VUMeterGUI::update()
     for (int i = meterYel; i < meterRed; i++) {
         if (i < bRightLevel) {
             line += "\u2588";
-        } else if (i == bRightLevel) {
-            line += getPart(bPartRightLevel);
+        /*} else if (i == bRightLevel) {
+            line += getPart(bPartRightLevel);*/
         } else {
             line += "\u2591";
         }
@@ -176,8 +176,8 @@ void VUMeterGUI::update()
     for (int i = meterRed; i < meterWidth; i++) {
         if (i < bRightLevel) {
             line += "\u2588";
-        } else if (i == bRightLevel) {
-            line += getPart(bPartRightLevel);
+        /*} else if (i == bRightLevel) {
+            line += getPart(bPartRightLevel);*/
         } else {
             line += "\u2591";
         }

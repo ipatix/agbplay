@@ -4,7 +4,7 @@
  * (h,w) = height and width of stdscr */
 
 #define TITLEBAR_HEIGHT(h,w) 5
-#define TITLEBAR_WIDTH(h,w) w
+#define TITLEBAR_WIDTH(h,w) 33
 #define TITLEBAR_YPOS(h,w) 0
 #define TITLEBAR_XPOS(h,w) 0
 
@@ -43,7 +43,6 @@
 #define CONTROL(x) (x & 0x1F)
 
 #include "Rom.h"
-#include "ControlGUI.h"
 #include "ConsoleGUI.h"
 #include "HotkeybarGUI.h"
 #include "SonglistGUI.h"
@@ -89,7 +88,6 @@ namespace agbplay
             TitlebarGUI *titleUI;
             RomviewGUI *romUI;
             TrackviewGUI *trackUI;
-            ControlGUI *event;
 
             // resource
             Rom& rom;

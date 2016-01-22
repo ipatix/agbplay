@@ -27,9 +27,6 @@ ConsoleGUI::~ConsoleGUI() {
 void ConsoleGUI::Resize(uint32_t height, uint32_t width,
         uint32_t yPos, uint32_t xPos) {
     CursesWin::Resize(height, width, yPos, xPos);
-    //UIMutex.lock();
-    keypad(winPtr, true);
-    //UIMutex.unlock();
     textHeight = height;
     textWidth = width - 2;
     update();    

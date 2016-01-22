@@ -104,8 +104,6 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
 
     conUI->WriteLn("Started Trackview");
 
-    event = new ControlGUI();
-
     rom.Seek(sdata.sTable->GetSongTablePos());
     mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos(), EnginePars(15, 0, 4));
     mplay->LoadSong(sdata.sTable->GetPosOfSong(0), 16); // TODO read track limit from rom rather than using fixed value
@@ -121,7 +119,6 @@ WindowGUI::~WindowGUI()
     delete titleUI;
     delete romUI;
     delete trackUI;
-    delete event;
     //CursesWin::UIMutex.lock();
     endwin();
     //CursesWin::UIMutex.unlock();
@@ -131,7 +128,7 @@ void WindowGUI::Handle()
 {
     while (true) {
         int ch;
-        while ((ch = event->GetKey()) != ERR) {
+        while ((ch = titleUI->GetKey()) != ERR) {
             switch (ch) {
                 case KEY_RESIZE:
                     getmaxyx(stdscr, height, width);

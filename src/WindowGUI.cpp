@@ -206,7 +206,6 @@ void WindowGUI::Handle()
 
 void WindowGUI::resizeWindows() 
 {
-    __print_debug("Resizing Window...");
     conUI->Resize(
             CONSOLE_HEIGHT(height, width),
             CONSOLE_WIDTH(height, width),
@@ -242,6 +241,11 @@ void WindowGUI::resizeWindows()
             TRACKVIEW_WIDTH(height, width),
             TRACKVIEW_YPOS(height, width),
             TRACKVIEW_XPOS(height, width));
+    meterUI->Resize(
+            VUMETER_HEIGHT(height, width), 
+            VUMETER_WIDTH(height, width),
+            VUMETER_YPOS(height, width),
+            VUMETER_XPOS(height, width));
 }
 
 void WindowGUI::initColors() 

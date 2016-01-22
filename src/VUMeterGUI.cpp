@@ -30,6 +30,11 @@ VUMeterGUI::~VUMeterGUI()
 void VUMeterGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos)
 {
     CursesWin::Resize(height, width, yPos, xPos);
+    if (width < 10)
+        throw MyException("Can't create too narrow VU meters");
+    meterWidth = int(width - 2);
+    meterRed = meterWidth * 7 / 8;
+    meterYel = meterWidth * 6 / 8;
     update();
 }
 
@@ -90,7 +95,7 @@ void VUMeterGUI::update()
         } else if (i == bLeftLevel) {
             line += getPart(bPartLeftLevel);
         } else {
-            line += "#";
+            line += "\u2591";
         }
     }
     wprintw(winPtr, "%s", line.c_str());
@@ -103,7 +108,7 @@ void VUMeterGUI::update()
         } else if (i == bLeftLevel) {
             line += getPart(bPartLeftLevel);
         } else {
-            line += "#";
+            line += "\u2591";
         }
     }
     wprintw(winPtr, "%s", line.c_str());
@@ -116,7 +121,7 @@ void VUMeterGUI::update()
         } else if (i == bLeftLevel) {
             line += getPart(bPartLeftLevel);
         } else {
-            line += "#";
+            line += "\u2591";
         }
     }
     wprintw(winPtr, "%s", line.c_str());
@@ -148,7 +153,7 @@ void VUMeterGUI::update()
         } else if (i == bRightLevel) {
             line += getPart(bPartRightLevel);
         } else {
-            line += "#";
+            line += "\u2591";
         }
     }
     wprintw(winPtr, "%s", line.c_str());
@@ -161,7 +166,7 @@ void VUMeterGUI::update()
         } else if (i == bRightLevel) {
             line += getPart(bPartRightLevel);
         } else {
-            line += "#";
+            line += "\u2591";
         }
     }
     wprintw(winPtr, "%s", line.c_str());
@@ -174,7 +179,7 @@ void VUMeterGUI::update()
         } else if (i == bRightLevel) {
             line += getPart(bPartRightLevel);
         } else {
-            line += "#";
+            line += "\u2591";
         }
     }
     wprintw(winPtr, "%s", line.c_str());

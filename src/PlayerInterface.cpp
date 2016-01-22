@@ -220,6 +220,8 @@ void PlayerInterface::threadWorker()
         throw MyException(FormatString("PA Error: %s", Pa_GetErrorText(err)));
     if ((err = Pa_CloseStream(audioStream)) != paNoError)
         throw MyException(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+    avgVolLeft = 0.0f;
+    avgVolRight = 0.0f;
     playerState = State::TERMINATED;
 }
 
@@ -230,7 +232,7 @@ void PlayerInterface::writeMaxLevels(float *buffer, size_t nBlocks)
     if (avgCountdown-- == 0) {
         left = 0.0f;
         right = 0.0f;
-        avgCountdown = INTERFRAMES-1;
+        avgCountdown = (INTERFRAMES-1) << 1;
     } else {
         left = avgVolLeft;
         right = avgVolRight;

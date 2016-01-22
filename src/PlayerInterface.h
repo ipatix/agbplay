@@ -27,8 +27,14 @@ namespace agbplay
             void SpeedHalve();
             bool IsPlaying();
             void UpdateView();
+            void GetVolLevels(float& left, float& right);
         private:
             void threadWorker();
+            void writeMaxLevels(float *buffer, size_t nBlocks);
+
+            uint32_t avgCountdown;
+            float avgVolLeft;
+            float avgVolRight;
 
             PaStream *audioStream;
             EnginePars pars;

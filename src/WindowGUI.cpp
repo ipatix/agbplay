@@ -45,23 +45,17 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
             CONSOLE_YPOS(height, width),
             CONSOLE_XPOS(height, width));
 
-    conUI->WriteLn("Started Console"); 
-
     hotUI = new HotkeybarGUI(
             HOTKEYBAR_HEIGHT(height, width),
             HOTKEYBAR_WIDTH(height, width),
             HOTKEYBAR_YPOS(height, width),
             HOTKEYBAR_XPOS(height, width));
 
-    conUI->WriteLn("Started Hotkeybar");
-
     songUI = new SonglistGUI(
             SONGLIST_HEIGHT(height, width),
             SONGLIST_WIDTH(height, width),
             SONGLIST_YPOS(height, width),
             SONGLIST_XPOS(height, width), true);
-
-    conUI->WriteLn("Started Songlist");
 
     // add songs to table
     for (uint16_t i = 0; i < sdata.sTable->GetNumSongs(); i++) {
@@ -77,15 +71,11 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
             PLAYLIST_YPOS(height, width),
             PLAYLIST_XPOS(height, width));
 
-    conUI->WriteLn("Started Playlist");
-
     titleUI = new TitlebarGUI(
             TITLEBAR_HEIGHT(height, width),
             TITLEBAR_WIDTH(height, width),
             TITLEBAR_YPOS(height, width),
             TITLEBAR_XPOS(height, width));
-
-    conUI->WriteLn("Started Titlebar");
 
     romUI = new RomviewGUI(
             ROMVIEW_HEIGHT(height, width),
@@ -94,15 +84,17 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
             ROMVIEW_XPOS(height, width),
             rom, sdata);
 
-    conUI->WriteLn("Started Romview");
-
     trackUI = new TrackviewGUI(
             TRACKVIEW_HEIGHT(height, width),
             TRACKVIEW_WIDTH(height, width),
             TRACKVIEW_YPOS(height, width),
             TRACKVIEW_XPOS(height, width));
 
-    conUI->WriteLn("Started Trackview");
+    meterUI = new VUMeterGUI(
+            VUMETER_HEIGHT(height, width),
+            VUMETER_WIDTH(height, width),
+            VUMETER_YPOS(height, width),
+            VUMETER_XPOS(height, width));
 
     rom.Seek(sdata.sTable->GetSongTablePos());
     mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos(), EnginePars(15, 0, 4));
@@ -119,9 +111,8 @@ WindowGUI::~WindowGUI()
     delete titleUI;
     delete romUI;
     delete trackUI;
-    //CursesWin::UIMutex.lock();
+    delete meterUI;
     endwin();
-    //CursesWin::UIMutex.unlock();
 }
 
 void WindowGUI::Handle() 
@@ -205,6 +196,10 @@ void WindowGUI::Handle()
                 mplay->Play();
             }
         }
+        float lVol;
+        float rVol;
+        mplay->GetVolLevels(lVol, rVol);
+        meterUI->SetVol(lVol, rVol);
         this_thread::sleep_for(chrono::milliseconds(25));
     } // end rendering loop
 }

@@ -61,7 +61,7 @@ void TitlebarGUI::update()
         if (i < upperPadding || i > height - upperPadding) {
             tmp = "";
             tmp.resize(width, ' ');
-            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | A_REVERSE);
+            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF));
             mvwprintw(winPtr, (int)i, 0, "%s", tmp.c_str());
         } else {
             uint32_t leftPadding = (uint32_t)((width - bannerText[i - upperPadding].size()) / 2);
@@ -69,13 +69,13 @@ void TitlebarGUI::update()
                 ((width - bannerText[i - upperPadding].size()) % 2));
             tmp = "";
             tmp.resize(leftPadding, ' ');
-            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | A_REVERSE);
+            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF));
             mvwprintw(winPtr, (int)i, 0, "%s", tmp.c_str());
             tmp = "";
             tmp.resize(rightPadding, ' ');
-            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF));
-            wprintw(winPtr, "%s", bannerText[i - upperPadding].c_str());
             wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | A_REVERSE);
+            wprintw(winPtr, "%s", bannerText[i - upperPadding].c_str());
+            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF));
             wprintw(winPtr, tmp.c_str());
         }
     }

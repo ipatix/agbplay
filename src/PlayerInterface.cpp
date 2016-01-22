@@ -1,5 +1,6 @@
 #include <thread>
 #include <chrono>
+#include <cstdlib>
 
 #include "PlayerInterface.h"
 #include "MyException.h"
@@ -19,6 +20,9 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     this->playerState = State::THREAD_DELETED;
     this->pars = pars;
     this->speedFactor = 64;
+    this->avgCountdown = 0;
+    this->avgVolLeft = 0.0f;
+    this->avgVolRight = 0.0f;
     sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1, float(speedFactor) / 64.0f);
 }
 
@@ -158,6 +162,12 @@ void PlayerInterface::UpdateView()
         trackUI->SetState(sg->GetWorkingSequence());
 }
 
+void PlayerInterface::GetVolLevels(float& left, float& right)
+{
+    left = avgVolLeft;
+    right = avgVolRight;
+}
+
 /*
  * private PlayerInterface
  */
@@ -165,6 +175,7 @@ void PlayerInterface::UpdateView()
 void PlayerInterface::threadWorker()
 {
     // TODO add fixed mode rate variable
+    avgCountdown = 0;
     PaError err;
     uint32_t nBlocks = sg->GetBufferUnitCount();
     uint32_t outSampleRate = sg->GetRenderSampleRate();
@@ -191,13 +202,14 @@ void PlayerInterface::threadWorker()
                     }
                     if ((err = Pa_WriteStream(audioStream, processedAudio, nBlocks)) != paNoError) {
                         __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-                    };
+                    }
+                    writeMaxLevels(processedAudio, nBlocks);
                 }
                 break;
             case State::PAUSED:
                 if ((err = Pa_WriteStream(audioStream, &silence[0], nBlocks)) != paNoError) {
                     __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-                };
+                }
                 break;
             default:
                 throw MyException(FormatString("Internal PlayerInterface error: %d", (int)playerState));
@@ -209,4 +221,28 @@ void PlayerInterface::threadWorker()
     if ((err = Pa_CloseStream(audioStream)) != paNoError)
         throw MyException(FormatString("PA Error: %s", Pa_GetErrorText(err)));
     playerState = State::TERMINATED;
+}
+
+void PlayerInterface::writeMaxLevels(float *buffer, size_t nBlocks)
+{
+    float left;
+    float right;
+    if (avgCountdown-- == 0) {
+        left = 0.0f;
+        right = 0.0f;
+        avgCountdown = INTERFRAMES-1;
+    } else {
+        left = avgVolLeft;
+        right = avgVolRight;
+    }
+
+    while (nBlocks-- > 0) {
+        float l = abs(*buffer++);
+        float r = abs(*buffer++);
+        if (l > left) left = l;
+        if (r > right) right = r;
+    }
+
+    avgVolLeft = left;
+    avgVolRight = right;
 }

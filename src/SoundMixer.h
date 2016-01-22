@@ -15,7 +15,7 @@
 #define N_CHANNELS 2
 // enable pan snap for CGB
 #define CGB_PAN_SNAP
-#define MASTER_VOL 0.5f
+#define MASTER_VOL 1.0f
 
 namespace agbplay
 {

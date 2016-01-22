@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <curses.h>
 #include <portaudio.h>
+#include <clocale>
 
 #include "Rom.h"
 #include "SoundData.h"
@@ -23,6 +24,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     try {
+        setlocale(LC_ALL, "");
         if (Pa_Initialize() != paNoError)
             throw MyException("Couldn't init portaudio");
         cout << "Loading ROM..." << endl;

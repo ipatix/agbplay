@@ -37,7 +37,7 @@ $(BINARY): $(OBJ_FILES)
 	@printf "[$(RED)Linking$(NCOL)] $(WHITE)$(BINARY)$(NCOL)\n"
 	@gcc -o $@ $(CXXFLAGS) $^ $(LIBS) -lstdc++
 
-obj/%.o: src/%.cpp
+obj/%.o: src/%.cpp src/*.h
 	@printf "[$(GREEN)Compiling$(NCOL)] $(WHITE)$@$(NCOL)\n"
 	@$(CXX) -c -o $@ $< $(CXXFLAGS) $(IMPORT)
 

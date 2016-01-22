@@ -8,6 +8,11 @@
 #define TITLEBAR_YPOS(h,w) 0
 #define TITLEBAR_XPOS(h,w) 0
 
+#define VUMETER_HEIGHT(h,w) TITLEBAR_HEIGHT(h,w)
+#define VUMETER_WIDTH(h,w) (w - TITLEBAR_WIDTH(h,w))
+#define VUMETER_YPOS(h,w) 0
+#define VUMETER_XPOS(h,w) TITLEBAR_WIDTH(h,w)
+
 #define SONGLIST_HEIGHT(h,w) ((h - TITLEBAR_HEIGHT(h,w)) / 2)
 #define SONGLIST_WIDTH(h,w) 25
 #define SONGLIST_YPOS(h,w) (TITLEBAR_HEIGHT(h,w))
@@ -51,6 +56,7 @@
 #include "RomviewGUI.h"
 #include "TrackviewGUI.h"
 #include "PlayerInterface.h"
+#include "VUMeterGUI.h"
 
 namespace agbplay 
 {
@@ -88,6 +94,7 @@ namespace agbplay
             TitlebarGUI *titleUI;
             RomviewGUI *romUI;
             TrackviewGUI *trackUI;
+            VUMeterGUI *meterUI;
 
             // resource
             Rom& rom;

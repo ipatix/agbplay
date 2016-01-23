@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -26,22 +26,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -58,9 +58,7 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros">
-    <NuGetPackageImportStamp>029ac060</NuGetPackageImportStamp>
-  </PropertyGroup>
+  <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
@@ -134,7 +132,6 @@
     <ClCompile Include="..\src\CGBChannel.cpp" />
     <ClCompile Include="..\src\CGBPatterns.cpp" />
     <ClCompile Include="..\src\ConsoleGUI.cpp" />
-    <ClCompile Include="..\src\ControlGUI.cpp" />
     <ClCompile Include="..\src\CursesWin.cpp" />
     <ClCompile Include="..\src\Debug.cpp" />
     <ClCompile Include="..\src\DisplayContainer.cpp" />
@@ -154,6 +151,7 @@
     <ClCompile Include="..\src\StreamGenerator.cpp" />
     <ClCompile Include="..\src\TitlebarGUI.cpp" />
     <ClCompile Include="..\src\TrackviewGUI.cpp" />
+    <ClCompile Include="..\src\VUMeterGUI.cpp" />
     <ClCompile Include="..\src\WindowGUI.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -163,7 +161,6 @@
     <ClInclude Include="..\src\ColorDef.h" />
     <ClInclude Include="..\src\ConsoleGUI.h" />
     <ClInclude Include="..\src\Constants.h" />
-    <ClInclude Include="..\src\ControlGUI.h" />
     <ClInclude Include="..\src\CursesWin.h" />
     <ClInclude Include="..\src\Debug.h" />
     <ClInclude Include="..\src\DisplayContainer.h" />
@@ -184,6 +181,7 @@
     <ClInclude Include="..\src\TitlebarGUI.h" />
     <ClInclude Include="..\src\TrackviewGUI.h" />
     <ClInclude Include="..\src\Util.h" />
+    <ClInclude Include="..\src\VUMeterGUI.h" />
     <ClInclude Include="..\src\WindowGUI.h" />
   </ItemGroup>
   <ItemGroup>
@@ -191,18 +189,26 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="packages\boost.1.60.0.0\build\native\boost.targets" Condition="Exists('packages\boost.1.60.0.0\build\native\boost.targets')" />
     <Import Project="packages\portaudio.redist.0.19.1\build\native\portaudio.redist.targets" Condition="Exists('packages\portaudio.redist.0.19.1\build\native\portaudio.redist.targets')" />
     <Import Project="packages\portaudio.0.19.1\build\native\portaudio.targets" Condition="Exists('packages\portaudio.0.19.1\build\native\portaudio.targets')" />
+    <Import Project="packages\boost.1.60.0.0\build\native\boost.targets" Condition="Exists('packages\boost.1.60.0.0\build\native\boost.targets')" />
+    <Import Project="packages\boost_thread.1.60.0.0\build\native\boost_thread.targets" Condition="Exists('packages\boost_thread.1.60.0.0\build\native\boost_thread.targets')" />
+    <Import Project="packages\boost_date_time.1.60.0.0\build\native\boost_date_time.targets" Condition="Exists('packages\boost_date_time.1.60.0.0\build\native\boost_date_time.targets')" />
+    <Import Project="packages\boost_system.1.60.0.0\build\native\boost_system.targets" Condition="Exists('packages\boost_system.1.60.0.0\build\native\boost_system.targets')" />
+    <Import Project="packages\boost_chrono.1.60.0.0\build\native\boost_chrono.targets" Condition="Exists('packages\boost_chrono.1.60.0.0\build\native\boost_chrono.targets')" />
     <Import Project="packages\pdcurses_vc120.3.4.0.3\build\native\pdcurses_vc120.targets" Condition="Exists('packages\pdcurses_vc120.3.4.0.3\build\native\pdcurses_vc120.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>Dieses Projekt verweist auf mindestens ein NuGet-Paket, das auf diesem Computer fehlt. Aktivieren Sie die Wiederherstellung von NuGet-Paketen, um die fehlende Datei herunterzuladen. Weitere Informationen finden Sie unter "http://go.microsoft.com/fwlink/?LinkID=322105". Die fehlende Datei ist "{0}".</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('packages\boost.1.60.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost.1.60.0.0\build\native\boost.targets'))" />
     <Error Condition="!Exists('packages\portaudio.redist.0.19.1\build\native\portaudio.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\portaudio.redist.0.19.1\build\native\portaudio.redist.targets'))" />
     <Error Condition="!Exists('packages\portaudio.0.19.1\build\native\portaudio.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\portaudio.0.19.1\build\native\portaudio.targets'))" />
+    <Error Condition="!Exists('packages\boost.1.60.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost.1.60.0.0\build\native\boost.targets'))" />
+    <Error Condition="!Exists('packages\boost_thread.1.60.0.0\build\native\boost_thread.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost_thread.1.60.0.0\build\native\boost_thread.targets'))" />
+    <Error Condition="!Exists('packages\boost_date_time.1.60.0.0\build\native\boost_date_time.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost_date_time.1.60.0.0\build\native\boost_date_time.targets'))" />
+    <Error Condition="!Exists('packages\boost_system.1.60.0.0\build\native\boost_system.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost_system.1.60.0.0\build\native\boost_system.targets'))" />
+    <Error Condition="!Exists('packages\boost_chrono.1.60.0.0\build\native\boost_chrono.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\boost_chrono.1.60.0.0\build\native\boost_chrono.targets'))" />
     <Error Condition="!Exists('packages\pdcurses_vc120.3.4.0.3\build\native\pdcurses_vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\pdcurses_vc120.3.4.0.3\build\native\pdcurses_vc120.targets'))" />
   </Target>
 </Project>

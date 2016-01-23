@@ -1,5 +1,3 @@
-#include <boost/bind.hpp>
-
 #include "Util.h"
 #include "TrackviewGUI.h"
 #include "ColorDef.h"

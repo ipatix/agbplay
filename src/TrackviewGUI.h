@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <string>
-#include <boost/thread/mutex.hpp>
 
 #include "CursesWin.h"
 #include "SoundData.h"

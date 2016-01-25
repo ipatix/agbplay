@@ -1,6 +1,7 @@
 #include <thread>
 #include <chrono>
 #include <cstdlib>
+#include <algorithm>
 
 #include "PlayerInterface.h"
 #include "MyException.h"
@@ -230,8 +231,8 @@ void PlayerInterface::writeMaxLevels(float *buffer, size_t nBlocks)
     float left;
     float right;
     if (avgCountdown-- == 0) {
-        left = avgVolLeft * 0.95f;
-        right = avgVolRight * 0.95f;
+        left = max(avgVolLeft - 0.025f, 0.0f);
+        right = max(avgVolRight - 0.025f, 0.0f);
         avgCountdown = (INTERFRAMES-1);
     } else {
         left = avgVolLeft;

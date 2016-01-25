@@ -64,19 +64,19 @@ void CGBChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
 #ifdef CGB_PAN_SNAP
         if (leftVol << 1 > rightVol) {
             // snap left
-            this->leftVol = (leftVol + rightVol) >> 5;
+            this->leftVol = (note.velocity * (leftVol + rightVol)) >> 12;
             this->rightVol = 0;
         } else if (rightVol << 1 > leftVol) {
             // snap right
-            this->rightVol = (leftVol + rightVol) >> 5;
+            this->rightVol = (note.velocity * (leftVol + rightVol)) >> 12;
             this->leftVol = 0;
         } else {
             // snap mid
-            this->leftVol = this->rightVol = (leftVol + rightVol) >> 5;
+            this->leftVol = this->rightVol = (note.velocity * (leftVol + rightVol)) >> 12;
         }
 #else
-        this->leftVol = leftVol >> 4;
-        this->rightVol = rightVol >> 4;
+        this->leftVol = (leftVol * note.velocity) >> 11;
+        this->rightVol = (rightVol * note.velocity) >> 11;
 #endif
     }
 }
@@ -108,10 +108,10 @@ ChnVol CGBChannel::GetVol()
     float finalFromEnv = envBase + envDelta * float(envInterStep);
     float finalToEnv = envBase + envDelta * float(envInterStep);
     return ChnVol(
-            float(fromLeftVol) * finalFromEnv / 512.0f,
-            float(fromRightVol) * finalFromEnv / 512.0f,
-            float(leftVol) * finalToEnv / 512.0f,
-            float(rightVol) * finalToEnv / 512.0f);
+            float(fromLeftVol) * finalFromEnv / 256.0f,
+            float(fromRightVol) * finalFromEnv / 256.0f,
+            float(leftVol) * finalToEnv / 256.0f,
+            float(rightVol) * finalToEnv / 256.0f);
 }
 
 CGBDef CGBChannel::GetDef()

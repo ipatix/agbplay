@@ -7,6 +7,6 @@
 
 #define ENG_VOL 0xC
 #define ENG_REV 0x0
-#define ENG_RATE 0x6
+#define ENG_RATE 0x4
 
 #define BPM_PER_FRAME 150

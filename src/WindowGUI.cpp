@@ -65,11 +65,14 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
     }
     songUI->Enter();
 
+    rom.Seek(0xAC);
+    string gameCode = rom.ReadString(4);
     playUI = new PlaylistGUI(
             PLAYLIST_HEIGHT(height, width),
             PLAYLIST_WIDTH(height, width),
             PLAYLIST_YPOS(height, width),
-            PLAYLIST_XPOS(height, width));
+            PLAYLIST_XPOS(height, width),
+            gameCode);
 
     titleUI = new TitlebarGUI(
             TITLEBAR_HEIGHT(height, width),

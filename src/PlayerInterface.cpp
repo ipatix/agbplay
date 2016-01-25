@@ -230,9 +230,9 @@ void PlayerInterface::writeMaxLevels(float *buffer, size_t nBlocks)
     float left;
     float right;
     if (avgCountdown-- == 0) {
-        left = 0.0f;
-        right = 0.0f;
-        avgCountdown = (INTERFRAMES-1) << 1;
+        left = avgVolLeft * 0.95f;
+        right = avgVolRight * 0.95f;
+        avgCountdown = (INTERFRAMES-1);
     } else {
         left = avgVolLeft;
         right = avgVolRight;

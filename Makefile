@@ -10,6 +10,7 @@ ifneq (, $(findstring linux, $(SYS)))
 	LIBS = ../portaudio/lib/.libs/libportaudio.a -lm -lncursesw -lboost_system -lboost_thread -pthread -lasound
 else ifneq (, $(findstring cygwin, $(SYS))$(findstring windows, $(SYS)))
 	LIBS = ../portaudio/lib/.libs/libportaudio.dll.a -lm -lncursesw -lboost_system -lboost_thread -pthread
+	CXXFLAGS += -D_GLIBCXX_USE_C99=1
 else
 	@echo "Unsupported Platform: $(SYS)"
 endif

@@ -170,6 +170,7 @@ void WindowGUI::Handle()
                     play = true;
                     break;
                 case 'o':
+                case ' ':
                     mplay->Pause();
                     break;
                 case 'p':

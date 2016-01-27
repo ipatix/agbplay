@@ -96,7 +96,7 @@ void PlayerInterface::Pause()
             // --> handled by worker
             break;
         case State::THREAD_DELETED:
-            // ignore this
+            Play();
             break;
     }
 }

@@ -315,6 +315,7 @@ Sequence::Track::Track(long pos)
 {
     // TODO corrently init all values
     this->pos = pos;
+    activeNotes.reset();
     patBegin = returnPos = 0;
     modt = MODT::PITCH;
     lastEvent = LEvent::NONE;

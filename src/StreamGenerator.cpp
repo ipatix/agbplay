@@ -127,7 +127,7 @@ void StreamGenerator::processSequenceTick()
 
         isSongRunning = true;
         
-        if (sm.TickTrackNotes((void *)&cTrk) > 0) {
+        if (sm.TickTrackNotes((void *)&cTrk, cTrk.activeNotes) > 0) {
             if (cTrk.lfodlCount > 0) {
                 cTrk.lfodlCount--;
                 cTrk.lfoPhase = 0;

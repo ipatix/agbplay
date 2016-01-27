@@ -17,6 +17,7 @@ using namespace agbplay;
 SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, float mvl) 
     : sq1(), sq2(), wave(), noise()
 {
+    this->activeBackBuffer.reset();
     this->revdsp = new ReverbEffect(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)));
     this->sampleRate = sampleRate;
     this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
@@ -89,24 +90,38 @@ void SoundMixer::SetTrackPV(void *owner, uint8_t leftVol, uint8_t rightVol, int1
     }
 }
 
-int SoundMixer::TickTrackNotes(void *owner)
+int SoundMixer::TickTrackNotes(void *owner, bitset<NUM_NOTES>& activeNotes)
 {
+    activeBackBuffer.reset();
     int active = 0;
     for (SoundChannel& chn : sndChannels) 
     {
         if (chn.GetOwner() == owner) {
-            if (chn.TickNote())
+            if (chn.TickNote()) {
                 active++;
+                activeBackBuffer[chn.GetMidiKey() & 0x7F] = true;
+            }
         }
     }
-    if (sq1.GetOwner() == owner && sq1.TickNote())
+    if (sq1.GetOwner() == owner && sq1.TickNote()) {
         active++;
-    if (sq2.GetOwner() == owner && sq2.TickNote())
+        activeBackBuffer[sq1.GetMidiKey() & 0x7F] = true;
+    }
+    if (sq2.GetOwner() == owner && sq2.TickNote()) {
         active++;
-    if (wave.GetOwner() == owner && wave.TickNote())
+        activeBackBuffer[sq2.GetMidiKey() & 0x7F] = true;
+    }
+    if (wave.GetOwner() == owner && wave.TickNote()) {
         active++;
-    if (noise.GetOwner() == owner && noise.TickNote())
+        activeBackBuffer[wave.GetMidiKey() & 0x7F] = true;
+    }
+    if (noise.GetOwner() == owner && noise.TickNote()) {
         active++;
+        activeBackBuffer[noise.GetMidiKey() & 0x7F] = true;
+    }
+    // hopefully assignment goes well
+    // otherwise we'll probably need to copy bit by bit
+    activeNotes = activeBackBuffer;
     return active;
 }
 

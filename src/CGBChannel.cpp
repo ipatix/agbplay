@@ -121,7 +121,7 @@ CGBDef CGBChannel::GetDef()
 
 uint8_t CGBChannel::GetMidiKey()
 {
-    return note.midiKey;
+    return note.originalKey;
 }
 
 int8_t CGBChannel::GetNoteLength()

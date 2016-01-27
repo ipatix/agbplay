@@ -47,6 +47,7 @@ void TrackviewGUI::SetState(Sequence& seq)
         disp.data[i].envL = 0;
         disp.data[i].envR = 0;
         disp.data[i].delay = max((int8_t)0, seq.tracks[i].delay);
+        disp.data[i].activeNotes = seq.tracks[i].activeNotes;
     }
     update();
 }

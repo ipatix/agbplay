@@ -72,7 +72,7 @@ ChnVol SoundChannel::GetVol()
 
 uint8_t SoundChannel::GetMidiKey()
 {
-    return note.midiKey;
+    return note.originalKey;
 }
 
 int8_t SoundChannel::GetNoteLength()

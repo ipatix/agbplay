@@ -3,10 +3,12 @@
 #include <vector>
 #include <list>
 #include <cstdint>
+#include <bitset>
 
 #include "ReverbEffect.h"
 #include "SoundChannel.h"
 #include "CGBChannel.h"
+#include "Constants.h"
 
 #define NOTE_TIE -1
 // AGB has 60 FPS based processing
@@ -28,7 +30,7 @@ namespace agbplay
             void NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, CGBType type);
             void SetTrackPV(void *owner, uint8_t volLeft, uint8_t volRight, int16_t pitch);
             // optional FIXME: reduce complexity by replacing the owner pointers with int pointers to a note reference counter so the note amount tracking becomes obsolete
-            int TickTrackNotes(void *owner);
+            int TickTrackNotes(void *owner, std::bitset<NUM_NOTES>& activeNotes);
             void StopChannel(void *owner, uint8_t key);
             float *ProcessAndGetAudio();
             uint32_t GetBufferUnitCount();
@@ -41,6 +43,8 @@ namespace agbplay
             void purgeChannels();
             void clearBuffer();
             void renderToBuffer();
+
+            std::bitset<NUM_NOTES> activeBackBuffer;
 
             // channel management
             std::list<SoundChannel> sndChannels;

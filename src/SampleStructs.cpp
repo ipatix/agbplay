@@ -45,7 +45,7 @@ ADSR::ADSR()
 
 Note::Note(uint8_t midiKey, uint8_t velocity, int8_t length)
 {
-    this->midiKey = midiKey;
+    this->originalKey = this->midiKey = midiKey;
     this->velocity = velocity;
     this->length = length;
 }

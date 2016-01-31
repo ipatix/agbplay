@@ -277,6 +277,8 @@ void StreamGenerator::processSequenceTick()
                         case 0xBD:
                             // VOICE
                             cTrk.prog = reader[cTrk.pos++];
+                            // no pv upgrade should be required here
+                            cTrk.bend = 0;
                             break;
                         case 0xBE:
                             // VOL

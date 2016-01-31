@@ -36,12 +36,12 @@ SoundMixer::~SoundMixer()
     delete revdsp;
 }
 
-void SoundMixer::NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, bool fixed)
+void SoundMixer::NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed)
 {
-    sndChannels.emplace_back(owner, sInfo, env, note, leftVol, rightVol, pitch, fixed);
+    sndChannels.emplace_back(owner, sInfo, env, note, vol, pan, pitch, fixed);
 }
 
-void SoundMixer::NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, CGBType type)
+void SoundMixer::NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, CGBType type)
 {
     CGBChannel *nChn = &sq1;
     switch (type) {
@@ -60,32 +60,32 @@ void SoundMixer::NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_
         default: throw MyException("FATAL ERROR");
     }
     nChn->Init(owner, def, note, env);
-    nChn->SetVol(leftVol, rightVol);
+    nChn->SetVol(vol, pan);
     nChn->SetPitch(pitch);
 }
 
-void SoundMixer::SetTrackPV(void *owner, uint8_t leftVol, uint8_t rightVol, int16_t pitch)
+void SoundMixer::SetTrackPV(void *owner, uint8_t vol, int8_t pan, int16_t pitch)
 {
     for (SoundChannel& sc : sndChannels) {
         if (sc.GetOwner() == owner) {
-            sc.SetVol(leftVol, rightVol);
+            sc.SetVol(vol, pan);
             sc.SetPitch(pitch);
         }
     }
     if (sq1.GetOwner() == owner) {
-        sq1.SetVol(leftVol, rightVol);
+        sq1.SetVol(vol, pan);
         sq1.SetPitch(pitch);
     }
     if (sq2.GetOwner() == owner) {
-        sq2.SetVol(leftVol, rightVol);
+        sq2.SetVol(vol, pan);
         sq2.SetPitch(pitch);
     }
     if (wave.GetOwner() == owner) {
-        wave.SetVol(leftVol, rightVol);
+        wave.SetVol(vol, pan);
         wave.SetPitch(pitch);
     }
     if (noise.GetOwner() == owner) {
-        noise.SetVol(leftVol, rightVol);
+        noise.SetVol(vol, pan);
         noise.SetPitch(pitch);
     }
 }
@@ -451,15 +451,8 @@ void SoundMixer::renderToBuffer()
         rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
         lVol = vol.fromVolLeft;
         rVol = vol.fromVolRight;
-        //__print_debug(FormatString("fL=%f fR=%f tL=%f tR=%f", vol.fromVolLeft, vol.fromVolRight, vol.toVolLeft, vol.toVolRight));
         interStep = wave.GetFreq() * this->sampleRateReciprocal;
         buf = &sampleBuffer[0];
-
-        //__print_debug(FormatString("pat mixer: %p", pat));
-        for (int i = 0; i < 32; i++) 
-        {
-            //__print_debug(FormatString("%f", pat[i]));
-        }
 
         for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
         {

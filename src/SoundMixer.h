@@ -26,9 +26,9 @@ namespace agbplay
         public:
             SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, float mvl);
             ~SoundMixer();
-            void NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, bool fixed);
-            void NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, CGBType type);
-            void SetTrackPV(void *owner, uint8_t volLeft, uint8_t volRight, int16_t pitch);
+            void NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
+            void NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, CGBType type);
+            void SetTrackPV(void *owner, uint8_t vol, int8_t pan, int16_t pitch);
             // optional FIXME: reduce complexity by replacing the owner pointers with int pointers to a note reference counter so the note amount tracking becomes obsolete
             int TickTrackNotes(void *owner, std::bitset<NUM_NOTES>& activeNotes);
             void StopChannel(void *owner, uint8_t key);

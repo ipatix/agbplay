@@ -417,8 +417,8 @@ void StreamGenerator::processSequenceTick()
         } // end of single tick processing handler
         if (updatePV || cTrk.mod > 0) {
             sm.SetTrackPV((void *)&cTrk, 
-                    cTrk.GetLeftVol(),
-                    cTrk.GetRightVol(),
+                    cTrk.vol,
+                    cTrk.pan,
                     cTrk.pitch = cTrk.GetPitch());
         } else {
             cTrk.pitch = cTrk.GetPitch();
@@ -445,8 +445,8 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
                     sbnk.GetSampInfo(trk.prog, oldKey),
                     sbnk.GetADSR(trk.prog, oldKey),
                     note,
-                    trk.GetLeftVol(),
-                    trk.GetRightVol(),
+                    trk.vol,
+                    trk.pan,
                     trk.GetPitch(),
                     false);
             break;
@@ -456,8 +456,8 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
                     sbnk.GetSampInfo(trk.prog, oldKey),
                     sbnk.GetADSR(trk.prog, oldKey),
                     note,
-                    trk.GetLeftVol(),
-                    trk.GetRightVol(),
+                    trk.vol,
+                    trk.pan,
                     trk.GetPitch(),
                     true);
             break;
@@ -467,8 +467,8 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
                     sbnk.GetCGBDef(trk.prog, oldKey),
                     sbnk.GetADSR(trk.prog, oldKey),
                     note, 
-                    trk.GetLeftVol(), 
-                    trk.GetRightVol(), 
+                    trk.vol, 
+                    trk.pan, 
                     trk.GetPitch(), 
                     CGBType::SQ1);
             break;
@@ -478,8 +478,8 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
                     sbnk.GetCGBDef(trk.prog, oldKey),
                     sbnk.GetADSR(trk.prog, oldKey),
                     note, 
-                    trk.GetLeftVol(), 
-                    trk.GetRightVol(), 
+                    trk.vol, 
+                    trk.pan, 
                     trk.GetPitch(), 
                     CGBType::SQ2);
             break;
@@ -489,8 +489,8 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
                     sbnk.GetCGBDef(trk.prog, oldKey),
                     sbnk.GetADSR(trk.prog, oldKey),
                     note, 
-                    trk.GetLeftVol(), 
-                    trk.GetRightVol(), 
+                    trk.vol, 
+                    trk.pan, 
                     trk.GetPitch(), 
                     CGBType::WAVE);
             break;
@@ -500,8 +500,8 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
                     sbnk.GetCGBDef(trk.prog, oldKey),
                     sbnk.GetADSR(trk.prog, oldKey),
                     note, 
-                    trk.GetLeftVol(), 
-                    trk.GetRightVol(), 
+                    trk.vol, 
+                    trk.pan, 
                     trk.GetPitch(), 
                     CGBType::NOISE);
             break;

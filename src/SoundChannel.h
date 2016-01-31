@@ -9,11 +9,11 @@ namespace agbplay
     class SoundChannel
     {
         public:
-            SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, bool fixed);
+            SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
             ~SoundChannel();
             void *GetOwner();
             float GetFreq();
-            void SetVol(uint8_t leftVol, uint8_t rightVol);
+            void SetVol(uint8_t vol, int8_t pan);
             //uint8_t GetVolL();
             //uint8_t GetVolR();
             ChnVol GetVol();

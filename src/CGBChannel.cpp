@@ -40,6 +40,8 @@ void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
     this->owner = owner;
     this->note = note;
     this->def = def;
+    this->leftVol = 0;
+    this->rightVol = 0;
     this->env.att = env.att & 0x7;
     this->env.dec = env.dec & 0x7;
     this->env.sus = env.sus & 0xF;
@@ -57,27 +59,21 @@ float CGBChannel::GetFreq()
     return freq;
 }
 
-void CGBChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
+void CGBChannel::SetVol(uint8_t vol, int8_t pan)
 {
-    // FIXME check for correct type conversion
     if (eState < EnvState::REL) {
-#ifdef CGB_PAN_SNAP
-        if (leftVol << 1 > rightVol) {
+        if (pan < -32) {
             // snap left
-            this->leftVol = (note.velocity * (leftVol + rightVol)) >> 12;
+            this->leftVol = uint8_t((note.velocity * vol) >> 11);
             this->rightVol = 0;
-        } else if (rightVol << 1 > leftVol) {
+        } else if (pan > 32) {
             // snap right
-            this->rightVol = (note.velocity * (leftVol + rightVol)) >> 12;
+            this->rightVol = uint8_t((note.velocity * vol) >> 11);
             this->leftVol = 0;
         } else {
             // snap mid
-            this->leftVol = this->rightVol = (note.velocity * (leftVol + rightVol)) >> 12;
+            this->leftVol = this->rightVol = uint8_t((note.velocity * vol) >> 11);
         }
-#else
-        this->leftVol = (leftVol * note.velocity) >> 11;
-        this->rightVol = (rightVol * note.velocity) >> 11;
-#endif
     }
 }
 
@@ -327,7 +323,7 @@ WaveChannel::~WaveChannel()
 
 void WaveChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
 {
-    env.sus = (env.sus * 2) > 0xF ? 0xF : env.sus * 2;
+    env.sus = (env.sus * 2) > 0xF ? 0xF : uint8_t(env.sus * 2);
     CGBChannel::Init(owner, def, note, env);
 
     float sum = 0.0f;

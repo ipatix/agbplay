@@ -14,7 +14,7 @@ using namespace agbplay;
  * public SoundChannel
  */
 
-SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t leftVol, uint8_t rightVol, int16_t pitch, bool fixed)
+SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed)
 {
     this->owner = owner;
     this->note = note;
@@ -23,7 +23,7 @@ SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, u
     this->interPos = 0.0f;
     this->eState = EnvState::INIT;
     this->envInterStep = 0;
-    SetVol(leftVol, rightVol);
+    SetVol(vol, pan);
     this->fixed = fixed;
     SetPitch(pitch);
     // if instant attack is ative directly max out the envelope to not cut off initial sound
@@ -49,12 +49,13 @@ float SoundChannel::GetFreq()
     return freq;
 }
 
-void SoundChannel::SetVol(uint8_t leftVol, uint8_t rightVol)
+void SoundChannel::SetVol(uint8_t vol, int8_t pan)
 {
     if (eState < EnvState::REL) {
-        this->leftVol = uint8_t(note.velocity * leftVol / 128);
-        this->rightVol = uint8_t(note.velocity * rightVol / 128);
+        this->leftVol = uint8_t(note.velocity * vol * (-pan + 64) / 8192);
+        this->rightVol = uint8_t(note.velocity * vol * (pan + 64) / 8192);
     }
+    __print_debug(FormatString("left=%d, right=%d", (int)leftVol, (int)rightVol));
 }
 
 ChnVol SoundChannel::GetVol()

@@ -363,16 +363,6 @@ int16_t Sequence::Track::GetPitch()
     return int16_t(bend * bendr + tune + m);
 }
 
-uint8_t Sequence::Track::GetLeftVol()
-{
-    return uint8_t(vol * (-pan + 64) / 64); // maybe devide by 128 so nothing overflows
-}
-
-uint8_t Sequence::Track::GetRightVol()
-{
-    return uint8_t(vol * (pan + 64) / 64);
-}
-
 /*
  * public
  * SongTable

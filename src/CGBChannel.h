@@ -14,7 +14,7 @@ namespace agbplay
             virtual void Init(void *owner, CGBDef def, Note note, ADSR env);
             void *GetOwner();
             float GetFreq();
-            void SetVol(uint8_t leftVol, uint8_t rightVol);
+            void SetVol(uint8_t vol, int8_t pan);
             ChnVol GetVol();
             CGBDef GetDef();
             uint8_t GetMidiKey();

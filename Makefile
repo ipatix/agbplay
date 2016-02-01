@@ -1,12 +1,12 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -D DEBUG -g -pg -O2
+CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -D DEBUG -g -pg -O3
 BINARY = agbplay
 
 SYS = $(shell $(CXX) -dumpmachine)
 
 ifneq (, $(findstring linux, $(SYS)))
 	# clang doesn't seem to compile correctly on windows but on linux it works
-	CXX = clang++
+	CXX = g++
 	LIBS = ../portaudio/lib/.libs/libportaudio.a -lm -lncursesw -lboost_system -lboost_thread -pthread -lasound
 else ifneq (, $(findstring cygwin, $(SYS))$(findstring windows, $(SYS)))
 	LIBS = ../portaudio/lib/.libs/libportaudio.dll.a -lm -lncursesw -lboost_system -lboost_thread -pthread

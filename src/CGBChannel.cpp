@@ -323,7 +323,7 @@ WaveChannel::~WaveChannel()
 
 void WaveChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
 {
-    env.sus = (env.sus * 2) > 0xF ? 0xF : uint8_t(env.sus * 2);
+    //env.sus = (env.sus * 2) > 0xF ? 0xF : uint8_t(env.sus * 2);
     CGBChannel::Init(owner, def, note, env);
 
     float sum = 0.0f;

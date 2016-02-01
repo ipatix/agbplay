@@ -55,7 +55,6 @@ void SoundChannel::SetVol(uint8_t vol, int8_t pan)
         this->leftVol = uint8_t(note.velocity * vol * (-pan + 64) / 8192);
         this->rightVol = uint8_t(note.velocity * vol * (pan + 64) / 8192);
     }
-    __print_debug(FormatString("left=%d, right=%d", (int)leftVol, (int)rightVol));
 }
 
 ChnVol SoundChannel::GetVol()

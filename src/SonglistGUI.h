@@ -3,29 +3,18 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+
 #include "CursesWin.h"
+#include "SongEntry.h"
 
-using namespace std;
-
-namespace agbplay {
-    class SongEntry {
-        public:
-            SongEntry(string name, uint16_t uid);
-            ~SongEntry();
-
-            uint16_t GetUID();
-            string name;
-        private:
-            uint16_t uid;
-    };
-
-    class SonglistGUI : public CursesWin {
+namespace agbplay 
+{
+    class SonglistGUI : public CursesWin 
+    {
         public:
             SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, bool upd);
             virtual ~SonglistGUI();
-            void Resize(uint32_t height, uint32_t width,
-                    uint32_t yPos, uint32_t xPos) override;
-
+            void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;
             virtual void AddSong(SongEntry song);
             virtual void RemoveSong();
             virtual void ClearSongs();
@@ -42,7 +31,7 @@ namespace agbplay {
             void update() override;
             void checkDimensions(uint32_t height, uint32_t width);
 
-            vector<SongEntry> *songlist;
+            std::vector<SongEntry> *songlist;
             uint32_t viewPos;
             uint32_t cursorPos;
             uint32_t contentHeight;

@@ -14,9 +14,9 @@ using namespace std;
  * -- public --
  */
 
-SonglistGUI::SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, bool upd
-        ) : CursesWin(height, width, yPos, xPos) {
-    // init vars and create window
+SonglistGUI::SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, bool upd) 
+    : CursesWin(height, width, yPos, xPos) 
+{
     checkDimensions(height, width);
     this->songlist = new vector<SongEntry>;
     this->viewPos = 0;
@@ -27,11 +27,13 @@ SonglistGUI::SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_
     if (upd) update();
 }
 
-SonglistGUI::~SonglistGUI() {
+SonglistGUI::~SonglistGUI() 
+{
     delete this->songlist;
 }
 
-void SonglistGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) {
+void SonglistGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
+{
     checkDimensions(height, width);
     CursesWin::Resize(height, width, yPos, xPos);
     this->contentHeight = height - 1;
@@ -39,53 +41,64 @@ void SonglistGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_
     update();
 }
 
-void SonglistGUI::Enter() {
+void SonglistGUI::Enter() 
+{
     cursorVisible = true;
     update();
 }
 
-void SonglistGUI::Leave() {
+void SonglistGUI::Leave() 
+{
     cursorVisible = false;
     update();
 }
 
-void SonglistGUI::ScrollDown() {
+void SonglistGUI::ScrollDown() 
+{
     scrollDownNoUpdate();
     update();
 }
 
-void SonglistGUI::ScrollUp() {
+void SonglistGUI::ScrollUp() 
+{
     scrollUpNoUpdate();
     update();
 }
 
-void SonglistGUI::PageDown() {
-    for (uint32_t i = 0; i < contentHeight; i++) {
+void SonglistGUI::PageDown() 
+{
+    for (uint32_t i = 0; i < contentHeight; i++) 
+    {
         scrollDownNoUpdate();
     }
     update();
 }
 
-void SonglistGUI::PageUp() {
-    for (uint32_t i = 0; i < contentHeight; i++) {
+void SonglistGUI::PageUp() 
+{
+    for (uint32_t i = 0; i < contentHeight; i++) 
+    {
         scrollUpNoUpdate();
     }
     update();
 }
 
-void SonglistGUI::AddSong(SongEntry entry) {
+void SonglistGUI::AddSong(SongEntry entry) 
+{
     songlist->push_back(entry);
     update();
 }
 
-void SonglistGUI::ClearSongs() {
+void SonglistGUI::ClearSongs() 
+{
     viewPos = 0;
     cursorPos = 0;
     songlist->clear();
     update();
 }
 
-void SonglistGUI::RemoveSong() {
+void SonglistGUI::RemoveSong() 
+{
     if (songlist->size() == 0) return;
     songlist->erase(songlist->begin() + cursorPos);
     if (cursorPos != 0 && cursorPos >= songlist->size()) {
@@ -94,7 +107,8 @@ void SonglistGUI::RemoveSong() {
     update();
 }
 
-SongEntry SonglistGUI::GetSong() {
+SongEntry SonglistGUI::GetSong() 
+{
     // will throw exception of out of bounds
     return songlist->at(cursorPos);
 }
@@ -103,7 +117,8 @@ SongEntry SonglistGUI::GetSong() {
  * -- private --
  */
 
-void SonglistGUI::scrollDownNoUpdate() {
+void SonglistGUI::scrollDownNoUpdate() 
+{
     // return if bounds are reached
     if (cursorPos + 1 >= songlist->size())
         return;
@@ -114,7 +129,8 @@ void SonglistGUI::scrollDownNoUpdate() {
         viewPos++;
 }
 
-void SonglistGUI::scrollUpNoUpdate() {
+void SonglistGUI::scrollUpNoUpdate() 
+{
     // return if bounds are reached
     if (cursorPos == 0)
         return;
@@ -123,8 +139,8 @@ void SonglistGUI::scrollUpNoUpdate() {
         viewPos--;
 }
 
-void SonglistGUI::update() {
-    //UIMutex.lock();
+void SonglistGUI::update() 
+{
     string bar = "Songlist:";
     bar.resize(contentWidth, ' ');
     wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
@@ -145,29 +161,12 @@ void SonglistGUI::update() {
         mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, songText.c_str());
     }
     wrefresh(winPtr);
-    //UIMutex.unlock();
 }
 
-void SonglistGUI::checkDimensions(uint32_t height, uint32_t width) {
+void SonglistGUI::checkDimensions(uint32_t height, uint32_t width) 
+{
     if (height <= 1)
         throw MyException("Songlist GUI height must not be 0");
     if (width < 5)
         throw MyException("Songlist GUI width must be wider than 5");
-}
-
-/*
- * SongEntry
- */
-
-SongEntry::SongEntry(string name, uint16_t uid) {
-    this->name = name;
-    this->uid = uid;
-}
-
-SongEntry::~SongEntry() {
-    // empty
-}
-
-uint16_t SongEntry::GetUID() {
-    return uid;
 }

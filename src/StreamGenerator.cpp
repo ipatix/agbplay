@@ -279,6 +279,7 @@ void StreamGenerator::processSequenceTick()
                             cTrk.prog = reader[cTrk.pos++];
                             // no pv upgrade should be required here
                             cTrk.bend = 0;
+                            // TODO resetting bend seems to mess up certain things
                             break;
                         case 0xBE:
                             // VOL

@@ -10,10 +10,13 @@ namespace agbplay
     class ConfigManager
     {
         public:
-            ConfigManager(std::string configFile);
+            ConfigManager(std::string configPath);
             ~ConfigManager();
+
+            GameConfig& GetConfig(std::string gameCode);
         private:
             std::vector<GameConfig> configs;
-            std::string configFile;
+            std::string configPath;
+
     };
 }

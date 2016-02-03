@@ -22,35 +22,6 @@ PlaylistGUI::PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_
     // init
     ticked = new vector<bool>;
     this->gameCode = gameCode;
-
-    // parse things from config file
-    ifstream configFile("agbplay.ini");
-    if (!configFile.is_open()) {
-        throw MyException(FormatString("Error while opening config file: %s", strerror(errno)));
-    }
-    string line;
-    string gameEntry = FormatString("[%s]", gameCode);
-    bool thisGame = false;
-    regex expression("^\\s*(\\d+)\\s*=\\s*(.*)$");
-    while (getline(configFile, line)) {
-        if (configFile.bad()) {
-            throw MyException(FormatString("Error while reading config file: %s", strerror(errno)));
-        }
-        if (line == gameEntry) {
-            thisGame = true;
-            continue;
-        }
-        if (!thisGame) {
-            continue;
-        }
-        smatch sm;
-        if (!regex_match(line, sm, expression) || sm.size() != 3) {
-            thisGame = false;
-            continue;
-        }
-        AddSong(SongEntry(sm[2], (uint16_t(stoi(sm[1])))));
-    }
-    
     dragging = false;
     update();
 }

@@ -10,8 +10,9 @@ using namespace std;
  * public
  */
 
-RomviewGUI::RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, Rom& rrom, SoundData& rsdata
-        ) : CursesWin(height, width, yPos, xPos) {
+RomviewGUI::RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, Rom& rrom, SoundData& rsdata) 
+    : CursesWin(height, width, yPos, xPos) 
+{
     rrom.Seek(0xA0); // seek to game title;
     gameName = rrom.ReadString(12);
     gameCode = rrom.ReadString(4);
@@ -20,10 +21,12 @@ RomviewGUI::RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t 
     update();
 }
 
-RomviewGUI::~RomviewGUI() {
+RomviewGUI::~RomviewGUI() 
+{
 }
 
-void RomviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) {
+void RomviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
+{
     CursesWin::Resize(height, width, yPos, xPos);
     update();
 }
@@ -32,8 +35,8 @@ void RomviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t
  * private
  */
 
-void RomviewGUI::update() {
-    //UIMutex.lock();
+void RomviewGUI::update() 
+{
     // clear
     wattrset(winPtr, A_NORMAL);
     wclear(winPtr);
@@ -56,5 +59,4 @@ void RomviewGUI::update() {
     mvwprintw(winPtr, 11, 2, "Song Amount:");
     mvwprintw(winPtr, 12, 2, "%d", numSongs);
     wrefresh(winPtr);
-    //UIMutex.unlock();
 }

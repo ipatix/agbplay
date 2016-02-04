@@ -1,11 +1,16 @@
+#include <fstream>
+#include <regex>
+
 #include "ConfigManager.h"
 #include "Util.h"
+#include "MyException.h"
 
 using namespace std;
 using namespace agbplay;
 
 ConfigManager::ConfigManager(std::string configPath)
 {
+    this->configPath = configPath;
     // parse things from config file
     ifstream configFile(configPath);
     if (!configFile.is_open()) {
@@ -41,7 +46,7 @@ ConfigManager::ConfigManager(std::string configPath)
             currentGame->SetEngineRev(uint8_t(minmax<int>(0, stoi(sm[1]), 255)));
         }
         else if (regex_match(line, sm, cfgRevTypeExpr) && sm.size() == 2 && currentGame != nullptr) {
-            string& res = sm[1];
+            string res = sm[1];
             if (res == "NORMAL") {
                 currentGame->SetRevType(ReverbType::NORMAL);
             }
@@ -53,4 +58,48 @@ ConfigManager::ConfigManager(std::string configPath)
             }
         }
     }
+}
+
+ConfigManager::~ConfigManager()
+{
+    ofstream configFile(configPath);
+    if (!configFile.is_open()) {
+        throw MyException(FormatString("Error while writing config file: %s", strerror(errno)));
+    }
+    for (GameConfig& cfg : configs)
+    {
+        configFile << FormatString("[%s]", cfg.GetGameCode().c_str()) << endl;
+        configFile << FormatString("ENG_VOL = %d", (int)cfg.GetPCMVol()) << endl;
+        configFile << FormatString("ENG_FREQ = %d", (int)cfg.GetEngineFreq()) << endl;
+        configFile << FormatString("ENG_REV = %d", (int)cfg.GetEngineRev()) << endl;
+        configFile << "ENG_REV_TYPE = ";
+        switch (cfg.GetRevType()) {
+            case ReverbType::NORMAL:
+                configFile << "NORMAL";
+                break;
+            case ReverbType::GS1:
+                configFile << "GS1";
+                break;
+            case ReverbType::GS2:
+                configFile << "GS2";
+                break;
+        }
+        configFile << endl;
+        for (SongEntry entr : cfg.GetGameEntries())
+        {
+            configFile << FormatString("%04d = %s", (int)entr.GetUID(), entr.name.c_str()) << endl;
+        }
+    }
+}
+
+GameConfig& ConfigManager::GetConfig(string gameCode)
+{
+    for (GameConfig& game : configs)
+    {
+        if (game.GetGameCode() == gameCode) {
+            return game;
+        }
+    }
+    configs.emplace_back(gameCode);
+    return configs[configs.size() - 1];
 }

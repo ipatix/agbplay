@@ -15,16 +15,16 @@ using namespace agbplay;
  * public PlayerInterface
  */
 
-PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos, EnginePars pars) 
-    : rom(_rom), seq(initSongPos, 16, _rom) {
+PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos, GameConfig& _gameCfg) 
+    : rom(_rom), gameCfg(_gameCfg), seq(initSongPos, 16, _rom)
+{
     this->trackUI = trackUI;
     this->playerState = State::THREAD_DELETED;
-    this->pars = pars;
     this->speedFactor = 64;
     this->avgCountdown = 0;
     this->avgVolLeft = 0.0f;
     this->avgVolRight = 0.0f;
-    sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1, float(speedFactor) / 64.0f);
+    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
 }
 
 PlayerInterface::~PlayerInterface() 
@@ -41,7 +41,7 @@ void PlayerInterface::LoadSong(long songPos, uint8_t trackLimit)
     seq = Sequence(songPos, trackLimit, rom);
     trackUI->SetState(seq);
     delete sg;
-    sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1, float(speedFactor) / 64.0f);
+    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
     if (play)
         Play();
 }
@@ -192,7 +192,7 @@ void PlayerInterface::threadWorker()
         switch (playerState) {
             case State::RESTART:
                 delete sg;
-                sg = new StreamGenerator(seq, EnginePars(ENG_VOL, ENG_REV, ENG_RATE), 1, float(speedFactor) / 64.0f);
+                sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
                 playerState = State::PLAYING;
             case State::PLAYING:
                 {

@@ -169,6 +169,12 @@ bool Rom::ValidPointer(agbptr_t ptr)
     return true;
 }
 
+string Rom::GetROMCode()
+{
+    Seek(0xAC);
+    return ReadString(4);
+}
+
 /*
  * private
  */

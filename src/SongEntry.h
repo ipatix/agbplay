@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <string>
+
 namespace agbplay
 {
     class SongEntry 
@@ -9,8 +12,8 @@ namespace agbplay
             ~SongEntry();
 
             uint16_t GetUID();
-        private:
             std::string name;
+        private:
             uint16_t uid;
     };
 }

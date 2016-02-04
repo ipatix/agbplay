@@ -15,21 +15,18 @@
 using namespace agbplay;
 using namespace std;
 
-WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata) 
+WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) 
+    : rom(rrom), sdata(rsdata), cfg("agbplay.ini"), thisCfg(cfg.GetConfig(rom.GetROMCode()))
 {
     // init ncurses stuff
-    //CursesWin::UIMutex.lock();
     this->containerWin = initscr();
     getmaxyx(stdscr, height, width);
     if (has_colors() == false)
         throw MyException("Error, your terminal doesn't support colors");
-    //CursesWin::UIMutex.unlock();
     initColors();
-    //CursesWin::UIMutex.lock();
     noecho();
     curs_set(0);
     keypad(stdscr, true);
-    //CursesWin::UIMutex.unlock();
 
     this->play = false;
     this->cursorl = SONGLIST;
@@ -65,14 +62,12 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
     }
     songUI->Enter();
 
-    rom.Seek(0xAC);
-    string gameCode = rom.ReadString(4);
     playUI = new PlaylistGUI(
             PLAYLIST_HEIGHT(height, width),
             PLAYLIST_WIDTH(height, width),
             PLAYLIST_YPOS(height, width),
             PLAYLIST_XPOS(height, width),
-            gameCode);
+            thisCfg);
 
     titleUI = new TitlebarGUI(
             TITLEBAR_HEIGHT(height, width),
@@ -100,7 +95,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) : rom(rrom), sdata(rsdata)
             VUMETER_XPOS(height, width));
 
     rom.Seek(sdata.sTable->GetSongTablePos());
-    mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos(), EnginePars(15, 0, 4));
+    mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos(), thisCfg);
     mplay->LoadSong(sdata.sTable->GetPosOfSong(0), 16); // TODO read track limit from rom rather than using fixed value
 }
 

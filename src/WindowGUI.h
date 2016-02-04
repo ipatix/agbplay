@@ -57,6 +57,7 @@
 #include "TrackviewGUI.h"
 #include "PlayerInterface.h"
 #include "VUMeterGUI.h"
+#include "ConfigManager.h"
 
 namespace agbplay 
 {
@@ -99,6 +100,8 @@ namespace agbplay
             // resource
             Rom& rom;
             SoundData& sdata;
+            ConfigManager cfg;
+            GameConfig& thisCfg;
             PlayerInterface *mplay;
 
             // ncurses windows

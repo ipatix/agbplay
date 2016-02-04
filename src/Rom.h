@@ -34,6 +34,7 @@ namespace agbplay {
             long GetPos();
             size_t Size();
             bool ValidPointer(agbptr_t ptr);
+            std::string GetROMCode();
         private:
             void checkBounds(long pos, size_t typesz);
             void verify();

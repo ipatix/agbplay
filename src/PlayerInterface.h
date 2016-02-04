@@ -10,13 +10,14 @@
 #include "DisplayContainer.h"
 #include "StreamGenerator.h"
 #include "Constants.h"
+#include "GameConfig.h"
 
 namespace agbplay
 {
     class PlayerInterface 
     {
         public:
-            PlayerInterface(Rom& rom, TrackviewGUI *trackUI, long initSongPos, EnginePars pars);
+            PlayerInterface(Rom& rom, TrackviewGUI *trackUI, long initSongPos, GameConfig& _gameCfg);
             ~PlayerInterface();
             
             void LoadSong(long songPos, uint8_t trackLimit);
@@ -37,10 +38,10 @@ namespace agbplay
             float avgVolRight;
 
             PaStream *audioStream;
-            EnginePars pars;
             uint32_t speedFactor; // 64 = normal
             volatile enum class State : int { RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED } playerState;
             Rom& rom;
+            GameConfig& gameCfg;
             Sequence seq;
             StreamGenerator *sg;
             TrackviewGUI *trackUI;

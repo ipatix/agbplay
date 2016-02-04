@@ -1,7 +1,5 @@
 #include <algorithm>
 #include <cstring>
-#include <regex>
-#include <fstream>
 
 #include "PlaylistGUI.h"
 #include "ColorDef.h"
@@ -16,71 +14,78 @@ using namespace std;
  * public
  */
 
-PlaylistGUI::PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, string gameCode) 
-    : SonglistGUI(height, width, yPos, xPos, false) 
+PlaylistGUI::PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, GameConfig& _thisGameConfig) 
+    : SonglistGUI(height, width, yPos, xPos, false), thisGameConfig(_thisGameConfig)
 {
     // init
-    ticked = new vector<bool>;
+    ticked = new vector<bool>(_thisGameConfig.GetGameEntries().size(), true);
     this->gameCode = gameCode;
     dragging = false;
     update();
 }
 
 
-PlaylistGUI::~PlaylistGUI() {
-    // TODO save entries to config
-
+PlaylistGUI::~PlaylistGUI() 
+{
     delete ticked;
 }
 
-void PlaylistGUI::AddSong(SongEntry entry) {
-    songlist->push_back(entry);
+void PlaylistGUI::AddSong(SongEntry entry) 
+{
+    thisGameConfig.GetGameEntries().push_back(entry);
     ticked->push_back(true);
     update();
 }
 
-void PlaylistGUI::RemoveSong() {
-    if (songlist->size() == 0) return;
-    songlist->erase(songlist->begin() + cursorPos);
+void PlaylistGUI::RemoveSong() 
+{
+    if (thisGameConfig.GetGameEntries().size() == 0) return;
+    thisGameConfig.GetGameEntries().erase(thisGameConfig.GetGameEntries().begin() + cursorPos);
     ticked->erase(ticked->begin() + cursorPos);
-    if (cursorPos != 0 && cursorPos >= songlist->size()) {
+    if (cursorPos != 0 && cursorPos >= thisGameConfig.GetGameEntries().size()) {
         cursorPos--;
     }
     update();
 }
 
-void PlaylistGUI::ClearSongs() {
+void PlaylistGUI::ClearSongs() 
+{
     viewPos = 0;
     cursorPos = 0;
-    songlist->clear();
+    thisGameConfig.GetGameEntries().clear();
     ticked->clear();
     update();
 }
 
-void PlaylistGUI::Tick() {
+void PlaylistGUI::Tick() 
+{
     if (ticked->size() == 0) return;
     ticked->at(cursorPos) = true;
     update();
 }
 
-void PlaylistGUI::Untick() {
+void PlaylistGUI::Untick() 
+{
     if (ticked->size() == 0) return;
     ticked->at(cursorPos) = false;
     update();
 }
 
-void PlaylistGUI::ToggleTick() {
+void PlaylistGUI::ToggleTick() 
+{
     if (ticked->size() == 0) return;
     ticked->at(cursorPos) = !ticked->at(cursorPos);
     update();
 }
 
-void PlaylistGUI::ToggleDrag() {
+void PlaylistGUI::ToggleDrag() 
+{
     dragging = !dragging;
     update();
 }
 
-void PlaylistGUI::Leave() {
+void PlaylistGUI::Leave() 
+{
     dragging = false;
     SonglistGUI::Leave();
 }
@@ -89,7 +94,8 @@ void PlaylistGUI::Leave() {
  * private
  */
 
-void PlaylistGUI::update() {
+void PlaylistGUI::update() 
+{
     //UIMutex.lock();
     string bar = "Playlist:";
     bar.resize(contentWidth, ' ');
@@ -107,9 +113,9 @@ void PlaylistGUI::update() {
         else 
             wattrset(winPtr, COLOR_PAIR(Color::YEL_DEF));
         string songText;
-        if (entry < songlist->size()) {
+        if (entry < thisGameConfig.GetGameEntries().size()) {
             songText = (ticked->at(entry)) ? "[x] " : "[ ] ";
-            songText += (*songlist)[entry].name;
+            songText += thisGameConfig.GetGameEntries()[entry].name;
         } else {
             songText = "";
         }
@@ -120,25 +126,28 @@ void PlaylistGUI::update() {
     //UIMutex.unlock();
 }
 
-void PlaylistGUI::scrollDownNoUpdate() {
+void PlaylistGUI::scrollDownNoUpdate() 
+{
     uint32_t pcursor = cursorPos;
     SonglistGUI::scrollDownNoUpdate();
     if (dragging && pcursor != cursorPos)
         swapEntry(pcursor, cursorPos);
 }
 
-void PlaylistGUI::scrollUpNoUpdate() { 
+void PlaylistGUI::scrollUpNoUpdate() 
+{
     uint32_t pcursor = cursorPos;
     SonglistGUI::scrollUpNoUpdate();
     if (dragging && pcursor != cursorPos)
         swapEntry(pcursor, cursorPos);
 }
 
-void PlaylistGUI::swapEntry(uint32_t a, uint32_t b) {
-    size_t s = songlist->size();
+void PlaylistGUI::swapEntry(uint32_t a, uint32_t b) 
+{
+    size_t s = thisGameConfig.GetGameEntries().size();
     if (a >= s || b >= s)
         return;
-    swap((*songlist)[a], (*songlist)[b]);
+    swap(thisGameConfig.GetGameEntries()[a], thisGameConfig.GetGameEntries()[b]);
     swap((*ticked)[a], (*ticked)[b]);
     update();
 }

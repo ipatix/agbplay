@@ -66,7 +66,7 @@ void GameConfig::SetEngineRev(uint8_t engineRev)
     this->engineRev = engineRev;
 }
 
-vector<SongEntry> GameConfig::GetGameEntries()
+vector<SongEntry>& GameConfig::GetGameEntries()
 {
     return gameEntries;
 }

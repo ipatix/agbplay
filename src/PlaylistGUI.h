@@ -1,11 +1,12 @@
 #pragma once
 
 #include "SonglistGUI.h"
+#include "GameConfig.h"
 
 namespace agbplay {
     class PlaylistGUI : public SonglistGUI {
         public:
-            PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, std::string gameCode);
+            PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, GameConfig& _thisGameConfig);
             ~PlaylistGUI();
 
             void AddSong(SongEntry) override;
@@ -22,7 +23,9 @@ namespace agbplay {
             void scrollDownNoUpdate() override;
             void scrollUpNoUpdate() override;
 
-            vector<bool> *ticked;
+            GameConfig& thisGameConfig;
+
+            std::vector<bool> *ticked;
             std::string gameCode;
             bool dragging;
     };

@@ -96,7 +96,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata)
 
     rom.Seek(sdata.sTable->GetSongTablePos());
     mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos(), thisCfg);
-    mplay->LoadSong(sdata.sTable->GetPosOfSong(0), 16); // TODO read track limit from rom rather than using fixed value
+    mplay->LoadSong(sdata.sTable->GetPosOfSong(0)); // TODO read track limit from rom rather than using fixed value
 }
 
 WindowGUI::~WindowGUI() 
@@ -269,13 +269,13 @@ void WindowGUI::cycleFocus()
             songUI->Leave();
             cursorl = PLAYLIST;
             playUI->Enter();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()), 16));
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
         case PLAYLIST:
             playUI->Leave();
             cursorl = SONGLIST;
             songUI->Enter();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID()), 16));
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
             break;
         default:
             break;
@@ -318,11 +318,11 @@ void WindowGUI::scrollDown()
     switch (cursorl) {
         case SONGLIST:
             songUI->ScrollDown();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID()), 16));
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
             break;
         case PLAYLIST:
             playUI->ScrollDown();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()), 16));
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
         case TRACKS:
             trackUI->ScrollDown();
@@ -337,11 +337,11 @@ void WindowGUI::scrollUp()
     switch (cursorl) {
         case SONGLIST:
             songUI->ScrollUp();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID()), 16));
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
             break;
         case PLAYLIST:
             playUI->ScrollUp();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()), 16));
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
         case TRACKS:
             trackUI->ScrollUp();
@@ -356,11 +356,11 @@ void WindowGUI::pageDown()
     switch (cursorl) {
         case SONGLIST:
             songUI->PageDown();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID()), 16));
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
             break;
         case PLAYLIST:
             playUI->PageDown();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()), 16));
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
         case TRACKS:
             trackUI->PageDown();
@@ -375,11 +375,11 @@ void WindowGUI::pageUp()
     switch (cursorl) {
         case SONGLIST:
             songUI->PageUp();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID()), 16));
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
             break;
         case PLAYLIST:
             playUI->PageUp();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()), 16));
+            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
         case TRACKS:
             trackUI->PageUp();
@@ -410,5 +410,5 @@ void WindowGUI::del()
 {
     if (cursorl != PLAYLIST) return;
     playUI->RemoveSong();
-    TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()), 16));
+    TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
 }

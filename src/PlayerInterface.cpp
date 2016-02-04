@@ -34,11 +34,11 @@ PlayerInterface::~PlayerInterface()
     delete sg;
 }
 
-void PlayerInterface::LoadSong(long songPos, uint8_t trackLimit)
+void PlayerInterface::LoadSong(long songPos)
 {
     bool play = playerState == State::PLAYING;
     Stop();
-    seq = Sequence(songPos, trackLimit, rom);
+    seq = Sequence(songPos, gameCfg.GetTrackLimit(), rom);
     trackUI->SetState(seq);
     delete sg;
     sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);

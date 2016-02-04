@@ -20,7 +20,7 @@ namespace agbplay
             PlayerInterface(Rom& rom, TrackviewGUI *trackUI, long initSongPos, GameConfig& _gameCfg);
             ~PlayerInterface();
             
-            void LoadSong(long songPos, uint8_t trackLimit);
+            void LoadSong(long songPos);
             void Play();
             void Pause();
             void Stop();

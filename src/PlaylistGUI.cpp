@@ -129,7 +129,11 @@ void PlaylistGUI::update()
 void PlaylistGUI::scrollDownNoUpdate() 
 {
     uint32_t pcursor = cursorPos;
-    SonglistGUI::scrollDownNoUpdate();
+    if (cursorPos + 1 >= thisGameConfig.GetGameEntries().size())
+        return;
+    cursorPos++;
+    if (viewPos + contentHeight < thisGameConfig.GetGameEntries().size() && cursorPos > viewPos + contentHeight - 5)
+        viewPos++;
     if (dragging && pcursor != cursorPos)
         swapEntry(pcursor, cursorPos);
 }
@@ -137,7 +141,11 @@ void PlaylistGUI::scrollDownNoUpdate()
 void PlaylistGUI::scrollUpNoUpdate() 
 {
     uint32_t pcursor = cursorPos;
-    SonglistGUI::scrollUpNoUpdate();
+    if (cursorPos == 0)
+        return;
+    cursorPos--;
+    if (viewPos > 0 && cursorPos < viewPos + 4)
+        viewPos--;
     if (dragging && pcursor != cursorPos)
         swapEntry(pcursor, cursorPos);
 }

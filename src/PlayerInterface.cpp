@@ -16,7 +16,7 @@ using namespace agbplay;
  */
 
 PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos, GameConfig& _gameCfg) 
-    : rom(_rom), gameCfg(_gameCfg), seq(initSongPos, 16, _rom)
+    : rom(_rom), gameCfg(_gameCfg), seq(initSongPos, _gameCfg.GetTrackLimit(), _rom)
 {
     this->trackUI = trackUI;
     this->playerState = State::THREAD_DELETED;

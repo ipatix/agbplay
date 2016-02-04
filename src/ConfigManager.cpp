@@ -24,6 +24,7 @@ ConfigManager::ConfigManager(std::string configPath)
     regex cfgFreqExpr("^\\s*ENG_FREQ\\s*=\\s*(\\d+)\\s*$");
     regex cfgRevExpr("^\\s*ENG_REV\\s*=\\s*(\\d+)\\s*$");
     regex cfgRevTypeExpr("^\\s*ENG_REV_TYPE\\s*=\\s*(.*)\\s*$");
+    regex cfgTrackLimitExpr("^\\s*TRACK_LIMIT\\s*=\\s*(\\d+)\\s*$");
 
     while (getline(configFile, line)) {
         if (configFile.bad()) {
@@ -57,6 +58,9 @@ ConfigManager::ConfigManager(std::string configPath)
                 currentGame->SetRevType(ReverbType::GS2);
             }
         }
+        else if (regex_match(line, sm, cfgTrackLimitExpr) && sm.size() == 2 && currentGame != nullptr) {
+            currentGame->SetTrackLimit(uint8_t(minmax<int>(0, stoi(sm[1]), 16)));
+        }
     }
 }
 
@@ -85,6 +89,7 @@ ConfigManager::~ConfigManager()
                 break;
         }
         configFile << endl;
+        configFile << FormatString("TRACK_LIMIT = %d", (int)cfg.GetTrackLimit()) << endl;
         for (SongEntry entr : cfg.GetGameEntries())
         {
             configFile << FormatString("%04d = %s", (int)entr.GetUID(), entr.name.c_str()) << endl;

@@ -15,6 +15,7 @@ GameConfig::GameConfig(string gameCode)
     pcmVol = 0xF;
     engineFreq = 0x4;
     engineRev = 0x0;
+    trackLimit = 16;
 }
 
 GameConfig::~GameConfig()
@@ -64,6 +65,16 @@ uint8_t GameConfig::GetEngineRev()
 void GameConfig::SetEngineRev(uint8_t engineRev)
 {
     this->engineRev = engineRev;
+}
+
+uint8_t GameConfig::GetTrackLimit()
+{
+    return trackLimit;
+}
+
+void GameConfig::SetTrackLimit(uint8_t trackLimit)
+{
+    this->trackLimit = minmax<uint8_t>(0, trackLimit, 16);
 }
 
 vector<SongEntry>& GameConfig::GetGameEntries()

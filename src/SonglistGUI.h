@@ -18,7 +18,7 @@ namespace agbplay
             virtual void AddSong(SongEntry song);
             virtual void RemoveSong();
             virtual void ClearSongs();
-            SongEntry GetSong();
+            virtual SongEntry& GetSong();
             void Enter();
             virtual void Leave();
             void ScrollDown();
@@ -30,12 +30,12 @@ namespace agbplay
             virtual void scrollUpNoUpdate();
             void update() override;
             void checkDimensions(uint32_t height, uint32_t width);
-
-            std::vector<SongEntry> *songlist;
             uint32_t viewPos;
             uint32_t cursorPos;
             uint32_t contentHeight;
             uint32_t contentWidth;
             bool cursorVisible;
+        private:
+            std::vector<SongEntry> *songlist;
     };
 }

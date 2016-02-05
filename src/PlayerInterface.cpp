@@ -71,7 +71,6 @@ void PlayerInterface::Play()
         case State::THREAD_DELETED:
             playerState = State::PLAYING;
             playerThread = new boost::thread(&PlayerInterface::threadWorker, this);
-            __print_debug("Started new player thread");
             // start thread and play back song
             break;
     }
@@ -159,7 +158,7 @@ bool PlayerInterface::IsPlaying()
 
 void PlayerInterface::UpdateView()
 {
-    if (playerState != State::THREAD_DELETED && playerState != State::SHUTDOWN)
+    if (playerState != State::THREAD_DELETED && playerState != State::SHUTDOWN && playerState != State::TERMINATED)
         trackUI->SetState(sg->GetWorkingSequence());
 }
 
@@ -175,52 +174,61 @@ void PlayerInterface::GetVolLevels(float& left, float& right)
 
 void PlayerInterface::threadWorker()
 {
-    // TODO add fixed mode rate variable
     avgCountdown = 0;
     PaError err;
     uint32_t nBlocks = sg->GetBufferUnitCount();
     uint32_t outSampleRate = sg->GetRenderSampleRate();
-    if ((err = Pa_OpenDefaultStream(&audioStream, 0, 2, paFloat32, outSampleRate, nBlocks, NULL, NULL)) != paNoError)
-        throw MyException(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-    if ((err = Pa_StartStream(audioStream)) != paNoError)
-        throw MyException(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+    if ((err = Pa_OpenDefaultStream(&audioStream, 0, 2, paFloat32, outSampleRate, nBlocks, NULL, NULL)) != paNoError) {
+        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+        return;
+    }
+    if ((err = Pa_StartStream(audioStream)) != paNoError) {
+        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+        return;
+    }
 
     vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
 
-    // FIXME seems to still have an issue with a race condition and default case occuring
-    while (playerState != State::SHUTDOWN) {
-        switch (playerState) {
-            case State::RESTART:
-                delete sg;
-                sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
-                playerState = State::PLAYING;
-            case State::PLAYING:
-                {
-                    float *processedAudio = sg->ProcessAndGetAudio();
-                    if (processedAudio == nullptr){
-                        playerState = State::SHUTDOWN;
-                        break;
+    try {
+        // FIXME seems to still have an issue with a race condition and default case occuring
+        while (playerState != State::SHUTDOWN) {
+            switch (playerState) {
+                case State::RESTART:
+                    delete sg;
+                    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
+                    playerState = State::PLAYING;
+                case State::PLAYING:
+                    {
+                        float *processedAudio = sg->ProcessAndGetAudio();
+                        if (processedAudio == nullptr){
+                            playerState = State::SHUTDOWN;
+                            break;
+                        }
+                        if ((err = Pa_WriteStream(audioStream, processedAudio, nBlocks)) != paNoError) {
+                            __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+                        }
+                        writeMaxLevels(processedAudio, nBlocks);
                     }
-                    if ((err = Pa_WriteStream(audioStream, processedAudio, nBlocks)) != paNoError) {
+                    break;
+                case State::PAUSED:
+                    if ((err = Pa_WriteStream(audioStream, &silence[0], nBlocks)) != paNoError) {
                         __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
                     }
-                    writeMaxLevels(processedAudio, nBlocks);
-                }
-                break;
-            case State::PAUSED:
-                if ((err = Pa_WriteStream(audioStream, &silence[0], nBlocks)) != paNoError) {
-                    __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-                }
-                break;
-            default:
-                throw MyException(FormatString("Internal PlayerInterface error: %d", (int)playerState));
+                    break;
+                default:
+                    throw MyException(FormatString("Internal PlayerInterface error: %d", (int)playerState));
+            }
         }
+    } catch (exception& e) {
+        __print_debug(FormatString("FATAL ERROR on streaming thread: %s", e.what()));
     }
 
-    if ((err = Pa_StopStream(audioStream)) != paNoError)
-        throw MyException(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-    if ((err = Pa_CloseStream(audioStream)) != paNoError)
-        throw MyException(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+    if ((err = Pa_StopStream(audioStream)) != paNoError) {
+        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+    }
+    if ((err = Pa_CloseStream(audioStream)) != paNoError) {
+        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+    }
     avgVolLeft = 0.0f;
     avgVolRight = 0.0f;
     playerState = State::TERMINATED;

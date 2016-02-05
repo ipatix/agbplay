@@ -57,6 +57,11 @@ void PlaylistGUI::ClearSongs()
     update();
 }
 
+SongEntry& PlaylistGUI::GetSong()
+{
+    return thisGameConfig.GetGameEntries().at(cursorPos);
+}
+
 void PlaylistGUI::Tick() 
 {
     if (ticked->size() == 0) return;

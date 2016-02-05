@@ -85,7 +85,7 @@ namespace agbplay
             void enter();
             void add();
             void del();
-            void toggle();
+            void rename();
 
             // console GUI element
             ConsoleGUI *conUI;

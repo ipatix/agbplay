@@ -12,6 +12,7 @@ namespace agbplay {
             void AddSong(SongEntry) override;
             void RemoveSong() override;
             void ClearSongs() override;
+            SongEntry& GetSong() override;
             void Leave() override;
             void Tick();
             void Untick();

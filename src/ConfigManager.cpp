@@ -19,7 +19,7 @@ ConfigManager::ConfigManager(std::string configPath)
     string line;
     GameConfig *currentGame = nullptr;
     regex gameExpr("^\\s*\\[([0-9A-Z]{4})\\]\\s*$");
-    regex songExpr("^\\s*(\\d+)\\s*=\\s*(.*)$");
+    regex songExpr("^\\s*(\\d+)\\s*=\\s*\\b(.+)\\b\\s*$");
     regex cfgVolExpr("^\\s*ENG_VOL\\s*=\\s*(\\d+)\\s*$");
     regex cfgFreqExpr("^\\s*ENG_FREQ\\s*=\\s*(\\d+)\\s*$");
     regex cfgRevExpr("^\\s*ENG_REV\\s*=\\s*(\\d+)\\s*$");

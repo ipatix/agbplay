@@ -60,7 +60,7 @@ namespace agbplay
                 uint8_t lastNoteKey, lastNoteVel;
                 int8_t lastNoteLen;
                 uint8_t reptCount;
-                uint8_t prog, vol, mod, bendr;
+                uint8_t prog, vol, mod, bendr, prio;
                 uint8_t lfos, lfodl, lfodlCount, lfoPhase;
                 uint8_t echoVol, echoLen;
                 int8_t delay;

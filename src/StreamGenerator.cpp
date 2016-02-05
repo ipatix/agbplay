@@ -266,6 +266,14 @@ void StreamGenerator::processSequenceTick()
                             cTrk.returnPos = cTrk.pos + 4;
                             cTrk.pos = reader.AGBPtrToPos(*(uint32_t *)&reader[cTrk.pos]);
                             break;
+                        case 0xB9:
+                            // MEMACC, not useful, get's ignored
+                            cTrk.pos += 3;
+                            break;
+                        case 0xBA:
+                            // PRIO, TODO actually do something with the prio
+                            cTrk.prio = reader[cTrk.pos++];
+                            break;
                         case 0xBB:
                             // TEMPO
                             seq.bpm = uint16_t(reader[cTrk.pos++] * 2);

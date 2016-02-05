@@ -5,8 +5,8 @@
 #include "Util.h"
 #include "Debug.h"
 
-#define SONG_FADE_OUT_TIME 7000
-#define SONG_FINISH_TIME 2000
+#define SONG_FADE_OUT_TIME 10000
+#define SONG_FINISH_TIME 1000
 
 using namespace std;
 using namespace agbplay;

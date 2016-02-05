@@ -205,3 +205,8 @@ void TrackviewGUI::scrollUpNoUpdate()
     if (cursorPos > 0)
         cursorPos--;
 }
+
+void TrackviewGUI::ForceUpdate()
+{
+    update();
+}

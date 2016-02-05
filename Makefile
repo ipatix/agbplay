@@ -6,7 +6,7 @@ SYS = $(shell $(CXX) -dumpmachine)
 
 ifneq (, $(findstring linux, $(SYS)))
 	# clang doesn't seem to compile correctly on windows but on linux it works
-	CXX = g++
+	CXX = clang++
 	LIBS = ../portaudio/lib/.libs/libportaudio.a -lm -lncursesw -lboost_system -lboost_thread -pthread -lasound
 else ifneq (, $(findstring cygwin, $(SYS))$(findstring windows, $(SYS)))
 	LIBS = ../portaudio/lib/.libs/libportaudio.dll.a -lm -lncursesw -lboost_system -lboost_thread -pthread

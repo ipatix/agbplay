@@ -179,7 +179,10 @@ void WindowGUI::Handle()
                     mplay->SpeedHalve();
                     break;
                 case 'n':
+                    playUI->Leave();
                     rename();
+                    trackUI->ForceUpdate();
+                    playUI->Enter();
                     break;
                 case EOF:
                 case 4: // EOT
@@ -419,68 +422,71 @@ void WindowGUI::del()
 void WindowGUI::rename()
 {
     if (cursorl != PLAYLIST) return;
+    SongEntry *ent;
     try {
-        SongEntry& ent = playUI->GetSong();
-        const int renHeight = 5;
-        const int renWidth = 40;
-        WINDOW *renWin = newwin(5, 40, (height / 2) - (renHeight / 2), (width / 2) - (renWidth / 2));
-        if (renWin == nullptr)
-            throw MyException("Error creating renaming window");
-        wattrset(renWin, COLOR_PAIR(Color::DEF_DEF) | A_REVERSE);
-        string line = "";
-        line.resize(renWidth, ' ');
-        mvwprintw(renWin, 0, 0, "%s", line.c_str());
-        // pls no unicode in title or size() below requires fix
-        string title = "New Name";
-        line = " \u250c";
-        string leftBar = "";
-        string rightBar = "";
-        for (int i = 0; i < (renWidth - (int)title.size())/2 - 3; i++) 
-        {
-            leftBar.append("\u2500");
-        }
-        for (int i = 0; i < (renWidth - (int)title.size())/2 + (renWidth - (int)title.size())%2 - 3; i++)
-        {
-            rightBar.append("\u2500");
-        }
-        line.append(leftBar);
-        line.append(" ");
-        line.append(title);
-        line.append(" ");
-        line.append(rightBar);
-        line.append("\u2510 ");
-        mvwprintw(renWin, 1, 0, "%s", line.c_str());
-        mvwprintw(renWin, 2, 0, " \u2502 ");
-        wattrset(renWin, COLOR_PAIR(Color::DEF_DEF));
-        line = "";
-        line.resize(renWidth - 6, ' ');
-        wprintw(renWin, "%s", line.c_str());
-        wattrset(renWin, COLOR_PAIR(Color::DEF_DEF) | A_REVERSE);
-        wprintw(renWin, " \u2502 ");
-        line = " \u2514";
-        for (int i = 0; i < renWidth - 4; i++)
-        {
-            line.append("\u2500");
-        }
-        line.append("\u2518 ");
-        mvwprintw(renWin, 3, 0, "%s", line.c_str());
-        line = "";
-        line.resize(renWidth, ' ');
-        mvwprintw(renWin, 4, 0, "%s", line.c_str());
+        ent = &playUI->GetSong();
+    } catch (exception& e) {
+        return;
+    }
+    const int renHeight = 5;
+    const int renWidth = 40;
+    WINDOW *renWin = newwin(5, 40, (height / 2) - (renHeight / 2), (width / 2) - (renWidth / 2));
+    keypad(renWin, true);
+    curs_set(1);
+    if (renWin == nullptr)
+        throw MyException("Error creating renaming window");
+    wattrset(renWin, COLOR_PAIR(Color::DEF_DEF) | A_REVERSE);
+    string line = "";
+    line.resize(renWidth, ' ');
+    mvwprintw(renWin, 0, 0, "%s", line.c_str());
+    // pls no unicode in title or size() below requires fix
+    string title = "New Name";
+    line = " \u250c";
+    string leftBar = "";
+    string rightBar = "";
+    for (int i = 0; i < (renWidth - (int)title.size())/2 - 3; i++) 
+    {
+        leftBar.append("\u2500");
+    }
+    for (int i = 0; i < (renWidth - (int)title.size())/2 + (renWidth - (int)title.size())%2 - 3; i++)
+    {
+        rightBar.append("\u2500");
+    }
+    line.append(leftBar);
+    line.append(" ");
+    line.append(title);
+    line.append(" ");
+    line.append(rightBar);
+    line.append("\u2510 ");
+    mvwprintw(renWin, 1, 0, "%s", line.c_str());
+    mvwprintw(renWin, 2, 0, " \u2502 ");
+    wattrset(renWin, COLOR_PAIR(Color::DEF_DEF));
+    line = "";
+    line.resize(renWidth - 6, ' ');
+    wprintw(renWin, "%s", line.c_str());
+    wattrset(renWin, COLOR_PAIR(Color::DEF_DEF) | A_REVERSE);
+    wprintw(renWin, " \u2502 ");
+    line = " \u2514";
+    for (int i = 0; i < renWidth - 4; i++)
+    {
+        line.append("\u2500");
+    }
+    line.append("\u2518 ");
+    mvwprintw(renWin, 3, 0, "%s", line.c_str());
+    line = "";
+    line.resize(renWidth, ' ');
+    mvwprintw(renWin, 4, 0, "%s", line.c_str());
 
-        // finished drawing windows, now read the user input
-
-        wattrset(renWin, COLOR_PAIR(Color::DEF_DEF));
-        char inputBuf[renWidth - 6];
-        echo();
-        int ret = mvwgetnstr(renWin, 2, 3, inputBuf, sizeof(inputBuf - 1));
-        if (ret == ERR) {
-            noecho();
-            return;
-        }
-        // everything okay
-        ent.name = string(inputBuf, sizeof(inputBuf) - 1);
-    } catch (exception e) {
+    // finished drawing windows, now read the user input
+    wattrset(renWin, COLOR_PAIR(Color::DEF_DEF));
+    char inputBuf[renWidth - 6];
+    echo();
+    if (mvwgetnstr(renWin, 2, 3, inputBuf, sizeof(inputBuf) - 1) != ERR) {
+        ent->name = string(inputBuf, strlen(inputBuf));
     }
     noecho();
+    curs_set(0);
+    if (delwin(renWin) == ERR) {
+        throw MyException("Error while deleting renaming window");
+    }
 }

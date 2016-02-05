@@ -120,7 +120,7 @@ void PlaylistGUI::update()
         string songText;
         if (entry < thisGameConfig.GetGameEntries().size()) {
             songText = (ticked->at(entry)) ? "[x] " : "[ ] ";
-            songText += thisGameConfig.GetGameEntries()[entry].name;
+            songText.append(thisGameConfig.GetGameEntries()[entry].name);
         } else {
             songText = "";
         }

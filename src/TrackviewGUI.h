@@ -23,7 +23,7 @@ namespace agbplay
             void PageUp();
             void ScrollDown();
             void ScrollUp();
-            
+            void ForceUpdate();
         private:
             void update() override;
             void scrollDownNoUpdate();

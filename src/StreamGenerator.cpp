@@ -148,6 +148,9 @@ void StreamGenerator::processSequenceTick()
                     switch (cTrk.lastEvent) {
                         case LEvent::NONE:
                             break;
+                        case LEvent::VOICE:
+                            cTrk.prog = cmd;
+                            break;
                         case LEvent::VOL:    
                             cTrk.vol = cmd;
                             updatePV = true;
@@ -284,10 +287,8 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case 0xBD:
                             // VOICE
+                            cTrk.lastEvent = LEvent::VOICE;
                             cTrk.prog = reader[cTrk.pos++];
-                            // no pv upgrade should be required here
-                            cTrk.bend = 0;
-                            // TODO resetting bend seems to mess up certain things
                             break;
                         case 0xBE:
                             // VOL

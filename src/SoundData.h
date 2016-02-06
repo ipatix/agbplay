@@ -37,7 +37,7 @@ namespace agbplay
     };
 
     enum class MODT : int { PITCH = 0, VOL, PAN };
-    enum class LEvent : int { NONE = 0, VOL, PAN, BEND, BENDR, MOD, TUNE, XCMD, NOTE, TIE, EOT };
+    enum class LEvent : int { NONE = 0, VOICE, VOL, PAN, BEND, BENDR, MOD, TUNE, XCMD, NOTE, TIE, EOT };
     class Sequence 
     {
         public:

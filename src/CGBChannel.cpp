@@ -7,8 +7,6 @@
 #include "Debug.h"
 #include "Util.h"
 
-#define WEIRD_CGB_ENV_FIX 2
-
 using namespace std;
 using namespace agbplay;
 
@@ -22,13 +20,13 @@ CGBChannel::CGBChannel()
     this->pos = 0;
     this->owner = nullptr;
     this->envInterStep = 0;
-    this->leftVol = 0;
-    this->rightVol = 0;
     this->envLevel = 0;
-    this->fromLeftVol = 0;
-    this->fromRightVol = 0;
     this->fromEnvLevel = 0;
-    this->eState = EnvState::SUS;
+    this->envPeak = 0;
+    this->envSustain = 0;
+    this->pan = Pan::CENTER;
+    this->fromPan = Pan::CENTER;
+    this->eState = EnvState::DEAD;
 }
 
 CGBChannel::~CGBChannel()
@@ -40,8 +38,6 @@ void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
     this->owner = owner;
     this->note = note;
     this->def = def;
-    this->leftVol = 0;
-    this->rightVol = 0;
     this->env.att = env.att & 0x7;
     this->env.dec = env.dec & 0x7;
     this->env.sus = env.sus & 0xF;
@@ -64,16 +60,16 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
     if (eState < EnvState::REL) {
         if (pan < -32) {
             // snap left
-            this->leftVol = uint8_t((note.velocity * vol) >> 11);
-            this->rightVol = 0;
+            this->pan = Pan::LEFT;
         } else if (pan > 32) {
             // snap right
-            this->rightVol = uint8_t((note.velocity * vol) >> 11);
-            this->leftVol = 0;
+            this->pan = Pan::RIGHT;
         } else {
             // snap mid
-            this->leftVol = this->rightVol = uint8_t((note.velocity * vol) >> 11);
+            this->pan = Pan::CENTER;
         }
+        envPeak = minmax<uint8_t>(0, uint8_t((note.velocity * vol) >> 10), 15);
+        envSustain = (env.sus == 0xF) ? envPeak : minmax<uint8_t>(0, uint8_t((envPeak * env.sus + 15) >> 4), 15);
     }
 }
 
@@ -96,18 +92,17 @@ ChnVol CGBChannel::GetVol()
             stepDiv = env.rel;
             break;
         default:
-            stepDiv = 1;
-            break;
+            throw MyException(FormatString("Getting volume of invalid state: %d", (int)eState));
     }
     assert(stepDiv);
-    float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES / WEIRD_CGB_ENV_FIX * stepDiv) ;
+    float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES * stepDiv);
     float finalFromEnv = envBase + envDelta * float(envInterStep);
-    float finalToEnv = envBase + envDelta * float(envInterStep);
+    float finalToEnv = envBase + envDelta * float(envInterStep + 1);
     return ChnVol(
-            float(fromLeftVol) * finalFromEnv / 256.0f,
-            float(fromRightVol) * finalFromEnv / 256.0f,
-            float(leftVol) * finalToEnv / 256.0f,
-            float(rightVol) * finalToEnv / 256.0f);
+            (fromPan == Pan::RIGHT) ? 0.0f : finalFromEnv * (1.0f / (16.0f)),
+            (fromPan == Pan::LEFT) ? 0.0f : finalFromEnv * (1.0f / (16.0f)),
+            (fromPan == Pan::RIGHT) ? 0.0f : finalToEnv * (1.0f / (16.0f)),
+            (fromPan == Pan::LEFT) ? 0.0f : finalToEnv * (1.0f / (16.0f)));
 }
 
 CGBDef CGBChannel::GetDef()
@@ -131,8 +126,7 @@ void CGBChannel::Release()
         if (env.rel == 0) {
             envLevel = 0;
             eState = EnvState::DEAD;
-        } else if (envLevel == 0) {
-            // TODO check if this doesn't short cut releasing tones
+        } else if (envLevel == 0 && fromEnvLevel == 0) {
             eState = EnvState::DEAD;
         } else {
             eState = EnvState::REL;
@@ -171,23 +165,23 @@ void CGBChannel::StepEnvelope()
 {
     switch (eState) {
         case EnvState::INIT:
-            fromLeftVol = leftVol;
-            fromRightVol = rightVol;
+            fromPan = pan;
             envInterStep = 0;
             if ((env.att | env.dec) == 0) {
                 eState = EnvState::SUS;
-                fromEnvLevel = env.sus;
-                envLevel = env.sus;
+                fromEnvLevel = envSustain;
+                envLevel = envSustain;
                 return;
             } else if (env.att == 0 && env.sus < 0xF) {
                 eState = EnvState::DEC;
-                fromEnvLevel = 0xF;
-                envLevel = 0xE;
+                fromEnvLevel = envPeak;
+                envLevel = minmax<uint8_t>(0, uint8_t(envPeak - 1), 15);
+                if (envLevel < envSustain) envLevel = envSustain;
                 return;
             } else if (env.att == 0) {
-                eState = EnvState::DEC;
-                fromEnvLevel = 0xF;
-                envLevel = 0xF;
+                eState = EnvState::SUS;
+                fromEnvLevel = envSustain;
+                envLevel = envSustain;
                 return;
             } else {
                 eState = EnvState::ATK;
@@ -197,38 +191,41 @@ void CGBChannel::StepEnvelope()
             }
             break;
         case EnvState::ATK:
-            if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.att) {
+            assert(env.att);
+            if (++envInterStep >= INTERFRAMES * env.att) {
                 fromEnvLevel = envLevel;
                 envInterStep = 0;
-                if (++envLevel >= 0xF) {
+                if (++envLevel >= envPeak) {
                     if (env.dec == 0) {
-                        fromEnvLevel = env.sus;
-                        envLevel = env.sus;
+                        envLevel = envSustain;
                         eState = EnvState::SUS;
                     } else {
-                        envLevel = 0xF;
+                        envLevel = envPeak;
                         eState = EnvState::DEC;
                     }
                 }
             }
             break;
         case EnvState::DEC:
-            if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.dec) {
+            assert(env.dec);
+            if (++envInterStep >= INTERFRAMES * env.dec) {
                 fromEnvLevel = envLevel;
                 envInterStep = 0;
-                if (--envLevel <= env.sus) {
+                if (int(envLevel - 1) <= int(envSustain)) {
+                    envLevel = envSustain;
                     eState = EnvState::SUS;
                 }
+                envLevel = uint8_t(minmax<int>(0, envLevel - 1, 15));
             }
             break;
         case EnvState::SUS:
-            if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.dec) {
+            if (++envInterStep >= INTERFRAMES * (env.dec == 0 && env.att == 0) ? 1 : (env.dec == 0) ? env.att : env.dec) {
                 fromEnvLevel = envLevel;
                 envInterStep = 0;
             }
             break;
         case EnvState::REL:
-            if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.rel) {
+            if (++envInterStep >= INTERFRAMES * env.rel) {
                 if (env.rel == 0) {
                     fromEnvLevel = 0;
                     envLevel = 0;
@@ -238,12 +235,13 @@ void CGBChannel::StepEnvelope()
                     envInterStep = 0;
                     if (--envLevel <= 0) {
                         eState = EnvState::DIE;
+                        envLevel = 0;
                     }
                 }
             }
             break;
         case EnvState::DIE:
-            if (++envInterStep >= INTERFRAMES / WEIRD_CGB_ENV_FIX * env.rel) {
+            if (++envInterStep >= INTERFRAMES * env.rel) {
                 fromEnvLevel = envLevel;
                 eState = EnvState::DEAD;
             }
@@ -251,13 +249,13 @@ void CGBChannel::StepEnvelope()
         default:
             break;
     }
+    //__print_debug(FormatString("s=%d p=%d s=%d int=%d fel=%d tel=%d", (int)eState, (int)envPeak, (int)envSustain, (int)envInterStep, (int)fromEnvLevel, (int)envLevel));
 }
 
 
 void CGBChannel::UpdateVolFade()
 {
-    fromLeftVol = leftVol;
-    fromRightVol = rightVol;
+    fromPan = pan;
 }
 
 const float *CGBChannel::GetPat()
@@ -308,6 +306,10 @@ void SquareChannel::SetPitch(int16_t pitch)
  * public WaveChannel
  */
 
+uint8_t WaveChannel::volLut[] = {
+    0, 0, 4, 4, 4, 4, 8, 8, 8, 8, 12, 12, 12, 12, 16, 16
+};
+
 WaveChannel::WaveChannel() : CGBChannel()
 {
     for (int i = 0; i < 32; i++)
@@ -330,14 +332,14 @@ void WaveChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
     for (size_t i = 0; i < 16; i++)
     {
         uint8_t twoNibbles = def.wavePtr[i];
-        float first = float(twoNibbles >> 4) / 16.0f;
+        float first = float(twoNibbles >> 4) * (1.0f / 16.0f);
         sum += first;
-        float second = float(twoNibbles & 0xF) / 16.0f;
+        float second = float(twoNibbles & 0xF) * (1.0f / 16.0f);
         sum += second;
         waveBuffer[i*2] = first;
         waveBuffer[i*2+1] = second;
     }
-    float dcCorrection = sum * 0.03125f;
+    float dcCorrection = sum * (1.0f / 32.0f);
     for (size_t i = 0; i < 32; i++)
     {
         waveBuffer[i] -= dcCorrection;

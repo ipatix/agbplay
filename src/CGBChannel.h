@@ -29,6 +29,9 @@ namespace agbplay
             uint32_t pos;
             float interPos;
         protected:
+            enum class Pan {
+                LEFT, CENTER, RIGHT
+            };
             void *owner;
             const float *pat;
             float freq;
@@ -36,13 +39,13 @@ namespace agbplay
             Note note;
             CGBDef def;
             EnvState eState;
+            Pan pan;
             uint8_t envInterStep;
-            uint8_t leftVol;
-            uint8_t rightVol;
             uint8_t envLevel;
+            uint8_t envPeak;
+            uint8_t envSustain;
             // these values are always 1 frame behind in order to provide a smooth transition
-            uint8_t fromLeftVol;
-            uint8_t fromRightVol;
+            Pan fromPan;
             uint8_t fromEnvLevel;
     };
 
@@ -66,6 +69,7 @@ namespace agbplay
             void SetPitch(int16_t pitch) override;
         private:
             float waveBuffer[32];
+            static uint8_t volLut[16];
     };
 
     class NoiseChannel : public CGBChannel

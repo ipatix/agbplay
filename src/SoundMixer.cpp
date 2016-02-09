@@ -360,10 +360,10 @@ void SoundMixer::renderToBuffer()
     float *buf = nullptr;
     const float *pat = nullptr;
 
+    sq1.StepEnvelope();
     if (sq1.GetState() != EnvState::DEAD) {
         // square 1
 
-        sq1.StepEnvelope();
         vol = sq1.GetVol();
         vol.fromVolLeft *= masterFrom;
         vol.fromVolRight *= masterFrom;
@@ -400,8 +400,8 @@ void SoundMixer::renderToBuffer()
 
     // square 2
 
+    sq2.StepEnvelope();
     if (sq2.GetState() != EnvState::DEAD) {
-        sq2.StepEnvelope();
         vol = sq2.GetVol();
         vol.fromVolLeft *= masterFrom;
         vol.fromVolRight *= masterFrom;
@@ -437,8 +437,8 @@ void SoundMixer::renderToBuffer()
 
     // wave
 
+    wave.StepEnvelope();
     if (wave.GetState() != EnvState::DEAD) {
-        wave.StepEnvelope();
         vol = wave.GetVol();
         vol.fromVolLeft *= masterFrom;
         vol.fromVolRight *= masterFrom;
@@ -474,8 +474,8 @@ void SoundMixer::renderToBuffer()
 
     // noise
 
+    noise.StepEnvelope();
     if (noise.GetState() != EnvState::DEAD) {
-        noise.StepEnvelope();
         vol = noise.GetVol();
         vol.fromVolLeft *= masterFrom;
         vol.fromVolRight *= masterFrom;

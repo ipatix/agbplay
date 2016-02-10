@@ -69,8 +69,9 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
             this->pan = Pan::CENTER;
         }
         envPeak = minmax<uint8_t>(0, uint8_t((note.velocity * vol) >> 10), 15);
-        envSustain = (env.sus == 0xF) ? envPeak : minmax<uint8_t>(0, uint8_t((envPeak * env.sus + 15) >> 4), 15);
+        envSustain = minmax<uint8_t>(0, uint8_t((envPeak * env.sus + 15) >> 4), 15);
     }
+    __print_debug(FormatString("peak=%d sus=%d", (int)envPeak, (int)envSustain));
 }
 
 ChnVol CGBChannel::GetVol()
@@ -175,7 +176,7 @@ void CGBChannel::StepEnvelope()
             } else if (env.att == 0 && env.sus < 0xF) {
                 eState = EnvState::DEC;
                 fromEnvLevel = envPeak;
-                envLevel = minmax<uint8_t>(0, uint8_t(envPeak - 1), 15);
+                envLevel = uint8_t(minmax(0, envPeak - 1, 15));
                 if (envLevel < envSustain) envLevel = envSustain;
                 return;
             } else if (env.att == 0) {
@@ -215,7 +216,7 @@ void CGBChannel::StepEnvelope()
                     envLevel = envSustain;
                     eState = EnvState::SUS;
                 }
-                envLevel = uint8_t(minmax<int>(0, envLevel - 1, 15));
+                envLevel = uint8_t(minmax(0, envLevel - 1, 15));
             }
             break;
         case EnvState::SUS:

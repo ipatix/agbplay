@@ -70,6 +70,8 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
         }
         envPeak = minmax<uint8_t>(0, uint8_t((note.velocity * vol + 127) >> 10), 15);
         envSustain = minmax<uint8_t>(0, uint8_t((envPeak * env.sus + 15) >> 4), 15);
+        /*if (envPeak > 0 && envSustain == 0 && env.sus > 0)
+            envSustain = 1;*/
     }
     //__print_debug(FormatString("peak=%d sus=%d", (int)envPeak, (int)envSustain));
 }
@@ -240,8 +242,9 @@ Ldec:
                 if (int(envLevel - 1) <= int(envSustain)) {
                     envLevel = envSustain;
                     nextState = EnvState::SUS;
+                } else {
+                    envLevel = uint8_t(minmax(0, envLevel - 1, 15));
                 }
-                envLevel = uint8_t(minmax(0, envLevel - 1, 15));
             }
             break;
         case EnvState::SUS:

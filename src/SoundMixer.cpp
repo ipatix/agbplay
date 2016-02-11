@@ -25,7 +25,8 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, 
     this->fixedModeRate = fixedModeRate;
     fill_n(this->sampleBuffer.begin(), this->sampleBuffer.size(), 0.0f);
     this->sampleRateReciprocal = 1.0f / float(sampleRate);
-    this->masterVolume = MASTER_VOL * mvl;
+    this->masterVolume = MASTER_VOL;
+    this->pcmMasterVolume = MASTER_VOL * mvl;
     this->fadeMicroframesLeft = 0;
     this->fadePos = 1.0f;
     this->fadeStepPerMicroframe = 0.0f;
@@ -208,10 +209,14 @@ void SoundMixer::renderToBuffer()
     // master volume calculation
     float masterFrom = masterVolume;
     float masterTo = masterVolume;
+    float pcmMasterFrom = pcmMasterVolume;
+    float pcmMasterTo = pcmMasterVolume;
     if (this->fadeMicroframesLeft > 0) {
         masterFrom *= powf(this->fadePos, 10.0f / 6.0f);
+        pcmMasterFrom *= powf(this->fadePos, 10.0f / 6.0f);
         fadePos += this->fadeStepPerMicroframe;
         masterTo *= powf(this->fadePos, 10.0f / 6.0f);
+        pcmMasterTo *= powf(this->fadePos, 1.0f / 6.0f);
         this->fadeMicroframesLeft--;
     }
     uint32_t nBlocks = uint32_t(sampleBuffer.size() / N_CHANNELS);
@@ -225,10 +230,10 @@ void SoundMixer::renderToBuffer()
             continue;
 
         ChnVol vol = chn.GetVol();
-        vol.fromVolLeft *= masterFrom;
-        vol.fromVolRight *= masterFrom;
-        vol.toVolLeft *= masterTo;
-        vol.toVolRight *= masterTo;
+        vol.fromVolLeft *= pcmMasterFrom;
+        vol.fromVolRight *= pcmMasterFrom;
+        vol.toVolLeft *= pcmMasterTo;
+        vol.toVolRight *= pcmMasterTo;
         SampleInfo& info = chn.GetInfo();
         float lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
         float rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;

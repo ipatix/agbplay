@@ -63,6 +63,7 @@ namespace agbplay
             // volume control related stuff
 
             float masterVolume;
+            float pcmMasterVolume;
             float fadePos;
             float fadeStepPerMicroframe;
             uint32_t fadeMicroframesLeft;

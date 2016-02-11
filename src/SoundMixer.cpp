@@ -216,7 +216,7 @@ void SoundMixer::renderToBuffer()
         pcmMasterFrom *= powf(this->fadePos, 10.0f / 6.0f);
         fadePos += this->fadeStepPerMicroframe;
         masterTo *= powf(this->fadePos, 10.0f / 6.0f);
-        pcmMasterTo *= powf(this->fadePos, 1.0f / 6.0f);
+        pcmMasterTo *= powf(this->fadePos, 10.0f / 6.0f);
         this->fadeMicroframesLeft--;
     }
     uint32_t nBlocks = uint32_t(sampleBuffer.size() / N_CHANNELS);

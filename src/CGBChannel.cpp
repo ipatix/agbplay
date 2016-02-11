@@ -71,7 +71,7 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
         envPeak = minmax<uint8_t>(0, uint8_t((note.velocity * vol) >> 10), 15);
         envSustain = minmax<uint8_t>(0, uint8_t((envPeak * env.sus + 15) >> 4), 15);
     }
-    __print_debug(FormatString("peak=%d sus=%d", (int)envPeak, (int)envSustain));
+    //__print_debug(FormatString("peak=%d sus=%d", (int)envPeak, (int)envSustain));
 }
 
 ChnVol CGBChannel::GetVol()
@@ -86,7 +86,7 @@ ChnVol CGBChannel::GetVol()
             stepDiv = env.dec;
             break;
         case EnvState::SUS:
-            stepDiv = (env.dec == 0) ? 1 : env.dec;
+            stepDiv = 1;
             break;
         case EnvState::REL:
         case EnvState::DIE:
@@ -166,9 +166,10 @@ void CGBChannel::StepEnvelope()
 {
     switch (eState) {
         case EnvState::INIT:
+            nextState = EnvState::ATK;
             fromPan = pan;
             envInterStep = 0;
-            if ((env.att | env.dec) == 0) {
+            if ((env.att | env.dec) == 0 || (envSustain == 0 && envPeak == 0)) {
                 eState = EnvState::SUS;
                 fromEnvLevel = envSustain;
                 envLevel = envSustain;
@@ -194,15 +195,26 @@ void CGBChannel::StepEnvelope()
         case EnvState::ATK:
             assert(env.att);
             if (++envInterStep >= INTERFRAMES * env.att) {
+                if (nextState == EnvState::DEC) {
+                    eState = EnvState::DEC;
+                    goto Ldec;
+                }
+                if (nextState == EnvState::SUS) {
+                    eState = EnvState::SUS;
+                    goto Lsus;
+                }
                 fromEnvLevel = envLevel;
                 envInterStep = 0;
                 if (++envLevel >= envPeak) {
                     if (env.dec == 0) {
-                        envLevel = envSustain;
-                        eState = EnvState::SUS;
+                        //envLevel = envSustain;
+                        nextState = EnvState::SUS;
+                    } else if (envPeak == envSustain) {
+                        nextState = EnvState::SUS;
+                        envLevel = envPeak;
                     } else {
                         envLevel = envPeak;
-                        eState = EnvState::DEC;
+                        nextState = EnvState::DEC;
                     }
                 }
             }
@@ -210,23 +222,37 @@ void CGBChannel::StepEnvelope()
         case EnvState::DEC:
             assert(env.dec);
             if (++envInterStep >= INTERFRAMES * env.dec) {
+                if (nextState == EnvState::SUS) {
+                    eState = EnvState::SUS;
+                    goto Lsus;
+                }
+Ldec:
                 fromEnvLevel = envLevel;
                 envInterStep = 0;
                 if (int(envLevel - 1) <= int(envSustain)) {
                     envLevel = envSustain;
-                    eState = EnvState::SUS;
+                    nextState = EnvState::SUS;
                 }
                 envLevel = uint8_t(minmax(0, envLevel - 1, 15));
             }
             break;
         case EnvState::SUS:
-            if (++envInterStep >= INTERFRAMES * (env.dec == 0 && env.att == 0) ? 1 : (env.dec == 0) ? env.att : env.dec) {
+            if (++envInterStep >= INTERFRAMES) {
+                if (nextState == EnvState::REL) {
+                    eState = EnvState::REL;
+                    goto Lrel;
+                }
+Lsus:
                 fromEnvLevel = envLevel;
                 envInterStep = 0;
             }
             break;
         case EnvState::REL:
             if (++envInterStep >= INTERFRAMES * env.rel) {
+                if (nextState == EnvState::DIE) {
+                    goto Ldie;
+                }
+Lrel:
                 if (env.rel == 0) {
                     fromEnvLevel = 0;
                     envLevel = 0;
@@ -234,23 +260,22 @@ void CGBChannel::StepEnvelope()
                 } else {
                     fromEnvLevel = envLevel;
                     envInterStep = 0;
-                    if (--envLevel <= 0) {
-                        eState = EnvState::DIE;
+                    if (envLevel - 1 <= 0) {
+                        nextState = EnvState::DIE;
                         envLevel = 0;
+                    } else {
+                        envLevel--;
                     }
                 }
             }
             break;
         case EnvState::DIE:
-            if (++envInterStep >= INTERFRAMES * env.rel) {
-                fromEnvLevel = envLevel;
-                eState = EnvState::DEAD;
-            }
+Ldie:
+            eState = EnvState::DEAD;
             break;
         default:
             break;
     }
-    //__print_debug(FormatString("s=%d p=%d s=%d int=%d fel=%d tel=%d", (int)eState, (int)envPeak, (int)envSustain, (int)envInterStep, (int)fromEnvLevel, (int)envLevel));
 }
 
 

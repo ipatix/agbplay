@@ -39,6 +39,7 @@ namespace agbplay
             Note note;
             CGBDef def;
             EnvState eState;
+            EnvState nextState;
             Pan pan;
             uint8_t envInterStep;
             uint8_t envLevel;

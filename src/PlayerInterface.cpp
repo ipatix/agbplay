@@ -178,6 +178,7 @@ void PlayerInterface::threadWorker()
     PaError err;
     uint32_t nBlocks = sg->GetBufferUnitCount();
     uint32_t outSampleRate = sg->GetRenderSampleRate();
+    vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
     if ((err = Pa_OpenDefaultStream(&audioStream, 0, 2, paFloat32, outSampleRate, nBlocks, NULL, NULL)) != paNoError) {
         __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
         return;
@@ -186,9 +187,10 @@ void PlayerInterface::threadWorker()
         __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
         return;
     }
-
-    vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
-
+    if ((err = Pa_WriteStream(audioStream, silence.data(), nBlocks)) != paNoError) {
+        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+    }
+    // write initial silence to buffer to prevent initial underrun
     try {
         // FIXME seems to still have an issue with a race condition and default case occuring
         while (playerState != State::SHUTDOWN) {
@@ -211,7 +213,7 @@ void PlayerInterface::threadWorker()
                     }
                     break;
                 case State::PAUSED:
-                    if ((err = Pa_WriteStream(audioStream, &silence[0], nBlocks)) != paNoError) {
+                    if ((err = Pa_WriteStream(audioStream, silence.data(), nBlocks)) != paNoError) {
                         __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
                     }
                     break;

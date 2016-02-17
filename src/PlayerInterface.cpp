@@ -176,19 +176,21 @@ void PlayerInterface::threadWorker()
 {
     avgCountdown = 0;
     PaError err;
+    uint32_t rbufBlocks = 2048;
+    uint32_t callbackBlocks = 512;
     uint32_t nBlocks = sg->GetBufferUnitCount();
+    assert(callbackBlocks + nBlocks <= rbufBlocks);
     uint32_t outSampleRate = sg->GetRenderSampleRate();
     vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
-    if ((err = Pa_OpenDefaultStream(&audioStream, 0, 2, paFloat32, outSampleRate, nBlocks, NULL, NULL)) != paNoError) {
+    Ringbuffer rBuf(N_CHANNELS * rbufBlocks);
+    rBuf.Put(silence.data(), uint32_t(silence.size()));
+    if ((err = Pa_OpenDefaultStream(&audioStream, 0, N_CHANNELS, paFloat32, outSampleRate, callbackBlocks, audioCallback, (void *)&rBuf)) != paNoError) {
         __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
         return;
     }
     if ((err = Pa_StartStream(audioStream)) != paNoError) {
         __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
         return;
-    }
-    if ((err = Pa_WriteStream(audioStream, silence.data(), nBlocks)) != paNoError) {
-        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
     }
     // write initial silence to buffer to prevent initial underrun
     try {
@@ -206,16 +208,18 @@ void PlayerInterface::threadWorker()
                             playerState = State::SHUTDOWN;
                             break;
                         }
-                        if ((err = Pa_WriteStream(audioStream, processedAudio, nBlocks)) != paNoError) {
+                        /*if ((err = Pa_WriteStream(audioStream, processedAudio, nBlocks)) != paNoError) {
                             __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-                        }
+                        }*/
+                        rBuf.Put(processedAudio, N_CHANNELS * nBlocks);
                         writeMaxLevels(processedAudio, nBlocks);
                     }
                     break;
                 case State::PAUSED:
-                    if ((err = Pa_WriteStream(audioStream, silence.data(), nBlocks)) != paNoError) {
+                    /*if ((err = Pa_WriteStream(audioStream, silence.data(), nBlocks)) != paNoError) {
                         __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-                    }
+                    }*/
+                    rBuf.Put(silence.data(), uint32_t(silence.size()));
                     break;
                 default:
                     throw MyException(FormatString("Internal PlayerInterface error: %d", (int)playerState));
@@ -234,6 +238,18 @@ void PlayerInterface::threadWorker()
     avgVolLeft = 0.0f;
     avgVolRight = 0.0f;
     playerState = State::TERMINATED;
+}
+
+int PlayerInterface::audioCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
+        const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags, void *userData)
+{
+    (void)inputBuffer;
+    (void)timeInfo;
+    (void)statusFlags;
+    (void)userData;
+    Ringbuffer *rBuf = (Ringbuffer *)userData;
+    rBuf->Take((float *)outputBuffer, uint32_t(framesPerBuffer * N_CHANNELS));
+    return 0;
 }
 
 void PlayerInterface::writeMaxLevels(float *buffer, size_t nBlocks)

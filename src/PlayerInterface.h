@@ -11,6 +11,7 @@
 #include "StreamGenerator.h"
 #include "Constants.h"
 #include "GameConfig.h"
+#include "Ringbuffer.h"
 
 namespace agbplay
 {
@@ -31,6 +32,9 @@ namespace agbplay
             void GetVolLevels(float& left, float& right);
         private:
             void threadWorker();
+            static int audioCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
+                    const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags,
+                    void *userData);
             void writeMaxLevels(float *buffer, size_t nBlocks);
 
             uint32_t avgCountdown;

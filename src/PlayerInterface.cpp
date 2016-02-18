@@ -177,14 +177,14 @@ void PlayerInterface::threadWorker()
     avgCountdown = 0;
     PaError err;
     uint32_t rbufBlocks = 2048;
-    uint32_t callbackBlocks = 512;
     uint32_t nBlocks = sg->GetBufferUnitCount();
+    uint32_t callbackBlocks = nBlocks * 2;
     assert(callbackBlocks + nBlocks <= rbufBlocks);
     uint32_t outSampleRate = sg->GetRenderSampleRate();
     vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
     Ringbuffer rBuf(N_CHANNELS * rbufBlocks);
     rBuf.Put(silence.data(), uint32_t(silence.size()));
-    if ((err = Pa_OpenDefaultStream(&audioStream, 0, N_CHANNELS, paFloat32, outSampleRate, callbackBlocks, audioCallback, (void *)&rBuf)) != paNoError) {
+    if ((err = Pa_OpenDefaultStream(&audioStream, 0, N_CHANNELS, paFloat32, outSampleRate, /*callbackBlocks*/0, audioCallback, (void *)&rBuf)) != paNoError) {
         __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
         return;
     }

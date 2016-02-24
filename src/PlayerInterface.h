@@ -49,7 +49,7 @@ namespace agbplay
             Sequence seq;
             StreamGenerator *sg;
             TrackviewGUI *trackUI;
-            Ringbuffer *rBuf;
+            Ringbuffer rBuf;
 
             boost::thread *playerThread;
     };

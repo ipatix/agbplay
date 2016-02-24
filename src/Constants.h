@@ -6,3 +6,5 @@
 #define MIN_SONG_NUM 20
 
 #define BPM_PER_FRAME 150
+
+#define STREAM_SAMPLERATE 48000

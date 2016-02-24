@@ -25,12 +25,36 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     this->avgVolLeft = 0.0f;
     this->avgVolRight = 0.0f;
     sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
+    // start audio stream
+    PaError err;
+    uint32_t rbufBlocks = 4096;
+    uint32_t nBlocks = sg->GetBufferUnitCount();
+    uint32_t callbackBlocks = nBlocks * 2;
+    assert(callbackBlocks + nBlocks <= rbufBlocks);
+    uint32_t outSampleRate = sg->GetRenderSampleRate();
+    rBuf = new Ringbuffer(N_CHANNELS * rbufBlocks);
+    if ((err = Pa_OpenDefaultStream(&audioStream, 0, N_CHANNELS, paFloat32, outSampleRate, /*callbackBlocks*/0, audioCallback, (void *)rBuf)) != paNoError) {
+        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+        return;
+    }
+    if ((err = Pa_StartStream(audioStream)) != paNoError) {
+        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+        return;
+    }
 }
 
 PlayerInterface::~PlayerInterface() 
 {
     // stop and deallocate player thread if required
     Stop();
+    PaError err;
+    if ((err = Pa_StopStream(audioStream)) != paNoError) {
+        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+    }
+    if ((err = Pa_CloseStream(audioStream)) != paNoError) {
+        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
+    }
+    delete rBuf;
     delete sg;
 }
 
@@ -119,15 +143,12 @@ void PlayerInterface::Stop()
             Stop();
             break;
         case State::TERMINATED:
-            playerThread->join();
-            delete playerThread;
-            playerState = State::THREAD_DELETED;
-            break;
         case State::SHUTDOWN:
-            // incase stop needs to be done force stop
             playerThread->join();
             delete playerThread;
             playerState = State::THREAD_DELETED;
+            delete sg;
+            sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
             break;            
         case State::THREAD_DELETED:
             // ignore this
@@ -175,24 +196,8 @@ void PlayerInterface::GetVolLevels(float& left, float& right)
 void PlayerInterface::threadWorker()
 {
     avgCountdown = 0;
-    PaError err;
-    uint32_t rbufBlocks = 2048;
     uint32_t nBlocks = sg->GetBufferUnitCount();
-    uint32_t callbackBlocks = nBlocks * 2;
-    assert(callbackBlocks + nBlocks <= rbufBlocks);
-    uint32_t outSampleRate = sg->GetRenderSampleRate();
     vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
-    Ringbuffer rBuf(N_CHANNELS * rbufBlocks);
-    rBuf.Put(silence.data(), uint32_t(silence.size()));
-    if ((err = Pa_OpenDefaultStream(&audioStream, 0, N_CHANNELS, paFloat32, outSampleRate, /*callbackBlocks*/0, audioCallback, (void *)&rBuf)) != paNoError) {
-        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-        return;
-    }
-    if ((err = Pa_StartStream(audioStream)) != paNoError) {
-        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-        return;
-    }
-    // write initial silence to buffer to prevent initial underrun
     try {
         // FIXME seems to still have an issue with a race condition and default case occuring
         while (playerState != State::SHUTDOWN) {
@@ -208,18 +213,12 @@ void PlayerInterface::threadWorker()
                             playerState = State::SHUTDOWN;
                             break;
                         }
-                        /*if ((err = Pa_WriteStream(audioStream, processedAudio, nBlocks)) != paNoError) {
-                            __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-                        }*/
-                        rBuf.Put(processedAudio, N_CHANNELS * nBlocks);
+                        rBuf->Put(processedAudio, N_CHANNELS * nBlocks);
                         writeMaxLevels(processedAudio, nBlocks);
                     }
                     break;
                 case State::PAUSED:
-                    /*if ((err = Pa_WriteStream(audioStream, silence.data(), nBlocks)) != paNoError) {
-                        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-                    }*/
-                    rBuf.Put(silence.data(), uint32_t(silence.size()));
+                    rBuf->Put(silence.data(), uint32_t(silence.size()));
                     break;
                 default:
                     throw MyException(FormatString("Internal PlayerInterface error: %d", (int)playerState));
@@ -228,15 +227,9 @@ void PlayerInterface::threadWorker()
     } catch (exception& e) {
         __print_debug(FormatString("FATAL ERROR on streaming thread: %s", e.what()));
     }
-
-    if ((err = Pa_StopStream(audioStream)) != paNoError) {
-        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-    }
-    if ((err = Pa_CloseStream(audioStream)) != paNoError) {
-        __print_debug(FormatString("PA Error: %s", Pa_GetErrorText(err)));
-    }
     avgVolLeft = 0.0f;
     avgVolRight = 0.0f;
+    rBuf->Flush();
     playerState = State::TERMINATED;
 }
 

@@ -158,13 +158,13 @@ long Rom::GetPos()
 
 size_t Rom::Size() 
 {
-    return (*data).size();
+    return data->size();
 }
 
 bool Rom::ValidPointer(agbptr_t ptr) 
 {
     long rec = (long)ptr - AGB_MAP_ROM;
-    if (rec < 0 || rec + 4 >= (long)(*data).size())
+    if (rec < 0 || rec + 4 >= (long)data->size())
         return false;
     return true;
 }
@@ -180,14 +180,14 @@ string Rom::GetROMCode()
  */
 
 void Rom::checkBounds(long pos, size_t typesz) {
-    if (pos < 0 || ((size_t)pos + typesz) > (*data).size())
+    if (pos < 0 || ((size_t)pos + typesz) > data->size())
         throw MyException(FormatString("Rom Reader position out of range: %7X", pos));
 }
 
 void Rom::verify() 
 {
     // check ROM size
-    if ((*data).size() > AGB_ROM_SIZE || (*data).size() < 0x200)
+    if ((data->size() > AGB_ROM_SIZE || data->size() < 0x200)
         throw MyException("Illegal ROM size");
     
     // Logo data

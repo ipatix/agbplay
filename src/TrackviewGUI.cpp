@@ -170,15 +170,15 @@ void TrackviewGUI::update()
         // print track values and sencond line
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         mvwprintw(winPtr, (int)(yBias + 2 + th), xBias, "    ");
-        wattrset(winPtr, COLOR_PAIR(Color::MAG_DEF) | aFlag | A_BOLD);
+        wattrset(winPtr, COLOR_PAIR(Color::PNK_DEF) | aFlag);
         if (disp.data[i].prog == PROG_UNDEFINED) {
             wprintw(winPtr, "---");
         } else {
             wprintw(winPtr, "%-3d", disp.data[i].prog);
         }
-        wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::ORA_DEF) | aFlag);
         wprintw(winPtr, " %-+3d", disp.data[i].pan);
-        wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | aFlag | A_BOLD);
+        wattrset(winPtr, COLOR_PAIR(Color::BRGRN_DEF) | aFlag);
         wprintw(winPtr, " %-3d", disp.data[i].vol);
         wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | aFlag);
         wprintw(winPtr, " %-3d", disp.data[i].mod);

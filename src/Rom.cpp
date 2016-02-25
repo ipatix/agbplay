@@ -187,7 +187,7 @@ void Rom::checkBounds(long pos, size_t typesz) {
 void Rom::verify() 
 {
     // check ROM size
-    if ((data->size() > AGB_ROM_SIZE || data->size() < 0x200)
+    if (data->size() > AGB_ROM_SIZE || data->size() < 0x200)
         throw MyException("Illegal ROM size");
     
     // Logo data

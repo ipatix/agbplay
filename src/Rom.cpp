@@ -219,5 +219,5 @@ void Rom::verify()
     }
     check = (check - 0x19) & 0xFF;
     if (check != checksum)
-        throw MyException("ROM verification: Bad Header Checksum");
+        throw MyException(FormatString("ROM verification: Bad Header Checksum: %02X - expected %02X", (int)checksum, (int)check));
 }

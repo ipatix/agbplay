@@ -15,7 +15,6 @@ namespace agbplay
 
             void Put(float *inData, uint32_t nElements);
             void Take(float *outData, uint32_t nElements);
-            void Flush();
         private:
             uint32_t put(float *inData, uint32_t nElements);
             uint32_t take(float *outData, uint32_t nElements);

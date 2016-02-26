@@ -52,12 +52,6 @@ void Ringbuffer::Take(float *outData, uint32_t nElements)
     }
 }
 
-void Ringbuffer::Flush()
-{
-    boost::mutex::scoped_lock lock(countLock);
-    fill(bufData.begin(), bufData.end(), 0.0f);
-}
-
 /*
  * private Ringbuffer
  */

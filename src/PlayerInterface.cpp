@@ -28,7 +28,7 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
     // start audio stream
     PaError err;
-    uint32_t nBlocks = sg->GetBufferUnitCount();
+    //uint32_t nBlocks = sg->GetBufferUnitCount();
     uint32_t outSampleRate = sg->GetRenderSampleRate();
     if ((err = Pa_OpenDefaultStream(&audioStream, 0, N_CHANNELS, paFloat32, outSampleRate, /*nBlocks * N_CHANNELS*/0, audioCallback, (void *)&rBuf)) != paNoError) {
         __print_debug(FormatString("Pa_OpenDefaultStream: %s", Pa_GetErrorText(err)));
@@ -227,8 +227,10 @@ void PlayerInterface::threadWorker()
     }
     avgVolLeft = 0.0f;
     avgVolRight = 0.0f;
-    rBuf.Put(silence.data(), uint32_t(silence.size()));
-    rBuf.Flush();
+    // flush buffer to
+    for (int i = (STREAM_BUF_SIZE / nBlocks) + 2; i > 0; i--) {
+        rBuf.Put(silence.data(), uint32_t(silence.size()));
+    }
     __print_debug("Exiting Thread...");
     playerState = State::TERMINATED;
 }

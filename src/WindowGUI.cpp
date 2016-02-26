@@ -255,17 +255,20 @@ void WindowGUI::resizeWindows()
 
 void WindowGUI::initColors() 
 {
-    //CursesWin::UIMutex.lock();
     start_color();
     if (use_default_colors() == ERR)
         throw MyException("Using default terminal colors failed");
+    if (COLORS != 256)
+        throw MyException("Terminal does not support 256 colors");
     init_pair((int)Color::DEF_DEF, -1, -1);
     init_pair((int)Color::RED_DEF, COLOR_RED, -1);
     init_pair((int)Color::GRN_DEF, COLOR_GREEN, -1);
     init_pair((int)Color::YEL_DEF, COLOR_YELLOW, -1);
     init_pair((int)Color::CYN_DEF, COLOR_CYAN, -1);
     init_pair((int)Color::MAG_DEF, COLOR_MAGENTA, -1);
-    //CursesWin::UIMutex.unlock();
+    init_pair((int)Color::ORA_DEF, 208, -1);
+    init_pair((int)Color::PNK_DEF, 217, -1);
+    init_pair((int)Color::BRGRN_DEF, 154, -1);
 }
 
 void WindowGUI::cycleFocus() 

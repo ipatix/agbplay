@@ -10,5 +10,8 @@ namespace agbplay
         YEL_DEF,        // yellow in default
         CYN_DEF,        // cyan on default
         MAG_DEF,        // magenta on default
+        ORA_DEF,        // orange on default
+        PNK_DEF,        // pink on default
+        BRGRN_DEF,      // bright green on default
     };
 }

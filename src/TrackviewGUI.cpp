@@ -123,7 +123,7 @@ void TrackviewGUI::update()
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
     mvwprintw(winPtr, yBias, xBias, "[");
     wattrset(winPtr, COLOR_PAIR(Color::TRK_NUM) | A_UNDERLINE);
-    wprintw(winPtr, "#t");
+    wprintw(winPtr, "#T");
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
     wprintw(winPtr, "] ");
     wattrset(winPtr, COLOR_PAIR(Color::TRK_LOC) | A_UNDERLINE);

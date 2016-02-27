@@ -113,7 +113,7 @@ void TrackviewGUI::update()
         mvwprintw(winPtr, (int)i, xBias, clr.c_str());
     }
     // draw borderlines
-    wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
+    wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME) | A_REVERSE);
     mvwvline(winPtr, 1, 0, ' ', height - 1);
     string titleText = " Tracker";
     titleText.resize(width, ' ');
@@ -122,19 +122,19 @@ void TrackviewGUI::update()
     // draw track titlebar
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
     mvwprintw(winPtr, yBias, xBias, "[");
-    wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::TRK_NUM) | A_UNDERLINE);
     wprintw(winPtr, "#t");
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
     wprintw(winPtr, "] ");
-    wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::TRK_LOC) | A_UNDERLINE);
     wprintw(winPtr, "Location ");
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
     wprintw(winPtr, " ");
-    wattrset(winPtr, COLOR_PAIR(Color::RED_DEF) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::TRK_DEL) | A_UNDERLINE);
     wprintw(winPtr, "Del");
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
     wprintw(winPtr, " ");
-    wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | A_UNDERLINE);
+    wattrset(winPtr, COLOR_PAIR(Color::TRK_NOTE) | A_UNDERLINE);
     wprintw(winPtr, "Note");
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
     string blank = "";
@@ -146,19 +146,19 @@ void TrackviewGUI::update()
         // print tickbox and first line
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         mvwprintw(winPtr, (int)(yBias + 1 + th), xBias, "[");
-        wattrset(winPtr, COLOR_PAIR((disp.data[i].isMuted) ? Color::RED_DEF : Color::GRN_DEF) | aFlag);
+        wattrset(winPtr, COLOR_PAIR((disp.data[i].isMuted) ? Color::TRK_NUM_MUTED : Color::TRK_NUM) | aFlag);
         wprintw(winPtr, "%02d", i);
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         wprintw(winPtr, "] ");
-        wattrset(winPtr, (disp.data[i].isCalling ? COLOR_PAIR(Color::YEL_DEF) : COLOR_PAIR(Color::GRN_DEF)) | aFlag);
+        wattrset(winPtr, (disp.data[i].isCalling ? COLOR_PAIR(Color::TRK_LOC_CALL) : COLOR_PAIR(Color::TRK_LOC)) | aFlag);
         wprintw(winPtr, "0x%07X", disp.data[i].trackPtr);
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         wprintw(winPtr, " ");
-        wattrset(winPtr, COLOR_PAIR(Color::RED_DEF) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::TRK_DEL) | aFlag);
         wprintw(winPtr, "W%02d", disp.data[i].delay);
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         wprintw(winPtr, " ");
-        wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::TRK_NOTE) | aFlag);
         string notes = "";
         for (uint32_t j = 0; j < disp.data[i].activeNotes.size(); j++) {
             if (disp.data[i].activeNotes[j])
@@ -170,19 +170,19 @@ void TrackviewGUI::update()
         // print track values and sencond line
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         mvwprintw(winPtr, (int)(yBias + 2 + th), xBias, "    ");
-        wattrset(winPtr, COLOR_PAIR(Color::PNK_DEF) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::TRK_VOICE) | aFlag);
         if (disp.data[i].prog == PROG_UNDEFINED) {
             wprintw(winPtr, "---");
         } else {
             wprintw(winPtr, "%-3d", disp.data[i].prog);
         }
-        wattrset(winPtr, COLOR_PAIR(Color::ORA_DEF) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::TRK_PAN) | aFlag);
         wprintw(winPtr, " %-+3d", disp.data[i].pan);
-        wattrset(winPtr, COLOR_PAIR(Color::BRGRN_DEF) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::TRK_VOL) | aFlag);
         wprintw(winPtr, " %-3d", disp.data[i].vol);
-        wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::TRK_MOD) | aFlag);
         wprintw(winPtr, " %-3d", disp.data[i].mod);
-        wattrset(winPtr, COLOR_PAIR(Color::MAG_DEF) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(Color::TRK_PITCH) | aFlag);
         wprintw(winPtr, " %-+6d", disp.data[i].pitch);
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         string clr = "";

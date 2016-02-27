@@ -143,13 +143,13 @@ void SonglistGUI::update()
 {
     string bar = "Songlist:";
     bar.resize(contentWidth, ' ');
-    wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
+    wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME) | A_REVERSE);
     mvwprintw(winPtr, 0, 0, bar.c_str());
     for (uint32_t i = 0; i < contentHeight; i++) {
         if (i + viewPos == cursorPos && cursorVisible)
-            wattrset(winPtr, COLOR_PAIR(Color::YEL_DEF) | A_REVERSE);
+            wattrset(winPtr, COLOR_PAIR(Color::LIST_ENTRY) | A_REVERSE);
         else
-            wattrset(winPtr, COLOR_PAIR(Color::YEL_DEF));
+            wattrset(winPtr, COLOR_PAIR(Color::LIST_ENTRY));
         // generate list of songs
         string songText;
         if (i + viewPos < songlist->size()) {

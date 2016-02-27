@@ -261,14 +261,24 @@ void WindowGUI::initColors()
     if (COLORS != 256)
         throw MyException("Terminal does not support 256 colors");
     init_pair((int)Color::DEF_DEF, -1, -1);
-    init_pair((int)Color::RED_DEF, COLOR_RED, -1);
-    init_pair((int)Color::GRN_DEF, COLOR_GREEN, -1);
-    init_pair((int)Color::YEL_DEF, COLOR_YELLOW, -1);
-    init_pair((int)Color::CYN_DEF, COLOR_CYAN, -1);
-    init_pair((int)Color::MAG_DEF, COLOR_MAGENTA, -1);
-    init_pair((int)Color::ORA_DEF, 208, -1);
-    init_pair((int)Color::PNK_DEF, 217, -1);
-    init_pair((int)Color::BRGRN_DEF, 154, -1);
+    init_pair((int)Color::BANNER_TEXT, COLOR_YELLOW, -1);
+    init_pair((int)Color::WINDOW_FRAME, COLOR_GREEN, -1);
+    init_pair((int)Color::LIST_ENTRY, COLOR_YELLOW, -1);
+    init_pair((int)Color::LIST_SEL, COLOR_RED, -1);
+    init_pair((int)Color::VU_LOW, 82, -1);
+    init_pair((int)Color::VU_MID, 226, -1);
+    init_pair((int)Color::VU_HIGH, 202, -1);
+    init_pair((int)Color::TRK_NUM, 76, -1);
+    init_pair((int)Color::TRK_NUM_MUTED, 202, -1);
+    init_pair((int)Color::TRK_LOC, 118, -1);
+    init_pair((int)Color::TRK_LOC_CALL, 184, -1);
+    init_pair((int)Color::TRK_DEL, 196, -1);
+    init_pair((int)Color::TRK_NOTE, 45, -1);
+    init_pair((int)Color::TRK_VOICE, 217, -1);
+    init_pair((int)Color::TRK_PAN, 214, -1);
+    init_pair((int)Color::TRK_VOL, 154, -1);
+    init_pair((int)Color::TRK_MOD, 43, -1);
+    init_pair((int)Color::TRK_PITCH, 129, -1);
 }
 
 void WindowGUI::cycleFocus() 

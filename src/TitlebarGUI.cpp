@@ -9,11 +9,11 @@ using namespace agbplay;
 using namespace std;
 
 static const vector<string> bannerText = {
-    "            __        __         ",
-    " ___ ____ _/ /  ___  / /__ ___ __",
-    "/ _ `/ _ `/ _ \\/ _ \\/ / _ `/ // /",
-    "\\_,_/\\_, /_.__/ .__/_/\\_,_/\\_, / ",
-    "    /___/    /_/          /___/  " 
+    "           _         _           ",
+    " __ _ __ _| |__ _ __| |__ _ _  _ ",
+    "/ _` / _` | '_ \\ '_ \\ / _` | || |",
+    "\\__,_\\__, |_.__/ .__/_\\__,_|\\_, |",
+    "     |___/     |_|          |__/ "
 };
 
 TitlebarGUI::TitlebarGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
@@ -61,21 +61,21 @@ void TitlebarGUI::update()
         if (i < upperPadding || i > height - upperPadding) {
             tmp = "";
             tmp.resize(width, ' ');
-            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | A_REVERSE);
+            wattrset(winPtr, COLOR_PAIR(Color::BANNER_TEXT) | A_REVERSE);
             mvwprintw(winPtr, (int)i, 0, "%s", tmp.c_str());
         } else {
             uint32_t leftPadding = (uint32_t)((width - bannerText[i - upperPadding].size()) / 2);
             uint32_t rightPadding = (uint32_t)((width - bannerText[i - upperPadding].size()) / 2 +
-                ((width - bannerText[i - upperPadding].size()) % 2));
+                    ((width - bannerText[i - upperPadding].size()) % 2));
             tmp = "";
             tmp.resize(leftPadding, ' ');
-            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | A_REVERSE);
+            wattrset(winPtr, COLOR_PAIR(Color::BANNER_TEXT) | A_REVERSE);
             mvwprintw(winPtr, (int)i, 0, "%s", tmp.c_str());
             tmp = "";
             tmp.resize(rightPadding, ' ');
-            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | A_BOLD);
+            wattrset(winPtr, COLOR_PAIR(Color::BANNER_TEXT));
             wprintw(winPtr, "%s", bannerText[i - upperPadding].c_str());
-            wattrset(winPtr, COLOR_PAIR(Color::CYN_DEF) | A_REVERSE);
+            wattrset(winPtr, COLOR_PAIR(Color::BANNER_TEXT) | A_REVERSE);
             wprintw(winPtr, tmp.c_str());
         }
     }

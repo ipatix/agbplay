@@ -104,19 +104,19 @@ void PlaylistGUI::update()
     //UIMutex.lock();
     string bar = "Playlist:";
     bar.resize(contentWidth, ' ');
-    wattrset(winPtr, COLOR_PAIR(Color::GRN_DEF) | A_REVERSE);
+    wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME) | A_REVERSE);
     mvwprintw(winPtr, 0, 0, bar.c_str());
     for (uint32_t i = 0; i < contentHeight; i++) {
         uint32_t entry = i + viewPos;
         if (entry == cursorPos && cursorVisible) {
             if (dragging) {
-                wattrset(winPtr, COLOR_PAIR(Color::RED_DEF) | A_REVERSE);
+                wattrset(winPtr, COLOR_PAIR(Color::LIST_SEL) | A_REVERSE);
             } else {
-                wattrset(winPtr, COLOR_PAIR(Color::YEL_DEF) | A_REVERSE);
+                wattrset(winPtr, COLOR_PAIR(Color::LIST_ENTRY) | A_REVERSE);
             }
         }
         else 
-            wattrset(winPtr, COLOR_PAIR(Color::YEL_DEF));
+            wattrset(winPtr, COLOR_PAIR(Color::LIST_ENTRY));
         string songText;
         if (entry < thisGameConfig.GetGameEntries().size()) {
             songText = (ticked->at(entry)) ? "[x] " : "[ ] ";

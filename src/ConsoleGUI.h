@@ -3,10 +3,9 @@
 #define CONSOLE_BORDER_WIDTH 2
 
 #include <vector>
+#include <string>
 
 #include "CursesWin.h"
-
-using namespace std;
 
 namespace agbplay {
     class ConsoleGUI : public CursesWin {
@@ -16,12 +15,12 @@ namespace agbplay {
             ~ConsoleGUI();
             void Resize(uint32_t height, uint32_t width,
                     uint32_t yPos, uint32_t xPos) override;
-            void WriteLn(string str);
+            void WriteLn(std::string str);
         private:
             void update() override;
-            void writeToBuffer(string str);
+            void writeToBuffer(std::string str);
 
             uint32_t textWidth, textHeight;
-            vector<string> textBuffer;
+            std::vector<std::string> textBuffer;
     };
 }

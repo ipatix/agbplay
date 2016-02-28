@@ -61,6 +61,7 @@ void PlayerInterface::LoadSong(long songPos)
     bool play = playerState == State::PLAYING;
     Stop();
     seq = Sequence(songPos, gameCfg.GetTrackLimit(), rom);
+    // TODO remove assignment, assignments are evil!
     trackUI->SetState(seq);
     delete sg;
     sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);

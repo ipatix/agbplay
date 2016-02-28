@@ -13,6 +13,7 @@ namespace agbplay {
             void RemoveSong() override;
             void ClearSongs() override;
             SongEntry& GetSong() override;
+            std::vector<bool>& GetTicked();
             void Leave() override;
             void Tick();
             void Untick();

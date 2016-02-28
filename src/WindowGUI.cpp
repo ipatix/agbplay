@@ -9,6 +9,7 @@
 #include "ColorDef.h"
 #include "WindowGUI.h"
 #include "Util.h"
+#include "SoundExporter.h"
 
 #define KEY_TAB 9
 
@@ -96,7 +97,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata)
 
     rom.Seek(sdata.sTable->GetSongTablePos());
     mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos(), thisCfg);
-    mplay->LoadSong(sdata.sTable->GetPosOfSong(0)); // TODO read track limit from rom rather than using fixed value
+    mplay->LoadSong(sdata.sTable->GetPosOfSong(0));
 }
 
 WindowGUI::~WindowGUI() 
@@ -166,6 +167,7 @@ void WindowGUI::Handle()
                     break;
                 case 'o':
                 case ' ':
+                    play = true;
                     mplay->Pause();
                     break;
                 case 'p':
@@ -183,6 +185,13 @@ void WindowGUI::Handle()
                     rename();
                     trackUI->ForceUpdate();
                     playUI->Enter();
+                    break;
+                case 'r':
+                    mplay->Stop();
+                    {
+                        SoundExporter se(*conUI, sdata, thisCfg, rom);
+                        se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
+                    }
                     break;
                 case EOF:
                 case 4: // EOT

@@ -5,15 +5,16 @@ The code itself is written in C++.
 Current state of things:
 - The GUI is more or less finished
 - ROMs can be loaded and scanned for the songtable
-- PCM playback works pretty much perfect, GB instruments still broken as hell
+- PCM playback works pretty much perfect, GB instruments sound great, but envelope curves are not 100% accurate
 - Reverb algorithm of Camelot games still not implemented
-- regular reverb algorith seems to cause pop sounds here and there
 - Minor controls for actual playback are still missing
+- Basic rendering to file done
 
 Depenencies:
-- Boost
+- boost
 - portaudio
 - (n)curses
+- libsndfile
 
 Compiling:
 Install all the required dev packages and run the Makefile.

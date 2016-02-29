@@ -1,4 +1,5 @@
 #include <sndfile.h>
+#include <ctime>
 #define BOOST_FILESYSTEM_NO_DEPRECATED
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -15,9 +16,10 @@ using namespace std;
  * public SoundExporter
  */
 
-SoundExporter::SoundExporter(ConsoleGUI& _con, SoundData& _sd, GameConfig& _cfg, Rom& _rom)
+SoundExporter::SoundExporter(ConsoleGUI& _con, SoundData& _sd, GameConfig& _cfg, Rom& _rom, bool _benchmarkOnly)
     : con(_con), cfg(_cfg), sd(_sd), rom(_rom)
 {
+    benchmarkOnly = _benchmarkOnly;
 }
 
 SoundExporter::~SoundExporter()
@@ -42,6 +44,9 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
         throw MyException("Creating output directory failed");
     }
 
+    size_t totalBlocksRendered = 0;
+    clock_t begin = clock();
+
     for (SongEntry& ent : entries)
     {
         size_t i = index++;
@@ -50,45 +55,58 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
         string fname = ent.name;
         boost::replace_all(fname, "/", "_");
         con.WriteLn(FormatString("%3d%% - Rendering to file: \"%s\"", (count + 1) * 100 / total, fname));
-        exportSong(FormatString("%s/%d - %s.wav", outputDir, count + 1, fname), ent.GetUID());
+        totalBlocksRendered += exportSong(FormatString("%s/%d - %s.wav", outputDir, count + 1, fname), ent.GetUID());
         count++;
     }
-    con.WriteLn(FormatString("Successfully wrote %d files", count));
+
+    clock_t end = clock();
+
+    con.WriteLn(FormatString("Successfully wrote %d files at %d blocks per second", count, int(clock_t(totalBlocksRendered) / ((end - begin) / CLOCKS_PER_SEC))));
 }
 
 /*
  * private SoundExporter
  */
 
-void SoundExporter::exportSong(string fileName, uint16_t uid)
+size_t SoundExporter::exportSong(string fileName, uint16_t uid)
 {
     // setup our generators
     Sequence seq(sd.sTable->GetPosOfSong(uid), cfg.GetTrackLimit(), rom);
     StreamGenerator sg(seq, EnginePars(cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()), 1, 1.0f);
-    // libsndfile setup
-    SF_INFO oinfo = {
-        .samplerate = STREAM_SAMPLERATE,
-        .channels = N_CHANNELS,
-        .format = SF_FORMAT_WAV | SF_FORMAT_FLOAT,
-    };
-    SNDFILE *ofile = sf_open(fileName.c_str(), SFM_WRITE, &oinfo);
-    if (ofile == NULL) {
-        con.WriteLn(FormatString("Error: %s", sf_strerror(NULL)));
-        return;
-    }
-    // do rendering and write
+    size_t blocksRendered = 0;
     uint32_t nBlocks = sg.GetBufferUnitCount();
-    float *renderedData;
+    // libsndfile setup
+    if (!benchmarkOnly) {
+        SF_INFO oinfo = {
+            .samplerate = STREAM_SAMPLERATE,
+            .channels = N_CHANNELS,
+            .format = SF_FORMAT_WAV | SF_FORMAT_FLOAT,
+        };
+        SNDFILE *ofile = sf_open(fileName.c_str(), SFM_WRITE, &oinfo);
+        if (ofile == NULL) {
+            con.WriteLn(FormatString("Error: %s", sf_strerror(NULL)));
+            return 0;
+        }
+        // do rendering and write
+        float *renderedData;
 
-    while ((renderedData = sg.ProcessAndGetAudio()) != nullptr) {
-        sf_count_t processed = 0;
-        do {
-            processed += sf_write_float(ofile, renderedData + processed, (nBlocks * N_CHANNELS) - processed);
-        } while (processed < (nBlocks * N_CHANNELS));
-    }
+        while ((renderedData = sg.ProcessAndGetAudio()) != nullptr) {
+            sf_count_t processed = 0;
+            do {
+                processed += sf_write_float(ofile, renderedData + processed, (nBlocks * N_CHANNELS) - processed);
+            } while (processed < (nBlocks * N_CHANNELS));
+            blocksRendered += nBlocks;
+        }
 
-    int err;
-    if ((err = sf_close(ofile)) != 0) {
-        con.WriteLn(FormatString("Error: %s", sf_error_number(err)));
+        int err;
+        if ((err = sf_close(ofile)) != 0) {
+            con.WriteLn(FormatString("Error: %s", sf_error_number(err)));
+        }
+    } 
+    // if benchmark only
+    else {
+        while (sg.ProcessAndGetAudio())
+            blocksRendered += nBlocks;
     }
+    return blocksRendered;
 }

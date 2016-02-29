@@ -189,7 +189,14 @@ void WindowGUI::Handle()
                 case 'r':
                     mplay->Stop();
                     {
-                        SoundExporter se(*conUI, sdata, thisCfg, rom);
+                        SoundExporter se(*conUI, sdata, thisCfg, rom, false);
+                        se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
+                    }
+                    break;
+                case 'b':
+                    mplay->Stop();
+                    {
+                        SoundExporter se(*conUI, sdata, thisCfg, rom, true);
                         se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
                     }
                     break;

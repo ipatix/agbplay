@@ -44,7 +44,6 @@ PlayerInterface::~PlayerInterface()
 {
     // stop and deallocate player thread if required
     Stop();
-    __print_debug("Stopped playback");
     PaError err;
     if ((err = Pa_StopStream(audioStream)) != paNoError) {
         __print_debug(FormatString("Pa_StopStream: %s", Pa_GetErrorText(err)));
@@ -53,7 +52,6 @@ PlayerInterface::~PlayerInterface()
         __print_debug(FormatString("Pa_CloseStream: %s", Pa_GetErrorText(err)));
     }
     delete sg;
-    __print_debug("Destoying Stream Generator");
 }
 
 void PlayerInterface::LoadSong(long songPos)
@@ -232,7 +230,6 @@ void PlayerInterface::threadWorker()
     for (int i = (STREAM_BUF_SIZE / nBlocks) + 2; i > 0; i--) {
         rBuf.Put(silence.data(), uint32_t(silence.size()));
     }
-    __print_debug("Exiting Thread...");
     playerState = State::TERMINATED;
 }
 

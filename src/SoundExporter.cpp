@@ -61,7 +61,11 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
 
     clock_t end = clock();
 
-    con.WriteLn(FormatString("Successfully wrote %d files at %d blocks per second", count, int(clock_t(totalBlocksRendered) / ((end - begin) / CLOCKS_PER_SEC))));
+    if (begin == end) {
+        con.WriteLn(FormatString("Successfully wrote %d files", count));
+    } else {
+        con.WriteLn(FormatString("Successfully wrote %d files at %d blocks per second", count, int(clock_t(totalBlocksRendered) * CLOCKS_PER_SEC / (end - begin))));
+    }
 }
 
 /*

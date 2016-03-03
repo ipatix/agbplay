@@ -136,6 +136,11 @@ SampleInfo& SoundChannel::GetInfo()
     return sInfo;
 }
 
+uint8_t SoundChannel::GetInterStep()
+{
+    return envInterStep;
+}
+
 void SoundChannel::StepEnvelope()
 {
     switch (eState) {

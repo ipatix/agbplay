@@ -27,6 +27,7 @@ namespace agbplay
             bool TickNote(); // returns true if note remains active
             EnvState GetState();
             SampleInfo& GetInfo();
+            uint8_t GetInterStep();
             void StepEnvelope();
             void UpdateVolFade();
             float interPos;

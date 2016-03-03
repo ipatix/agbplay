@@ -248,23 +248,46 @@ void SoundMixer::renderToBuffer()
         float *buf = &sampleBuffer[0];
         if (chn.IsGS()) {
             uint8_t *uSamplePtr = (uint8_t *)info.samplePtr;
-            interStep *= 0.015625f; // gs instruments use a different step scale
+            interStep *= (1.0f / 64.0f); // gs instruments use a different step scale
             // switch by GS type
             if (uSamplePtr[1] == 0) {
                 // pulse wave
-                if ((chn.pos & 0x3) == 0) {
-                    chn.pos += uint32_t(uSamplePtr[3] << 24);
-                    chn.pos |= 0x3;
+                #define DUTY_BASE 2
+                #define DUTY_STEP 3
+                #define DEPTH 4
+                #define INIT_DUTY 5
+                uint32_t fromPos;
+                uint8_t step = chn.GetInterStep();
+                if (step == 0) {
+                    fromPos = chn.pos += uint32_t(uSamplePtr[DUTY_STEP] << 24);
                 } else {
-                    chn.pos -= 1;
+                    fromPos = chn.pos;
                 }
-                uint32_t iThreshold = uint32_t(uSamplePtr[5] << 24) + chn.pos;
-                iThreshold = int32_t(iThreshold) < 0 ? uint32_t(int32_t(iThreshold) * -1) >> 8 : iThreshold >> 8;
-                iThreshold = iThreshold * uSamplePtr[4] + uint32_t(uSamplePtr[2] << 24);
-                float fThreshold = float(iThreshold >> 16) / 65536.0f;
+                uint32_t toPos = fromPos + uint32_t(uSamplePtr[DUTY_STEP] << 24);
+
+                auto calcThresh = [](uint32_t val, uint8_t base, uint8_t depth, uint8_t init) {
+                    uint32_t iThreshold = uint32_t(init << 24) + val;
+                    iThreshold = int32_t(iThreshold) < 0 ? ~iThreshold >> 8 : iThreshold >> 8;
+                    iThreshold = iThreshold * depth + uint32_t(base << 24);
+                    return float(iThreshold >> 16) * (1.0f / 65536.0f);
+                };
+
+                float fromThresh = calcThresh(fromPos, uSamplePtr[DUTY_BASE], uSamplePtr[DEPTH], uSamplePtr[INIT_DUTY]);
+                float toThresh = calcThresh(toPos, uSamplePtr[DUTY_BASE], uSamplePtr[DEPTH], uSamplePtr[INIT_DUTY]);
+
+                float deltaThresh = toThresh - fromThresh;
+                float baseThresh = fromThresh + (deltaThresh * (float(step) * (1.0f / float(INTERFRAMES))));
+                float threshStep = deltaThresh * (1.0f / float(INTERFRAMES)) * nBlocksReciprocal;
+                float fThreshold = baseThresh;
+                #undef DUTY_BASE
+                #undef DUTY_STEP
+                #undef DEPTH
+                #undef INIT_DUTY
+
                 for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
                 {
                     float baseSamp = chn.interPos < fThreshold ? 0.5f : -0.5f;
+                    fThreshold += threshStep;
                     *buf++ += baseSamp * lVol;
                     *buf++ += baseSamp * rVol;
 
@@ -272,8 +295,10 @@ void SoundMixer::renderToBuffer()
                     rVol += rVolDeltaStep;
 
                     chn.interPos += interStep;
+                    // this below might glitch for too high frequencies, which usually shouldn't be used anyway
                     if (chn.interPos >= 1.0f) chn.interPos -= 1.0f;
                 }
+
             } else if (uSamplePtr[1] == 1) {
                 // saw wave
                 const uint32_t fix = 0x70;

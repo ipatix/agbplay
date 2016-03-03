@@ -408,6 +408,7 @@ NoiseChannel::~NoiseChannel()
 void NoiseChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
 {
     CGBChannel::Init(owner, def, note, env);
+    pos = 0;
     switch (def.np) {
         case NoisePatt::ROUGH:
             pat = CGBPatterns::pat_noise_rough;

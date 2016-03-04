@@ -1,4 +1,5 @@
 #include <string>
+#include <cmath>
 
 #include "VUMeterGUI.h"
 #include "ColorDef.h"
@@ -41,6 +42,8 @@ void VUMeterGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t
 
 void VUMeterGUI::SetVol(float left, float right)
 {
+    //vuLevelLeft = left <= 0.0f ? 0.0f : max(log2f(left) * (1.0f / 6.0f) + 1.0f, 0.0f);
+    //vuLevelRight = right <= 0.0f ? 0.0f : max(log2f(left) * (1.0f / 6.0f) + 1.0f, 0.0f);
     vuLevelLeft = left;
     vuLevelRight = right;
     update();

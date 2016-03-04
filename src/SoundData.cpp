@@ -421,16 +421,17 @@ bool SongTable::validateTableEntry(long pos)
     agbptr_t songPtr = rom.ReadUInt32();
 
     // check if the pointer is actually valid
-    long debug_pos = 0xFD484;
+    /*long debug_pos = 0xFD484;
     if (pos == debug_pos) {
         __print_debug("Checking...");
-    }
+    }*/
     if (!rom.ValidPointer(songPtr))
         return false;
 
+    /*
     if (pos == debug_pos) {
         __print_debug("Passed pointer test");
-    }
+    }*/
     // check if the song groups are set appropriately
     rom.Seek(pos + 4);
 
@@ -442,14 +443,14 @@ bool SongTable::validateTableEntry(long pos)
     if (z1 != 0 || z2 != 0 || g1 != g2)
         return false;
 
-    if (pos == debug_pos) {
+    /*if (pos == debug_pos) {
         __print_debug("Passed song group and zero check");
-    }
+    }*/
     // now check if the pointer points to a valid song
     if (!validateSong(songPtr))
         return false;
-    if (pos == debug_pos)
-        __print_debug("Passed actual song test");
+    /*if (pos == debug_pos)
+        __print_debug("Passed actual song test");*/
     return true;
 }
 

@@ -226,10 +226,8 @@ void PlayerInterface::threadWorker()
     }
     avgVolLeft = 0.0f;
     avgVolRight = 0.0f;
-    // flush buffer to
-    for (int i = (STREAM_BUF_SIZE / nBlocks) + 2; i > 0; i--) {
-        rBuf.Put(silence.data(), uint32_t(silence.size()));
-    }
+    // flush buffer
+    rBuf.Clear();
     playerState = State::TERMINATED;
 }
 

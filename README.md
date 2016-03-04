@@ -21,6 +21,17 @@ Depenencies:
 
 Compiling:
 Install all the required dev packages and run the Makefile.
+However, because on all of my computers I had issues installing ''portaudio-dev', so in order to compile agbplay you'll need to do the following:
+
+Clone the code repositories of agbplay and portaudio to a folder structure like this:
+
+.
+├── agbplay
+└── portaudio
+
+Go into the portaudio folder and execute "./configure && make" to build portaudio. 
+Now you should be able to do "make" in the agbplay folder and hopefully everything compiles correctly
+
 The code itself is written to be cross-platform compatible. That's why I've decided to go with Boost and portaudio.
 However, for now the main development is done on Linux. So as long as there is not a Visual Studio project available the best chances are probably to use Cygwin for compiling on Windows.
 

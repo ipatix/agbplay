@@ -169,6 +169,7 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case LEvent::MOD:
                             cTrk.mod = cmd;
+                            updatePV = true;
                             break;
                         case LEvent::TUNE:
                             cTrk.tune = int8_t(cmd - 0x40);

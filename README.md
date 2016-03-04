@@ -3,12 +3,15 @@
 The code itself is written in C++.
 
 Current state of things:
-- The GUI is more or less finished
-- ROMs can be loaded and scanned for the songtable
+- ROMs can be loaded and scanned for the songtable automatically
 - PCM playback works pretty much perfect, GB instruments sound great, but envelope curves are not 100% accurate
-- Reverb algorithm of Camelot games still not implemented
-- Minor controls for actual playback are still missing
-- Basic rendering to file done
+- Basic rendering to file done including dummy writing for benchmarking
+
+Todo:
+- Add missing key explanation for controls
+- Implement Reverb for missing games
+- Change to an audio library that doesn't have annoying package dependecy issues and doesn't print ANYTHING messages on stdout
+- Redo config system (perhaps in XML) to support games to share playlist (for games only differing in terms of language) and to allow multiple playlists for one game
 
 Depenencies:
 - boost

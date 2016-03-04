@@ -2,6 +2,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <algorithm>
+#include <cmath>
 
 #include "PlayerInterface.h"
 #include "MyException.h"
@@ -20,11 +21,14 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     rBuf(N_CHANNELS * STREAM_BUF_SIZE)
 {
     this->trackUI = trackUI;
-    this->playerState = State::THREAD_DELETED;
-    this->speedFactor = 64;
-    this->avgCountdown = 0;
-    this->avgVolLeft = 0.0f;
-    this->avgVolRight = 0.0f;
+    playerState = State::THREAD_DELETED;
+    speedFactor = 64;
+    avgCountdown = 0;
+    avgVolLeft = 0.0f;
+    avgVolRight = 0.0f;
+    avgVolLeftBack = 0.0f;
+    avgVolRightBack = 0.0f;
+
     sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
     // start audio stream
     PaError err;
@@ -245,7 +249,7 @@ int PlayerInterface::audioCallback(const void *inputBuffer, void *outputBuffer, 
 
 void PlayerInterface::writeMaxLevels(float *buffer, size_t nBlocks)
 {
-    float left;
+    /*float left;
     float right;
     if (avgCountdown-- == 0) {
         left = max(avgVolLeft - 0.025f, 0.0f);
@@ -264,5 +268,48 @@ void PlayerInterface::writeMaxLevels(float *buffer, size_t nBlocks)
     }
 
     avgVolLeft = left;
-    avgVolRight = right;
+    avgVolRight = right;*/
+
+    /*size_t count = nBlocks;
+    while (count-- > 0) {
+        float l = *buffer++;
+        float r = *buffer++;
+        avgVolLeftBack += (l * l);
+        avgVolRightBack += (r * r);
+    }
+
+    if (avgCountdown-- <= 0) {
+        float nBlocksReciprocal = 1.0f / float(nBlocks);
+        avgVolLeft = sqrtf(avgVolLeftBack * nBlocksReciprocal);
+        avgVolRight = sqrtf(avgVolRightBack * nBlocksReciprocal);
+        avgVolLeftBack = 0.0f;
+        avgVolRightBack = 0.0f;
+        avgCountdown = INTERFRAMES;
+    }*/
+
+    float left = 0.0f;
+    float right = 0.0f;
+
+    size_t count = nBlocks;
+    while (count-- > 0) {
+        float l = *buffer++;
+        float r = *buffer++;
+        left += (l * l);
+        right += (r * r);
+    }
+
+    float nBlocksReciprocal = 1.0f / float(nBlocks);
+    float rmsLeft = sqrtf(left * nBlocksReciprocal);
+    float rmsRight = sqrtf(right * nBlocksReciprocal);
+    static const float sqrt_2 = sqrtf(2.0f);
+
+    avgVolLeftBack = max(avgVolLeftBack, rmsLeft * sqrt_2);
+    avgVolRightBack = max(avgVolRightBack, rmsRight * sqrt_2);
+    if (avgCountdown-- <= 0) {
+        avgVolLeft = avgVolLeftBack;
+        avgVolRight = avgVolRightBack;
+        avgVolLeftBack = 0.0f;
+        avgVolRightBack = 0.0f;
+        avgCountdown = INTERFRAMES - 1;
+    }
 }

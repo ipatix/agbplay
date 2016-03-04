@@ -40,6 +40,8 @@ namespace agbplay
             uint32_t avgCountdown;
             float avgVolLeft;
             float avgVolRight;
+            float avgVolLeftBack;
+            float avgVolRightBack;
 
             PaStream *audioStream;
             uint32_t speedFactor; // 64 = normal

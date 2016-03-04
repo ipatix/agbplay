@@ -208,19 +208,21 @@ void WindowGUI::Handle()
                     return;
             } // end key handling switch
         } // end key loop
-        mplay->UpdateView();
-        if (!mplay->IsPlaying() && play) {
-            if (cursorl != PLAYLIST && cursorl != SONGLIST) {
-                play = false;
-            } else {
-                scrollDown();
-                mplay->Play();
+        if (play) {
+            if (!mplay->IsPlaying()) {
+                if (cursorl != PLAYLIST && cursorl != SONGLIST) {
+                    play = false;
+                } else {
+                    scrollDown();
+                    mplay->Play();
+                }
             }
+            mplay->UpdateView();
+            float lVol;
+            float rVol;
+            mplay->GetVolLevels(lVol, rVol);
+            meterUI->SetVol(lVol, rVol);
         }
-        float lVol;
-        float rVol;
-        mplay->GetVolLevels(lVol, rVol);
-        meterUI->SetVol(lVol, rVol);
         this_thread::sleep_for(chrono::milliseconds(25));
     } // end rendering loop
 }

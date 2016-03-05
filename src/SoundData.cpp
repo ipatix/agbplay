@@ -359,8 +359,20 @@ const vector<int16_t> Sequence::sineLut = {
 
 int16_t Sequence::Track::GetPitch()
 {
-    int16_t m = modt == MODT::PITCH ? int16_t((sineLut[lfoPhase] * mod) >> 8) : 0;
+    int m = (modt == MODT::PITCH) ? (sineLut[lfoPhase] * mod) >> 8 : 0;
     return int16_t(bend * bendr + tune + m);
+}
+
+uint8_t Sequence::Track::GetVol()
+{
+    int m = (modt == MODT::VOL) ? (sineLut[lfoPhase] * mod * 3) >> 12 : 0;
+    return uint8_t(minmax(0, vol + m, 127));
+}
+
+int8_t Sequence::Track::GetPan()
+{
+    int m = (modt == MODT::PAN) ? (sineLut[lfoPhase] * mod * 3) >> 12 : 0;
+    return int8_t(minmax(-64, pan + m, 63));
 }
 
 /*

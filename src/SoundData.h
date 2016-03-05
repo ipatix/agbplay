@@ -49,6 +49,8 @@ namespace agbplay
                 Track(long pos);
                 ~Track();
                 int16_t GetPitch();
+                uint8_t GetVol();
+                int8_t GetPan();
                 std::bitset<NUM_NOTES> activeNotes;
 
                 long pos;

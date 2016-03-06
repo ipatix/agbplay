@@ -175,6 +175,7 @@ void WindowGUI::Handle()
                     mplay->Stop();
                     break;
                 case '+':
+                case '=':
                     mplay->SpeedDouble();
                     break;
                 case '-':

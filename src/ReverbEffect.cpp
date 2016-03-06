@@ -69,7 +69,6 @@ uint32_t ReverbEffect::processNormal(float *buffer, uint32_t nBlocks)
     } else {
         count = nBlocks;
     }
-    __print_debug(FormatString("pos1=%d, pos2=%d", bufferPos, bufferPos2));
     for (uint32_t c = count; c > 0; c--) 
     {
         float rev = (rbuf[bufferPos * 2] + rbuf[bufferPos * 2 + 1] + 

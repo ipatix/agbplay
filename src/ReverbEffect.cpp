@@ -1,6 +1,8 @@
 #include <algorithm>
 
 #include "ReverbEffect.h"
+#include "Debug.h"
+#include "Util.h"
 
 using namespace agbplay;
 using namespace std;
@@ -14,11 +16,10 @@ ReverbEffect::ReverbEffect(int intensity, uint32_t streamRate, uint8_t numAgbBuf
 {
     this->intensity = 0.0f;
     if (intensity <= 0) {
-        this->rtype = RevType::NONE;
+        rtype = RevType::NONE;
     } else if (intensity <= 0x7F) {
-        this->rtype = RevType::NORMAL;
+        rtype = RevType::NORMAL;
         this->intensity = (float)intensity / 128.0f;
-        // TODO check if this value should be devided by 256.0f
     } else {
         rtype = RevType::GS;
     }
@@ -59,25 +60,29 @@ uint32_t ReverbEffect::processNormal(float *buffer, uint32_t nBlocks)
     vector<float>& rbuf = reverbBuffer;
     uint32_t count;
     bool reset = false, reset2 = false;
-    if (getBlocksPerBuffer() - bufferPos2 < nBlocks) {
+    if (getBlocksPerBuffer() - bufferPos2 <= nBlocks) {
         count = getBlocksPerBuffer() - bufferPos2;
         reset2 = true;
-    } else if (getBlocksPerBuffer() - bufferPos < nBlocks) {
+    } else if (getBlocksPerBuffer() - bufferPos <= nBlocks) {
         count = getBlocksPerBuffer() - bufferPos;
         reset = true;
     } else {
         count = nBlocks;
     }
+    __print_debug(FormatString("pos1=%d, pos2=%d", bufferPos, bufferPos2));
     for (uint32_t c = count; c > 0; c--) 
     {
         float rev = (rbuf[bufferPos * 2] + rbuf[bufferPos * 2 + 1] + 
-                rbuf[bufferPos2 * 2] + rbuf[bufferPos2 * 2 + 1]) * intensity / 4.0f ;
-        float oldl = *buffer;
+                rbuf[bufferPos2 * 2] + rbuf[bufferPos2 * 2 + 1]) * intensity * (1.0f / 4.0f);
+        /*float oldl = *buffer;
         *buffer++ += rev;
         float oldr = *buffer;
         *buffer++ += rev;
+        *buffer += rev;
         rbuf[bufferPos * 2] = oldl;
-        rbuf[bufferPos * 2 + 1] = oldr;
+        rbuf[bufferPos * 2 + 1] = oldr;*/
+        rbuf[bufferPos * 2] = *buffer++ += rev;
+        rbuf[bufferPos * 2 + 1] = *buffer++ += rev;
         bufferPos++;
         bufferPos2++;
     }

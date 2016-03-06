@@ -350,12 +350,12 @@ void SoundMixer::renderToBuffer()
                 float baseSamp = float(info.samplePtr[chn.pos]) / 128.0f;
                 float deltaSamp = float(info.samplePtr[chn.pos+1]) / 128.0f - baseSamp;
                 float finalSamp = baseSamp + deltaSamp * chn.interPos;
-                // ugh, cosine interpolation sounds awful, disabled
+                // ugh, cosine interpolation sounds worse, disabled
                 /*float samp1 = float(info.samplePtr[chn.pos]) / 128.0f;
                 float samp2 = float(info.samplePtr[chn.pos + 1]) / 128.0f;
-                float amp = (samp2 - samp1) * (1.0f / 2.0f);
+                float amp = (samp1 - samp2) * (1.0f / 2.0f);
                 float avg = (samp1 + samp2) * (1.0f / 2.0f);
-                float finalSamp = amp * cosf(chn.interPos) + avg;*/
+                float finalSamp = amp * cosf(chn.interPos * (float)M_PI) + avg;*/
 
                 *buf++ += finalSamp * lVol;
                 *buf++ += finalSamp * rVol;

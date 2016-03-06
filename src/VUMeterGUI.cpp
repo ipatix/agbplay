@@ -22,6 +22,8 @@ VUMeterGUI::VUMeterGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t 
     meterWidth = int(width - 2);
     meterRed = meterWidth * 7 / 8;
     meterYel = meterWidth * 6 / 8;
+    vuLevelLeft = 0.0f;
+    vuLevelRight = 0.0f;
     update();
 }
 

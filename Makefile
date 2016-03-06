@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -D DEBUG -O3
+CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -D NDEBUG -O3
 BINARY = agbplay
 BASE_LIBS = -lm -lncursesw -lboost_system -lboost_thread -lboost_filesystem -pthread -lsndfile
 

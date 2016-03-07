@@ -365,7 +365,7 @@ int16_t Sequence::Track::GetPitch()
 
 uint8_t Sequence::Track::GetVol()
 {
-    int m = (modt == MODT::VOL) ? (sineLut[lfoPhase] * mod * 3) >> 12 : 0;
+    int m = (modt == MODT::VOL) ? (sineLut[lfoPhase] * mod * 3 * vol) >> 19 : 0;
     return uint8_t(minmax(0, vol + m, 127));
 }
 

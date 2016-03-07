@@ -287,6 +287,8 @@ void SoundMixer::renderToBuffer()
                 for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
                 {
                     float baseSamp = chn.interPos < fThreshold ? 0.5f : -0.5f;
+                    // correct dc offset
+                    baseSamp += 0.5f - fThreshold;
                     fThreshold += threshStep;
                     *buf++ += baseSamp * lVol;
                     *buf++ += baseSamp * rVol;

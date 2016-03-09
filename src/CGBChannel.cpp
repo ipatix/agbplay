@@ -70,10 +70,7 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
         }
         envPeak = minmax<uint8_t>(0, uint8_t((note.velocity * vol) >> 10), 15);
         envSustain = minmax<uint8_t>(0, uint8_t((envPeak * env.sus + 15) >> 4), 15);
-        /*if (envPeak > 0 && envSustain == 0 && env.sus > 0)
-            envSustain = 1;*/
     }
-    //__print_debug(FormatString("peak=%d sus=%d", (int)envPeak, (int)envSustain));
 }
 
 ChnVol CGBChannel::GetVol()
@@ -102,10 +99,10 @@ ChnVol CGBChannel::GetVol()
     float finalFromEnv = envBase + envDelta * float(envInterStep);
     float finalToEnv = envBase + envDelta * float(envInterStep + 1);
     return ChnVol(
-            (fromPan == Pan::RIGHT) ? 0.0f : finalFromEnv * (1.0f / (32.0f)),
-            (fromPan == Pan::LEFT) ? 0.0f : finalFromEnv * (1.0f / (32.0f)),
-            (fromPan == Pan::RIGHT) ? 0.0f : finalToEnv * (1.0f / (32.0f)),
-            (fromPan == Pan::LEFT) ? 0.0f : finalToEnv * (1.0f / (32.0f)));
+            (fromPan == Pan::RIGHT) ? 0.0f : finalFromEnv * (1.0f / 32.0f),
+            (fromPan == Pan::LEFT) ? 0.0f : finalFromEnv * (1.0f / 32.0f),
+            (fromPan == Pan::RIGHT) ? 0.0f : finalToEnv * (1.0f / 32.0f),
+            (fromPan == Pan::LEFT) ? 0.0f : finalToEnv * (1.0f / 32.0f));
 }
 
 CGBDef CGBChannel::GetDef()

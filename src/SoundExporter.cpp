@@ -3,6 +3,7 @@
 #define BOOST_FILESYSTEM_NO_DEPRECATED
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include "SoundExporter.h"
 #include "Util.h"
@@ -30,9 +31,13 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
 {
     if (entries.size() != ticked.size())
         throw MyException("SoundExporter: input vectors do not match");
-    size_t count = 0, total = 0, index = 0;
-    for (bool t : ticked)
-        if (t) total++;
+    vector<SongEntry> tEnts;
+    for (size_t i = 0; i < entries.size(); i++) {
+        if (!ticked[i])
+            continue;
+        tEnts.push_back(entries[i]);
+    }
+
 
     boost::filesystem::path dir(outputDir);
     if (boost::filesystem::exists(dir)) {
@@ -47,24 +52,23 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
     size_t totalBlocksRendered = 0;
     clock_t begin = clock();
 
-    for (SongEntry& ent : entries)
+#pragma omp parallel for ordered schedule(dynamic)
+    for (size_t i = 0; i < tEnts.size(); i++)
     {
-        size_t i = index++;
-        if (!ticked[i])
-            continue;
-        string fname = ent.name;
+        string fname = tEnts[i].name;
         boost::replace_all(fname, "/", "_");
-        con.WriteLn(FormatString("%3d%% - Rendering to file: \"%s\"", (count + 1) * 100 / total, fname));
-        totalBlocksRendered += exportSong(FormatString("%s/%d - %s.wav", outputDir, count + 1, fname), ent.GetUID());
-        count++;
+        uilock.lock();
+        con.WriteLn(FormatString("%3d%% - Rendering to file: \"%s\"", (i + 1) * 100 / tEnts.size(), fname));
+        uilock.unlock();
+        totalBlocksRendered += exportSong(FormatString("%s/%d - %s.wav", outputDir, i + 1, fname), tEnts[i].GetUID());
     }
 
     clock_t end = clock();
 
     if (begin == end) {
-        con.WriteLn(FormatString("Successfully wrote %d files", count));
+        con.WriteLn(FormatString("Successfully wrote %d files", tEnts.size()));
     } else {
-        con.WriteLn(FormatString("Successfully wrote %d files at %d blocks per second", count, int(clock_t(totalBlocksRendered) * CLOCKS_PER_SEC / (end - begin))));
+        con.WriteLn(FormatString("Successfully wrote %d files at %d blocks per second", tEnts.size(), int(clock_t(totalBlocksRendered) * CLOCKS_PER_SEC / (end - begin))));
     }
 }
 
@@ -81,14 +85,16 @@ size_t SoundExporter::exportSong(string fileName, uint16_t uid)
     uint32_t nBlocks = sg.GetBufferUnitCount();
     // libsndfile setup
     if (!benchmarkOnly) {
-        SF_INFO oinfo = {
-            .samplerate = STREAM_SAMPLERATE,
-            .channels = N_CHANNELS,
-            .format = SF_FORMAT_WAV | SF_FORMAT_FLOAT,
-        };
+        SF_INFO oinfo;
+        memset(&oinfo, 0, sizeof(oinfo));
+        oinfo.samplerate = STREAM_SAMPLERATE;
+        oinfo.channels = N_CHANNELS;
+        oinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
         SNDFILE *ofile = sf_open(fileName.c_str(), SFM_WRITE, &oinfo);
         if (ofile == NULL) {
+            uilock.lock();
             con.WriteLn(FormatString("Error: %s", sf_strerror(NULL)));
+            uilock.unlock();
             return 0;
         }
         // do rendering and write
@@ -104,7 +110,9 @@ size_t SoundExporter::exportSong(string fileName, uint16_t uid)
 
         int err;
         if ((err = sf_close(ofile)) != 0) {
+            uilock.lock();
             con.WriteLn(FormatString("Error: %s", sf_error_number(err)));
+            uilock.unlock();
         }
     } 
     // if benchmark only

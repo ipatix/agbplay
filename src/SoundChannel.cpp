@@ -64,10 +64,10 @@ ChnVol SoundChannel::GetVol()
     float finalFromEnv = envBase + envDelta * float(envInterStep);
     float finalToEnv = envBase + envDelta * float(envInterStep + 1);
     return ChnVol(
-            float(fromLeftVol) * finalFromEnv / 65536.0f,
-            float(fromRightVol) * finalFromEnv / 65536.0f,
-            float(leftVol) * finalToEnv / 65536.0f,
-            float(rightVol) * finalToEnv / 65536.0f);
+            float(fromLeftVol) * finalFromEnv * (1.0f / 65536.0f),
+            float(fromRightVol) * finalFromEnv * (1.0f / 65536.0f),
+            float(leftVol) * finalToEnv * (1.0f / 65536.0f),
+            float(rightVol) * finalToEnv * (1.0f / 65536.0f));
 }
 
 uint8_t SoundChannel::GetMidiKey()
@@ -105,7 +105,7 @@ void SoundChannel::Kill()
 
 void SoundChannel::SetPitch(int16_t pitch)
 {
-    freq = sInfo.midCfreq * powf(2.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f);
+    freq = sInfo.midCfreq * powf(2.0f, float(note.midiKey - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
 bool SoundChannel::TickNote()
@@ -173,7 +173,7 @@ void SoundChannel::StepEnvelope()
             if (++envInterStep >= INTERFRAMES) {
                 fromEnvLevel = envLevel;
                 envInterStep = 0;
-                int newLevel = envLevel * env.dec / 256;
+                int newLevel = (envLevel * env.dec) >> 8;
                 if (newLevel <= env.sus) {
                     eState = EnvState::SUS;
                     envLevel = env.sus;
@@ -192,7 +192,7 @@ void SoundChannel::StepEnvelope()
             if (++envInterStep >= INTERFRAMES) {
                 fromEnvLevel = envLevel;
                 envInterStep = 0;
-                int newLevel = envLevel * env.rel / 256;
+                int newLevel = (envLevel * env.rel) >> 8;
                 if (newLevel <= 0) {
                     eState = EnvState::DIE;
                     envLevel = 0;

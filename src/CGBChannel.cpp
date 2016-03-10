@@ -337,7 +337,7 @@ void SquareChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
 
 void SquareChannel::SetPitch(int16_t pitch)
 {
-    freq = 3520.0f * powf(2.0f, float(note.midiKey - 69) / 12.0f + float(pitch) / 768.0f);
+    freq = 3520.0f * powf(2.0f, float(note.midiKey - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
 /*
@@ -386,7 +386,7 @@ void WaveChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
 
 void WaveChannel::SetPitch(int16_t pitch)
 {
-    freq = 7040.0f * powf(2.0f, float(note.midiKey - 69) / 12.0f + float(pitch) / 768.0f);
+    freq = 7040.0f * powf(2.0f, float(note.midiKey - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
 /*
@@ -420,5 +420,5 @@ void NoiseChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
 
 void NoiseChannel::SetPitch(int16_t pitch)
 {
-    freq = minmax(8.0f, 4096.0f * powf(8.0f, float(note.midiKey - 60) / 12.0f + float(pitch) / 768.0f), 524288.0f);
+    freq = minmax(8.0f, 4096.0f * powf(8.0f, float(note.midiKey - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f)), 524288.0f);
 }

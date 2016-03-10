@@ -318,7 +318,7 @@ void SoundMixer::renderToBuffer()
                     uint32_t var3 = var1 - (var2 >> 27);
                     chn.pos = var3 + uint32_t(int32_t(chn.pos) >> 1);
 
-                    float baseSamp = float((int32_t)chn.pos) / 256.0f;
+                    float baseSamp = float((int32_t)chn.pos) * (1.0f / 256.0f);
 
                     *buf++ += baseSamp * lVol;
                     *buf++ += baseSamp * rVol;
@@ -349,8 +349,8 @@ void SoundMixer::renderToBuffer()
         } else {
             for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
             {
-                float baseSamp = float(info.samplePtr[chn.pos]) / 128.0f;
-                float deltaSamp = float(info.samplePtr[chn.pos+1]) / 128.0f - baseSamp;
+                float baseSamp = float(info.samplePtr[chn.pos]) * (1.0f / 128.0f);
+                float deltaSamp = float(info.samplePtr[chn.pos+1]) * (1.0f / 128.0f) - baseSamp;
                 float finalSamp = baseSamp + deltaSamp * chn.interPos;
                 // ugh, cosine interpolation sounds worse, disabled
                 /*float samp1 = float(info.samplePtr[chn.pos]) / 128.0f;

@@ -329,6 +329,7 @@ void StreamGenerator::processSequenceTick()
                             // MOD
                             cTrk.lastEvent = LEvent::MOD;
                             cTrk.mod = reader[cTrk.pos++];
+                            updatePV = true;
                             break;
                         case 0xC5:
                             // MODT

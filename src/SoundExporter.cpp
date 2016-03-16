@@ -72,7 +72,9 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
     if (chrono::duration_cast<chrono::seconds>(endTime - startTime).count() == 0) {
         con.WriteLn(FormatString("Successfully wrote %d files", tEnts.size()));
     } else {
-        con.WriteLn(FormatString("Successfully wrote %d files at %d blocks per second", tEnts.size(), int(totalBlocksRendered / (size_t)chrono::duration_cast<chrono::seconds>(endTime - startTime).count())));
+        con.WriteLn(FormatString("Successfully wrote %d files at %d blocks per second", 
+                    tEnts.size(), 
+                    int(totalBlocksRendered / (size_t)chrono::duration_cast<chrono::seconds>(endTime - startTime).count())));
     }
 }
 

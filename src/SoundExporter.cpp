@@ -1,9 +1,10 @@
 #include <sndfile.h>
-#include <ctime>
 #define BOOST_FILESYSTEM_NO_DEPRECATED
 #include <boost/filesystem.hpp>
+#undef BOOST_FILESYSTEM_NO_DEPRECATED
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/thread/mutex.hpp>
+#include <chrono>
 
 #include "SoundExporter.h"
 #include "Util.h"
@@ -50,7 +51,8 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
     }
 
     size_t totalBlocksRendered = 0;
-    clock_t begin = clock();
+
+    auto startTime = chrono::high_resolution_clock::now();
 
 #pragma omp parallel for ordered schedule(dynamic)
     for (size_t i = 0; i < tEnts.size(); i++)
@@ -60,15 +62,17 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
         uilock.lock();
         con.WriteLn(FormatString("%3d%% - Rendering to file: \"%s\"", (i + 1) * 100 / tEnts.size(), fname));
         uilock.unlock();
-        totalBlocksRendered += exportSong(FormatString("%s/%d - %s.wav", outputDir, i + 1, fname), tEnts[i].GetUID());
+        size_t rblocks = exportSong(FormatString("%s/%d - %s.wav", outputDir, i + 1, fname), tEnts[i].GetUID());
+#pragma omp atomic
+        totalBlocksRendered += rblocks;
     }
 
-    clock_t end = clock();
+    auto endTime = chrono::high_resolution_clock::now();
 
-    if (begin == end) {
+    if (chrono::duration_cast<chrono::seconds>(endTime - startTime).count() == 0) {
         con.WriteLn(FormatString("Successfully wrote %d files", tEnts.size()));
     } else {
-        con.WriteLn(FormatString("Successfully wrote %d files at %d blocks per second", tEnts.size(), int(clock_t(totalBlocksRendered) * CLOCKS_PER_SEC / (end - begin))));
+        con.WriteLn(FormatString("Successfully wrote %d files at %d blocks per second", tEnts.size(), int(totalBlocksRendered / (size_t)chrono::duration_cast<chrono::seconds>(endTime - startTime).count())));
     }
 }
 

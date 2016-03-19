@@ -248,7 +248,7 @@ void SoundMixer::renderToBuffer()
         float *buf = &sampleBuffer[0];
         if (chn.IsGS()) {
             uint8_t *uSamplePtr = (uint8_t *)info.samplePtr;
-            interStep *= (1.0f / 64.0f); // gs instruments use a different step scale
+            interStep /= 64.0f; // gs instruments use a different step scale
             // switch by GS type
             if (uSamplePtr[1] == 0) {
                 // pulse wave
@@ -269,7 +269,7 @@ void SoundMixer::renderToBuffer()
                     uint32_t iThreshold = uint32_t(init << 24) + val;
                     iThreshold = int32_t(iThreshold) < 0 ? ~iThreshold >> 8 : iThreshold >> 8;
                     iThreshold = iThreshold * depth + uint32_t(base << 24);
-                    return float(iThreshold >> 16) * (1.0f / 65536.0f);
+                    return float(iThreshold) / float(0x100000000);
                 };
 
                 float fromThresh = calcThresh(fromPos, uSamplePtr[DUTY_BASE], uSamplePtr[DEPTH], uSamplePtr[INIT_DUTY]);
@@ -310,6 +310,7 @@ void SoundMixer::renderToBuffer()
                     /*
                      * Sorry that the baseSamp calculation looks ugly.
                      * For accuracy it's a 1 to 1 translation of the original assembly code
+                     * Could probably be reimplemented easier. Not sure if it's a perfect saw wave
                      */
                     chn.interPos += interStep;
                     if (chn.interPos >= 1.0f) chn.interPos -= 1.0f;
@@ -318,7 +319,7 @@ void SoundMixer::renderToBuffer()
                     uint32_t var3 = var1 - (var2 >> 27);
                     chn.pos = var3 + uint32_t(int32_t(chn.pos) >> 1);
 
-                    float baseSamp = float((int32_t)chn.pos) * (1.0f / 256.0f);
+                    float baseSamp = float((int32_t)chn.pos) / 256.0f;
 
                     *buf++ += baseSamp * lVol;
                     *buf++ += baseSamp * rVol;
@@ -349,8 +350,8 @@ void SoundMixer::renderToBuffer()
         } else {
             for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
             {
-                float baseSamp = float(info.samplePtr[chn.pos]) * (1.0f / 128.0f);
-                float deltaSamp = float(info.samplePtr[chn.pos+1]) * (1.0f / 128.0f) - baseSamp;
+                float baseSamp = float(info.samplePtr[chn.pos]) / 128.0f;
+                float deltaSamp = float(info.samplePtr[chn.pos+1]) / 128.0f - baseSamp;
                 float finalSamp = baseSamp + deltaSamp * chn.interPos;
                 // ugh, cosine interpolation sounds worse, disabled
                 /*float samp1 = float(info.samplePtr[chn.pos]) / 128.0f;

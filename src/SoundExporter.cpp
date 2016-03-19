@@ -54,7 +54,7 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
 
     auto startTime = chrono::high_resolution_clock::now();
 
-#pragma omp parallel for ordered schedule(dynamic)
+#pragma omp parallel for// ordered schedule(dynamic)
     for (size_t i = 0; i < tEnts.size(); i++)
     {
         string fname = tEnts[i].name;

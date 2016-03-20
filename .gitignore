@@ -2,7 +2,9 @@
 *.obj
 *.gba
 *.sav
+wav
 wav/
+gba_games
 DEBUG
 a.out
 agbplay

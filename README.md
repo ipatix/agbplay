@@ -9,6 +9,7 @@ Current state of things:
 
 Todo:
 - Add missing key explanation for controls
+- Fix wrong modulation curve (original uses triangle shaped waves, sine is being used currently)
 - Implement Reverb for GS1 and GS2
 - Change to an audio library that doesn't have annoying package dependecy issues and doesn't print ANYTHING messages on stdout
 - Redo config system (perhaps in XML) to support games to share playlist (for games only differing in terms of language) and to allow multiple playlists for one game

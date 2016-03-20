@@ -60,9 +60,9 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
         string fname = tEnts[i].name;
         boost::replace_all(fname, "/", "_");
         uilock.lock();
-        con.WriteLn(FormatString("%03d %% - Rendering to file: \"%s\"", (i + 1) * 100 / tEnts.size(), fname));
+        con.WriteLn(FormatString("%3d %% - Rendering to file: \"%s\"", (i + 1) * 100 / tEnts.size(), fname));
         uilock.unlock();
-        size_t rblocks = exportSong(FormatString("%s/%d - %s.wav", outputDir, i + 1, fname), tEnts[i].GetUID());
+        size_t rblocks = exportSong(FormatString("%s/%03d - %s.wav", outputDir, i + 1, fname), tEnts[i].GetUID());
 #pragma omp atomic
         totalBlocksRendered += rblocks;
     }

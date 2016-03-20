@@ -7,6 +7,7 @@ SYS = $(shell $(CXX) -dumpmachine)
 
 ifneq (, $(findstring linux, $(SYS)))
 	# clang doesn't seem to compile correctly on windows but on linux it works
+	# use g++ for now instead of clang++, OpenMP seems to be a bit tricky with clang
 	CXX = g++
 	LIBS = ../portaudio/lib/.libs/libportaudio.a $(BASE_LIBS) -lasound
 else ifneq (, $(findstring cygwin, $(SYS))$(findstring windows, $(SYS)))

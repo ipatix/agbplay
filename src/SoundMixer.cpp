@@ -37,12 +37,12 @@ SoundMixer::~SoundMixer()
     delete revdsp;
 }
 
-void SoundMixer::NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed)
+void SoundMixer::NewSoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed)
 {
     sndChannels.emplace_back(owner, sInfo, env, note, vol, pan, pitch, fixed);
 }
 
-void SoundMixer::NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, CGBType type)
+void SoundMixer::NewCGBNote(uint8_t owner, CGBDef def, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, CGBType type)
 {
     CGBChannel *nChn = &sq1;
     switch (type) {
@@ -60,12 +60,14 @@ void SoundMixer::NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_
             break;
         default: throw MyException("FATAL ERROR");
     }
+    if (nChn->GetState() < EnvState::REL && nChn->GetOwner() < owner)
+        return;
     nChn->Init(owner, def, note, env);
     nChn->SetVol(vol, pan);
     nChn->SetPitch(pitch);
 }
 
-void SoundMixer::SetTrackPV(void *owner, uint8_t vol, int8_t pan, int16_t pitch)
+void SoundMixer::SetTrackPV(uint8_t owner, uint8_t vol, int8_t pan, int16_t pitch)
 {
     for (SoundChannel& sc : sndChannels) {
         if (sc.GetOwner() == owner) {
@@ -91,7 +93,7 @@ void SoundMixer::SetTrackPV(void *owner, uint8_t vol, int8_t pan, int16_t pitch)
     }
 }
 
-int SoundMixer::TickTrackNotes(void *owner, bitset<NUM_NOTES>& activeNotes)
+int SoundMixer::TickTrackNotes(uint8_t owner, bitset<NUM_NOTES>& activeNotes)
 {
     activeBackBuffer.reset();
     int active = 0;
@@ -126,7 +128,7 @@ int SoundMixer::TickTrackNotes(void *owner, bitset<NUM_NOTES>& activeNotes)
     return active;
 }
 
-void SoundMixer::StopChannel(void *owner, uint8_t key)
+void SoundMixer::StopChannel(uint8_t owner, uint8_t key)
 {
     for (SoundChannel& chn : sndChannels) 
     {

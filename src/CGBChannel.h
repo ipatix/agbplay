@@ -11,8 +11,8 @@ namespace agbplay
         public: 
             CGBChannel();
             ~CGBChannel();
-            virtual void Init(void *owner, CGBDef def, Note note, ADSR env);
-            void *GetOwner();
+            virtual void Init(uint8_t owner, CGBDef def, Note note, ADSR env);
+            uint8_t GetOwner();
             float GetFreq();
             void SetVol(uint8_t vol, int8_t pan);
             ChnVol GetVol();
@@ -32,7 +32,7 @@ namespace agbplay
             enum class Pan {
                 LEFT, CENTER, RIGHT
             };
-            void *owner;
+            uint8_t owner;
             const float *pat;
             float freq;
             ADSR env;
@@ -56,7 +56,7 @@ namespace agbplay
             SquareChannel();
             ~SquareChannel();
 
-            void Init(void *owner, CGBDef def, Note note, ADSR env) override;
+            void Init(uint8_t owner, CGBDef def, Note note, ADSR env) override;
             void SetPitch(int16_t pitch) override;
     };
 
@@ -66,7 +66,7 @@ namespace agbplay
             WaveChannel();
             ~WaveChannel();
 
-            void Init(void *owner, CGBDef def, Note note, ADSR env) override;
+            void Init(uint8_t owner, CGBDef def, Note note, ADSR env) override;
             void SetPitch(int16_t pitch) override;
         private:
             float waveBuffer[32];
@@ -79,7 +79,7 @@ namespace agbplay
             NoiseChannel();
             ~NoiseChannel();
 
-            void Init(void *owner, CGBDef def, Note note, ADSR env) override;
+            void Init(uint8_t owner, CGBDef def, Note note, ADSR env) override;
             void SetPitch(int16_t pitch) override;
     };
 }

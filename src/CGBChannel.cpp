@@ -18,7 +18,7 @@ CGBChannel::CGBChannel()
 {
     this->interPos = 0.0f;
     this->pos = 0;
-    this->owner = nullptr;
+    this->owner = 0xFF;
     this->envInterStep = 0;
     this->envLevel = 0;
     this->fromEnvLevel = 0;
@@ -33,7 +33,7 @@ CGBChannel::~CGBChannel()
 {
 }
 
-void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
+void CGBChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
 {
     this->owner = owner;
     this->note = note;
@@ -45,7 +45,7 @@ void CGBChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
     this->eState = EnvState::INIT;
 }
 
-void *CGBChannel::GetOwner()
+uint8_t CGBChannel::GetOwner()
 {
     return owner;
 }
@@ -314,7 +314,7 @@ SquareChannel::~SquareChannel()
 {
 }
 
-void SquareChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
+void SquareChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
 {
     CGBChannel::Init(owner, def, note, env);
     switch (def.wd) {
@@ -361,7 +361,7 @@ WaveChannel::~WaveChannel()
 {
 }
 
-void WaveChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
+void WaveChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
 {
     //env.sus = (env.sus * 2) > 0xF ? 0xF : uint8_t(env.sus * 2);
     CGBChannel::Init(owner, def, note, env);
@@ -402,7 +402,7 @@ NoiseChannel::~NoiseChannel()
 {
 }
 
-void NoiseChannel::Init(void *owner, CGBDef def, Note note, ADSR env)
+void NoiseChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
 {
     CGBChannel::Init(owner, def, note, env);
     pos = 0;

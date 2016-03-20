@@ -120,14 +120,14 @@ void StreamGenerator::processSequenceTick()
     Rom& reader = seq.GetRom();
     // process all tracks
     bool isSongRunning = false;
-    bool isFirst = true;
+    int ntrk = 0;
     for (Sequence::Track& cTrk : seq.tracks) {
         if (!cTrk.isRunning)
             continue;
 
         isSongRunning = true;
         
-        if (sm.TickTrackNotes((void *)&cTrk, cTrk.activeNotes) > 0) {
+        if (sm.TickTrackNotes(uint8_t(ntrk), cTrk.activeNotes) > 0) {
             if (cTrk.lfodlCount > 0) {
                 cTrk.lfodlCount--;
                 cTrk.lfoPhase = 0;
@@ -192,14 +192,14 @@ void StreamGenerator::processSequenceTick()
                                 if (reader[cTrk.pos+1] < 128) {
                                     uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
                                     int8_t len = int8_t(cTrk.lastNoteLen + reader[cTrk.pos++]);
-                                    playNote(cTrk, Note(cmd, vel, len), &cTrk);
+                                    playNote(cTrk, Note(cmd, vel, len), uint8_t(ntrk));
                                 } else {
                                     uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
                                     int8_t len = cTrk.lastNoteLen;
-                                    playNote(cTrk, Note(cmd, vel, len), &cTrk);
+                                    playNote(cTrk, Note(cmd, vel, len), uint8_t(ntrk));
                                 }
                             } else {
-                                playNote(cTrk, Note(cmd, cTrk.lastNoteVel, cTrk.lastNoteLen), &cTrk);
+                                playNote(cTrk, Note(cmd, cTrk.lastNoteVel, cTrk.lastNoteLen), uint8_t(ntrk));
                             }
                             cTrk.lastNoteKey = cmd;
                             break;
@@ -207,14 +207,14 @@ void StreamGenerator::processSequenceTick()
                             // if velocity parameter provided
                             if (reader[cTrk.pos] < 128) {
                                 uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
-                                playNote(cTrk, Note(cmd, vel, NOTE_TIE), &cTrk);
+                                playNote(cTrk, Note(cmd, vel, NOTE_TIE), uint8_t(ntrk));
                             } else {
-                                playNote(cTrk, Note(cmd, cTrk.lastNoteVel, NOTE_TIE), &cTrk);
+                                playNote(cTrk, Note(cmd, cTrk.lastNoteVel, NOTE_TIE), uint8_t(ntrk));
                             }
                             cTrk.lastNoteKey = cmd;
                             break;
                         case LEvent::EOT:
-                            sm.StopChannel(&cTrk, cmd);
+                            sm.StopChannel(uint8_t(ntrk), cmd);
                             break;
                         default: 
                             throw MyException("Invalid Last Event");
@@ -234,7 +234,7 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case 0xB2:
                             // GOTO
-                            if (isFirst) {
+                            if (ntrk == 0) {
                                 if (maxLoops-- <= 0) {
                                     isEnding = true;
                                     sm.FadeOut(SONG_FADE_OUT_TIME);
@@ -365,10 +365,10 @@ void StreamGenerator::processSequenceTick()
                                 cTrk.lastEvent = LEvent::EOT;
                                 uint8_t next = reader[cTrk.pos];
                                 if (next < 128) {
-                                    sm.StopChannel(&cTrk, next);
+                                    sm.StopChannel(uint8_t(ntrk), next);
                                     cTrk.pos++;
                                 } else {
-                                    sm.StopChannel(&cTrk, cTrk.lastNoteKey);
+                                    sm.StopChannel(uint8_t(ntrk), cTrk.lastNoteKey);
                                 }
                             }
                             break;
@@ -382,15 +382,15 @@ void StreamGenerator::processSequenceTick()
                                     // new velocity
                                     uint8_t key = cTrk.lastNoteKey = reader[cTrk.pos++];
                                     uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
-                                    playNote(cTrk, Note(key, vel, NOTE_TIE), &cTrk);
+                                    playNote(cTrk, Note(key, vel, NOTE_TIE), uint8_t(ntrk));
                                 } else {
                                     // repeat velocity
                                     uint8_t key = cTrk.lastNoteKey = reader[cTrk.pos++];
-                                    playNote(cTrk, Note(key, cTrk.lastNoteVel, NOTE_TIE), &cTrk);
+                                    playNote(cTrk, Note(key, cTrk.lastNoteVel, NOTE_TIE), uint8_t(ntrk));
                                 }
                             } else {
                                 // repeat midi key
-                                playNote(cTrk, Note(cTrk.lastNoteKey, cTrk.lastNoteVel, NOTE_TIE), &cTrk);
+                                playNote(cTrk, Note(cTrk.lastNoteKey, cTrk.lastNoteVel, NOTE_TIE), uint8_t(ntrk));
                             }
                             break;
                         default:
@@ -410,34 +410,34 @@ void StreamGenerator::processSequenceTick()
                                 uint8_t key = cTrk.lastNoteKey = reader[cTrk.pos++];
                                 uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
                                 len += reader[cTrk.pos++];
-                                playNote(cTrk, Note(key, vel, len), &cTrk);
+                                playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
                             } else {
                                 // no gate time
                                 uint8_t key = cTrk.lastNoteKey = reader[cTrk.pos++];
                                 uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
-                                playNote(cTrk, Note(key, vel, len), &cTrk);
+                                playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
                             }
                         } else {
                             // repeast note velocity
                             uint8_t key = cTrk.lastNoteKey = reader[cTrk.pos++];
-                            playNote(cTrk, Note(key, cTrk.lastNoteVel, len), &cTrk);
+                            playNote(cTrk, Note(key, cTrk.lastNoteVel, len), uint8_t(ntrk));
                         }
                     } else {
                         // repeat midi key
-                        playNote(cTrk, Note(cTrk.lastNoteKey, cTrk.lastNoteVel, len), &cTrk);
+                        playNote(cTrk, Note(cTrk.lastNoteKey, cTrk.lastNoteVel, len), uint8_t(ntrk));
                     }
                 }
             } // end of processing loop
         } // end of single tick processing handler
         if (updatePV || cTrk.mod > 0) {
-            sm.SetTrackPV((void *)&cTrk, 
+            sm.SetTrackPV(uint8_t(ntrk), 
                     cTrk.GetVol(),
                     cTrk.GetPan(),
                     cTrk.pitch = cTrk.GetPitch());
         } else {
             cTrk.pitch = cTrk.GetPitch();
         }
-        isFirst = false;
+        ntrk++;
     } // end of track iteration
     if (!isSongRunning && !isEnding) {
         sm.FadeOut(SONG_FINISH_TIME);
@@ -445,7 +445,7 @@ void StreamGenerator::processSequenceTick()
     }
 } // end processSequenceTick
 
-void StreamGenerator::playNote(Sequence::Track& trk, Note note, void *owner)
+void StreamGenerator::playNote(Sequence::Track& trk, Note note, uint8_t owner)
 {
     if (trk.prog > 127)
         return;

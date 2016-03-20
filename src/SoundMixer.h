@@ -26,12 +26,11 @@ namespace agbplay
         public:
             SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, float mvl);
             ~SoundMixer();
-            void NewSoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
-            void NewCGBNote(void *owner, CGBDef def, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, CGBType type);
-            void SetTrackPV(void *owner, uint8_t vol, int8_t pan, int16_t pitch);
-            // optional FIXME: reduce complexity by replacing the owner pointers with int pointers to a note reference counter so the note amount tracking becomes obsolete
-            int TickTrackNotes(void *owner, std::bitset<NUM_NOTES>& activeNotes);
-            void StopChannel(void *owner, uint8_t key);
+            void NewSoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
+            void NewCGBNote(uint8_t owner, CGBDef def, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, CGBType type);
+            void SetTrackPV(uint8_t owner, uint8_t vol, int8_t pan, int16_t pitch);
+            int TickTrackNotes(uint8_t owner, std::bitset<NUM_NOTES>& activeNotes);
+            void StopChannel(uint8_t owner, uint8_t key);
             float *ProcessAndGetAudio();
             uint32_t GetBufferUnitCount();
             uint32_t GetRenderSampleRate();

@@ -47,6 +47,6 @@ namespace agbplay
 
             void processSequenceFrame();
             void processSequenceTick();
-            void playNote(Sequence::Track& trk, Note note, void *owner);
+            void playNote(Sequence::Track& trk, Note note, uint8_t owner);
     };
 }

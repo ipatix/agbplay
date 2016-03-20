@@ -9,9 +9,9 @@ namespace agbplay
     class SoundChannel
     {
         public:
-            SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
+            SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
             ~SoundChannel();
-            void *GetOwner();
+            uint8_t GetOwner();
             float GetFreq();
             void SetVol(uint8_t vol, int8_t pan);
             //uint8_t GetVolL();
@@ -33,7 +33,7 @@ namespace agbplay
             float interPos;
             uint32_t pos;
         private:
-            void *owner;
+            uint8_t owner;
             float freq;
             bool fixed;
             bool isGS;

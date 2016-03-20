@@ -14,7 +14,7 @@ using namespace agbplay;
  * public SoundChannel
  */
 
-SoundChannel::SoundChannel(void *owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed)
+SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed)
 {
     this->owner = owner;
     this->note = note;
@@ -39,7 +39,7 @@ SoundChannel::~SoundChannel()
 {
 }
 
-void *SoundChannel::GetOwner()
+uint8_t SoundChannel::GetOwner()
 {
     return owner;
 }

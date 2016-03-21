@@ -35,7 +35,5 @@ Go into the portaudio folder and execute "./configure && make" to build portaudi
 Now you should be able to do "make" in the agbplay folder and hopefully everything compiles correctly
 
 The code itself is written to be cross-platform compatible. That's why I've decided to go with Boost and portaudio.
-However, for now the main development is done on Linux. So as long as there is not a Visual Studio project available.
 I personally have tested it on 64 bit Cygwin (Windows) and 64 bit Debian Linux.
-
-I might eventually move from pure Makefiles to CMake, but for now there is other priorities.
+Native Windows support with Visual Studio is NOT supported by me and I NEVER will. Getting terminal things to work on Windows with UTF-8, colors and resizing terminal just doesn't work.

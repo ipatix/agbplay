@@ -429,14 +429,16 @@ long SongTable::locateSongTable()
 
 bool SongTable::validateTableEntry(long pos) 
 {
-    rom.Seek(pos);
-    agbptr_t songPtr = rom.ReadUInt32();
-
     // check if the pointer is actually valid
-    /*long debug_pos = 0xFD484;
+    /*long debug_pos = 0x6C5BDC;
     if (pos == debug_pos) {
         __print_debug("Checking...");
     }*/
+    rom.Seek(pos);
+
+    agbptr_t songPtr = rom.ReadUInt32();
+
+
     if (!rom.ValidPointer(songPtr))
         return false;
 

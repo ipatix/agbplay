@@ -15,7 +15,7 @@ void __print_pointer(void *p) {
 }
 
 bool __open_debug() {
-    __debug_file = fopen("DEBUG", "w");
+    __debug_file = fopen("_DEBUG", "w");
     if (__debug_file == nullptr) {
         perror("fopen");
         return false;

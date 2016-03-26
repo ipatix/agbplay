@@ -73,13 +73,6 @@ uint32_t ReverbEffect::processNormal(float *buffer, uint32_t nBlocks)
     {
         float rev = (rbuf[bufferPos * 2] + rbuf[bufferPos * 2 + 1] + 
                 rbuf[bufferPos2 * 2] + rbuf[bufferPos2 * 2 + 1]) * intensity * (1.0f / 4.0f);
-        /*float oldl = *buffer;
-        *buffer++ += rev;
-        float oldr = *buffer;
-        *buffer++ += rev;
-        *buffer += rev;
-        rbuf[bufferPos * 2] = oldl;
-        rbuf[bufferPos * 2 + 1] = oldr;*/
         rbuf[bufferPos * 2] = *buffer++ += rev;
         rbuf[bufferPos * 2 + 1] = *buffer++ += rev;
         bufferPos++;

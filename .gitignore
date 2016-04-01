@@ -6,6 +6,7 @@ wav
 wav/
 gba_games
 DEBUG
+_DEBUG
 a.out
 agbplay
 agbplay.exe*

@@ -4,14 +4,10 @@
 #include <string>
 
 #include "SongEntry.h"
+#include "Types.h"
 
 namespace agbplay
 {
-    enum class ReverbType 
-    {
-        NORMAL, GS1, GS2
-    };
-
     class GameConfig
     {
         public:

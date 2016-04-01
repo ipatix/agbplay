@@ -21,7 +21,7 @@ namespace agbplay
     class StreamGenerator
     {
         public:
-            StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor);
+            StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype);
             ~StreamGenerator();
 
             uint32_t GetBufferUnitCount();

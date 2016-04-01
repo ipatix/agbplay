@@ -14,11 +14,10 @@ using namespace agbplay;
  * public SoundMixer
  */
 
-SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, float mvl) 
-    : sq1(), sq2(), wave(), noise()
+SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype)
+    : sq1(), sq2(), wave(), noise(), revdsp(rtype, reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)))
 {
     this->activeBackBuffer.reset();
-    this->revdsp = new ReverbEffect(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)));
     this->sampleRate = sampleRate;
     this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
     this->sampleBuffer = vector<float>(N_CHANNELS * samplesPerBuffer);
@@ -34,7 +33,6 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, 
 
 SoundMixer::~SoundMixer()
 {
-    delete revdsp;
 }
 
 void SoundMixer::NewSoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed)
@@ -387,7 +385,7 @@ void SoundMixer::renderToBuffer()
 
     // apply PCM reverb
 
-    revdsp->ProcessData(sampleBuffer.data(), samplesPerBuffer);
+    revdsp.ProcessData(sampleBuffer.data(), samplesPerBuffer);
 
     // process all CGB channels
 

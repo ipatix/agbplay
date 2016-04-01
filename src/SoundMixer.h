@@ -24,7 +24,7 @@ namespace agbplay
     class SoundMixer
     {
         public:
-            SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, int reverb, float mvl);
+            SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype);
             ~SoundMixer();
             void NewSoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
             void NewCGBNote(uint8_t owner, CGBDef def, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, CGBType type);
@@ -52,7 +52,7 @@ namespace agbplay
             WaveChannel wave;
             NoiseChannel noise;
 
-            ReverbEffect *revdsp;
+            ReverbEffect revdsp;
             std::vector<float> sampleBuffer;
             uint32_t sampleRate;
             uint32_t fixedModeRate;

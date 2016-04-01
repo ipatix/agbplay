@@ -29,7 +29,7 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     avgVolLeftBack = 0.0f;
     avgVolRightBack = 0.0f;
 
-    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
+    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f, gameCfg.GetRevType());
     // start audio stream
     PaError err;
     //uint32_t nBlocks = sg->GetBufferUnitCount();
@@ -66,7 +66,7 @@ void PlayerInterface::LoadSong(long songPos)
     // TODO remove assignment, assignments are evil!
     trackUI->SetState(seq);
     delete sg;
-    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
+    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f, gameCfg.GetRevType());
     if (play)
         Play();
 }
@@ -149,7 +149,7 @@ void PlayerInterface::Stop()
             delete playerThread;
             playerState = State::THREAD_DELETED;
             delete sg;
-            sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
+            sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f, gameCfg.GetRevType());
             break;            
         case State::THREAD_DELETED:
             // ignore this
@@ -205,7 +205,7 @@ void PlayerInterface::threadWorker()
             switch (playerState) {
                 case State::RESTART:
                     delete sg;
-                    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f);
+                    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f, gameCfg.GetRevType());
                     playerState = State::PLAYING;
                 case State::PLAYING:
                     {

@@ -11,18 +11,11 @@ using namespace std;
  * public ReverbEffect
  */
 
-ReverbEffect::ReverbEffect(int intensity, uint32_t streamRate, uint8_t numAgbBuffers)
+ReverbEffect::ReverbEffect(ReverbType rtype, uint8_t intensity, uint32_t streamRate, uint8_t numAgbBuffers)
     : reverbBuffer((streamRate / AGB_FPS) * N_CHANNELS * numAgbBuffers)
 {
-    this->intensity = 0.0f;
-    if (intensity <= 0) {
-        rtype = RevType::NONE;
-    } else if (intensity <= 0x7F) {
-        rtype = RevType::NORMAL;
-        this->intensity = (float)intensity / 128.0f;
-    } else {
-        rtype = RevType::GS;
-    }
+    this->intensity = (float)intensity / 128.0f;
+    this->rtype = rtype;
     uint32_t bufferLen = streamRate / AGB_FPS;
     fill(reverbBuffer.begin(), reverbBuffer.end(), 0.0f);
     this->bufferPos = 0;
@@ -36,22 +29,26 @@ ReverbEffect::~ReverbEffect()
 void ReverbEffect::ProcessData(float *buffer, uint32_t nBlocks)
 {
     switch (rtype) {
-        case RevType::NONE:
-            break;
-        case RevType::NORMAL:
+        case ReverbType::NORMAL:
             while (nBlocks > 0) {
                 uint32_t left = processNormal(buffer, nBlocks);
                 buffer += (nBlocks - left) * N_CHANNELS;
                 nBlocks = left;
             }
             break;
-        case RevType::GS:
+        case ReverbType::GS1:
             while (nBlocks > 0) {
-                uint32_t left = processGS(buffer, nBlocks);
+                uint32_t left = processGS1(buffer, nBlocks);
                 buffer += (nBlocks - left) * N_CHANNELS;
                 nBlocks = left;
             }
             break;
+        case ReverbType::GS2:
+            while (nBlocks > 0) {
+                uint32_t left = processGS2(buffer, nBlocks);
+                buffer += (nBlocks - left) * N_CHANNELS;
+                nBlocks = left;
+            }
     }
 }
 
@@ -83,7 +80,15 @@ uint32_t ReverbEffect::processNormal(float *buffer, uint32_t nBlocks)
     return nBlocks - count;
 }
 
-uint32_t ReverbEffect::processGS(float *buffer, uint32_t nBlocks)
+uint32_t ReverbEffect::processGS1(float *buffer, uint32_t nBlocks)
+{
+    (void)buffer;
+    (void)nBlocks;
+    // TODO implement
+    return 0;
+}
+
+uint32_t ReverbEffect::processGS2(float *buffer, uint32_t nBlocks)
 {
     (void)buffer;
     (void)nBlocks;

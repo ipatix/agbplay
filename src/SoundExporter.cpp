@@ -86,7 +86,7 @@ size_t SoundExporter::exportSong(string fileName, uint16_t uid)
 {
     // setup our generators
     Sequence seq(sd.sTable->GetPosOfSong(uid), cfg.GetTrackLimit(), rom);
-    StreamGenerator sg(seq, EnginePars(cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()), 1, 1.0f);
+    StreamGenerator sg(seq, EnginePars(cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()), 1, 1.0f, cfg.GetRevType());
     size_t blocksRendered = 0;
     uint32_t nBlocks = sg.GetBufferUnitCount();
     // libsndfile setup

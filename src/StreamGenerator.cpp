@@ -56,11 +56,12 @@ const map<uint8_t, int8_t> StreamGenerator::noteLut = {
     {0xF8,76}, {0xF9,78}, {0xFA,80}, {0xFB,84}, {0xFC,88}, {0xFD,90}, {0xFE,92}, {0xFF,96}
 };
 
-StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor) 
+StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype) 
 : seq(seq), sbnk(seq.GetRom(), seq.GetSndBnk()), 
     sm(STREAM_SAMPLERATE, freqLut[minmax<uint8_t>(0, uint8_t(ep.freq-1), 11)], 
             (ep.rev >= 0x80) ? ep.rev & 0x7F : seq.GetReverb() & 0x7F,
-            float(ep.vol + 1) / 16.0f)
+            float(ep.vol + 1) / 16.0f,
+            rtype)
 {
     this->ep = ep;
     this->maxLoops = maxLoops;

@@ -4,7 +4,7 @@
 #include <bitset>
 
 #include "Rom.h"
-#include "SampleStructs.h"
+#include "Types.h"
 #include "Constants.h"
 
 namespace agbplay 

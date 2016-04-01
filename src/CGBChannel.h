@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "SampleStructs.h"
+#include "Types.h"
 
 namespace agbplay
 {

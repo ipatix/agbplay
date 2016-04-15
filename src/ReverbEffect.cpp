@@ -114,10 +114,10 @@ uint32_t ReverbEffect::processGS2(float *buffer, uint32_t nBlocks)
         float in_delay_1_l = rbuf[bufferPos * 2], in_delay_1_r = rbuf[bufferPos * 2 + 1];
         float in_delay_2_l = rbuf[bufferPos2 * 2], in_delay_2_r = rbuf[bufferPos2 * 2 + 1];
 
-        delay1HPcarryL = (in_delay_1_l += delay1HPcarryL) * 0.2f;
-        delay1HPcarryL = (in_delay_1_r += delay1HPcarryR) * 0.2f;
-        delay1HPcarryL = (in_delay_2_l += delay2HPcarryL) * 0.2f;
-        delay1HPcarryL = (in_delay_2_r += delay2HPcarryR) * 0.2f;
+        delay1HPcarryL = (in_delay_1_l += delay1HPcarryL) * 0.15f;
+        delay1HPcarryL = (in_delay_1_r += delay1HPcarryR) * 0.15f;
+        delay1HPcarryL = (in_delay_2_l += delay2HPcarryL) * 0.15f;
+        delay1HPcarryL = (in_delay_2_r += delay2HPcarryR) * 0.15f;
 
         float r_left = in_delay_1_r * (3.0f / 8.0f) + in_delay_2_l * (3.0f / 8.0f);
         float r_right = -in_delay_1_l * (3.0f / 8.0f) - in_delay_2_r * (3.0f / 8.0f);

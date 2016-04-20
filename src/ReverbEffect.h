@@ -31,5 +31,9 @@ namespace agbplay
             float delay1HPcarryR;
             float delay2HPcarryL;
             float delay2HPcarryR;
+            float delay1HPprevL;
+            float delay1HPprevR;
+            float delay2HPprevL;
+            float delay2HPprevR;
     };
 }

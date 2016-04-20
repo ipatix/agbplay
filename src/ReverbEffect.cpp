@@ -25,6 +25,11 @@ ReverbEffect::ReverbEffect(ReverbType rtype, uint8_t intensity, uint32_t streamR
     delay1HPcarryR = 0.0f;
     delay2HPcarryL = 0.0f;
     delay2HPcarryR = 0.0f;
+
+    delay1HPprevL = 0.0f;
+    delay1HPprevR = 0.0f;
+    delay2HPprevL = 0.0f;
+    delay2HPprevR = 0.0f;
 }
 
 ReverbEffect::~ReverbEffect()
@@ -114,10 +119,20 @@ uint32_t ReverbEffect::processGS2(float *buffer, uint32_t nBlocks)
         float in_delay_1_l = rbuf[bufferPos * 2], in_delay_1_r = rbuf[bufferPos * 2 + 1];
         float in_delay_2_l = rbuf[bufferPos2 * 2], in_delay_2_r = rbuf[bufferPos2 * 2 + 1];
 
-        delay1HPcarryL = (in_delay_1_l += delay1HPcarryL) * 0.15f;
-        delay1HPcarryL = (in_delay_1_r += delay1HPcarryR) * 0.15f;
-        delay1HPcarryL = (in_delay_2_l += delay2HPcarryL) * 0.15f;
-        delay1HPcarryL = (in_delay_2_r += delay2HPcarryR) * 0.15f;
+        delay1HPcarryL = (in_delay_1_l + delay1HPcarryL - delay1HPprevL) * 0.15f;
+        delay1HPcarryR = (in_delay_1_r + delay1HPcarryR - delay1HPprevR) * 0.15f;
+        delay2HPcarryL = (in_delay_2_l + delay2HPcarryL - delay2HPprevL) * 0.15f;
+        delay2HPcarryR = (in_delay_2_r + delay2HPcarryR - delay2HPprevR) * 0.15f;
+
+        delay1HPprevL = in_delay_1_l;
+        delay1HPprevR = in_delay_1_r;
+        delay2HPprevL = in_delay_2_l;
+        delay2HPprevR = in_delay_2_r;
+
+        in_delay_1_l = delay1HPcarryL;
+        in_delay_1_r = delay1HPcarryR;
+        in_delay_2_l = delay2HPcarryL;
+        in_delay_2_r = delay2HPcarryR;
 
         float r_left = in_delay_1_r * (3.0f / 8.0f) + in_delay_2_l * (3.0f / 8.0f);
         float r_right = -in_delay_1_l * (3.0f / 8.0f) - in_delay_2_r * (3.0f / 8.0f);

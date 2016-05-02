@@ -360,7 +360,7 @@ void WindowGUI::scrollDown()
             break;
         case PLAYLIST:
             playUI->ScrollDown();
-            if (playUI->IsDragging())
+            if (!playUI->IsDragging())
                 TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
         case TRACKS:
@@ -380,7 +380,7 @@ void WindowGUI::scrollUp()
             break;
         case PLAYLIST:
             playUI->ScrollUp();
-            if (playUI->IsDragging())
+            if (!playUI->IsDragging())
                 TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
         case TRACKS:
@@ -400,7 +400,7 @@ void WindowGUI::pageDown()
             break;
         case PLAYLIST:
             playUI->PageDown();
-            if (playUI->IsDragging())
+            if (!playUI->IsDragging())
             TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
         case TRACKS:
@@ -420,7 +420,7 @@ void WindowGUI::pageUp()
             break;
         case PLAYLIST:
             playUI->PageUp();
-            if (playUI->IsDragging())
+            if (!playUI->IsDragging())
             TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
             break;
         case TRACKS:

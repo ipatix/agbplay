@@ -94,6 +94,11 @@ void PlaylistGUI::ToggleDrag()
     update();
 }
 
+bool PlaylistGUI::IsDragging()
+{
+    return dragging;
+}
+
 void PlaylistGUI::Leave() 
 {
     dragging = false;

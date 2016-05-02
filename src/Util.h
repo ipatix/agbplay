@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <boost/format.hpp>
 
-#define TRY_OOR(n) try { n ; } catch (std::out_of_range& e) { }
+#define TRY_OOR(n) { try { n ; } catch (std::out_of_range& e) { } }
 
 namespace agbplay
 {

@@ -23,11 +23,10 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     this->trackUI = trackUI;
     playerState = State::THREAD_DELETED;
     speedFactor = 64;
-    avgCountdown = 0;
     avgVolLeft = 0.0f;
     avgVolRight = 0.0f;
-    avgVolLeftBack = 0.0f;
-    avgVolRightBack = 0.0f;
+    avgVolLeftSq = 0.0f;
+    avgVolRightSq = 0.0f;
 
     sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f, gameCfg.GetRevType());
     // start audio stream
@@ -196,7 +195,6 @@ void PlayerInterface::GetVolLevels(float& left, float& right)
 
 void PlayerInterface::threadWorker()
 {
-    avgCountdown = 0;
     uint32_t nBlocks = sg->GetBufferUnitCount();
     vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
     try {
@@ -287,29 +285,22 @@ void PlayerInterface::writeMaxLevels(float *buffer, size_t nBlocks)
         avgCountdown = INTERFRAMES;
     }*/
 
-    float left = 0.0f;
-    float right = 0.0f;
+    const float rc = 1.0f / (1.0f * 2.0f * float(M_PI));
+    const float dt = 1.0f / 48000.0f;
+    const float alpha = dt / (rc + dt);
 
     size_t count = nBlocks;
     while (count-- > 0) {
         float l = *buffer++;
         float r = *buffer++;
-        left += (l * l);
-        right += (r * r);
+        l *= l;
+        r *= r;
+        avgVolLeftSq = avgVolLeftSq + alpha * (l - avgVolLeftSq);
+        avgVolRightSq = avgVolLeftSq + alpha * (r - avgVolRightSq);
     }
 
-    float nBlocksReciprocal = 1.0f / float(nBlocks);
-    float rmsLeft = sqrtf(left * nBlocksReciprocal);
-    float rmsRight = sqrtf(right * nBlocksReciprocal);
     static const float sqrt_2 = sqrtf(2.0f);
 
-    avgVolLeftBack = max(avgVolLeftBack, rmsLeft * sqrt_2);
-    avgVolRightBack = max(avgVolRightBack, rmsRight * sqrt_2);
-    if (avgCountdown-- <= 0) {
-        avgVolLeft = avgVolLeftBack;
-        avgVolRight = avgVolRightBack;
-        avgVolLeftBack = 0.0f;
-        avgVolRightBack = 0.0f;
-        avgCountdown = INTERFRAMES - 1;
-    }
+    avgVolLeft = sqrtf(avgVolLeftSq) * sqrt_2;
+    avgVolRight = sqrtf(avgVolRightSq) * sqrt_2;
 }

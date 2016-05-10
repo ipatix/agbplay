@@ -37,11 +37,10 @@ namespace agbplay
                     void *userData);
             void writeMaxLevels(float *buffer, size_t nBlocks);
 
-            uint32_t avgCountdown;
             float avgVolLeft;
             float avgVolRight;
-            float avgVolLeftBack;
-            float avgVolRightBack;
+            float avgVolLeftSq;
+            float avgVolRightSq;
 
             PaStream *audioStream;
             uint32_t speedFactor; // 64 = normal

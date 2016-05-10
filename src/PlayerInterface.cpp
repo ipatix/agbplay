@@ -247,47 +247,10 @@ int PlayerInterface::audioCallback(const void *inputBuffer, void *outputBuffer, 
 
 void PlayerInterface::writeMaxLevels(float *buffer, size_t nBlocks)
 {
-    /*float left;
-    float right;
-    if (avgCountdown-- == 0) {
-        left = max(avgVolLeft - 0.025f, 0.0f);
-        right = max(avgVolRight - 0.025f, 0.0f);
-        avgCountdown = (INTERFRAMES-1);
-    } else {
-        left = avgVolLeft;
-        right = avgVolRight;
-    }
-
-    while (nBlocks-- > 0) {
-        float l = abs(*buffer++);
-        float r = abs(*buffer++);
-        if (l > left) left = l;
-        if (r > right) right = r;
-    }
-
-    avgVolLeft = left;
-    avgVolRight = right;*/
-
-    /*size_t count = nBlocks;
-    while (count-- > 0) {
-        float l = *buffer++;
-        float r = *buffer++;
-        avgVolLeftBack += (l * l);
-        avgVolRightBack += (r * r);
-    }
-
-    if (avgCountdown-- <= 0) {
-        float nBlocksReciprocal = 1.0f / float(nBlocks);
-        avgVolLeft = sqrtf(avgVolLeftBack * nBlocksReciprocal);
-        avgVolRight = sqrtf(avgVolRightBack * nBlocksReciprocal);
-        avgVolLeftBack = 0.0f;
-        avgVolRightBack = 0.0f;
-        avgCountdown = INTERFRAMES;
-    }*/
-
-    const float rc = 1.0f / (1.0f * 2.0f * float(M_PI));
-    const float dt = 1.0f / 48000.0f;
-    const float alpha = dt / (rc + dt);
+    static const float rc = 1.0f / (5.0f * 2.0f * float(M_PI));
+    // VU lowpass filter freq ~~~~~~~^
+    static const float dt = 1.0f / 48000.0f;
+    static const float alpha = dt / (rc + dt);
 
     size_t count = nBlocks;
     while (count-- > 0) {
@@ -296,7 +259,7 @@ void PlayerInterface::writeMaxLevels(float *buffer, size_t nBlocks)
         l *= l;
         r *= r;
         avgVolLeftSq = avgVolLeftSq + alpha * (l - avgVolLeftSq);
-        avgVolRightSq = avgVolLeftSq + alpha * (r - avgVolRightSq);
+        avgVolRightSq = avgVolRightSq + alpha * (r - avgVolRightSq);
     }
 
     static const float sqrt_2 = sqrtf(2.0f);

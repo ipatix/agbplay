@@ -120,6 +120,7 @@ void WindowGUI::Handle()
         int ch;
         while ((ch = titleUI->GetKey()) != ERR) {
             switch (ch) {
+                case 18: // CTRL+R
                 case KEY_RESIZE:
                     getmaxyx(stdscr, height, width);
                     if (height < 24) height = 24;

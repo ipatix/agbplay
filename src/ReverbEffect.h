@@ -27,6 +27,7 @@ namespace agbplay
             std::vector<float> reverbBuffer;
             uint32_t bufferPos;
             uint32_t bufferPos2;
+            uint32_t bufferPos3;
             float delay1HPcarryL;
             float delay1HPcarryR;
             float delay2HPcarryL;

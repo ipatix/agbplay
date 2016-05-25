@@ -12,7 +12,7 @@ ifneq (, $(findstring linux, $(SYS)))
 	LIBS = ../portaudio/lib/.libs/libportaudio.a $(BASE_LIBS) -lasound
 else ifneq (, $(findstring cygwin, $(SYS))$(findstring windows, $(SYS)))
 	LIBS = ../portaudio/lib/.libs/libportaudio.dll.a $(BASE_LIBS)
-	CXXFLAGS += -D_GLIBCXX_USE_C99=1
+	CXXFLAGS += -D_GLIBCXX_USE_C99=1 -D_BSD_SOURCE
 else
 	# put something else here
 endif

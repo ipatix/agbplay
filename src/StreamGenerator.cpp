@@ -216,6 +216,7 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case LEvent::EOT:
                             sm.StopChannel(uint8_t(ntrk), cmd);
+                            cTrk.lastNoteKey = cmd;
                             break;
                         default: 
                             throw MyException("Invalid Last Event");
@@ -367,6 +368,7 @@ void StreamGenerator::processSequenceTick()
                                 uint8_t next = reader[cTrk.pos];
                                 if (next < 128) {
                                     sm.StopChannel(uint8_t(ntrk), next);
+                                    cTrk.lastNoteKey = next;
                                     cTrk.pos++;
                                 } else {
                                     sm.StopChannel(uint8_t(ntrk), cTrk.lastNoteKey);

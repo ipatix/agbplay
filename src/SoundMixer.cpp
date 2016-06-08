@@ -14,7 +14,7 @@ using namespace agbplay;
  * public SoundMixer
  */
 
-SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype)
+SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype, uint8_t ntracks)
     : sq1(), sq2(), wave(), noise(), revdsp(rtype, reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)))
 {
     this->activeBackBuffer.reset();
@@ -29,6 +29,7 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reve
     this->fadeMicroframesLeft = 0;
     this->fadePos = 1.0f;
     this->fadeStepPerMicroframe = 0.0f;
+    this->ntracks = ntracks;
 }
 
 SoundMixer::~SoundMixer()
@@ -219,168 +220,18 @@ void SoundMixer::renderToBuffer()
         pcmMasterTo *= powf(this->fadePos, 10.0f / 6.0f);
         this->fadeMicroframesLeft--;
     }
-    uint32_t nBlocks = uint32_t(sampleBuffer.size() / N_CHANNELS);
-    float nBlocksReciprocal = 1.0f / float(nBlocks);
+
+    MixingArgs margs;
+    size_t nBlocks = sampleBuffer.size() / N_CHANNELS;
+    margs.vol = pcmMasterVolume;
+    margs.fixedModeRate = fixedModeRate;
+    margs.sampleRateReciprocal = sampleRateReciprocal;
+    margs.nBlocksReciprocal = 1.0f / float(nBlocks);
 
     // process all digital channels
     for (SoundChannel& chn : sndChannels)
     {
-        chn.StepEnvelope();
-        if (chn.GetState() == EnvState::DEAD)
-            continue;
-
-        ChnVol vol = chn.GetVol();
-        vol.fromVolLeft *= pcmMasterFrom;
-        vol.fromVolRight *= pcmMasterFrom;
-        vol.toVolLeft *= pcmMasterTo;
-        vol.toVolRight *= pcmMasterTo;
-        SampleInfo& info = chn.GetInfo();
-        float lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-        float rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-        float lVol = vol.fromVolLeft;
-        float rVol = vol.fromVolRight;
-        float interStep;
-        if (chn.IsFixed()) {
-            interStep = float(this->fixedModeRate) * this->sampleRateReciprocal;
-        } else {
-            interStep = chn.GetFreq() * this->sampleRateReciprocal;
-        }
-        float *buf = &sampleBuffer[0];
-        if (chn.IsGS()) {
-            uint8_t *uSamplePtr = (uint8_t *)info.samplePtr;
-            interStep /= 64.0f; // gs instruments use a different step scale
-            // switch by GS type
-            if (uSamplePtr[1] == 0) {
-                // pulse wave
-                #define DUTY_BASE 2
-                #define DUTY_STEP 3
-                #define DEPTH 4
-                #define INIT_DUTY 5
-                uint32_t fromPos;
-                uint8_t step = chn.GetInterStep();
-                if (step == 0) {
-                    fromPos = chn.pos += uint32_t(uSamplePtr[DUTY_STEP] << 24);
-                } else {
-                    fromPos = chn.pos;
-                }
-                uint32_t toPos = fromPos + uint32_t(uSamplePtr[DUTY_STEP] << 24);
-
-                auto calcThresh = [](uint32_t val, uint8_t base, uint8_t depth, uint8_t init) {
-                    uint32_t iThreshold = uint32_t(init << 24) + val;
-                    iThreshold = int32_t(iThreshold) < 0 ? ~iThreshold >> 8 : iThreshold >> 8;
-                    iThreshold = iThreshold * depth + uint32_t(base << 24);
-                    return float(iThreshold) / float(0x100000000);
-                };
-
-                float fromThresh = calcThresh(fromPos, uSamplePtr[DUTY_BASE], uSamplePtr[DEPTH], uSamplePtr[INIT_DUTY]);
-                float toThresh = calcThresh(toPos, uSamplePtr[DUTY_BASE], uSamplePtr[DEPTH], uSamplePtr[INIT_DUTY]);
-
-                float deltaThresh = toThresh - fromThresh;
-                float baseThresh = fromThresh + (deltaThresh * (float(step) * (1.0f / float(INTERFRAMES))));
-                float threshStep = deltaThresh * (1.0f / float(INTERFRAMES)) * nBlocksReciprocal;
-                float fThreshold = baseThresh;
-                #undef DUTY_BASE
-                #undef DUTY_STEP
-                #undef DEPTH
-                #undef INIT_DUTY
-
-                for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-                {
-                    float baseSamp = chn.interPos < fThreshold ? 0.5f : -0.5f;
-                    // correct dc offset
-                    baseSamp += 0.5f - fThreshold;
-                    fThreshold += threshStep;
-                    *buf++ += baseSamp * lVol;
-                    *buf++ += baseSamp * rVol;
-
-                    lVol += lVolDeltaStep;
-                    rVol += rVolDeltaStep;
-
-                    chn.interPos += interStep;
-                    // this below might glitch for too high frequencies, which usually shouldn't be used anyway
-                    if (chn.interPos >= 1.0f) chn.interPos -= 1.0f;
-                }
-
-            } else if (uSamplePtr[1] == 1) {
-                // saw wave
-                const uint32_t fix = 0x70;
-
-                for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-                {
-                    /*
-                     * Sorry that the baseSamp calculation looks ugly.
-                     * For accuracy it's a 1 to 1 translation of the original assembly code
-                     * Could probably be reimplemented easier. Not sure if it's a perfect saw wave
-                     */
-                    chn.interPos += interStep;
-                    if (chn.interPos >= 1.0f) chn.interPos -= 1.0f;
-                    uint32_t var1 = uint32_t(chn.interPos * 256) - fix;
-                    uint32_t var2 = uint32_t(chn.interPos * 65536.0f) << 17;
-                    uint32_t var3 = var1 - (var2 >> 27);
-                    chn.pos = var3 + uint32_t(int32_t(chn.pos) >> 1);
-
-                    float baseSamp = float((int32_t)chn.pos) / 256.0f;
-
-                    *buf++ += baseSamp * lVol;
-                    *buf++ += baseSamp * rVol;
-
-                    lVol += lVolDeltaStep;
-                    rVol += rVolDeltaStep;
-                }
-            } else {
-                // triangluar shaped wave
-                for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-                {
-                    chn.interPos += interStep;
-                    if (chn.interPos >= 1.0f) chn.interPos -= 1.0f;
-                    float baseSamp;
-                    if (chn.interPos < 0.5f) {
-                        baseSamp = (4.0f * chn.interPos) - 1.0f;
-                    } else {
-                        baseSamp = 3.0f - (4.0f * chn.interPos);
-                    }
-
-                    *buf++ += baseSamp * lVol;
-                    *buf++ += baseSamp * rVol;
-
-                    lVol += lVolDeltaStep;
-                    rVol += rVolDeltaStep;
-                }
-            }
-        } else {
-            for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-            {
-                float baseSamp = float(info.samplePtr[chn.pos]) / 128.0f;
-                float deltaSamp = float(info.samplePtr[chn.pos+1]) / 128.0f - baseSamp;
-                float finalSamp = baseSamp + deltaSamp * chn.interPos;
-                // ugh, cosine interpolation sounds worse, disabled
-                /*float samp1 = float(info.samplePtr[chn.pos]) / 128.0f;
-                float samp2 = float(info.samplePtr[chn.pos + 1]) / 128.0f;
-                float amp = (samp1 - samp2) * (1.0f / 2.0f);
-                float avg = (samp1 + samp2) * (1.0f / 2.0f);
-                float finalSamp = amp * cosf(chn.interPos * (float)M_PI) + avg;*/
-
-                *buf++ += finalSamp * lVol;
-                *buf++ += finalSamp * rVol;
-
-                lVol += lVolDeltaStep;
-                rVol += rVolDeltaStep;
-
-                chn.interPos += interStep;
-                uint32_t posDelta = uint32_t(chn.interPos);
-                chn.interPos -= float(posDelta);
-                chn.pos += posDelta;
-                if (chn.pos >= info.endPos) {
-                    if (info.loopEnabled) {
-                        chn.pos = info.loopPos;
-                    } else {
-                        chn.Kill();
-                        break;
-                    }
-                }
-            }
-        }
-        chn.UpdateVolFade();
+        chn.Process(sampleBuffer.data(), nBlocks, margs);
     }
 
     // apply PCM reverb
@@ -398,6 +249,9 @@ void SoundMixer::renderToBuffer()
     float interStep;
     float *buf = nullptr;
     const float *pat = nullptr;
+
+    // TODO move code as above
+    float nBlocksReciprocal = margs.nBlocksReciprocal;
 
     sq1.StepEnvelope();
     if (sq1.GetState() != EnvState::DEAD) {

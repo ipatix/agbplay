@@ -1,26 +1,39 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 
 #include "Types.h"
 
 namespace agbplay
 {
+    struct MixingArgs
+    {
+        float vol;
+        uint32_t fixedModeRate;
+        float sampleRateReciprocal;
+        float nBlocksReciprocal;
+    };
+
     class SoundChannel
     {
+        private:
+            struct ProcArgs
+            {
+                float lVol;
+                float rVol;
+                float lVolStep;
+                float rVolStep;
+                float interStep;
+            };
         public:
             SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
             ~SoundChannel();
+            void Process(float *buffer, size_t nblocks, MixingArgs& args);
             uint8_t GetOwner();
-            float GetFreq();
             void SetVol(uint8_t vol, int8_t pan);
-            //uint8_t GetVolL();
-            //uint8_t GetVolR();
-            ChnVol GetVol();
             uint8_t GetMidiKey();
             int8_t GetNoteLength();
-            bool IsFixed();
-            bool IsGS();
             void Release();
             void Kill();
             void SetPitch(int16_t pitch);
@@ -28,19 +41,24 @@ namespace agbplay
             EnvState GetState();
             SampleInfo& GetInfo();
             uint8_t GetInterStep();
-            void StepEnvelope();
-            void UpdateVolFade();
-            float interPos;
-            uint32_t pos;
         private:
-            uint8_t owner;
+            void stepEnvelope();
+            void updateVolFade();
+            ChnVol getVol();
+            void processNormal(float *buffer, size_t nblocks, ProcArgs& cargs);
+            void processModPulse(float *buffer, size_t nblocks, ProcArgs& cargs, float nBlocksReciprocal);
+            void processSaw(float *buffer, size_t nblocks, ProcArgs& cargs);
+            void processTri(float *buffer, size_t nblocks, ProcArgs& cargs);
+            uint32_t pos;
+            float interPos;
             float freq;
-            bool fixed;
-            bool isGS;
             ADSR env;
             Note note;
             SampleInfo sInfo;
             EnvState eState;
+            bool fixed;
+            bool isGS;
+            uint8_t owner;
             uint8_t envInterStep;
             uint8_t leftVol;
             uint8_t rightVol;

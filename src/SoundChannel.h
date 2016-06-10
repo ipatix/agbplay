@@ -7,14 +7,6 @@
 
 namespace agbplay
 {
-    struct MixingArgs
-    {
-        float vol;
-        uint32_t fixedModeRate;
-        float sampleRateReciprocal;
-        float nBlocksReciprocal;
-    };
-
     class SoundChannel
     {
         private:

@@ -222,16 +222,15 @@ void SoundMixer::renderToBuffer()
     }
 
     MixingArgs margs;
-    size_t nBlocks = sampleBuffer.size() / N_CHANNELS;
     margs.vol = pcmMasterVolume;
     margs.fixedModeRate = fixedModeRate;
     margs.sampleRateReciprocal = sampleRateReciprocal;
-    margs.nBlocksReciprocal = 1.0f / float(nBlocks);
+    margs.nBlocksReciprocal = 1.0f / float(samplesPerBuffer);
 
     // process all digital channels
     for (SoundChannel& chn : sndChannels)
     {
-        chn.Process(sampleBuffer.data(), nBlocks, margs);
+        chn.Process(sampleBuffer.data(), samplesPerBuffer, margs);
     }
 
     // apply PCM reverb
@@ -240,19 +239,12 @@ void SoundMixer::renderToBuffer()
 
     // process all CGB channels
 
-    ChnVol vol;
-    CGBDef info;
-    float lVolDeltaStep;
-    float rVolDeltaStep;
-    float lVol;
-    float rVol;
-    float interStep;
-    float *buf = nullptr;
-    const float *pat = nullptr;
+    sq1.Process(sampleBuffer.data(), samplesPerBuffer, margs);
+    sq2.Process(sampleBuffer.data(), samplesPerBuffer, margs);
+    wave.Process(sampleBuffer.data(), samplesPerBuffer, margs);
+    noise.Process(sampleBuffer.data(), samplesPerBuffer, margs);
 
-    // TODO move code as above
-    float nBlocksReciprocal = margs.nBlocksReciprocal;
-
+    /*
     sq1.StepEnvelope();
     if (sq1.GetState() != EnvState::DEAD) {
         // square 1
@@ -290,9 +282,11 @@ void SoundMixer::renderToBuffer()
         }
     }
     sq1.UpdateVolFade();
+    */
 
     // square 2
 
+    /*
     sq2.StepEnvelope();
     if (sq2.GetState() != EnvState::DEAD) {
         vol = sq2.GetVol();
@@ -327,9 +321,11 @@ void SoundMixer::renderToBuffer()
         }
     }
     sq2.UpdateVolFade();
+    */
 
     // wave
 
+    /*
     wave.StepEnvelope();
     if (wave.GetState() != EnvState::DEAD) {
         vol = wave.GetVol();
@@ -364,9 +360,11 @@ void SoundMixer::renderToBuffer()
         }
     }
     wave.UpdateVolFade();
+    */
 
     // noise
 
+    /*
     noise.StepEnvelope();
     if (noise.GetState() != EnvState::DEAD) {
         vol = noise.GetVol();
@@ -403,4 +401,5 @@ void SoundMixer::renderToBuffer()
         }
     }
     noise.UpdateVolFade();
+    */
 }

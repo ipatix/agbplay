@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 
 #include "Types.h"
 
@@ -12,27 +13,24 @@ namespace agbplay
             CGBChannel();
             ~CGBChannel();
             virtual void Init(uint8_t owner, CGBDef def, Note note, ADSR env);
+            virtual void Process(float *buffer, size_t nblocks, MixingArgs& args) = 0;
             uint8_t GetOwner();
-            float GetFreq();
             void SetVol(uint8_t vol, int8_t pan);
-            ChnVol GetVol();
-            CGBDef GetDef();
             uint8_t GetMidiKey();
             int8_t GetNoteLength();
             void Release();
             virtual void SetPitch(int16_t pitch) = 0;
             bool TickNote(); // returns true if note remains active
             EnvState GetState();
-            virtual void StepEnvelope();
-            void UpdateVolFade();
-            const float *GetPat();
-            uint32_t pos;
-            float interPos;
         protected:
+            virtual void stepEnvelope();
+            void updateVolFade();
+            ChnVol getVol();
             enum class Pan {
                 LEFT, CENTER, RIGHT
             };
-            uint8_t owner;
+            uint32_t pos;
+            float interPos;
             const float *pat;
             float freq;
             ADSR env;
@@ -48,6 +46,7 @@ namespace agbplay
             // these values are always 1 frame behind in order to provide a smooth transition
             Pan fromPan;
             uint8_t fromEnvLevel;
+            uint8_t owner;
     };
 
     class SquareChannel : public CGBChannel
@@ -58,6 +57,7 @@ namespace agbplay
 
             void Init(uint8_t owner, CGBDef def, Note note, ADSR env) override;
             void SetPitch(int16_t pitch) override;
+            void Process(float *buffer, size_t nblocks, MixingArgs& args) override;
     };
 
     class WaveChannel : public CGBChannel
@@ -68,6 +68,7 @@ namespace agbplay
 
             void Init(uint8_t owner, CGBDef def, Note note, ADSR env) override;
             void SetPitch(int16_t pitch) override;
+            void Process(float *buffer, size_t nblocks, MixingArgs& args) override;
         private:
             float waveBuffer[32];
             static uint8_t volLut[16];
@@ -81,5 +82,6 @@ namespace agbplay
 
             void Init(uint8_t owner, CGBDef def, Note note, ADSR env) override;
             void SetPitch(int16_t pitch) override;
+            void Process(float *buffer, size_t nblocks, MixingArgs& args) override;
     };
 }

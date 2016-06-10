@@ -210,14 +210,10 @@ void SoundMixer::renderToBuffer()
     // master volume calculation
     float masterFrom = masterVolume;
     float masterTo = masterVolume;
-    float pcmMasterFrom = pcmMasterVolume;
-    float pcmMasterTo = pcmMasterVolume;
     if (this->fadeMicroframesLeft > 0) {
         masterFrom *= powf(this->fadePos, 10.0f / 6.0f);
-        pcmMasterFrom *= powf(this->fadePos, 10.0f / 6.0f);
         fadePos += this->fadeStepPerMicroframe;
         masterTo *= powf(this->fadePos, 10.0f / 6.0f);
-        pcmMasterTo *= powf(this->fadePos, 10.0f / 6.0f);
         this->fadeMicroframesLeft--;
     }
 
@@ -244,162 +240,14 @@ void SoundMixer::renderToBuffer()
     wave.Process(sampleBuffer.data(), samplesPerBuffer, margs);
     noise.Process(sampleBuffer.data(), samplesPerBuffer, margs);
 
-    /*
-    sq1.StepEnvelope();
-    if (sq1.GetState() != EnvState::DEAD) {
-        // square 1
+    float masterStep = (masterTo - masterFrom) * margs.nBlocksReciprocal;
+    float masterLevel = masterFrom;
+    
+    for (size_t i = 0; i < samplesPerBuffer; i++)
+    {
+        sampleBuffer[i * N_CHANNELS] *= masterLevel;
+        sampleBuffer[i * N_CHANNELS + 1] *= masterLevel;
 
-        vol = sq1.GetVol();
-        vol.fromVolLeft *= masterFrom;
-        vol.fromVolRight *= masterFrom;
-        vol.toVolLeft *= masterTo;
-        vol.toVolRight *= masterTo;
-        info = sq1.GetDef();
-        pat = sq1.GetPat();
-        assert(pat);
-        lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-        rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-        lVol = vol.fromVolLeft;
-        rVol = vol.fromVolRight;
-        interStep = sq1.GetFreq() * this->sampleRateReciprocal;
-        buf = &sampleBuffer[0];
-
-        // TODO add sweep functionality
-        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-        {
-            float samp = pat[sq1.pos];
-
-            *buf++ += samp * lVol;
-            *buf++ += samp * rVol;
-
-            lVol += lVolDeltaStep;
-            rVol += rVolDeltaStep;
-
-            sq1.interPos += interStep;
-            uint32_t posDelta = uint32_t(sq1.interPos);
-            sq1.interPos -= float(posDelta);
-            sq1.pos = (sq1.pos + posDelta) & 0x7;
-        }
+        masterLevel +=  masterStep;
     }
-    sq1.UpdateVolFade();
-    */
-
-    // square 2
-
-    /*
-    sq2.StepEnvelope();
-    if (sq2.GetState() != EnvState::DEAD) {
-        vol = sq2.GetVol();
-        vol.fromVolLeft *= masterFrom;
-        vol.fromVolRight *= masterFrom;
-        vol.toVolLeft *= masterTo;
-        vol.toVolRight *= masterTo;
-        info = sq2.GetDef();
-        pat = sq2.GetPat();
-        assert(pat);
-        lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-        rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-        lVol = vol.fromVolLeft;
-        rVol = vol.fromVolRight;
-        interStep = sq2.GetFreq() * this->sampleRateReciprocal;
-        buf = &sampleBuffer[0];
-
-        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-        {
-            float samp = pat[sq2.pos];
-
-            *buf++ += samp * lVol;
-            *buf++ += samp * rVol;
-
-            lVol += lVolDeltaStep;
-            rVol += rVolDeltaStep;
-
-            sq2.interPos += interStep;
-            uint32_t posDelta = uint32_t(sq2.interPos);
-            sq2.interPos -= float(posDelta);
-            sq2.pos = (sq2.pos + posDelta) & 0x7;
-        }
-    }
-    sq2.UpdateVolFade();
-    */
-
-    // wave
-
-    /*
-    wave.StepEnvelope();
-    if (wave.GetState() != EnvState::DEAD) {
-        vol = wave.GetVol();
-        vol.fromVolLeft *= masterFrom;
-        vol.fromVolRight *= masterFrom;
-        vol.toVolLeft *= masterTo;
-        vol.toVolRight *= masterTo;
-        info = wave.GetDef();
-        pat = wave.GetPat();
-        assert(pat);
-        lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-        rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-        lVol = vol.fromVolLeft;
-        rVol = vol.fromVolRight;
-        interStep = wave.GetFreq() * this->sampleRateReciprocal;
-        buf = &sampleBuffer[0];
-
-        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-        {
-            float samp = pat[wave.pos];
-
-            *buf++ += samp * lVol;
-            *buf++ += samp * rVol;
-
-            lVol += lVolDeltaStep;
-            rVol += rVolDeltaStep;
-
-            wave.interPos += interStep;
-            uint32_t posDelta = uint32_t(wave.interPos);
-            wave.interPos -= float(posDelta);
-            wave.pos = (wave.pos + posDelta) & 0x1F;
-        }
-    }
-    wave.UpdateVolFade();
-    */
-
-    // noise
-
-    /*
-    noise.StepEnvelope();
-    if (noise.GetState() != EnvState::DEAD) {
-        vol = noise.GetVol();
-        vol.fromVolLeft *= masterFrom;
-        vol.fromVolRight *= masterFrom;
-        vol.toVolLeft *= masterTo;
-        vol.toVolRight *= masterTo;
-        info = noise.GetDef();
-        pat = noise.GetPat();
-        assert(pat);
-        lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-        rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-        lVol = vol.fromVolLeft;
-        rVol = vol.fromVolRight;
-        interStep = noise.GetFreq() * this->sampleRateReciprocal;
-        buf = &sampleBuffer[0];
-
-        uint32_t noise_bitmask = (info.np == NoisePatt::FINE) ? 0x7FFF : 0x7F;
-
-        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-        {
-            float samp = pat[noise.pos];
-
-            *buf++ += samp * lVol;
-            *buf++ += samp * rVol;
-
-            lVol += lVolDeltaStep;
-            rVol += rVolDeltaStep;
-
-            noise.interPos += interStep;
-            uint32_t posDelta = uint32_t(noise.interPos);
-            noise.interPos -= float(posDelta);
-            noise.pos = (noise.pos + posDelta) & noise_bitmask;
-        }
-    }
-    noise.UpdateVolFade();
-    */
 }

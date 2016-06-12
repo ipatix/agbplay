@@ -128,15 +128,19 @@ void WindowGUI::Handle()
                     resizeWindows();
                     break;
                 case KEY_UP:
+                case 'k':
                     scrollUp();
                     break;
                 case KEY_DOWN:
+                case 'j':
                     scrollDown();
                     break;
                 case KEY_LEFT:
+                case 'h':
                     scrollLeft();
                     break;
                 case KEY_RIGHT:
+                case 'l':
                     scrollRight();
                     break;
                 case KEY_PPAGE:

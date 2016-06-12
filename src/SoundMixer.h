@@ -24,7 +24,7 @@ namespace agbplay
     class SoundMixer
     {
         public:
-            SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype);
+            SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype, uint8_t ntracks);
             ~SoundMixer();
             void NewSoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
             void NewCGBNote(uint8_t owner, CGBDef def, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, CGBType type);
@@ -66,5 +66,7 @@ namespace agbplay
             float fadePos;
             float fadeStepPerMicroframe;
             uint32_t fadeMicroframesLeft;
+
+            uint8_t ntracks;
     };
 }

@@ -14,7 +14,7 @@ using namespace agbplay;
  * public SoundMixer
  */
 
-SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype)
+SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype, uint8_t ntracks)
     : sq1(), sq2(), wave(), noise(), revdsp(rtype, reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)))
 {
     this->activeBackBuffer.reset();
@@ -29,6 +29,7 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reve
     this->fadeMicroframesLeft = 0;
     this->fadePos = 1.0f;
     this->fadeStepPerMicroframe = 0.0f;
+    this->ntracks = ntracks;
 }
 
 SoundMixer::~SoundMixer()
@@ -209,178 +210,23 @@ void SoundMixer::renderToBuffer()
     // master volume calculation
     float masterFrom = masterVolume;
     float masterTo = masterVolume;
-    float pcmMasterFrom = pcmMasterVolume;
-    float pcmMasterTo = pcmMasterVolume;
     if (this->fadeMicroframesLeft > 0) {
         masterFrom *= powf(this->fadePos, 10.0f / 6.0f);
-        pcmMasterFrom *= powf(this->fadePos, 10.0f / 6.0f);
         fadePos += this->fadeStepPerMicroframe;
         masterTo *= powf(this->fadePos, 10.0f / 6.0f);
-        pcmMasterTo *= powf(this->fadePos, 10.0f / 6.0f);
         this->fadeMicroframesLeft--;
     }
-    uint32_t nBlocks = uint32_t(sampleBuffer.size() / N_CHANNELS);
-    float nBlocksReciprocal = 1.0f / float(nBlocks);
+
+    MixingArgs margs;
+    margs.vol = pcmMasterVolume;
+    margs.fixedModeRate = fixedModeRate;
+    margs.sampleRateReciprocal = sampleRateReciprocal;
+    margs.nBlocksReciprocal = 1.0f / float(samplesPerBuffer);
 
     // process all digital channels
     for (SoundChannel& chn : sndChannels)
     {
-        chn.StepEnvelope();
-        if (chn.GetState() == EnvState::DEAD)
-            continue;
-
-        ChnVol vol = chn.GetVol();
-        vol.fromVolLeft *= pcmMasterFrom;
-        vol.fromVolRight *= pcmMasterFrom;
-        vol.toVolLeft *= pcmMasterTo;
-        vol.toVolRight *= pcmMasterTo;
-        SampleInfo& info = chn.GetInfo();
-        float lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-        float rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-        float lVol = vol.fromVolLeft;
-        float rVol = vol.fromVolRight;
-        float interStep;
-        if (chn.IsFixed()) {
-            interStep = float(this->fixedModeRate) * this->sampleRateReciprocal;
-        } else {
-            interStep = chn.GetFreq() * this->sampleRateReciprocal;
-        }
-        float *buf = &sampleBuffer[0];
-        if (chn.IsGS()) {
-            uint8_t *uSamplePtr = (uint8_t *)info.samplePtr;
-            interStep /= 64.0f; // gs instruments use a different step scale
-            // switch by GS type
-            if (uSamplePtr[1] == 0) {
-                // pulse wave
-                #define DUTY_BASE 2
-                #define DUTY_STEP 3
-                #define DEPTH 4
-                #define INIT_DUTY 5
-                uint32_t fromPos;
-                uint8_t step = chn.GetInterStep();
-                if (step == 0) {
-                    fromPos = chn.pos += uint32_t(uSamplePtr[DUTY_STEP] << 24);
-                } else {
-                    fromPos = chn.pos;
-                }
-                uint32_t toPos = fromPos + uint32_t(uSamplePtr[DUTY_STEP] << 24);
-
-                auto calcThresh = [](uint32_t val, uint8_t base, uint8_t depth, uint8_t init) {
-                    uint32_t iThreshold = uint32_t(init << 24) + val;
-                    iThreshold = int32_t(iThreshold) < 0 ? ~iThreshold >> 8 : iThreshold >> 8;
-                    iThreshold = iThreshold * depth + uint32_t(base << 24);
-                    return float(iThreshold) / float(0x100000000);
-                };
-
-                float fromThresh = calcThresh(fromPos, uSamplePtr[DUTY_BASE], uSamplePtr[DEPTH], uSamplePtr[INIT_DUTY]);
-                float toThresh = calcThresh(toPos, uSamplePtr[DUTY_BASE], uSamplePtr[DEPTH], uSamplePtr[INIT_DUTY]);
-
-                float deltaThresh = toThresh - fromThresh;
-                float baseThresh = fromThresh + (deltaThresh * (float(step) * (1.0f / float(INTERFRAMES))));
-                float threshStep = deltaThresh * (1.0f / float(INTERFRAMES)) * nBlocksReciprocal;
-                float fThreshold = baseThresh;
-                #undef DUTY_BASE
-                #undef DUTY_STEP
-                #undef DEPTH
-                #undef INIT_DUTY
-
-                for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-                {
-                    float baseSamp = chn.interPos < fThreshold ? 0.5f : -0.5f;
-                    // correct dc offset
-                    baseSamp += 0.5f - fThreshold;
-                    fThreshold += threshStep;
-                    *buf++ += baseSamp * lVol;
-                    *buf++ += baseSamp * rVol;
-
-                    lVol += lVolDeltaStep;
-                    rVol += rVolDeltaStep;
-
-                    chn.interPos += interStep;
-                    // this below might glitch for too high frequencies, which usually shouldn't be used anyway
-                    if (chn.interPos >= 1.0f) chn.interPos -= 1.0f;
-                }
-
-            } else if (uSamplePtr[1] == 1) {
-                // saw wave
-                const uint32_t fix = 0x70;
-
-                for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-                {
-                    /*
-                     * Sorry that the baseSamp calculation looks ugly.
-                     * For accuracy it's a 1 to 1 translation of the original assembly code
-                     * Could probably be reimplemented easier. Not sure if it's a perfect saw wave
-                     */
-                    chn.interPos += interStep;
-                    if (chn.interPos >= 1.0f) chn.interPos -= 1.0f;
-                    uint32_t var1 = uint32_t(chn.interPos * 256) - fix;
-                    uint32_t var2 = uint32_t(chn.interPos * 65536.0f) << 17;
-                    uint32_t var3 = var1 - (var2 >> 27);
-                    chn.pos = var3 + uint32_t(int32_t(chn.pos) >> 1);
-
-                    float baseSamp = float((int32_t)chn.pos) / 256.0f;
-
-                    *buf++ += baseSamp * lVol;
-                    *buf++ += baseSamp * rVol;
-
-                    lVol += lVolDeltaStep;
-                    rVol += rVolDeltaStep;
-                }
-            } else {
-                // triangluar shaped wave
-                for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-                {
-                    chn.interPos += interStep;
-                    if (chn.interPos >= 1.0f) chn.interPos -= 1.0f;
-                    float baseSamp;
-                    if (chn.interPos < 0.5f) {
-                        baseSamp = (4.0f * chn.interPos) - 1.0f;
-                    } else {
-                        baseSamp = 3.0f - (4.0f * chn.interPos);
-                    }
-
-                    *buf++ += baseSamp * lVol;
-                    *buf++ += baseSamp * rVol;
-
-                    lVol += lVolDeltaStep;
-                    rVol += rVolDeltaStep;
-                }
-            }
-        } else {
-            for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-            {
-                float baseSamp = float(info.samplePtr[chn.pos]) / 128.0f;
-                float deltaSamp = float(info.samplePtr[chn.pos+1]) / 128.0f - baseSamp;
-                float finalSamp = baseSamp + deltaSamp * chn.interPos;
-                // ugh, cosine interpolation sounds worse, disabled
-                /*float samp1 = float(info.samplePtr[chn.pos]) / 128.0f;
-                float samp2 = float(info.samplePtr[chn.pos + 1]) / 128.0f;
-                float amp = (samp1 - samp2) * (1.0f / 2.0f);
-                float avg = (samp1 + samp2) * (1.0f / 2.0f);
-                float finalSamp = amp * cosf(chn.interPos * (float)M_PI) + avg;*/
-
-                *buf++ += finalSamp * lVol;
-                *buf++ += finalSamp * rVol;
-
-                lVol += lVolDeltaStep;
-                rVol += rVolDeltaStep;
-
-                chn.interPos += interStep;
-                uint32_t posDelta = uint32_t(chn.interPos);
-                chn.interPos -= float(posDelta);
-                chn.pos += posDelta;
-                if (chn.pos >= info.endPos) {
-                    if (info.loopEnabled) {
-                        chn.pos = info.loopPos;
-                    } else {
-                        chn.Kill();
-                        break;
-                    }
-                }
-            }
-        }
-        chn.UpdateVolFade();
+        chn.Process(sampleBuffer.data(), samplesPerBuffer, margs);
     }
 
     // apply PCM reverb
@@ -389,164 +235,19 @@ void SoundMixer::renderToBuffer()
 
     // process all CGB channels
 
-    ChnVol vol;
-    CGBDef info;
-    float lVolDeltaStep;
-    float rVolDeltaStep;
-    float lVol;
-    float rVol;
-    float interStep;
-    float *buf = nullptr;
-    const float *pat = nullptr;
+    sq1.Process(sampleBuffer.data(), samplesPerBuffer, margs);
+    sq2.Process(sampleBuffer.data(), samplesPerBuffer, margs);
+    wave.Process(sampleBuffer.data(), samplesPerBuffer, margs);
+    noise.Process(sampleBuffer.data(), samplesPerBuffer, margs);
 
-    sq1.StepEnvelope();
-    if (sq1.GetState() != EnvState::DEAD) {
-        // square 1
+    float masterStep = (masterTo - masterFrom) * margs.nBlocksReciprocal;
+    float masterLevel = masterFrom;
+    
+    for (size_t i = 0; i < samplesPerBuffer; i++)
+    {
+        sampleBuffer[i * N_CHANNELS] *= masterLevel;
+        sampleBuffer[i * N_CHANNELS + 1] *= masterLevel;
 
-        vol = sq1.GetVol();
-        vol.fromVolLeft *= masterFrom;
-        vol.fromVolRight *= masterFrom;
-        vol.toVolLeft *= masterTo;
-        vol.toVolRight *= masterTo;
-        info = sq1.GetDef();
-        pat = sq1.GetPat();
-        assert(pat);
-        lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-        rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-        lVol = vol.fromVolLeft;
-        rVol = vol.fromVolRight;
-        interStep = sq1.GetFreq() * this->sampleRateReciprocal;
-        buf = &sampleBuffer[0];
-
-        // TODO add sweep functionality
-        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-        {
-            float samp = pat[sq1.pos];
-
-            *buf++ += samp * lVol;
-            *buf++ += samp * rVol;
-
-            lVol += lVolDeltaStep;
-            rVol += rVolDeltaStep;
-
-            sq1.interPos += interStep;
-            uint32_t posDelta = uint32_t(sq1.interPos);
-            sq1.interPos -= float(posDelta);
-            sq1.pos = (sq1.pos + posDelta) & 0x7;
-        }
+        masterLevel +=  masterStep;
     }
-    sq1.UpdateVolFade();
-
-    // square 2
-
-    sq2.StepEnvelope();
-    if (sq2.GetState() != EnvState::DEAD) {
-        vol = sq2.GetVol();
-        vol.fromVolLeft *= masterFrom;
-        vol.fromVolRight *= masterFrom;
-        vol.toVolLeft *= masterTo;
-        vol.toVolRight *= masterTo;
-        info = sq2.GetDef();
-        pat = sq2.GetPat();
-        assert(pat);
-        lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-        rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-        lVol = vol.fromVolLeft;
-        rVol = vol.fromVolRight;
-        interStep = sq2.GetFreq() * this->sampleRateReciprocal;
-        buf = &sampleBuffer[0];
-
-        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-        {
-            float samp = pat[sq2.pos];
-
-            *buf++ += samp * lVol;
-            *buf++ += samp * rVol;
-
-            lVol += lVolDeltaStep;
-            rVol += rVolDeltaStep;
-
-            sq2.interPos += interStep;
-            uint32_t posDelta = uint32_t(sq2.interPos);
-            sq2.interPos -= float(posDelta);
-            sq2.pos = (sq2.pos + posDelta) & 0x7;
-        }
-    }
-    sq2.UpdateVolFade();
-
-    // wave
-
-    wave.StepEnvelope();
-    if (wave.GetState() != EnvState::DEAD) {
-        vol = wave.GetVol();
-        vol.fromVolLeft *= masterFrom;
-        vol.fromVolRight *= masterFrom;
-        vol.toVolLeft *= masterTo;
-        vol.toVolRight *= masterTo;
-        info = wave.GetDef();
-        pat = wave.GetPat();
-        assert(pat);
-        lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-        rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-        lVol = vol.fromVolLeft;
-        rVol = vol.fromVolRight;
-        interStep = wave.GetFreq() * this->sampleRateReciprocal;
-        buf = &sampleBuffer[0];
-
-        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-        {
-            float samp = pat[wave.pos];
-
-            *buf++ += samp * lVol;
-            *buf++ += samp * rVol;
-
-            lVol += lVolDeltaStep;
-            rVol += rVolDeltaStep;
-
-            wave.interPos += interStep;
-            uint32_t posDelta = uint32_t(wave.interPos);
-            wave.interPos -= float(posDelta);
-            wave.pos = (wave.pos + posDelta) & 0x1F;
-        }
-    }
-    wave.UpdateVolFade();
-
-    // noise
-
-    noise.StepEnvelope();
-    if (noise.GetState() != EnvState::DEAD) {
-        vol = noise.GetVol();
-        vol.fromVolLeft *= masterFrom;
-        vol.fromVolRight *= masterFrom;
-        vol.toVolLeft *= masterTo;
-        vol.toVolRight *= masterTo;
-        info = noise.GetDef();
-        pat = noise.GetPat();
-        assert(pat);
-        lVolDeltaStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-        rVolDeltaStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
-        lVol = vol.fromVolLeft;
-        rVol = vol.fromVolRight;
-        interStep = noise.GetFreq() * this->sampleRateReciprocal;
-        buf = &sampleBuffer[0];
-
-        uint32_t noise_bitmask = (info.np == NoisePatt::FINE) ? 0x7FFF : 0x7F;
-
-        for (uint32_t cnt = nBlocks; cnt > 0; cnt--)
-        {
-            float samp = pat[noise.pos];
-
-            *buf++ += samp * lVol;
-            *buf++ += samp * rVol;
-
-            lVol += lVolDeltaStep;
-            rVol += rVolDeltaStep;
-
-            noise.interPos += interStep;
-            uint32_t posDelta = uint32_t(noise.interPos);
-            noise.interPos -= float(posDelta);
-            noise.pos = (noise.pos + posDelta) & noise_bitmask;
-        }
-    }
-    noise.UpdateVolFade();
 }

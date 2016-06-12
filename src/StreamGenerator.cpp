@@ -61,7 +61,7 @@ StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops,
     sm(STREAM_SAMPLERATE, freqLut[minmax<uint8_t>(0, uint8_t(ep.freq-1), 11)], 
             (ep.rev >= 0x80) ? ep.rev & 0x7F : seq.GetReverb() & 0x7F,
             float(ep.vol + 1) / 16.0f,
-            rtype)
+            rtype, (uint8_t)seq.tracks.size())
 {
     this->ep = ep;
     this->maxLoops = maxLoops;

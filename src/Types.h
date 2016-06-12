@@ -20,6 +20,14 @@ namespace agbplay
         NoisePatt np;
     };
 
+    struct MixingArgs
+    {
+        float vol;
+        uint32_t fixedModeRate;
+        float sampleRateReciprocal;
+        float nBlocksReciprocal;
+    };
+
     struct ChnVol
     {
         ChnVol(float fromVolLeft, float fromVolRight, float toVolLeft, float toVolRight);

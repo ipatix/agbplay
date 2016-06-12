@@ -50,11 +50,6 @@ uint8_t CGBChannel::GetOwner()
     return owner;
 }
 
-float CGBChannel::GetFreq()
-{
-    return freq;
-}
-
 void CGBChannel::SetVol(uint8_t vol, int8_t pan)
 {
     if (eState < EnvState::REL) {
@@ -73,7 +68,7 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
     }
 }
 
-ChnVol CGBChannel::GetVol()
+ChnVol CGBChannel::getVol()
 {
     float envBase = float(fromEnvLevel);
     uint32_t stepDiv;
@@ -103,11 +98,6 @@ ChnVol CGBChannel::GetVol()
             (fromPan == Pan::LEFT) ? 0.0f : finalFromEnv * (1.0f / 32.0f),
             (fromPan == Pan::RIGHT) ? 0.0f : finalToEnv * (1.0f / 32.0f),
             (fromPan == Pan::LEFT) ? 0.0f : finalToEnv * (1.0f / 32.0f));
-}
-
-CGBDef CGBChannel::GetDef()
-{
-    return def;
 }
 
 uint8_t CGBChannel::GetMidiKey()
@@ -161,7 +151,7 @@ EnvState CGBChannel::GetState()
     return eState;
 }
 
-void CGBChannel::StepEnvelope()
+void CGBChannel::stepEnvelope()
 {
     switch (eState) {
         case EnvState::INIT:
@@ -291,14 +281,9 @@ Ldie:
 }
 
 
-void CGBChannel::UpdateVolFade()
+void CGBChannel::updateVolFade()
 {
     fromPan = pan;
-}
-
-const float *CGBChannel::GetPat()
-{
-    return pat;
 }
 
 /*
@@ -340,10 +325,45 @@ void SquareChannel::SetPitch(int16_t pitch)
     freq = 3520.0f * powf(2.0f, float(note.midiKey - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
+void SquareChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
+{
+    stepEnvelope();
+    if (eState == EnvState::DEAD)
+        return;
+
+    ChnVol vol = getVol();
+    assert(pat);
+    float lVolStep = (vol.toVolLeft - vol.fromVolLeft) * args.nBlocksReciprocal;
+    float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.nBlocksReciprocal;
+    float lVol = vol.fromVolLeft;
+    float rVol = vol.fromVolRight;
+    float interStep = freq * args.sampleRateReciprocal;
+
+    // TODO add sweep functionality
+    for (size_t cnt = nblocks; cnt > 0; cnt--)
+    {
+        float samp = pat[pos];
+
+        *buffer++ += samp * lVol;
+        *buffer++ += samp * rVol;
+
+        lVol += lVolStep;
+        rVol += rVolStep;
+
+        interPos += interStep;
+        uint32_t posDelta = uint32_t(interPos);
+        interPos -= float(posDelta);
+        pos = (pos + posDelta) & 0x7;
+    }
+    updateVolFade();
+}
+
 /*
  * public WaveChannel
  */
 
+/* This LUT is currently unused. I's supposed to be more accurate to the original
+ * but on the other hand it just doesn't sound as good as a linear curve */
 uint8_t WaveChannel::volLut[] = {
     0, 0, 4, 4, 4, 4, 8, 8, 8, 8, 12, 12, 12, 12, 16, 16
 };
@@ -389,6 +409,38 @@ void WaveChannel::SetPitch(int16_t pitch)
     freq = 7040.0f * powf(2.0f, float(note.midiKey - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
+void WaveChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
+{
+    stepEnvelope();
+    if (eState == EnvState::DEAD)
+        return;
+    ChnVol vol = getVol();
+    assert(pat);
+    float lVolStep = (vol.toVolLeft - vol.fromVolLeft) * args.nBlocksReciprocal;
+    float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.nBlocksReciprocal;
+    float lVol = vol.fromVolLeft;
+    float rVol = vol.fromVolRight;
+    float interStep = freq * args.sampleRateReciprocal;
+
+    for (size_t cnt = nblocks; cnt > 0; cnt--)
+    {
+        float samp = pat[pos];
+
+        *buffer++ += samp * lVol;
+        *buffer++ += samp * rVol;
+
+        lVol += lVolStep;
+        rVol += rVolStep;
+
+        interPos += interStep;
+        uint32_t posDelta = uint32_t(interPos);
+        interPos -= float(posDelta);
+        pos = (pos + posDelta) & 0x1F;
+    }
+
+    updateVolFade();
+}
+
 /*
  * public NoiseChannel
  */
@@ -421,4 +473,39 @@ void NoiseChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
 void NoiseChannel::SetPitch(int16_t pitch)
 {
     freq = minmax(8.0f, 4096.0f * powf(8.0f, float(note.midiKey - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f)), 524288.0f);
+}
+
+void NoiseChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
+{
+    stepEnvelope();
+    if (eState == EnvState::DEAD)
+        return;
+
+    ChnVol vol = getVol();
+    assert(pat);
+    float lVolStep = (vol.toVolLeft - vol.fromVolLeft) * args.nBlocksReciprocal;
+    float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.nBlocksReciprocal;
+    float lVol = vol.fromVolLeft;
+    float rVol = vol.fromVolRight;
+    float interStep = freq * args.sampleRateReciprocal;
+
+    uint32_t noise_bitmask = (def.np == NoisePatt::FINE) ? 0x7FFF : 0x7F;
+
+    for (size_t cnt = nblocks; cnt > 0; cnt--)
+    {
+        float samp = pat[pos];
+
+        *buffer++ += samp * lVol;
+        *buffer++ += samp * rVol;
+
+        lVol += lVolStep;
+        rVol += rVolStep;
+
+        interPos += interStep;
+        uint32_t posDelta = uint32_t(interPos);
+        interPos -= float(posDelta);
+        pos = (pos + posDelta) & noise_bitmask;
+    }
+
+    updateVolFade();
 }

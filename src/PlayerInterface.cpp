@@ -239,7 +239,6 @@ int PlayerInterface::audioCallback(const void *inputBuffer, void *outputBuffer, 
     (void)inputBuffer;
     (void)timeInfo;
     (void)statusFlags;
-    (void)userData;
     Ringbuffer *rBuf = (Ringbuffer *)userData;
     rBuf->Take((float *)outputBuffer, uint32_t(framesPerBuffer * N_CHANNELS));
     return 0;

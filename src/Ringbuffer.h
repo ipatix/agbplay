@@ -3,29 +3,29 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <vector>
-#include <cstdint>
+#include <cstddef>
 
 namespace agbplay
 {
     class Ringbuffer
     {
         public:
-            Ringbuffer(uint32_t elementCount);
+            Ringbuffer(size_t elementCount);
             ~Ringbuffer();
 
-            void Put(float *inData, uint32_t nElements);
-            void Take(float *outData, uint32_t nElements);
+            void Put(float *inData, size_t nElements);
+            void Take(float *outData, size_t nElements);
             void Clear();
         private:
-            uint32_t put(float *inData, uint32_t nElements);
-            uint32_t take(float *outData, uint32_t nElements);
+            size_t put(float *inData, size_t nElements);
+            size_t take(float *outData, size_t nElements);
 
             std::vector<float> bufData;
             boost::mutex countLock;
             boost::condition_variable sig;
-            uint32_t freePos;
-            uint32_t dataPos;
-            uint32_t freeCount;
-            uint32_t dataCount;
+            size_t freePos;
+            size_t dataPos;
+            size_t freeCount;
+            size_t dataCount;
     };
 }

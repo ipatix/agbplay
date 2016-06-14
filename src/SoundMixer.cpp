@@ -15,20 +15,24 @@ using namespace agbplay;
  */
 
 SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype, uint8_t ntracks)
-    : sq1(), sq2(), wave(), noise(), revdsp(rtype, reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)))
+    : sq1(), sq2(), wave(), noise()
 {
-    this->activeBackBuffer.reset();
+    samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
+    for (size_t i = 0; i < ntracks; i++)
+    {
+        revdsps.emplace_back(rtype, reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)));
+        soundBuffers.emplace_back(N_CHANNELS * samplesPerBuffer);
+        fill(soundBuffers[i].begin(), soundBuffers[i].end(), 0.0f);
+    }
+    activeBackBuffer.reset();
     this->sampleRate = sampleRate;
-    this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
-    this->sampleBuffer = vector<float>(N_CHANNELS * samplesPerBuffer);
     this->fixedModeRate = fixedModeRate;
-    fill_n(this->sampleBuffer.begin(), this->sampleBuffer.size(), 0.0f);
-    this->sampleRateReciprocal = 1.0f / float(sampleRate);
-    this->masterVolume = MASTER_VOL;
-    this->pcmMasterVolume = MASTER_VOL * mvl;
-    this->fadeMicroframesLeft = 0;
-    this->fadePos = 1.0f;
-    this->fadeStepPerMicroframe = 0.0f;
+    sampleRateReciprocal = 1.0f / float(sampleRate);
+    masterVolume = MASTER_VOL;
+    pcmMasterVolume = MASTER_VOL * mvl;
+    fadeMicroframesLeft = 0;
+    fadePos = 1.0f;
+    fadeStepPerMicroframe = 0.0f;
     this->ntracks = ntracks;
 }
 
@@ -154,12 +158,12 @@ void SoundMixer::StopChannel(uint8_t owner, uint8_t key)
     }
 }
 
-float *SoundMixer::ProcessAndGetAudio()
+std::vector<std::vector<float>>& SoundMixer::ProcessAndGetAudio()
 {
-    clearBuffer();
-    renderToBuffer();
+    clearBuffers();
+    renderToBuffers();
     purgeChannels();
-    return &sampleBuffer[0];
+    return soundBuffers;
 }
 
 uint32_t SoundMixer::GetBufferUnitCount()
@@ -200,12 +204,15 @@ void SoundMixer::purgeChannels()
     sndChannels.remove_if([](SoundChannel& chn) { return chn.GetState() == EnvState::DEAD; });
 }
 
-void SoundMixer::clearBuffer()
+void SoundMixer::clearBuffers()
 {
-    fill(sampleBuffer.begin(), sampleBuffer.end(), 0.0f);
+    for (vector<float>& b : soundBuffers)
+    {
+        fill(b.begin(), b.end(), 0.0f);
+    }
 }
 
-void SoundMixer::renderToBuffer()
+void SoundMixer::renderToBuffers()
 {
     // master volume calculation
     float masterFrom = masterVolume;
@@ -226,28 +233,49 @@ void SoundMixer::renderToBuffer()
     // process all digital channels
     for (SoundChannel& chn : sndChannels)
     {
-        chn.Process(sampleBuffer.data(), samplesPerBuffer, margs);
+        assert(chn.GetOwner() < soundBuffers.size());
+        chn.Process(soundBuffers[chn.GetOwner()].data(), samplesPerBuffer, margs);
     }
 
     // apply PCM reverb
 
-    revdsp.ProcessData(sampleBuffer.data(), samplesPerBuffer);
+    assert(revdsps.size() == soundBuffers.size());
+    for (size_t i = 0; i < soundBuffers.size(); i++)
+    {
+        revdsps[i].ProcessData(soundBuffers[i].data(), samplesPerBuffer);
+    }
 
     // process all CGB channels
 
-    sq1.Process(sampleBuffer.data(), samplesPerBuffer, margs);
-    sq2.Process(sampleBuffer.data(), samplesPerBuffer, margs);
-    wave.Process(sampleBuffer.data(), samplesPerBuffer, margs);
-    noise.Process(sampleBuffer.data(), samplesPerBuffer, margs);
+    if (sq1.GetOwner() != INVALID_OWNER) {
+        assert(sq1.GetOwner() <= soundBuffers.size());
+        sq1.Process(soundBuffers[sq1.GetOwner()].data(), samplesPerBuffer, margs);
+    }
+    if (sq2.GetOwner() != INVALID_OWNER) {
+        assert(sq2.GetOwner() <= soundBuffers.size());
+        sq2.Process(soundBuffers[sq2.GetOwner()].data(), samplesPerBuffer, margs);
+    }
+    if (wave.GetOwner() != INVALID_OWNER) {
+        assert(wave.GetOwner() <= soundBuffers.size());
+        wave.Process(soundBuffers[wave.GetOwner()].data(), samplesPerBuffer, margs);
+    }
+    if (noise.GetOwner() != INVALID_OWNER) {
+        assert(noise.GetOwner() <= soundBuffers.size());
+        noise.Process(soundBuffers[noise.GetOwner()].data(), samplesPerBuffer, margs);
+    }
 
-    float masterStep = (masterTo - masterFrom) * margs.nBlocksReciprocal;
-    float masterLevel = masterFrom;
-    
-    for (size_t i = 0; i < samplesPerBuffer; i++)
+    __print_debug(FormatString("Fade Level: %f", masterFrom));
+
+    for (vector<float>& b : soundBuffers)
     {
-        sampleBuffer[i * N_CHANNELS] *= masterLevel;
-        sampleBuffer[i * N_CHANNELS + 1] *= masterLevel;
+        float masterStep = (masterTo - masterFrom) * margs.nBlocksReciprocal;
+        float masterLevel = masterFrom;
+        for (size_t i = 0; i < samplesPerBuffer; i++)
+        {
+            b[i * N_CHANNELS] *= masterLevel;
+            b[i * N_CHANNELS + 1] *= masterLevel;
 
-        masterLevel +=  masterStep;
+            masterLevel +=  masterStep;
+        }
     }
 }

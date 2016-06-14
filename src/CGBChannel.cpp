@@ -18,7 +18,7 @@ CGBChannel::CGBChannel()
 {
     this->interPos = 0.0f;
     this->pos = 0;
-    this->owner = 0xFF;
+    this->owner = INVALID_OWNER;
     this->envInterStep = 0;
     this->envLevel = 0;
     this->fromEnvLevel = 0;

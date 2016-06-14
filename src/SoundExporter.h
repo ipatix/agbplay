@@ -15,7 +15,7 @@ namespace agbplay
     class SoundExporter
     {
         public:
-            SoundExporter(ConsoleGUI& _con, SoundData& _sd, GameConfig& _cfg, Rom& _rom, bool _benchmarkOnly);
+            SoundExporter(ConsoleGUI& _con, SoundData& _sd, GameConfig& _cfg, Rom& _rom, bool _benchmarkOnly, bool seperate);
             ~SoundExporter();
 
             void Export(std::string outputDir, std::vector<SongEntry>& entries, std::vector<bool>& ticked);
@@ -29,5 +29,6 @@ namespace agbplay
             boost::mutex uilock;
 
             bool benchmarkOnly;
+            bool seperate; // seperate tracks to multiple files
     };
 }

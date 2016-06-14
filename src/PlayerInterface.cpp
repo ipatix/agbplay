@@ -62,7 +62,6 @@ void PlayerInterface::LoadSong(long songPos)
     bool play = playerState == State::PLAYING;
     Stop();
     seq = Sequence(songPos, gameCfg.GetTrackLimit(), rom);
-    // TODO remove assignment, assignments are evil!
     trackUI->SetState(seq);
     delete sg;
     sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f, gameCfg.GetRevType());
@@ -197,6 +196,7 @@ void PlayerInterface::threadWorker()
 {
     uint32_t nBlocks = sg->GetBufferUnitCount();
     vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
+    vector<float> audio(nBlocks * N_CHANNELS, 0.0f);
     try {
         // FIXME seems to still have an issue with a race condition and default case occuring
         while (playerState != State::SHUTDOWN) {
@@ -207,13 +207,25 @@ void PlayerInterface::threadWorker()
                     playerState = State::PLAYING;
                 case State::PLAYING:
                     {
-                        float *processedAudio = sg->ProcessAndGetAudio();
-                        if (processedAudio == nullptr){
+                        // clear high level mixing buffer
+                        fill(audio.begin(), audio.end(), 0.0f);
+                        // render audio buffers for tracks
+                        vector<vector<float>> raudio = sg->ProcessAndGetAudio();
+                        for (vector<float>& b : raudio)
+                        {
+                            assert(b.size() == audio.size());
+                            for (size_t i = 0; i < audio.size(); i++)
+                            {
+                                audio[i] += b[i];
+                            }
+                        }
+                        if (sg->HasStreamEnded())
+                        {
                             playerState = State::SHUTDOWN;
                             break;
                         }
-                        rBuf.Put(processedAudio, N_CHANNELS * nBlocks);
-                        writeMaxLevels(processedAudio, nBlocks);
+                        rBuf.Put(audio.data(), audio.size());
+                        writeMaxLevels(audio.data(), nBlocks);
                     }
                     break;
                 case State::PAUSED:
@@ -246,7 +258,7 @@ int PlayerInterface::audioCallback(const void *inputBuffer, void *outputBuffer, 
 
 void PlayerInterface::writeMaxLevels(float *buffer, size_t nBlocks)
 {
-    static const float rc = 1.0f / (5.0f * 2.0f * float(M_PI));
+    static const float rc = 1.0f / (20.0f * 2.0f * float(M_PI));
     // VU lowpass filter freq ~~~~~~~^
     static const float dt = 1.0f / 48000.0f;
     static const float alpha = dt / (rc + dt);

@@ -118,8 +118,8 @@ uint32_t ReverbEffect::processGS1(float *buffer, uint32_t nBlocks)
     for (uint32_t c = count; c > 0; c--)
     {
         float in_delay_1 = rbuf[bufferPos];
-        float in_delay_2 = rbuf[bufferPos2];
-        float in_delay_3 = rbuf[bufferPos3];
+        //float in_delay_2 = rbuf[bufferPos2];
+        //float in_delay_3 = rbuf[bufferPos3];
 
         //float r_left = in_delay_1 * (4.0f / 8.0f) + in_delay_2 * (4.2f / 8.0f) - in_delay_3 * (3.9f / 8.0f);
         //float r_right = -in_delay_1 * (3.7f / 8.0f) - in_delay_2 * (3.8f / 8.0f) + in_delay_3 * (4.3f / 8.0f);

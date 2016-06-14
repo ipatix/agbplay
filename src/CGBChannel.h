@@ -5,6 +5,8 @@
 
 #include "Types.h"
 
+#define INVALID_OWNER 0xFF
+
 namespace agbplay
 {
     class CGBChannel

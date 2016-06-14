@@ -31,8 +31,7 @@ EnginePars::EnginePars()
  * public StreamGenerator
  */
 
-const vector<uint32_t> StreamGenerator::freqLut = 
-{
+const vector<uint32_t> StreamGenerator::freqLut = {
     5734, 7884, 10512, 13379,
     15768, 18157, 21024, 26758,
     31536, 36314, 40137, 42048
@@ -83,14 +82,15 @@ uint32_t StreamGenerator::GetRenderSampleRate()
     return sm.GetRenderSampleRate();
 }
 
-float *StreamGenerator::ProcessAndGetAudio()
+vector<vector<float>>& StreamGenerator::ProcessAndGetAudio()
 {
     processSequenceFrame();
-    float *processedData = sm.ProcessAndGetAudio();
-    if (isEnding && sm.IsFadeDone())
-        return nullptr;
-    else
-        return processedData;
+    return sm.ProcessAndGetAudio();
+}
+
+bool StreamGenerator::HasStreamEnded()
+{
+    return isEnding && sm.IsFadeDone();
 }
 
 Sequence& StreamGenerator::GetWorkingSequence()
@@ -412,7 +412,7 @@ void StreamGenerator::processSequenceTick()
                                 // add gate time
                                 uint8_t key = cTrk.lastNoteKey = reader[cTrk.pos++];
                                 uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
-                                len += reader[cTrk.pos++];
+                                len = int8_t(len + reader[cTrk.pos++]);
                                 playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
                             } else {
                                 // no gate time

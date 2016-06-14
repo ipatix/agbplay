@@ -31,7 +31,7 @@ namespace agbplay
             void SetTrackPV(uint8_t owner, uint8_t vol, int8_t pan, int16_t pitch);
             int TickTrackNotes(uint8_t owner, std::bitset<NUM_NOTES>& activeNotes);
             void StopChannel(uint8_t owner, uint8_t key);
-            float *ProcessAndGetAudio();
+            std::vector<std::vector<float>>& ProcessAndGetAudio();
             uint32_t GetBufferUnitCount();
             uint32_t GetRenderSampleRate();
             void FadeOut(float millis);
@@ -40,8 +40,8 @@ namespace agbplay
 
         private:
             void purgeChannels();
-            void clearBuffer();
-            void renderToBuffer();
+            void clearBuffers();
+            void renderToBuffers();
 
             std::bitset<NUM_NOTES> activeBackBuffer;
 
@@ -52,8 +52,8 @@ namespace agbplay
             WaveChannel wave;
             NoiseChannel noise;
 
-            ReverbEffect revdsp;
-            std::vector<float> sampleBuffer;
+            std::vector<ReverbEffect> revdsps;
+            std::vector<std::vector<float>> soundBuffers;
             uint32_t sampleRate;
             uint32_t fixedModeRate;
             uint32_t samplesPerBuffer;

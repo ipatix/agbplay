@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <vector>
 
 #include "Constants.h"
 #include "SoundData.h"
@@ -26,7 +27,8 @@ namespace agbplay
 
             uint32_t GetBufferUnitCount();
             uint32_t GetRenderSampleRate();
-            float *ProcessAndGetAudio();
+            std::vector<std::vector<float>>& ProcessAndGetAudio();
+            bool HasStreamEnded();
             Sequence& GetWorkingSequence();
             void SetSpeedFactor(float speedFactor);
 

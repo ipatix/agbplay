@@ -192,17 +192,24 @@ void WindowGUI::Handle()
                     trackUI->ForceUpdate();
                     playUI->Enter();
                     break;
+                case 'e':
+                    mplay->Stop();
+                    {
+                        SoundExporter se(*conUI, sdata, thisCfg, rom, false, true);
+                        se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
+                    }
+                    break;
                 case 'r':
                     mplay->Stop();
                     {
-                        SoundExporter se(*conUI, sdata, thisCfg, rom, false);
+                        SoundExporter se(*conUI, sdata, thisCfg, rom, false, false);
                         se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
                     }
                     break;
                 case 'b':
                     mplay->Stop();
                     {
-                        SoundExporter se(*conUI, sdata, thisCfg, rom, true);
+                        SoundExporter se(*conUI, sdata, thisCfg, rom, true, false);
                         se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
                     }
                     break;

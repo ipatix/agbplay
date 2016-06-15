@@ -2,6 +2,24 @@
 "agbplay" is a music player with Terminal interface for GBA ROMs that use the most common (aka mp2k/m4a) sound engine format.
 The code itself is written in C++.
 
+Controls:
+- Arrow Keys or HJKL: Navigate through the program
+- Tab: Change between Playlist and Songlist
+- A: Add the selected song to the playlist
+- D: Delete the selected song from the playlist
+- T: Toggle whether the song should be output to a file (see R and E)
+- G: Drag the song through the playlist for ordering
+- I: Force Song Restart
+- O: Song Play/Pause
+- P: Force Song Stop
+- +=: Double the playback speed
+- -: Halve the playback speed
+- N: Rename the selected song in the playlisy
+- E: Export selected songs to individual track files (to "workdirectory/wav")
+- R: Export selected songs to files (non-split)
+- B: Benchmark, Run the export program but don't write to file
+- Q or Ctrl-D: Exit Program
+
 Current state of things:
 - ROMs can be loaded and scanned for the songtable automatically
 - PCM playback works pretty much perfect, GB instruments sound great, but envelope curves are not 100% accurate

@@ -12,6 +12,7 @@
 #include "Constants.h"
 #include "GameConfig.h"
 #include "Ringbuffer.h"
+#include "LoudnessCalculator.h"
 
 namespace agbplay
 {
@@ -29,18 +30,14 @@ namespace agbplay
             void SpeedHalve();
             bool IsPlaying();
             void UpdateView();
-            void GetVolLevels(float& left, float& right);
+            void GetMasterVolLevels(float& left, float& right);
         private:
             void threadWorker();
             static int audioCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
                     const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags,
                     void *userData);
-            void writeMaxLevels(float *buffer, size_t nBlocks);
 
-            float avgVolLeft;
-            float avgVolRight;
-            float avgVolLeftSq;
-            float avgVolRightSq;
+            void setupLoudnessCalcs();
 
             PaStream *audioStream;
             uint32_t speedFactor; // 64 = normal
@@ -51,6 +48,9 @@ namespace agbplay
             StreamGenerator *sg;
             TrackviewGUI *trackUI;
             Ringbuffer rBuf;
+
+            LoudnessCalculator masterLoudness;
+            std::vector<LoudnessCalculator> trackLoudness;
 
             boost::thread *playerThread;
     };

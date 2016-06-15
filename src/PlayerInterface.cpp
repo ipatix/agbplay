@@ -18,17 +18,14 @@ using namespace agbplay;
 
 PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos, GameConfig& _gameCfg) 
     : rom(_rom), gameCfg(_gameCfg), seq(initSongPos, _gameCfg.GetTrackLimit(), _rom), 
-    rBuf(N_CHANNELS * STREAM_BUF_SIZE)
+    rBuf(N_CHANNELS * STREAM_BUF_SIZE), masterLoudness(20.f)
 {
     this->trackUI = trackUI;
     playerState = State::THREAD_DELETED;
     speedFactor = 64;
-    avgVolLeft = 0.0f;
-    avgVolRight = 0.0f;
-    avgVolLeftSq = 0.0f;
-    avgVolRightSq = 0.0f;
 
     sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f, gameCfg.GetRevType());
+    setupLoudnessCalcs();
     // start audio stream
     PaError err;
     //uint32_t nBlocks = sg->GetBufferUnitCount();
@@ -62,7 +59,12 @@ void PlayerInterface::LoadSong(long songPos)
     bool play = playerState == State::PLAYING;
     Stop();
     seq = Sequence(songPos, gameCfg.GetTrackLimit(), rom);
-    trackUI->SetState(seq);
+    setupLoudnessCalcs();
+    float vols[seq.tracks.size() * N_CHANNELS];
+    for (size_t i = 0; i < seq.tracks.size() * N_CHANNELS; i++)
+        vols[i] = 0.0f;
+
+    trackUI->SetState(seq, vols);
     delete sg;
     sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f, gameCfg.GetRevType());
     if (play)
@@ -179,13 +181,19 @@ bool PlayerInterface::IsPlaying()
 void PlayerInterface::UpdateView()
 {
     if (playerState != State::THREAD_DELETED && playerState != State::SHUTDOWN && playerState != State::TERMINATED)
-        trackUI->SetState(sg->GetWorkingSequence());
+    {
+        size_t trks = sg->GetWorkingSequence().tracks.size();
+        assert(trks == trackLoudness.size());
+        float vols[trks * N_CHANNELS];
+        for (size_t i = 0; i < trks; i++)
+            trackLoudness[i].GetLoudness(vols[i*N_CHANNELS], vols[i*N_CHANNELS+1]);
+        trackUI->SetState(sg->GetWorkingSequence(), vols);
+    }
 }
 
-void PlayerInterface::GetVolLevels(float& left, float& right)
+void PlayerInterface::GetMasterVolLevels(float& left, float& right)
 {
-    left = avgVolLeft;
-    right = avgVolRight;
+    masterLoudness.GetLoudness(left, right);
 }
 
 /*
@@ -211,13 +219,12 @@ void PlayerInterface::threadWorker()
                         fill(audio.begin(), audio.end(), 0.0f);
                         // render audio buffers for tracks
                         vector<vector<float>> raudio = sg->ProcessAndGetAudio();
-                        for (vector<float>& b : raudio)
+                        for (size_t i = 0; i < raudio.size(); i++)
                         {
-                            assert(b.size() == audio.size());
-                            for (size_t i = 0; i < audio.size(); i++)
-                            {
-                                audio[i] += b[i];
-                            }
+                            assert(raudio[i].size() == audio.size());
+                            for (size_t j = 0; j < audio.size(); j++)
+                                audio[j] += raudio[i][j];
+                            trackLoudness[i].CalcLoudness(raudio[i].data(), nBlocks);
                         }
                         if (sg->HasStreamEnded())
                         {
@@ -225,7 +232,7 @@ void PlayerInterface::threadWorker()
                             break;
                         }
                         rBuf.Put(audio.data(), audio.size());
-                        writeMaxLevels(audio.data(), nBlocks);
+                        masterLoudness.CalcLoudness(audio.data(), nBlocks);
                     }
                     break;
                 case State::PAUSED:
@@ -238,8 +245,9 @@ void PlayerInterface::threadWorker()
     } catch (exception& e) {
         __print_debug(FormatString("FATAL ERROR on streaming thread: %s", e.what()));
     }
-    avgVolLeft = 0.0f;
-    avgVolRight = 0.0f;
+    masterLoudness.Reset();
+    for (LoudnessCalculator& c : trackLoudness)
+        c.Reset();
     // flush buffer
     rBuf.Clear();
     playerState = State::TERMINATED;
@@ -256,25 +264,9 @@ int PlayerInterface::audioCallback(const void *inputBuffer, void *outputBuffer, 
     return 0;
 }
 
-void PlayerInterface::writeMaxLevels(float *buffer, size_t nBlocks)
+void PlayerInterface::setupLoudnessCalcs()
 {
-    static const float rc = 1.0f / (20.0f * 2.0f * float(M_PI));
-    // VU lowpass filter freq ~~~~~~~^
-    static const float dt = 1.0f / 48000.0f;
-    static const float alpha = dt / (rc + dt);
-
-    size_t count = nBlocks;
-    while (count-- > 0) {
-        float l = *buffer++;
-        float r = *buffer++;
-        l *= l;
-        r *= r;
-        avgVolLeftSq = avgVolLeftSq + alpha * (l - avgVolLeftSq);
-        avgVolRightSq = avgVolRightSq + alpha * (r - avgVolRightSq);
-    }
-
-    static const float sqrt_2 = sqrtf(2.0f);
-
-    avgVolLeft = sqrtf(avgVolLeftSq) * sqrt_2;
-    avgVolRight = sqrtf(avgVolRightSq) * sqrt_2;
+    trackLoudness.clear();
+    for (size_t i = 0; i < seq.tracks.size(); i++)
+        trackLoudness.emplace_back(20.0f);
 }

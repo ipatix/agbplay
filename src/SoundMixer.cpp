@@ -264,8 +264,6 @@ void SoundMixer::renderToBuffers()
         noise.Process(soundBuffers[noise.GetOwner()].data(), samplesPerBuffer, margs);
     }
 
-    __print_debug(FormatString("Fade Level: %f", masterFrom));
-
     for (vector<float>& b : soundBuffers)
     {
         float masterStep = (masterTo - masterFrom) * margs.nBlocksReciprocal;

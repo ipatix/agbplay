@@ -1,6 +1,7 @@
 #include "Util.h"
 #include "TrackviewGUI.h"
 #include "ColorDef.h"
+#include "Debug.h"
 
 using namespace std;
 using namespace agbplay;
@@ -28,7 +29,7 @@ void TrackviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32
     update();
 }
 
-void TrackviewGUI::SetState(Sequence& seq)
+void TrackviewGUI::SetState(const Sequence& seq, const float *vols)
 {
     size_t sz;
     if (disp.data.size() != (sz = seq.tracks.size())) {
@@ -44,10 +45,12 @@ void TrackviewGUI::SetState(Sequence& seq)
         disp.data[i].prog = seq.tracks[i].prog;
         disp.data[i].pan = seq.tracks[i].pan;
         disp.data[i].pitch = seq.tracks[i].pitch;
-        disp.data[i].envL = 0;
-        disp.data[i].envR = 0;
+        disp.data[i].envL = uint8_t(minmax<uint32_t>(0, uint32_t(vols[i*N_CHANNELS] * 512.f), 255));
+        disp.data[i].envR = uint8_t(minmax<uint32_t>(0, uint32_t(vols[i*N_CHANNELS+1] * 512.f), 255));
         disp.data[i].delay = max((int8_t)0, seq.tracks[i].delay);
         disp.data[i].activeNotes = seq.tracks[i].activeNotes;
+
+        __print_debug(FormatString("Track %d l=%f r=%f", i, vols[i*N_CHANNELS], vols[i*N_CHANNELS+1]));
     }
     update();
 }
@@ -184,9 +187,29 @@ void TrackviewGUI::update()
         wprintw(winPtr, " %-3d", disp.data[i].mod);
         wattrset(winPtr, COLOR_PAIR(Color::TRK_PITCH) | aFlag);
         wprintw(winPtr, " %-+6d", disp.data[i].pitch);
+        // print volume level
+        {
+            string bar;
+            uint8_t leftBar = disp.data[i].envL / 16;
+            uint8_t rightBar = disp.data[i].envR / 16;
+            uint8_t leftBlank = uint8_t(16 - leftBar);
+            uint8_t rightBlank = uint8_t(16 - rightBar);
+            assert(leftBar + rightBar + leftBlank + rightBlank == 32);
+            wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
+            bar.resize(leftBlank, ' ');
+            wprintw(winPtr, "%s", bar.c_str());
+            wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUDNESS) | aFlag);
+            bar.resize(leftBar, ' ');
+            wprintw(winPtr, "%s", bar.c_str());
+            wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) ^ aFlag);
+            wprintw(winPtr, "|");
+            wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUDNESS) | aFlag);
+            bar.resize(rightBar, ' ');
+            wprintw(winPtr, "%s", bar.c_str());
+        }
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         string clr = "";
-        clr.resize(width - 27, ' ');
+        clr.resize(width - 60, ' ');
         wprintw(winPtr, "%s", clr.c_str());
     }
 

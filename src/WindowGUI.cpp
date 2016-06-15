@@ -233,7 +233,7 @@ void WindowGUI::Handle()
             mplay->UpdateView();
             float lVol;
             float rVol;
-            mplay->GetVolLevels(lVol, rVol);
+            mplay->GetMasterVolLevels(lVol, rVol);
             meterUI->SetVol(lVol, rVol);
         }
         this_thread::sleep_for(chrono::milliseconds(16));
@@ -310,6 +310,7 @@ void WindowGUI::initColors()
     init_pair((int)Color::TRK_VOL, 154, -1);
     init_pair((int)Color::TRK_MOD, 43, -1);
     init_pair((int)Color::TRK_PITCH, 129, -1);
+    init_pair((int)Color::TRK_LOUDNESS, -1, 70);
 }
 
 void WindowGUI::cycleFocus() 

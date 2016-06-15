@@ -218,7 +218,7 @@ void PlayerInterface::threadWorker()
                         // clear high level mixing buffer
                         fill(audio.begin(), audio.end(), 0.0f);
                         // render audio buffers for tracks
-                        vector<vector<float>> raudio = sg->ProcessAndGetAudio();
+                        vector<vector<float>>& raudio = sg->ProcessAndGetAudio();
                         for (size_t i = 0; i < raudio.size(); i++)
                         {
                             assert(raudio[i].size() == audio.size());
@@ -268,5 +268,5 @@ void PlayerInterface::setupLoudnessCalcs()
 {
     trackLoudness.clear();
     for (size_t i = 0; i < seq.tracks.size(); i++)
-        trackLoudness.emplace_back(20.0f);
+        trackLoudness.emplace_back(30.0f);
 }

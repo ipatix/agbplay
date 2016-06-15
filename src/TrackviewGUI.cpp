@@ -2,6 +2,7 @@
 #include "TrackviewGUI.h"
 #include "ColorDef.h"
 #include "Debug.h"
+#include "MyException.h"
 
 using namespace std;
 using namespace agbplay;
@@ -10,8 +11,8 @@ using namespace agbplay;
  * public
  */
 
-TrackviewGUI::TrackviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos
-        ) : CursesWin(height, width, yPos, xPos) 
+TrackviewGUI::TrackviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
+: CursesWin(height, width, yPos, xPos) 
 {
     // will clear the screen due to not overriding from CursesWin base class
     cursorPos = 0;
@@ -49,8 +50,6 @@ void TrackviewGUI::SetState(const Sequence& seq, const float *vols)
         disp.data[i].envR = uint8_t(minmax<uint32_t>(0, uint32_t(vols[i*N_CHANNELS+1] * 512.f), 255));
         disp.data[i].delay = max((int8_t)0, seq.tracks[i].delay);
         disp.data[i].activeNotes = seq.tracks[i].activeNotes;
-
-        __print_debug(FormatString("Track %d l=%f r=%f", i, vols[i*N_CHANNELS], vols[i*N_CHANNELS+1]));
     }
     update();
 }
@@ -189,22 +188,61 @@ void TrackviewGUI::update()
         wprintw(winPtr, " %-+6d", disp.data[i].pitch);
         // print volume level
         {
+            auto getFracBar = [](uint8_t frac) 
+            {
+                switch (frac)
+                {
+                    case 0:
+                        return " ";
+                    case 1:
+                        return "\u258f";
+                    case 2:
+                        return "\u258e";
+                    case 3:
+                        return "\u258d";
+                    case 4:
+                        return "\u258c";
+                    case 5:
+                        return "\u258b";
+                    case 6:
+                        return "\u258a";
+                    case 7:
+                        return "\u2589";
+                    case 8:
+                        return "\u2588";
+                    default:
+                        throw MyException("illegal block");
+                }
+            };
+
             string bar;
-            uint8_t leftBar = disp.data[i].envL / 16;
-            uint8_t rightBar = disp.data[i].envR / 16;
-            uint8_t leftBlank = uint8_t(16 - leftBar);
-            uint8_t rightBlank = uint8_t(16 - rightBar);
-            assert(leftBar + rightBar + leftBlank + rightBlank == 32);
-            wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
-            bar.resize(leftBlank, ' ');
+            uint32_t leftBar = disp.data[i].envL / 2;
+            uint32_t rightBar = disp.data[i].envR / 2;
+            //assert(leftBar + rightBar + leftBlank + rightBlank == 32);
+            for (size_t i = 0; i < 16; i++)
+            {
+                if (i < (128 - leftBar) / 8)
+                    bar += "\u2588";
+                else if (i == (128 - leftBar) / 8)
+                    bar += getFracBar((128 - leftBar) % 8);
+                else
+                    bar += " ";
+            }
+            wattrset(winPtr, (COLOR_PAIR(Color::TRK_LOUDNESS) | A_REVERSE) ^ aFlag);
             wprintw(winPtr, "%s", bar.c_str());
+            wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUD_SPLIT) | aFlag);
+            wprintw(winPtr, "\u2503");
+            bar.clear();
+            for (size_t i = 0; i < 16; i++)
+            {
+                if (i < rightBar / 8)
+                    bar += "\u2588";
+                else if (i == rightBar / 8)
+                    bar += getFracBar(rightBar % 8);
+                else
+                    bar += " ";
+            }
             wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUDNESS) | aFlag);
-            bar.resize(leftBar, ' ');
-            wprintw(winPtr, "%s", bar.c_str());
-            wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) ^ aFlag);
-            wprintw(winPtr, "|");
-            wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUDNESS) | aFlag);
-            bar.resize(rightBar, ' ');
             wprintw(winPtr, "%s", bar.c_str());
         }
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);

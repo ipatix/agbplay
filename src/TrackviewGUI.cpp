@@ -46,8 +46,8 @@ void TrackviewGUI::SetState(const Sequence& seq, const float *vols)
         disp.data[i].prog = seq.tracks[i].prog;
         disp.data[i].pan = seq.tracks[i].pan;
         disp.data[i].pitch = seq.tracks[i].pitch;
-        disp.data[i].envL = uint8_t(minmax<uint32_t>(0, uint32_t(vols[i*N_CHANNELS] * 512.f), 255));
-        disp.data[i].envR = uint8_t(minmax<uint32_t>(0, uint32_t(vols[i*N_CHANNELS+1] * 512.f), 255));
+        disp.data[i].envL = uint8_t(minmax<uint32_t>(0, uint32_t(vols[i*N_CHANNELS] * 768.f), 255));
+        disp.data[i].envR = uint8_t(minmax<uint32_t>(0, uint32_t(vols[i*N_CHANNELS+1] * 768.f), 255));
         disp.data[i].delay = max((int8_t)0, seq.tracks[i].delay);
         disp.data[i].activeNotes = seq.tracks[i].activeNotes;
     }

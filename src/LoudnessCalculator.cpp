@@ -11,8 +11,7 @@ LoudnessCalculator::LoudnessCalculator(const float lowpassFreq)
     float dt = 1.0f / float(STREAM_SAMPLERATE);
     lpAlpha = dt / (rc + dt);
 
-    avgVolLeftSq = 0.0f;
-    avgVolRightSq = 0.0f;
+    Reset();
 }
 
 void LoudnessCalculator::CalcLoudness(const float *audio, size_t nBlocks)

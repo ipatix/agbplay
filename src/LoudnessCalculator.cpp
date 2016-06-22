@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cassert>
 
 #include "LoudnessCalculator.h"
 #include "Constants.h"
@@ -19,6 +20,8 @@ void LoudnessCalculator::CalcLoudness(const float *audio, size_t nBlocks)
     do {
         float l = *audio++;
         float r = *audio++;
+        assert(!isnan(l) && !isnan(r));
+        assert(!isinf(l) && !isinf(r));
         l *= l;
         r *= r;
         avgVolLeftSq = avgVolLeftSq + lpAlpha * (l - avgVolLeftSq);

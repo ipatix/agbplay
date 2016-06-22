@@ -268,5 +268,5 @@ void PlayerInterface::setupLoudnessCalcs()
 {
     trackLoudness.clear();
     for (size_t i = 0; i < seq.tracks.size(); i++)
-        trackLoudness.emplace_back(30.0f);
+        trackLoudness.emplace_back(10.0f);
 }

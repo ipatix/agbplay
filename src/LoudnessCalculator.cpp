@@ -5,6 +5,7 @@
 #include "Constants.h"
 
 using namespace agbplay;
+using namespace std;
 
 LoudnessCalculator::LoudnessCalculator(const float lowpassFreq)
 {

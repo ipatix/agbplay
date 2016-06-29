@@ -217,11 +217,19 @@ void SoundMixer::renderToBuffers()
     // master volume calculation
     float masterFrom = masterVolume;
     float masterTo = masterVolume;
-    if (this->fadeMicroframesLeft > 0) {
-        masterFrom *= powf(this->fadePos, 10.0f / 6.0f);
-        fadePos += this->fadeStepPerMicroframe;
-        masterTo *= powf(this->fadePos, 10.0f / 6.0f);
-        this->fadeMicroframesLeft--;
+    if (fadeMicroframesLeft > 0) {
+        if (fadePos < 0.f) {
+            masterFrom = 0.f;
+        } else {
+            masterFrom *= powf(fadePos, 10.0f / 6.0f);
+        }
+        fadePos += fadeStepPerMicroframe;
+        if (fadePos < 0.f) {
+            masterTo = 0.f;
+        } else {
+            masterTo *= powf(fadePos, 10.0f / 6.0f);
+        }
+        fadeMicroframesLeft--;
     }
 
     MixingArgs margs;

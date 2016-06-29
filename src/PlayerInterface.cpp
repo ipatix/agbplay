@@ -226,13 +226,13 @@ void PlayerInterface::threadWorker()
                                 audio[j] += raudio[i][j];
                             trackLoudness[i].CalcLoudness(raudio[i].data(), nBlocks);
                         }
+                        rBuf.Put(audio.data(), audio.size());
+                        masterLoudness.CalcLoudness(audio.data(), nBlocks);
                         if (sg->HasStreamEnded())
                         {
                             playerState = State::SHUTDOWN;
                             break;
                         }
-                        rBuf.Put(audio.data(), audio.size());
-                        masterLoudness.CalcLoudness(audio.data(), nBlocks);
                     }
                     break;
                 case State::PAUSED:

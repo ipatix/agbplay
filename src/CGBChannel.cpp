@@ -425,6 +425,17 @@ void WaveChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
     for (size_t cnt = nblocks; cnt > 0; cnt--)
     {
         float samp = pat[pos];
+        /*
+         * cosine interpolation could possibly be used for games
+         * that use the wave channel on the bass only
+         * otherwise it doesn't harmonize as well
+         *
+        float samp2 = pat[(pos+1) & 0x1F];
+
+        float amp = (samp - samp2) * 0.5f;
+        float avg = (samp + samp2) * 0.5f;
+        samp = amp * cosf(interPos * (float)M_PI) + avg;
+        */
 
         *buffer++ += samp * lVol;
         *buffer++ += samp * rVol;

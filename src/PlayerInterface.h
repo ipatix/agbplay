@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <vector>
-#include <boost/thread.hpp>
+#include <thread>
 #include <portaudio.h>
 
 #include "Rom.h"
@@ -52,6 +52,6 @@ namespace agbplay
             LoudnessCalculator masterLoudness;
             std::vector<LoudnessCalculator> trackLoudness;
 
-            boost::thread *playerThread;
+            std::thread *playerThread;
     };
 }

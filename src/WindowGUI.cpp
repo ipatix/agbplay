@@ -1,8 +1,11 @@
 #include <string>
+#include <sstream>
 #include <cstdlib>
 #include <stdexcept>
 #include <thread>
 #include <chrono>
+#include <cstring>
+#include <iomanip>
 
 #include "MyException.h"
 #include "Debug.h"

@@ -3,7 +3,6 @@
 #include <boost/filesystem.hpp>
 #undef BOOST_FILESYSTEM_NO_DEPRECATED
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/thread/mutex.hpp>
 #include <chrono>
 
 #include "SoundExporter.h"

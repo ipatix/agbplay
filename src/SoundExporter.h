@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 #include "StreamGenerator.h"
 #include "SongEntry.h"
@@ -26,7 +26,7 @@ namespace agbplay
             GameConfig& cfg;
             SoundData& sd;
             Rom& rom;
-            boost::mutex uilock;
+            std::mutex uilock;
 
             bool benchmarkOnly;
             bool seperate; // seperate tracks to multiple files

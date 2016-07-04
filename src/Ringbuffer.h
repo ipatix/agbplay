@@ -1,7 +1,7 @@
 #pragma once
 
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
+#include <mutex>
+#include <condition_variable>
 #include <vector>
 #include <cstddef>
 
@@ -21,8 +21,8 @@ namespace agbplay
             size_t take(float *outData, size_t nElements);
 
             std::vector<float> bufData;
-            boost::mutex countLock;
-            boost::condition_variable sig;
+            std::mutex countLock;
+            std::condition_variable sig;
             size_t freePos;
             size_t dataPos;
             size_t freeCount;

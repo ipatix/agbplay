@@ -95,7 +95,7 @@ void PlayerInterface::Play()
             break;
         case State::THREAD_DELETED:
             playerState = State::PLAYING;
-            playerThread = new boost::thread(&PlayerInterface::threadWorker, this);
+            playerThread = new std::thread(&PlayerInterface::threadWorker, this);
             // start thread and play back song
             break;
     }

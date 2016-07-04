@@ -24,7 +24,7 @@ Ringbuffer::~Ringbuffer()
 
 void Ringbuffer::Put(float *inData, size_t nElements)
 {
-    boost::mutex::scoped_lock lock(countLock);
+    unique_lock<mutex> lock(countLock);
     while (freeCount < nElements){
         sig.wait(lock);
     }
@@ -42,7 +42,7 @@ void Ringbuffer::Take(float *outData, size_t nElements)
         fill(outData, outData + nElements, 0.0f);
     } else {
         // output
-        boost::mutex::scoped_lock lock(countLock);
+        unique_lock<mutex> lock(countLock);
         while (nElements > 0) {
             size_t count = take(outData, nElements);
             outData += count;
@@ -54,7 +54,7 @@ void Ringbuffer::Take(float *outData, size_t nElements)
 
 void Ringbuffer::Clear()
 {
-    boost::mutex::scoped_lock(countLock);
+    unique_lock<mutex>(countLock);
     fill(bufData.begin(), bufData.end(), 0.0f);
 }
 

@@ -457,26 +457,32 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, uint8_t owner)
     note.midiKey = sbnk.GetMidiKey(trk.prog, oldKey);
     switch (sbnk.GetInstrType(trk.prog, oldKey)) {
         case InstrType::PCM:
-            sm.NewSoundChannel(
-                    owner, 
-                    sbnk.GetSampInfo(trk.prog, oldKey),
-                    sbnk.GetADSR(trk.prog, oldKey),
-                    note,
-                    trk.GetVol(),
-                    trk.GetPan(),
-                    trk.GetPitch(),
-                    false);
+            {
+                uint8_t pan = sbnk.GetPan(trk.prog, oldKey);
+                sm.NewSoundChannel(
+                        owner,
+                        sbnk.GetSampInfo(trk.prog, oldKey),
+                        sbnk.GetADSR(trk.prog, oldKey),
+                        note,
+                        trk.GetVol(),
+                        (pan & 0x80) ? int8_t(int(pan) - 0xC0) : trk.GetPan(),
+                        trk.GetPitch(),
+                        false);
+            }
             break;
         case InstrType::PCM_FIXED:
-            sm.NewSoundChannel(
-                    owner, 
-                    sbnk.GetSampInfo(trk.prog, oldKey),
-                    sbnk.GetADSR(trk.prog, oldKey),
-                    note,
-                    trk.GetVol(),
-                    trk.GetPan(),
-                    trk.GetPitch(),
-                    true);
+            {
+                uint8_t pan = sbnk.GetPan(trk.prog, oldKey);
+                sm.NewSoundChannel(
+                        owner,
+                        sbnk.GetSampInfo(trk.prog, oldKey),
+                        sbnk.GetADSR(trk.prog, oldKey),
+                        note,
+                        trk.GetVol(),
+                        (pan & 0x80) ? int8_t(int(pan) - 0xC0) : trk.GetPan(),
+                        trk.GetPitch(),
+                        true);
+            }
             break;
         case InstrType::SQ1:
             sm.NewCGBNote(

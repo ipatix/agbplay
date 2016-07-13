@@ -28,12 +28,9 @@ namespace agbplay
             virtual void stepEnvelope();
             void updateVolFade();
             ChnVol getVol();
-            enum class Pan {
-                LEFT, CENTER, RIGHT
-            };
+            enum class Pan { LEFT, CENTER, RIGHT };
             uint32_t pos;
             float interPos;
-            const float *pat;
             float freq;
             ADSR env;
             Note note;
@@ -60,6 +57,8 @@ namespace agbplay
             void Init(uint8_t owner, CGBDef def, Note note, ADSR env) override;
             void SetPitch(int16_t pitch) override;
             void Process(float *buffer, size_t nblocks, MixingArgs& args) override;
+
+            const float *pat;
     };
 
     class WaveChannel : public CGBChannel

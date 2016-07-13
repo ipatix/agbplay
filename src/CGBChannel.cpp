@@ -292,7 +292,7 @@ void CGBChannel::updateVolFade()
 
 SquareChannel::SquareChannel() : CGBChannel()
 {
-    this->pat = CGBPatterns::pat_sq50;
+    pat = CGBPatterns::pat_sq50;
 }
 
 SquareChannel::~SquareChannel()
@@ -374,7 +374,6 @@ WaveChannel::WaveChannel() : CGBChannel()
     {
         waveBuffer[i] = 0.0f;
     }
-    this->pat = &waveBuffer[0];
 }
 
 WaveChannel::~WaveChannel()
@@ -424,25 +423,11 @@ void WaveChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
 
     for (size_t cnt = nblocks; cnt > 0; cnt--)
     {
-        float samp = pat[pos];
-        /*
-         * cosine interpolation could possibly be used for games
-         * that use the wave channel on the bass only
-         * otherwise it doesn't harmonize as well
-         *
-        float samp2 = pat[(pos+1) & 0x1F];
-
-        float amp = (samp - samp2) * 0.5f;
-        float avg = (samp + samp2) * 0.5f;
-        samp = amp * cosf(interPos * (float)M_PI) + avg;
-        */
-
+        float samp = waveBuffer[pos];
         *buffer++ += samp * lVol;
         *buffer++ += samp * rVol;
-
         lVol += lVolStep;
         rVol += rVolStep;
-
         interPos += interStep;
         uint32_t posDelta = uint32_t(interPos);
         interPos -= float(posDelta);
@@ -458,7 +443,7 @@ void WaveChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
 
 NoiseChannel::NoiseChannel() : CGBChannel()
 {
-    this->pat = CGBPatterns::pat_noise_fine;
+    def.np = NoisePatt::FINE;
 }
 
 NoiseChannel::~NoiseChannel()
@@ -471,10 +456,7 @@ void NoiseChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
     pos = 0;
     switch (def.np) {
         case NoisePatt::ROUGH:
-            pat = CGBPatterns::pat_noise_rough;
-            break;
         case NoisePatt::FINE:
-            pat = CGBPatterns::pat_noise_fine;
             break;
         default:
             throw MyException("Illegal Noise Pattern");
@@ -493,29 +475,41 @@ void NoiseChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
         return;
 
     ChnVol vol = getVol();
-    assert(pat);
     float lVolStep = (vol.toVolLeft - vol.fromVolLeft) * args.nBlocksReciprocal;
     float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.nBlocksReciprocal;
     float lVol = vol.fromVolLeft;
     float rVol = vol.fromVolRight;
     float interStep = freq * args.sampleRateReciprocal;
 
-    uint32_t noise_bitmask = (def.np == NoisePatt::FINE) ? 0x7FFF : 0x7F;
-
-    for (size_t cnt = nblocks; cnt > 0; cnt--)
+    switch (def.np)
     {
-        float samp = pat[pos];
-
-        *buffer++ += samp * lVol;
-        *buffer++ += samp * rVol;
-
-        lVol += lVolStep;
-        rVol += rVolStep;
-
-        interPos += interStep;
-        uint32_t posDelta = uint32_t(interPos);
-        interPos -= float(posDelta);
-        pos = (pos + posDelta) & noise_bitmask;
+        case NoisePatt::FINE:
+            for (size_t cnt = nblocks; cnt > 0; cnt--)
+            {
+                float samp = CGBPatterns::pat_noise_fine[pos] - 0.5f;
+                *buffer++ += samp * lVol;
+                *buffer++ += samp * rVol;
+                lVol += lVolStep;
+                rVol += rVolStep;
+                interPos += interStep;
+                uint32_t posDelta = uint32_t(interPos);
+                interPos -= float(posDelta);
+                pos = (pos + posDelta) & (NOISE_FINE_LEN-1);
+            }
+            break;
+        case NoisePatt::ROUGH:
+            for (size_t cnt = nblocks; cnt > 0; cnt--)
+            {
+                float samp = CGBPatterns::pat_noise_rough[pos] - 0.5f;
+                *buffer++ += samp * lVol;
+                *buffer++ += samp * rVol;
+                lVol += lVolStep;
+                rVol += rVolStep;
+                interPos += interStep;
+                uint32_t posDelta = uint32_t(interPos);
+                interPos -= float(posDelta);
+                pos = (pos + posDelta) & (NOISE_ROUGH_LEN-1);
+            }
     }
 
     updateVolFade();

@@ -41,7 +41,6 @@ Depenencies:
 Compiling:
 Install all the required dev packages and run the Makefile.
 However, because on all of my computers I had issues installing 'portaudio-dev' and I used a modified portaudio version to supress ALSA errors, you need to do the following to make things work:
-In order to compile agbplay you'll need to do the following:
 
 Clone the code repositories of agbplay and portaudio to a folder structure like this:
 

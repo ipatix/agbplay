@@ -239,7 +239,7 @@ void WindowGUI::Handle()
             mplay->GetMasterVolLevels(lVol, rVol);
             meterUI->SetVol(lVol, rVol);
         }
-        this_thread::sleep_for(chrono::milliseconds(16));
+        this_thread::sleep_for(chrono::microseconds(16000));
     } // end rendering loop
 }
 

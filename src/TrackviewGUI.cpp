@@ -144,7 +144,7 @@ void TrackviewGUI::update()
     wprintw(winPtr, "%s", blank.c_str());
 
     for (uint32_t i = 0, th = 0; i < disp.data.size(); i++, th += 2) {
-        unsigned long aFlag = (cursorVisible && i == cursorPos) ? A_REVERSE : 0;
+        int aFlag = (cursorVisible && i == cursorPos) ? A_REVERSE : 0;
         // print tickbox and first line
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         mvwprintw(winPtr, (int)(yBias + 1 + th), xBias, "[");

@@ -65,6 +65,8 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
         }
         envPeak = minmax<uint8_t>(0, uint8_t((note.velocity * vol) >> 10), 15);
         envSustain = minmax<uint8_t>(0, uint8_t((envPeak * env.sus + 15) >> 4), 15);
+        if (eState == EnvState::SUS)
+            envLevel = envSustain;
     }
 }
 

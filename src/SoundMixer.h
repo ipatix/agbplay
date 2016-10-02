@@ -52,7 +52,7 @@ namespace agbplay
             WaveChannel wave;
             NoiseChannel noise;
 
-            std::vector<ReverbEffect> revdsps;
+            std::vector<ReverbEffect *> revdsps;
             std::vector<std::vector<float>> soundBuffers;
             uint32_t sampleRate;
             uint32_t fixedModeRate;

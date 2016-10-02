@@ -24,7 +24,7 @@ FileContainer::FileContainer(string path)
     is.read((char *)data.data(), size);
     if (is.bad())
         throw MyException("read bad");
-        if (is.fail()) {
+    if (is.fail()) {
         throw MyException("read fail");
     }
     is.close();

@@ -44,7 +44,7 @@ uint8_t GameConfig::GetPCMVol()
 
 void GameConfig::SetPCMVol(uint8_t pcmVol)
 {
-    this->pcmVol = minmax<uint8_t>(0, pcmVol, 0xF);
+    this->pcmVol = clip<uint8_t>(0, pcmVol, 0xF);
 }
 
 uint8_t GameConfig::GetEngineFreq()
@@ -54,7 +54,7 @@ uint8_t GameConfig::GetEngineFreq()
 
 void GameConfig::SetEngineFreq(uint8_t engineFreq)
 {
-    this->engineFreq = minmax<uint8_t>(1, engineFreq, 12);
+    this->engineFreq = clip<uint8_t>(1, engineFreq, 12);
 }
 
 uint8_t GameConfig::GetEngineRev()
@@ -74,7 +74,7 @@ uint8_t GameConfig::GetTrackLimit()
 
 void GameConfig::SetTrackLimit(uint8_t trackLimit)
 {
-    this->trackLimit = minmax<uint8_t>(0, trackLimit, 16);
+    this->trackLimit = clip<uint8_t>(0, trackLimit, 16);
 }
 
 vector<SongEntry>& GameConfig::GetGameEntries()

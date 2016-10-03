@@ -29,7 +29,6 @@ void ReverbEffect::ProcessData(float *buffer, size_t nBlocks)
 {
     while (nBlocks > 0)
     {
-        __print_debug(FormatString("processInternal: %p", buffer));
         size_t left = processInternal(buffer, nBlocks);
         buffer += (nBlocks - left) * N_CHANNELS;
         nBlocks = left;
@@ -103,7 +102,6 @@ size_t ReverbGS1::processInternal(float *buffer, size_t nBlocks)
     const size_t bPerBuf = getBlocksPerBuffer();
     const size_t bPerGsBuf = getBlocksPerGsBuffer();
 
-    __print_debug(FormatString("eff: %p, pos1: %llu, pos2: %llu, process: %llu", this, bufferPos, bufferPos2, nBlocks));
     
     if (min(bPerBuf - bufferPos, bPerGsBuf - bufferPos2) <= nBlocks)
     {

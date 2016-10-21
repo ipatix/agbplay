@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 #include <vector>
 
 #include "Types.h"
@@ -13,28 +14,45 @@ namespace agbplay
     class ReverbEffect
     {
         public:
-            ReverbEffect(ReverbType rtype, uint8_t intesity, uint32_t streamRate, uint8_t numAgbBuffers);
-            ~ReverbEffect();
-            void ProcessData(float *buffer, uint32_t nBlocks);
-        private:
-            uint32_t processNormal(float *buffer, uint32_t nBlocks);
-            uint32_t processGS1(float *buffer, uint32_t nBlocks);
-            uint32_t processGS2(float *buffer, uint32_t nBlocks);
-            uint32_t getBlocksPerBuffer();
-            ReverbType rtype;
+            ReverbEffect(uint8_t intesity, size_t streamRate, uint8_t numAgbBuffers);
+            virtual ~ReverbEffect();
+            void ProcessData(float *buffer, size_t nBlocks);
+        protected:
+            virtual size_t processInternal(float *buffer, size_t nBlocks);
+            size_t getBlocksPerBuffer();
             float intensity;
-            //uint32_t streamRate;
+            //size_t streamRate;
             std::vector<float> reverbBuffer;
-            uint32_t bufferPos;
-            uint32_t bufferPos2;
-            uint32_t bufferPos3;
-            float delay1HPcarryL;
-            float delay1HPcarryR;
-            float delay2HPcarryL;
-            float delay2HPcarryR;
-            float delay1HPprevL;
-            float delay1HPprevR;
-            float delay2HPprevL;
-            float delay2HPprevR;
+            size_t bufferPos;
+            size_t bufferPos2;
+    };
+
+    class ReverbGS1 : public ReverbEffect
+    {
+        public:
+            ReverbGS1(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers);
+            ~ReverbGS1() override;
+        protected:
+            size_t processInternal(float *buffer, size_t nBlocks) override;
+            size_t getBlocksPerGsBuffer();
+            std::vector<float> gsBuffer;
+    };
+
+    class ReverbGS2 : public ReverbEffect
+    {
+        public:
+            ReverbGS2(uint8_t intesity, size_t streamRate, uint8_t numAgbBuffers);
+            ~ReverbGS2() override;
+        protected:
+            size_t processInternal(float *buffer, size_t nBlocks) override;
+    };
+
+    class ReverbTest : public ReverbEffect
+    {
+        public:
+            ReverbTest(uint8_t intesity, size_t streamRate, uint8_t numAgbBuffers);
+            ~ReverbTest() override;
+        protected:
+            size_t processInternal(float *buffer, size_t nBlocks) override;
     };
 }

@@ -54,7 +54,7 @@ void VUMeterGUI::SetVol(float left, float right)
 void VUMeterGUI::update()
 {
     string line;
-    float levelFactor = minmax(0.0f, 0.8f * float(meterWidth), float(meterWidth));
+    float levelFactor = clip(0.0f, 0.8f * float(meterWidth), float(meterWidth));
     // draw top border
     wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME));
     line = "\u250f";

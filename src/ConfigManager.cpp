@@ -38,13 +38,13 @@ ConfigManager::ConfigManager(std::string configPath)
             currentGame = &GetConfig(sm[1]);
         }
         else if (regex_match(line, sm, cfgVolExpr) && sm.size() == 2 && currentGame != nullptr) {
-            currentGame->SetPCMVol(uint8_t(minmax<int>(0, stoi(sm[1]), 15)));
+            currentGame->SetPCMVol(uint8_t(clip<int>(0, stoi(sm[1]), 15)));
         }
         else if (regex_match(line, sm, cfgFreqExpr) && sm.size() == 2 && currentGame != nullptr) {
-            currentGame->SetEngineFreq(uint8_t(minmax<int>(0, stoi(sm[1]), 15)));
+            currentGame->SetEngineFreq(uint8_t(clip<int>(0, stoi(sm[1]), 15)));
         }
         else if (regex_match(line, sm, cfgRevExpr) && sm.size() == 2 && currentGame != nullptr) {
-            currentGame->SetEngineRev(uint8_t(minmax<int>(0, stoi(sm[1]), 255)));
+            currentGame->SetEngineRev(uint8_t(clip<int>(0, stoi(sm[1]), 255)));
         }
         else if (regex_match(line, sm, cfgRevTypeExpr) && sm.size() == 2 && currentGame != nullptr) {
             string res = sm[1];
@@ -59,7 +59,7 @@ ConfigManager::ConfigManager(std::string configPath)
             }
         }
         else if (regex_match(line, sm, cfgTrackLimitExpr) && sm.size() == 2 && currentGame != nullptr) {
-            currentGame->SetTrackLimit(uint8_t(minmax<int>(0, stoi(sm[1]), 16)));
+            currentGame->SetTrackLimit(uint8_t(clip<int>(0, stoi(sm[1]), 16)));
         }
     }
 }

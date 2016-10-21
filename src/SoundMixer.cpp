@@ -20,7 +20,19 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reve
     samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
     for (size_t i = 0; i < ntracks; i++)
     {
-        revdsps.emplace_back(rtype, reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)));
+        switch (rtype) {
+            case ReverbType::NORMAL:
+                revdsps.push_back(new ReverbEffect(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS))));
+                break;
+            case ReverbType::GS1:
+                revdsps.push_back(new ReverbGS1(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS))));
+                break;
+            case ReverbType::GS2:
+                revdsps.push_back(new ReverbGS2(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS))));
+                break;
+            default:
+                throw MyException("Invalid Reverb Effect");
+        }
         soundBuffers.emplace_back(N_CHANNELS * samplesPerBuffer);
         fill(soundBuffers[i].begin(), soundBuffers[i].end(), 0.0f);
     }
@@ -38,6 +50,11 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reve
 
 SoundMixer::~SoundMixer()
 {
+    while (!revdsps.empty())
+    {
+        delete revdsps.back();
+        revdsps.pop_back();
+    }
 }
 
 void SoundMixer::NewSoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed)
@@ -250,7 +267,7 @@ void SoundMixer::renderToBuffers()
     assert(revdsps.size() == soundBuffers.size());
     for (size_t i = 0; i < soundBuffers.size(); i++)
     {
-        revdsps[i].ProcessData(soundBuffers[i].data(), samplesPerBuffer);
+        revdsps[i]->ProcessData(soundBuffers[i].data(), samplesPerBuffer);
     }
 
     // process all CGB channels

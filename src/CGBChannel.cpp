@@ -63,8 +63,10 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
             // snap mid
             this->pan = Pan::CENTER;
         }
-        envPeak = minmax<uint8_t>(0, uint8_t((note.velocity * vol) >> 10), 15);
-        envSustain = minmax<uint8_t>(0, uint8_t((envPeak * env.sus + 15) >> 4), 15);
+        envPeak = clip<uint8_t>(0, uint8_t((note.velocity * vol) >> 10), 15);
+        envSustain = clip<uint8_t>(0, uint8_t((envPeak * env.sus + 15) >> 4), 15);
+        if (eState == EnvState::SUS)
+            envLevel = envSustain;
     }
 }
 
@@ -166,7 +168,7 @@ void CGBChannel::stepEnvelope()
             } else if (env.att == 0 && env.sus < 0xF) {
                 eState = EnvState::DEC;
                 fromEnvLevel = envPeak;
-                envLevel = uint8_t(minmax(0, envPeak - 1, 15));
+                envLevel = uint8_t(clip(0, envPeak - 1, 15));
                 if (envLevel < envSustain) envLevel = envSustain;
                 return;
             } else if (env.att == 0) {
@@ -230,7 +232,7 @@ Ldec:
                     envLevel = envSustain;
                     nextState = EnvState::SUS;
                 } else {
-                    envLevel = uint8_t(minmax(0, envLevel - 1, 15));
+                    envLevel = uint8_t(clip(0, envLevel - 1, 15));
                 }
             }
             break;
@@ -465,7 +467,7 @@ void NoiseChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
 
 void NoiseChannel::SetPitch(int16_t pitch)
 {
-    freq = minmax(8.0f, 4096.0f * powf(8.0f, float(note.midiKey - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f)), 524288.0f);
+    freq = clip(8.0f, 4096.0f * powf(8.0f, float(note.midiKey - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f)), 524288.0f);
 }
 
 void NoiseChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)

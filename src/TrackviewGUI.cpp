@@ -46,8 +46,8 @@ void TrackviewGUI::SetState(const Sequence& seq, const float *vols)
         disp.data[i].prog = seq.tracks[i].prog;
         disp.data[i].pan = seq.tracks[i].pan;
         disp.data[i].pitch = seq.tracks[i].pitch;
-        disp.data[i].envL = uint8_t(minmax<uint32_t>(0, uint32_t(vols[i*N_CHANNELS] * 768.f), 255));
-        disp.data[i].envR = uint8_t(minmax<uint32_t>(0, uint32_t(vols[i*N_CHANNELS+1] * 768.f), 255));
+        disp.data[i].envL = uint8_t(clip<uint32_t>(0, uint32_t(vols[i*N_CHANNELS] * 768.f), 255));
+        disp.data[i].envR = uint8_t(clip<uint32_t>(0, uint32_t(vols[i*N_CHANNELS+1] * 768.f), 255));
         disp.data[i].delay = max((int8_t)0, seq.tracks[i].delay);
         disp.data[i].activeNotes = seq.tracks[i].activeNotes;
     }
@@ -144,7 +144,7 @@ void TrackviewGUI::update()
     wprintw(winPtr, "%s", blank.c_str());
 
     for (uint32_t i = 0, th = 0; i < disp.data.size(); i++, th += 2) {
-        unsigned long aFlag = (cursorVisible && i == cursorPos) ? A_REVERSE : 0;
+        int aFlag = (cursorVisible && i == cursorPos) ? A_REVERSE : 0;
         // print tickbox and first line
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         mvwprintw(winPtr, (int)(yBias + 1 + th), xBias, "[");

@@ -266,7 +266,7 @@ Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom& rom) : rom(rom)
     // read song header
     this->songHeader = songHeader;
     rom.Seek(songHeader);
-    uint8_t nTracks = min(rom.ReadUInt8(), trackLimit);
+    uint8_t nTracks = min<uint8_t>(rom.ReadUInt8(), trackLimit);
     blocks = rom.ReadUInt8();
     prio = rom.ReadUInt8();
     reverb = rom.ReadUInt8();
@@ -366,13 +366,13 @@ int16_t Sequence::Track::GetPitch()
 uint8_t Sequence::Track::GetVol()
 {
     int m = (modt == MODT::VOL) ? (sineLut[lfoPhase] * mod * 3 * vol) >> 19 : 0;
-    return uint8_t(minmax(0, vol + m, 127));
+    return uint8_t(clip(0, vol + m, 127));
 }
 
 int8_t Sequence::Track::GetPan()
 {
     int m = (modt == MODT::PAN) ? (sineLut[lfoPhase] * mod * 3) >> 12 : 0;
-    return int8_t(minmax(-64, pan + m, 63));
+    return int8_t(clip(-64, pan + m, 63));
 }
 
 /*

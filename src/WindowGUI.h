@@ -87,6 +87,8 @@ namespace agbplay
             void del();
             void rename();
 
+            void updateWindowSize();
+
             // console GUI element
             ConsoleGUI *conUI;
             HotkeybarGUI *hotUI;

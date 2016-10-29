@@ -24,7 +24,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata)
 {
     // init ncurses stuff
     this->containerWin = initscr();
-    getmaxyx(stdscr, height, width);
+    updateWindowSize();
     if (has_colors() == false)
         throw MyException("Error, your terminal doesn't support colors");
     initColors();
@@ -34,10 +34,6 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata)
 
     this->play = false;
     this->cursorl = SONGLIST;
-
-    // cap small terminal sizes
-    if (height < 24) height = 24;
-    if (width < 80) width = 80;
 
     // create subwindows
     conUI = new ConsoleGUI(
@@ -125,9 +121,7 @@ void WindowGUI::Handle()
             switch (ch) {
                 case 18: // CTRL+R
                 case KEY_RESIZE:
-                    getmaxyx(stdscr, height, width);
-                    if (height < 24) height = 24;
-                    if (width < 80) width = 80;
+                    updateWindowSize();
                     resizeWindows();
                     break;
                 case KEY_UP:
@@ -542,4 +536,17 @@ void WindowGUI::rename()
     if (delwin(renWin) == ERR) {
         throw MyException("Error while deleting renaming window");
     }
+}
+
+void WindowGUI::updateWindowSize()
+{
+    getmaxyx(stdscr, height, width);
+    if (width < 80) // set min size in ordner things don't break
+        width = 80;
+    else if (width > 512) // set max size to prevent high memory consumption
+        width = 512;
+    if (height < 24)
+        height = 24;
+    else if (height > 128)
+        height = 128;
 }

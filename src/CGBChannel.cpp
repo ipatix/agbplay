@@ -416,7 +416,6 @@ void WaveChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
     if (eState == EnvState::DEAD)
         return;
     ChnVol vol = getVol();
-    assert(pat);
     float lVolStep = (vol.toVolLeft - vol.fromVolLeft) * args.nBlocksReciprocal;
     float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.nBlocksReciprocal;
     float lVol = vol.fromVolLeft;

@@ -1,4 +1,5 @@
 #include <string>
+#include <algorithm>
 #include <sstream>
 #include <cstdlib>
 #include <stdexcept>
@@ -541,12 +542,6 @@ void WindowGUI::rename()
 void WindowGUI::updateWindowSize()
 {
     getmaxyx(stdscr, height, width);
-    if (width < 80) // set min size in ordner things don't break
-        width = 80;
-    else if (width > 512) // set max size to prevent high memory consumption
-        width = 512;
-    if (height < 24)
-        height = 24;
-    else if (height > 128)
-        height = 128;
+    height = clamp(width, 80, 512);
+    width = clamp(width, 24, 128);
 }

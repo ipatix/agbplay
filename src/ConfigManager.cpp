@@ -1,5 +1,6 @@
 #include <fstream>
 #include <regex>
+#include <cstring>
 
 #include "ConfigManager.h"
 #include "Util.h"

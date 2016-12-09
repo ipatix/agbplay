@@ -109,7 +109,7 @@ namespace agbplay
             // ncurses windows
             WINDOW *containerWin;
             
-            uint32_t width, height;
+            int width, height;
             bool play;
             enum {
                 PLAYLIST, SONGLIST, TRACKS, SETTINGS

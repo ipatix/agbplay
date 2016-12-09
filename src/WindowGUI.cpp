@@ -542,6 +542,6 @@ void WindowGUI::rename()
 void WindowGUI::updateWindowSize()
 {
     getmaxyx(stdscr, height, width);
-    height = clamp(width, 80, 512);
-    width = clamp(width, 24, 128);
+    width = clip(80, width, 512);
+    height = clip(24, height, 128);
 }

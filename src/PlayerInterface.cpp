@@ -18,7 +18,7 @@ using namespace agbplay;
 
 PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos, GameConfig& _gameCfg) 
     : rom(_rom), gameCfg(_gameCfg), seq(initSongPos, _gameCfg.GetTrackLimit(), _rom), 
-    rBuf(N_CHANNELS * STREAM_BUF_SIZE), masterLoudness(20.f)
+    rBuf(N_CHANNELS * STREAM_BUF_SIZE), masterLoudness(10.f)
 {
     this->trackUI = trackUI;
     playerState = State::THREAD_DELETED;
@@ -268,5 +268,5 @@ void PlayerInterface::setupLoudnessCalcs()
 {
     trackLoudness.clear();
     for (size_t i = 0; i < seq.tracks.size(); i++)
-        trackLoudness.emplace_back(10.0f);
+        trackLoudness.emplace_back(5.0f);
 }

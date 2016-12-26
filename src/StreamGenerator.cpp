@@ -233,6 +233,8 @@ void StreamGenerator::processSequenceTick()
                         case 0xB1:
                             // FINE, end of track
                             cTrk.isRunning = false;
+                            __print_debug(FormatString("Disabling all channels on track %p", &cTrk));
+                            sm.StopChannel(uint8_t(ntrk), NOTE_ALL);
                             break;
                         case 0xB2:
                             // GOTO

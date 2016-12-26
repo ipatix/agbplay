@@ -119,6 +119,7 @@ int8_t SoundChannel::GetNoteLength()
 void SoundChannel::Release()
 {
     if (eState < EnvState::REL) {
+        __print_debug(FormatString("channel %p getting released", this));
         eState = EnvState::REL;
     }
 }

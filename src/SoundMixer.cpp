@@ -150,26 +150,43 @@ int SoundMixer::TickTrackNotes(uint8_t owner, bitset<NUM_NOTES>& activeNotes)
 
 void SoundMixer::StopChannel(uint8_t owner, uint8_t key)
 {
+    if (key == NOTE_ALL)
+        __print_debug("stopchannel ALL");
     for (SoundChannel& chn : sndChannels) 
     {
-        if (chn.GetOwner() == owner && chn.GetMidiKey() == key && chn.GetState() < EnvState::REL && chn.GetNoteLength() == NOTE_TIE) {
+        if (chn.GetOwner() == owner && (
+                    key == NOTE_ALL || (
+                        chn.GetMidiKey() == key &&
+                        chn.GetNoteLength() == NOTE_TIE))) {
             chn.Release();
             //return;
         }
     }
-    if (sq1.GetOwner() == owner && sq1.GetMidiKey() == key && sq1.GetState() < EnvState::REL && sq1.GetNoteLength() == NOTE_TIE) {
+    if (sq1.GetOwner() == owner && (
+                key == NOTE_ALL || (
+                    sq1.GetMidiKey() == key && 
+                    sq1.GetNoteLength() == NOTE_TIE))) {
         sq1.Release();
         //return;
     }
-    if (sq2.GetOwner() == owner && sq2.GetMidiKey() == key && sq2.GetState() < EnvState::REL && sq2.GetNoteLength() == NOTE_TIE) {
+    if (sq2.GetOwner() == owner && (
+                key == NOTE_ALL || (
+                    sq2.GetMidiKey() == key &&
+                    sq2.GetNoteLength() == NOTE_TIE))) {
         sq2.Release();
         //return;
     }
-    if (wave.GetOwner() == owner && wave.GetMidiKey() == key && wave.GetState() < EnvState::REL && wave.GetNoteLength() == NOTE_TIE) {
+    if (wave.GetOwner() == owner && (
+                key == NOTE_ALL || (
+                    wave.GetMidiKey() == key &&
+                    wave.GetNoteLength() == NOTE_TIE))) {
         wave.Release();
         //return;
     }
-    if (noise.GetOwner() == owner && noise.GetMidiKey() == key && noise.GetState() < EnvState::REL && noise.GetNoteLength() == NOTE_TIE) {
+    if (noise.GetOwner() == owner && (
+                key == NOTE_ALL || (
+                    noise.GetMidiKey() == key &&
+                    noise.GetNoteLength() == NOTE_TIE))) {
         noise.Release();
         //return;
     }

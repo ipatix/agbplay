@@ -112,7 +112,7 @@ namespace agbplay
             int width, height;
             bool play;
             enum {
-                PLAYLIST, SONGLIST, TRACKS, SETTINGS
+                PLAYLIST, SONGLIST, TRACKS_PLAYLIST, TRACKS_SONGLIST, SETTINGS
             } cursorl;
     }; // end WindowGUI
 } // end namespace agbplay

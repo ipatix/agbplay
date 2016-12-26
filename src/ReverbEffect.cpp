@@ -137,8 +137,8 @@ size_t ReverbGS1::processInternal(float *buffer, size_t nBlocks)
         float long_rev_l = rbuf[bufferPos * 2];
         float long_rev_r = rbuf[bufferPos * 2 + 1];
 
-        float new_l = in_l + (1.f / 16.f) * rev_l + (1.f / 16.f) * long_rev_l;
-        float new_r = in_r + (1.f / 16.f) * rev_r + (1.f / 16.f) * long_rev_r;
+        float new_l = in_l + (1.f / 128.f) * rev_l + (1.f / 64.f) * long_rev_l;
+        float new_r = in_r + (1.f / 128.f) * rev_r + (1.f / 64.f) * long_rev_r;
         gsBuffer[bufferPos2 * 2] = new_l;
         gsBuffer[bufferPos2 * 2 + 1] = new_r;
 

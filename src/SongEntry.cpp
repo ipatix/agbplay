@@ -7,7 +7,7 @@ using namespace agbplay;
  * SongEntry
  */
 
-SongEntry::SongEntry(string name, uint16_t uid) 
+SongEntry::SongEntry(const string& name, uint16_t uid) 
 {
     this->name = name;
     this->uid = uid;
@@ -15,9 +15,4 @@ SongEntry::SongEntry(string name, uint16_t uid)
 
 SongEntry::~SongEntry() 
 {
-}
-
-uint16_t SongEntry::GetUID() 
-{
-    return uid;
 }

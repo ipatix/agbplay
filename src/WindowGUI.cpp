@@ -98,6 +98,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata)
     rom.Seek(sdata.sTable->GetSongTablePos());
     mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos(), thisCfg);
     mplay->LoadSong(sdata.sTable->GetPosOfSong(0));
+    trackUI->SetTitle(songUI->GetSong().GetName());
 }
 
 WindowGUI::~WindowGUI() 
@@ -320,12 +321,14 @@ void WindowGUI::cycleFocus()
             cursorl = PLAYLIST;
             playUI->Enter();
             TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
+            trackUI->SetTitle(playUI->GetSong().GetName());
             break;
         case PLAYLIST:
             playUI->Leave();
             cursorl = SONGLIST;
             songUI->Enter();
             TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
+            trackUI->SetTitle(songUI->GetSong().GetName());
             break;
         default:
             break;
@@ -335,11 +338,15 @@ void WindowGUI::cycleFocus()
 void WindowGUI::scrollLeft()
 {
     switch (cursorl) {
-        case TRACKS:
+        case TRACKS_SONGLIST:
             trackUI->Leave();
             cursorl = SONGLIST;
             songUI->Enter();
             break;
+        case TRACKS_PLAYLIST:
+            trackUI->Leave();
+            cursorl = PLAYLIST;
+            playUI->Enter();
         default:
             break;
     }
@@ -350,12 +357,12 @@ void WindowGUI::scrollRight()
     switch (cursorl) {
         case SONGLIST:
             songUI->Leave();
-            cursorl = TRACKS;
+            cursorl = TRACKS_SONGLIST;
             trackUI->Enter();
             break;
         case PLAYLIST:
             playUI->Leave();
-            cursorl = TRACKS;
+            cursorl = TRACKS_PLAYLIST;
             trackUI->Enter();
             break;
         default:
@@ -369,13 +376,17 @@ void WindowGUI::scrollDown()
         case SONGLIST:
             songUI->ScrollDown();
             TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
+            trackUI->SetTitle(songUI->GetSong().GetName());
             break;
         case PLAYLIST:
             playUI->ScrollDown();
-            if (!playUI->IsDragging())
+            if (!playUI->IsDragging()) {
                 TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
+                trackUI->SetTitle(playUI->GetSong().GetName());
+            }
             break;
-        case TRACKS:
+        case TRACKS_SONGLIST:
+        case TRACKS_PLAYLIST:
             trackUI->ScrollDown();
             break;
         default:
@@ -389,13 +400,17 @@ void WindowGUI::scrollUp()
         case SONGLIST:
             songUI->ScrollUp();
             TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
+            trackUI->SetTitle(songUI->GetSong().GetName());
             break;
         case PLAYLIST:
             playUI->ScrollUp();
-            if (!playUI->IsDragging())
+            if (!playUI->IsDragging()) {
                 TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
+                trackUI->SetTitle(playUI->GetSong().GetName());
+            }
             break;
-        case TRACKS:
+        case TRACKS_SONGLIST:
+        case TRACKS_PLAYLIST:
             trackUI->ScrollUp();
             break;
         default:
@@ -409,13 +424,17 @@ void WindowGUI::pageDown()
         case SONGLIST:
             songUI->PageDown();
             TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
+            trackUI->SetTitle(songUI->GetSong().GetName());
             break;
         case PLAYLIST:
             playUI->PageDown();
-            if (!playUI->IsDragging())
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
+            if (!playUI->IsDragging()) {
+                TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
+                trackUI->SetTitle(playUI->GetSong().GetName());
+            }
             break;
-        case TRACKS:
+        case TRACKS_SONGLIST:
+        case TRACKS_PLAYLIST:
             trackUI->PageDown();
             break;
         default:
@@ -429,13 +448,17 @@ void WindowGUI::pageUp()
         case SONGLIST:
             songUI->PageUp();
             TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
+            trackUI->SetTitle(songUI->GetSong().GetName());
             break;
         case PLAYLIST:
             playUI->PageUp();
-            if (!playUI->IsDragging())
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
+            if (!playUI->IsDragging()) {
+                TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
+                trackUI->SetTitle(playUI->GetSong().GetName());
+            }
             break;
-        case TRACKS:
+        case TRACKS_SONGLIST:
+        case TRACKS_PLAYLIST:
             trackUI->PageUp();
             break;
         default:
@@ -446,7 +469,8 @@ void WindowGUI::pageUp()
 void WindowGUI::enter()
 {
     switch (cursorl) {
-        case TRACKS:
+        case TRACKS_SONGLIST:
+        case TRACKS_PLAYLIST:
             // TODO mute/unmute
             break;
         default:
@@ -456,20 +480,25 @@ void WindowGUI::enter()
 
 void WindowGUI::add() 
 {
-    if (cursorl != SONGLIST) return;
+    if (cursorl != SONGLIST) 
+        return;
     TRY_OOR(playUI->AddSong(songUI->GetSong()));
 }
 
 void WindowGUI::del() 
 {
-    if (cursorl != PLAYLIST) return;
+    if (cursorl != PLAYLIST) 
+        return;
     playUI->RemoveSong();
     TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
+    trackUI->SetTitle(playUI->GetSong().GetName());
 }
 
 void WindowGUI::rename()
 {
-    if (cursorl != PLAYLIST) return;
+    if (cursorl != PLAYLIST) 
+        return;
+
     SongEntry *ent;
     try {
         ent = &playUI->GetSong();

@@ -10,6 +10,7 @@
 #include "CGBChannel.h"
 #include "Constants.h"
 
+#define NOTE_ALL 0xFE
 #define NOTE_TIE -1
 // AGB has 60 FPS based processing
 #define AGB_FPS 60

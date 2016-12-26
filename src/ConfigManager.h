@@ -13,7 +13,7 @@ namespace agbplay
             ConfigManager(const std::string& configPath);
             ~ConfigManager();
 
-            GameConfig& GetConfig(std::string gameCode);
+            GameConfig& GetConfig(const std::string& gameCode);
         private:
             std::vector<GameConfig> configs;
             std::string configPath;

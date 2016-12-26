@@ -1,4 +1,5 @@
 #include <string>
+#include <cstring>
 #include <cmath>
 
 #include "VUMeterGUI.h"
@@ -53,115 +54,127 @@ void VUMeterGUI::SetVol(float left, float right)
 
 void VUMeterGUI::update()
 {
-    string line;
+    char line[(meterWidth + 2) * strlen("\u250f") + 1];
+    size_t currentLinePos = 0;
     float levelFactor = clip(0.0f, 0.8f * float(meterWidth), float(meterWidth));
-    // draw top border
-    wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME));
-    line = "\u250f";
-    for (int i = 0; i < meterWidth; i++)
-        line += "\u2501";
-    line += "\u2513";
-    mvwprintw(winPtr, 0, 0, "%s", line.c_str());
 
-    // first bar
-    line = "\u2503";
+    // TOP BORDER
+    CStrAppend(line, &currentLinePos, "\u250f");
+    for (int i = 0; i < meterWidth; i++) {
+        CStrAppend(line, &currentLinePos, "\u2501");
+    }
+    CStrAppend(line, &currentLinePos, "\u2513");
+    line[currentLinePos] = '\0';
+    wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME));
+    mvwprintw(winPtr, 0, 0, "%s", line);
+
+    // FIRST BAR
     float leftLevel = vuLevelLeft * levelFactor;
     int bLeftLevel = int(leftLevel);
-    mvwprintw(winPtr, 1, 0, "%s", line.c_str());
+    mvwprintw(winPtr, 1, 0, "\u2503");
 
-    line.clear();
-    wattrset(winPtr, COLOR_PAIR(Color::VU_LOW));
+    currentLinePos = 0;
     for (int i = 0; i < meterYel; i++) {
         if (i < bLeftLevel) {
-            line += "\u2588";
+            CStrAppend(line, &currentLinePos, "\u2588");
         } else {
-            line += "\u2591";
+            CStrAppend(line, &currentLinePos, "\u2591");
         }
     }
-    wprintw(winPtr, "%s", line.c_str());
+    line[currentLinePos] = '\0';
+    wattrset(winPtr, COLOR_PAIR(Color::VU_LOW));
+    wprintw(winPtr, "%s", line);
 
-    line.clear();
-    wattrset(winPtr, COLOR_PAIR(Color::VU_MID));
+    currentLinePos = 0;
     for (int i = meterYel; i < meterRed; i++) {
         if (i < bLeftLevel) {
-            line += "\u2588";
+            CStrAppend(line, &currentLinePos, "\u2588");
         } else {
-            line += "\u2591";
+            CStrAppend(line, &currentLinePos, "\u2591");
         }
     }
-    wprintw(winPtr, "%s", line.c_str());
+    line[currentLinePos] = '\0';
+    wattrset(winPtr, COLOR_PAIR(Color::VU_MID));
+    wprintw(winPtr, "%s", line);
 
-    line.clear();
-    wattrset(winPtr, COLOR_PAIR(Color::VU_HIGH));
+    currentLinePos = 0;
     for (int i = meterRed; i < meterWidth; i++) {
         if (i < bLeftLevel) {
-            line += "\u2588";
+            CStrAppend(line, &currentLinePos, "\u2588");
         } else {
-            line += "\u2591";
+            CStrAppend(line, &currentLinePos, "\u2591");
         }
     }
-    wprintw(winPtr, "%s", line.c_str());
+    line[currentLinePos] = '\0';
+    wattrset(winPtr, COLOR_PAIR(Color::VU_HIGH));
+    wprintw(winPtr, "%s", line);
 
     wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME));
-    line = "\u2503";
-    wprintw(winPtr, "%s", line.c_str());
+    wprintw(winPtr, "\u2503");
 
-    // middle border
-    line = "\u2523";
-    for (int i = 0; i < meterWidth; i++)
-        line += "\u2501";
-    line += "\u252b";
-    mvwprintw(winPtr, 2, 0, "%s", line.c_str());
+    // MIDDLE BORDER
+    currentLinePos = 0;
+    CStrAppend(line, &currentLinePos, "\u2523");
+    for (int i = 0; i < meterWidth; i++) {
+        CStrAppend(line, &currentLinePos, "\u2501");
+    }
+    CStrAppend(line, &currentLinePos, "\u252b");
+    line[currentLinePos] = '\0';
+    mvwprintw(winPtr, 2, 0, "%s", line);
 
-    // second bar
-    line = "\u2503";
+    // SECOND BAR
     float rightLevel = vuLevelRight * levelFactor;
     int bRightLevel = int(rightLevel);
     wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME));
-    mvwprintw(winPtr, 3, 0, "%s", line.c_str());
+    mvwprintw(winPtr, 3, 0, "\u2503");
 
-    line.clear();
-    wattrset(winPtr, COLOR_PAIR(Color::VU_LOW));
+    currentLinePos = 0;
     for (int i = 0; i < meterYel; i++) {
         if (i < bRightLevel) {
-            line += "\u2588";
+            CStrAppend(line, &currentLinePos, "\u2588");
         } else {
-            line += "\u2591";
+            CStrAppend(line, &currentLinePos, "\u2591");
         }
     }
-    wprintw(winPtr, "%s", line.c_str());
+    line[currentLinePos] = '\0';
+    wattrset(winPtr, COLOR_PAIR(Color::VU_LOW));
+    wprintw(winPtr, "%s", line);
 
-    line.clear();
-    wattrset(winPtr, COLOR_PAIR(Color::VU_MID));
+    currentLinePos = 0;
     for (int i = meterYel; i < meterRed; i++) {
         if (i < bRightLevel) {
-            line += "\u2588";
+            CStrAppend(line, &currentLinePos, "\u2588");
         } else {
-            line += "\u2591";
+            CStrAppend(line, &currentLinePos, "\u2591");
         }
     }
-    wprintw(winPtr, "%s", line.c_str());
+    line[currentLinePos] = '\0';
+    wattrset(winPtr, COLOR_PAIR(Color::VU_MID));
+    wprintw(winPtr, "%s", line);
 
-    line.clear();
-    wattrset(winPtr, COLOR_PAIR(Color::VU_HIGH));
+    currentLinePos = 0;
     for (int i = meterRed; i < meterWidth; i++) {
         if (i < bRightLevel) {
-            line += "\u2588";
+            CStrAppend(line, &currentLinePos, "\u2588");
         } else {
-            line += "\u2591";
+            CStrAppend(line, &currentLinePos, "\u2591");
         }
     }
-    wprintw(winPtr, "%s", line.c_str());
+    line[currentLinePos] = '\0';
+    wattrset(winPtr, COLOR_PAIR(Color::VU_HIGH));
+    wprintw(winPtr, "%s", line);
 
     wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME));
-    line = "\u2503";
-    wprintw(winPtr, "%s", line.c_str());
+    wprintw(winPtr, "\u2503");
 
-    // bottom border
-    line = "\u2523";
-    for (int i = 0; i < meterWidth; i++)
-        line += "\u2501";
-    line += "\u252b";
-    mvwprintw(winPtr, 4, 0, "%s", line.c_str());
+    // BOTTOM BORDER
+    currentLinePos = 0;
+    CStrAppend(line, &currentLinePos, "\u2523");
+    for (int i = 0; i < meterWidth; i++) {
+        CStrAppend(line, &currentLinePos, "\u2501");
+    }
+    CStrAppend(line, &currentLinePos, "\u252b");
+    line[currentLinePos] = '\0';
+    mvwprintw(winPtr, 4, 0, "%s", line);
     wrefresh(winPtr);
 }

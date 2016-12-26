@@ -11,10 +11,10 @@ namespace agbplay
     class GameConfig
     {
         public:
-            GameConfig(std::string gameCode);
+            GameConfig(const std::string& gameCode);
             ~GameConfig();
 
-            std::string GetGameCode();
+            const std::string& GetGameCode();
             ReverbType GetRevType();
             void SetRevType(ReverbType revType);
             uint8_t GetPCMVol();

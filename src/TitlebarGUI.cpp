@@ -1,6 +1,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include "Constants.h"
 #include "TitlebarGUI.h"
 #include "ColorDef.h"
 #include "Xcept.h"
@@ -57,26 +58,15 @@ void TitlebarGUI::update()
     for (uint32_t i = 0; i < height; i++) 
     {
         // print upper padding
-        string tmp;
         if (i < upperPadding || i > height - upperPadding) {
-            tmp = "";
-            tmp.resize(width, ' ');
-            wattrset(winPtr, COLOR_PAIR(Color::BANNER_TEXT) | A_REVERSE);
-            mvwprintw(winPtr, (int)i, 0, "%s", tmp.c_str());
+            wattrset(winPtr, COLOR_PAIR(Color::BANNER_TEXT));
+            mvwhline(winPtr, (int)i, 0, ' ', width);
         } else {
             uint32_t leftPadding = (uint32_t)((width - bannerText[i - upperPadding].size()) / 2);
             uint32_t rightPadding = (uint32_t)((width - bannerText[i - upperPadding].size()) / 2 +
                     ((width - bannerText[i - upperPadding].size()) % 2));
-            tmp = "";
-            tmp.resize(leftPadding, ' ');
-            wattrset(winPtr, COLOR_PAIR(Color::BANNER_TEXT) | A_REVERSE);
-            mvwprintw(winPtr, (int)i, 0, "%s", tmp.c_str());
-            tmp = "";
-            tmp.resize(rightPadding, ' ');
             wattrset(winPtr, COLOR_PAIR(Color::BANNER_TEXT));
-            wprintw(winPtr, "%s", bannerText[i - upperPadding].c_str());
-            wattrset(winPtr, COLOR_PAIR(Color::BANNER_TEXT) | A_REVERSE);
-            wprintw(winPtr, tmp.c_str());
+            mvwprintw(winPtr, (int)i, 0, "%*s%s%*s", leftPadding, "", bannerText[i - upperPadding].c_str(), rightPadding, "");
         }
     }
     wrefresh(winPtr);

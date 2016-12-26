@@ -141,24 +141,21 @@ void SonglistGUI::scrollUpNoUpdate()
 
 void SonglistGUI::update() 
 {
-    string bar = "Songlist:";
-    bar.resize(contentWidth, ' ');
     wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME) | A_REVERSE);
-    mvwprintw(winPtr, 0, 0, bar.c_str());
+    mvwprintw(winPtr, 0, 0, "%-*.*s", contentWidth, contentWidth, "Songlist:");
     for (uint32_t i = 0; i < contentHeight; i++) {
         if (i + viewPos == cursorPos && cursorVisible)
             wattrset(winPtr, COLOR_PAIR(Color::LIST_ENTRY) | A_REVERSE);
         else
             wattrset(winPtr, COLOR_PAIR(Color::LIST_ENTRY));
         // generate list of songs
-        string songText;
         if (i + viewPos < songlist->size()) {
-            songText = (*songlist)[i + viewPos].name;
+            mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, "%-*.*s", 
+                    width, width, (*songlist)[i + viewPos].name.c_str());
         } else {
-            songText = "";
+            mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, "%-*.*s", 
+                    width, width, "");
         }
-        songText.resize(width, ' ');
-        mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, songText.c_str());
     }
     wrefresh(winPtr);
 }

@@ -20,14 +20,10 @@ void HotkeybarGUI::update() {
     //UIMutex.lock();
     wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME) | A_REVERSE);
     // draw initial border
-    std::string hkText = " [q=QUIT] [tab=SWITCH] [a=ADD] [d=DEL] [g=DRAG]";
-    hkText.resize(width, ' ');
-    mvwprintw(winPtr, 0, 0, hkText.c_str());
+    mvwprintw(winPtr, 0, 0, "%*s", width, " [q=QUIT] [tab=SWITCH] [a=ADD] [d=DEL] [g=DRAG]");
     
-    std::string fillText = "";
-    fillText.resize(width, ' ');
     for (uint32_t i = 1; i < height; i++) {
-        mvwprintw(winPtr, (int)i, 0, fillText.c_str());
+        mvwhline(winPtr, (int)i, 0, ' ', width);
     }
     wrefresh(winPtr);
     //UIMutex.unlock();

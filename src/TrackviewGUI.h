@@ -34,6 +34,6 @@ namespace agbplay
             DisplayContainer disp; std::string songName; 
             uint32_t cursorPos;
             bool cursorVisible;
-            static const std::vector<std::string> noteNames;
+            static const std::vector<const char *> noteNames;
     }; // end TrackviewGUI
 } // end namespace agbplay

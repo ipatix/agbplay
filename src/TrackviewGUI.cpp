@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "Util.h"
 #include "TrackviewGUI.h"
 #include "ColorDef.h"
@@ -7,7 +9,7 @@
 using namespace std;
 using namespace agbplay;
 
-const vector<string> TrackviewGUI::noteNames = {
+const vector<const char *> TrackviewGUI::noteNames = {
     "C-2", "C#-2", "D-2", "D#-2", "E-2", "F-2", "F#-2", "G-2", "G#-2", "A-2", "A#-2", "B-2",
     "C-1", "C#-1", "D-1", "D#-1", "E-1", "F-1", "F#-1", "G-1", "G#-1", "A-1", "A#-1", "B-1",
     "C0", "C#0", "D0", "D#0", "E0", "F0", "F#0", "G0", "G#0", "A0", "A#0", "B0",
@@ -119,25 +121,20 @@ void TrackviewGUI::ScrollUp()
 void TrackviewGUI::update() 
 {
     // init draw
-    //UIMutex.lock();
     const uint32_t yBias = 1;
     const uint32_t xBias = 1;
     // clear field
     if (cursorPos >= disp.data.size() && cursorPos > 0) {
         cursorPos = (uint32_t)disp.data.size() - 1;
     }
-    string clr = "";
-    clr.resize(width - xBias, ' ');
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF));
     for (uint32_t i = yBias + 1 + (uint32_t)disp.data.size() * 2; i < height; i++) {
-        mvwprintw(winPtr, (int)i, xBias, clr.c_str());
+        mvwhline(winPtr, (int)i, xBias, ' ', width - xBias);
     }
     // draw borderlines
     wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME) | A_REVERSE);
     mvwvline(winPtr, 1, 0, ' ', height - 1);
-    string titleText = " Tracker";
-    titleText.resize(width, ' ');
-    mvwprintw(winPtr, 0, 0, titleText.c_str());
+    mvwprintw(winPtr, 0, 0, "%*s", width, " Tracker");
 
     // draw track titlebar
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
@@ -157,10 +154,7 @@ void TrackviewGUI::update()
     wattrset(winPtr, COLOR_PAIR(Color::TRK_NOTE) | A_UNDERLINE);
     wprintw(winPtr, "Note");
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
-    wprintw(winPtr, " - %s", songName.c_str());
-    string blank = "";
-    blank.resize(width - 24 - 3 - songName.size(), ' '); // 24 makes the line fit to screen end
-    wprintw(winPtr, "%s", blank.c_str());
+    wprintw(winPtr, " - %-*s", width - 24 - 3, songName.c_str());
 
     for (uint32_t i = 0, th = 0; i < disp.data.size(); i++, th += 2) {
         int aFlag = (cursorVisible && i == cursorPos) ? A_REVERSE : 0;
@@ -180,13 +174,29 @@ void TrackviewGUI::update()
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
         wprintw(winPtr, " ");
         wattrset(winPtr, COLOR_PAIR(Color::TRK_NOTE) | aFlag);
-        string notes = "";
-        for (uint32_t j = 0; j < disp.data[i].activeNotes.size(); j++) {
-            if (disp.data[i].activeNotes[j])
-                notes += noteNames[j] + " ";
+
+        char noteBuffer[width + 1];
+        size_t noteBufferIndex = 0;
+
+        for (size_t j = 0; j < disp.data[i].activeNotes.size(); j++) {
+            if (disp.data[i].activeNotes[j]) {
+                CStrAppend(noteBuffer, &noteBufferIndex, noteNames[j]);
+                noteBuffer[noteBufferIndex++] = ' ';
+            }
         }
-        notes.resize((width < 20) ? 0 : width - 20, ' ');
-        wprintw(winPtr, "%s", notes.c_str());
+
+        if (width < 20) {
+            noteBuffer[0] = '\0';
+        } else if (noteBufferIndex > width - 20) {
+            noteBuffer[width - 20] = '0';
+        } else {
+            size_t leftChars = width - 20 - noteBufferIndex;
+            for (size_t j = 0; j < leftChars; j++)
+                noteBuffer[noteBufferIndex++] = ' ';
+            noteBuffer[noteBufferIndex++] = '\0';
+        }
+
+        wprintw(winPtr, "%s", noteBuffer);
 
         // print track values and sencond line
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
@@ -205,73 +215,58 @@ void TrackviewGUI::update()
         wprintw(winPtr, " %-3d", disp.data[i].mod);
         wattrset(winPtr, COLOR_PAIR(Color::TRK_PITCH) | aFlag);
         wprintw(winPtr, " %-+6d", disp.data[i].pitch);
-        // print volume level
-        {
-            auto getFracBar = [](uint8_t frac) 
-            {
-                switch (frac)
-                {
-                    case 0:
-                        return " ";
-                    case 1:
-                        return "\u258f";
-                    case 2:
-                        return "\u258e";
-                    case 3:
-                        return "\u258d";
-                    case 4:
-                        return "\u258c";
-                    case 5:
-                        return "\u258b";
-                    case 6:
-                        return "\u258a";
-                    case 7:
-                        return "\u2589";
-                    case 8:
-                        return "\u2588";
-                    default:
-                        throw Xcept("illegal block");
-                }
-            };
 
-            string bar;
-            uint32_t leftBar = disp.data[i].envL / 2;
-            uint32_t rightBar = disp.data[i].envR / 2;
-            //assert(leftBar + rightBar + leftBlank + rightBlank == 32);
-            for (size_t i = 0; i < 16; i++)
-            {
-                if (i < (128 - leftBar) / 8)
-                    bar += "\u2588";
-                else if (i == (128 - leftBar) / 8)
-                    bar += getFracBar((128 - leftBar) % 8);
-                else
-                    bar += " ";
+        // print volume level
+        static const char *fracBar[] = {
+            " ", "\u258f", "\u258e", "\u258d", "\u258c", "\u258b", "\u258a", "\u2589", "\u2588"
+        };
+
+        auto printBar16 = [](char *buffer, int level) {
+            assert(level <= 128 && level >= 0);
+            for (size_t i = 0; i < 16; i++) {
+                char ch;
+                const char *part;
+                if (level > 8) {
+                    part = fracBar[8];
+                    while ((ch = *part++) != '\0')
+                        *buffer++ = ch;
+                    level -= 8;
+                } else if (level > 0) {
+                    part = fracBar[level];
+                    while ((ch = *part++) != '\0')
+                        *buffer++ = ch;
+                    level -= 8;
+                } else {
+                    part = fracBar[0];
+                    while ((ch = *part++) != '\0')
+                        *buffer++ = ch;
+                }
             }
-            wattrset(winPtr, (COLOR_PAIR(Color::TRK_LOUDNESS) | A_REVERSE) ^ aFlag);
-            wprintw(winPtr, "%s", bar.c_str());
-            wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUD_SPLIT) | aFlag);
-            wprintw(winPtr, "\u2503");
-            bar.clear();
-            for (size_t i = 0; i < 16; i++)
-            {
-                if (i < rightBar / 8)
-                    bar += "\u2588";
-                else if (i == rightBar / 8)
-                    bar += getFracBar(rightBar % 8);
-                else
-                    bar += " ";
-            }
-            wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUDNESS) | aFlag);
-            wprintw(winPtr, "%s", bar.c_str());
-        }
+            *buffer = '\0';
+            return;
+        };
+
+        // should be big enough for 16 unicode block bars
+        char bar[16 * strlen("\u2688") + 1];
+        uint32_t leftBar = disp.data[i].envL / 2;
+        uint32_t rightBar = disp.data[i].envR / 2;
+
+        assert(leftBar + rightBar + leftBlank + rightBlank == 32);
+        printBar16(bar, 128 - leftBar);
+
+        wattrset(winPtr, (COLOR_PAIR(Color::TRK_LOUDNESS) | A_REVERSE) ^ aFlag);
+        wprintw(winPtr, "%s", bar);
+        wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUD_SPLIT) | aFlag);
+        wprintw(winPtr, "\u2503");
+
+        printBar16(bar, rightBar);
+        wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUDNESS) | aFlag);
+        wprintw(winPtr, "%s", bar);
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | aFlag);
-        string clr = "";
-        clr.resize(width - 60, ' ');
-        wprintw(winPtr, "%s", clr.c_str());
+        whline(winPtr, ' ', width - 60);
     }
 
     wrefresh(winPtr);
-    //UIMutex.unlock();
 }
 
 void TrackviewGUI::scrollDownNoUpdate() 

@@ -8,7 +8,7 @@ using namespace agbplay;
  * public GameConfig
  */
 
-GameConfig::GameConfig(string gameCode)
+GameConfig::GameConfig(const string& gameCode)
 {
     this->gameCode = gameCode;
     revType = ReverbType::NORMAL;
@@ -22,7 +22,7 @@ GameConfig::~GameConfig()
 {
 }
 
-string GameConfig::GetGameCode()
+const string& GameConfig::GetGameCode()
 {
     return gameCode;
 }

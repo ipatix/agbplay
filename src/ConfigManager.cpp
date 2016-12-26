@@ -72,7 +72,7 @@ ConfigManager::~ConfigManager()
     ofstream configFile(configPath);
     if (!configFile.is_open()) {
         std::cerr << "Error while writing config file: " << strerror(errno) << std::endl;
-        exit(EXIT_FAILURE);
+        abort();
     }
     for (GameConfig& cfg : configs)
     {
@@ -101,7 +101,7 @@ ConfigManager::~ConfigManager()
     }
 }
 
-GameConfig& ConfigManager::GetConfig(string gameCode)
+GameConfig& ConfigManager::GetConfig(const string& gameCode)
 {
     for (GameConfig& game : configs)
     {

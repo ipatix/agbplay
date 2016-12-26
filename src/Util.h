@@ -30,3 +30,11 @@ std::string FormatString(const char* fmt, TArgs&&... args)
     boost::format message(fmt);
     return FormatStringRecurse(message, std::forward<TArgs>(args)...);
 }
+
+inline void CStrAppend(char *dest, size_t *index, const char *src)
+{
+    char ch;
+    const char *copyChar = src;
+    while ((ch = *copyChar++) != '\0')
+        dest[(*index)++] = ch;
+}

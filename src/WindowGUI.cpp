@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iomanip>
 
+#include "Constants.h"
 #include "Xcept.h"
 #include "Debug.h"
 #include "ColorDef.h"
@@ -536,12 +537,10 @@ void WindowGUI::rename()
     if (renWin == nullptr)
         throw Xcept("Error creating renaming window");
     wattrset(renWin, COLOR_PAIR(Color::DEF_DEF) | A_REVERSE);
-    string line = "";
-    line.resize(renWidth, ' ');
-    mvwprintw(renWin, 0, 0, "%s", line.c_str());
+    mvwhline(renWin, 0, 0, ' ', renWidth);
     // pls no unicode in title or size() below requires fix
     string title = "New Name";
-    line = " \u250c";
+    string line = " \u250c";
     string leftBar = "";
     string rightBar = "";
     for (int i = 0; i < (renWidth - (int)title.size())/2 - 3; i++) 
@@ -594,6 +593,6 @@ void WindowGUI::rename()
 void WindowGUI::updateWindowSize()
 {
     getmaxyx(stdscr, height, width);
-    width = clip(80, width, 512);
-    height = clip(24, height, 128);
+    width = clip(WINDOW_MIN_WIDTH, width, WINDOW_MAX_WIDTH);
+    height = clip(WINDOW_MIN_HEIGHT, height, WINDOW_MAX_HEIGHT);
 }

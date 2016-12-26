@@ -44,19 +44,17 @@ void RomviewGUI::update()
     // draw borders
     wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME) | A_REVERSE);
     mvwvline(winPtr, 1, 0, ' ', height-1);
-    string title = " ROM Information:";
-    title.resize(width, ' ');
-    mvwprintw(winPtr, 0, 0, title.c_str());
+    mvwprintw(winPtr, 0, 0, "%*s", width, " ROM Information");
 
     // print information
     wattrset(winPtr, A_UNDERLINE | COLOR_PAIR(Color::DEF_DEF));
     mvwprintw(winPtr, 2, 2, "ROM Name:");
     wattrset(winPtr, A_BOLD | COLOR_PAIR(Color::DEF_DEF));
-    mvwprintw(winPtr, 3, 2, gameName.c_str());
+    mvwprintw(winPtr, 3, 2, "%s", gameName.c_str());
     wattrset(winPtr, A_UNDERLINE | COLOR_PAIR(Color::DEF_DEF));
     mvwprintw(winPtr, 5, 2, "ROM Code:");
     wattrset(winPtr, A_BOLD | COLOR_PAIR(Color::DEF_DEF));
-    mvwprintw(winPtr, 6, 2, gameCode.c_str());
+    mvwprintw(winPtr, 6, 2, "%s", gameCode.c_str());
     wattrset(winPtr, A_UNDERLINE | COLOR_PAIR(Color::DEF_DEF));
     mvwprintw(winPtr, 8, 2, "Songtable Offset:");
     wattrset(winPtr, A_BOLD | COLOR_PAIR(Color::DEF_DEF));

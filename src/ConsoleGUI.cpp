@@ -3,7 +3,7 @@
 #include "ConsoleGUI.h"
 #include "Debug.h"
 #include "WindowGUI.h"
-#include "MyException.h"
+#include "Xcept.h"
 #include "ColorDef.h"
 
 using namespace agbplay;
@@ -34,7 +34,7 @@ void ConsoleGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t
     update();    
 }
 
-void ConsoleGUI::WriteLn(string str) 
+void ConsoleGUI::WriteLn(const string& str) 
 {
     // shift buffer
     writeToBuffer(str);
@@ -65,7 +65,7 @@ void ConsoleGUI::update()
     wrefresh(winPtr);
 }
 
-void ConsoleGUI::writeToBuffer(string str) 
+void ConsoleGUI::writeToBuffer(const string& str) 
 {
     textBuffer.push_back(str);
     if (textBuffer.size() > textHeight) {

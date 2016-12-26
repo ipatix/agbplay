@@ -3,7 +3,7 @@
 
 #include "CGBChannel.h"
 #include "CGBPatterns.h"
-#include "MyException.h"
+#include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
 
@@ -89,7 +89,7 @@ ChnVol CGBChannel::getVol()
             stepDiv = env.rel;
             break;
         default:
-            throw MyException(FormatString("Getting volume of invalid state: %d", (int)eState));
+            throw Xcept("Getting volume of invalid state: %d", (int)eState);
     }
     assert(stepDiv);
     float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES * stepDiv);
@@ -142,7 +142,7 @@ bool CGBChannel::TickNote()
             return true;
         } else if (note.length == -1) {
             return true;
-        } else throw MyException("ShoundChannel::NoteTick shouldn't be able to crash");
+        } else throw Xcept("ShoundChannel::NoteTick shouldn't be able to crash");
     } else {
         return false;
     }
@@ -318,7 +318,7 @@ void SquareChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
             pat = CGBPatterns::pat_sq75;
             break;
         default:
-            throw MyException("Illegal Square Initializer");
+            throw Xcept("Illegal Square Initializer");
     }
 }
 
@@ -460,7 +460,7 @@ void NoiseChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
         case NoisePatt::FINE:
             break;
         default:
-            throw MyException("Illegal Noise Pattern");
+            throw Xcept("Illegal Noise Pattern");
     }
 }
 

@@ -4,7 +4,7 @@
 
 #include "AgbTypes.h"
 #include "SoundData.h"
-#include "MyException.h"
+#include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
 
@@ -127,7 +127,7 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
                 case 2: def.wd = WaveDuty::D50; break;
                 case 3: def.wd = WaveDuty::D75; break;
                 default:
-                    throw MyException(FormatString("Invalid Square Wave duty cycle at 0x%07X", rom.GetPos()));
+                    throw Xcept("Invalid Square Wave duty cycle at 0x%07X", rom.GetPos());
             }
         } else if (subInstr->type == 0x3 || subInstr->type == 0xB) {
             def.wavePtr = &rom[rom.AGBPtrToPos(subInstr->field_4.wavePtr)];
@@ -136,10 +136,10 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
                 case 0: def.np = NoisePatt::FINE; break;
                 case 1: def.np = NoisePatt::ROUGH; break;
                 default: 
-                    throw MyException(FormatString("Invalid Noise Pattern at 0x%07X", rom.GetPos()));
+                    throw Xcept("Invalid Noise Pattern at 0x%07X", rom.GetPos());
             }
         } else {
-            throw MyException(FormatString("Illegal Instrument at 0x%07X", rom.GetPos()));
+            throw Xcept("Illegal Instrument at 0x%07X", rom.GetPos());
         }
     } else if (instr->type == 0x80) {
         auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + midiKey * 12];
@@ -150,7 +150,7 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
                 case 2: def.wd = WaveDuty::D50; break;
                 case 3: def.wd = WaveDuty::D75; break;
                 default:
-                    throw MyException(FormatString("Invalid Square Wave duty cycle at 0x%07X", rom.GetPos()));
+                    throw Xcept("Invalid Square Wave duty cycle at 0x%07X", rom.GetPos());
             }
         } else if (subInstr->type == 0x3 || subInstr->type == 0xB) {
             def.wavePtr = &rom[rom.AGBPtrToPos(subInstr->field_4.wavePtr)];
@@ -159,10 +159,10 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
                 case 0: def.np = NoisePatt::FINE; break;
                 case 1: def.np = NoisePatt::ROUGH; break;
                 default: 
-                    throw MyException(FormatString("Invalid Noise Pattern at 0x%07X", rom.GetPos()));
+                    throw Xcept("Invalid Noise Pattern at 0x%07X", rom.GetPos());
             }
         } else {
-            throw MyException(FormatString("Illegal Instrument at 0x%07X", rom.GetPos()));
+            throw Xcept("Illegal Instrument at 0x%07X", rom.GetPos());
         }
     } else {
         if (instr->type == 0x1 || instr->type == 0x9 || instr->type == 0x2 || instr->type == 0xA) {
@@ -172,7 +172,7 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
                 case 2: def.wd = WaveDuty::D50; break;
                 case 3: def.wd = WaveDuty::D75; break;
                 default:
-                    throw MyException(FormatString("Invalid Square Wave duty cycle at 0x%07X", rom.GetPos()));
+                    throw Xcept("Invalid Square Wave duty cycle at 0x%07X", rom.GetPos());
             }
         } else if (instr->type == 0x3 || instr->type == 0xB) {
             def.wavePtr = &rom[rom.AGBPtrToPos(instr->field_4.wavePtr)];
@@ -181,10 +181,10 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
                 case 0: def.np = NoisePatt::FINE; break;
                 case 1: def.np = NoisePatt::ROUGH; break;
                 default: 
-                    throw MyException(FormatString("Invalid Noise Pattern at 0x%07X", rom.GetPos()));
+                    throw Xcept("Invalid Noise Pattern at 0x%07X", rom.GetPos());
             }
         } else {
-            throw MyException(FormatString("Illegal Instrument at 0x%07X", rom.GetPos()));
+            throw Xcept("Illegal Instrument at 0x%07X", rom.GetPos());
         }
     }
     return def;
@@ -219,7 +219,7 @@ SampleInfo SoundBank::GetSampInfo(uint8_t instrNum, uint8_t midiKey)
     else if (rom[sampHeaderPos + 0x0] == 0x0)
         loopEnabled = false;
     else
-        throw MyException(FormatString("Invalid sample mode 0x%08X at 0x%07X", *(uint32_t *)&rom[sampHeaderPos + 0x0], sampHeaderPos));
+        throw Xcept("Invalid sample mode 0x%08X at 0x%07X", *(uint32_t *)&rom[sampHeaderPos + 0x0], sampHeaderPos);
     midCfreq = float(*(uint32_t *)&rom[sampHeaderPos + 0x4]) / 1024.0f;
     loopPos = *(uint32_t *)&rom[sampHeaderPos + 0x8];
     endPos = *(uint32_t *)&rom[sampHeaderPos + 0xC];
@@ -424,7 +424,7 @@ long SongTable::locateSongTable()
         if (validEntries)
             return location;
     }
-    throw MyException("Unable to find songtable");
+    throw Xcept("Unable to find songtable");
 }
 
 bool SongTable::validateTableEntry(long pos) 

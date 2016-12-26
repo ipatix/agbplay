@@ -2,7 +2,7 @@
 #include "TrackviewGUI.h"
 #include "ColorDef.h"
 #include "Debug.h"
-#include "MyException.h"
+#include "Xcept.h"
 
 using namespace std;
 using namespace agbplay;
@@ -230,7 +230,7 @@ void TrackviewGUI::update()
                     case 8:
                         return "\u2588";
                     default:
-                        throw MyException("illegal block");
+                        throw Xcept("illegal block");
                 }
             };
 

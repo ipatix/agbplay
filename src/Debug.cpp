@@ -1,16 +1,15 @@
 #include <cstdio>
+#include <cstdarg>
 
 #include "Debug.h"
 
 static FILE *__debug_file = nullptr;
 
-void __print_debug(std::string str) {
-    fprintf(__debug_file, "%s\n", str.c_str());
-    fflush(__debug_file);
-}
-
-void __print_pointer(void *p) {
-    fprintf(__debug_file, "Pointer: %p\n", p);
+void __print_debug(const char *str, ...) {
+    va_list args;
+    va_start(args, str);
+    vfprintf(__debug_file, str, args);
+    va_end(args);
     fflush(__debug_file);
 }
 

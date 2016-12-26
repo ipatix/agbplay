@@ -15,10 +15,10 @@ namespace agbplay {
             ~ConsoleGUI();
             void Resize(uint32_t height, uint32_t width,
                     uint32_t yPos, uint32_t xPos) override;
-            void WriteLn(std::string str);
+            void WriteLn(const std::string& str);
         private:
             void update() override;
-            void writeToBuffer(std::string str);
+            void writeToBuffer(const std::string& str);
 
             uint32_t textWidth, textHeight;
             std::vector<std::string> textBuffer;

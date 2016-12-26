@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include "SoundMixer.h"
-#include "MyException.h"
+#include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
 
@@ -31,7 +31,7 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reve
                 revdsps.push_back(new ReverbGS2(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS))));
                 break;
             default:
-                throw MyException("Invalid Reverb Effect");
+                throw Xcept("Invalid Reverb Effect");
         }
         soundBuffers.emplace_back(N_CHANNELS * samplesPerBuffer);
         fill(soundBuffers[i].begin(), soundBuffers[i].end(), 0.0f);
@@ -78,7 +78,7 @@ void SoundMixer::NewCGBNote(uint8_t owner, CGBDef def, ADSR env, Note note, uint
         case CGBType::NOISE: 
             nChn = &noise; 
             break;
-        default: throw MyException("FATAL ERROR");
+        default: throw Xcept("FATAL ERROR");
     }
     if (nChn->GetState() < EnvState::REL && nChn->GetOwner() < owner)
         return;

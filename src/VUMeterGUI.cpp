@@ -4,7 +4,7 @@
 #include "VUMeterGUI.h"
 #include "ColorDef.h"
 #include "Util.h"
-#include "MyException.h"
+#include "Xcept.h"
 #include "Debug.h"
 
 using namespace agbplay;
@@ -18,7 +18,7 @@ VUMeterGUI::VUMeterGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t 
     : CursesWin(height, width, yPos, xPos)
 {
     if (width < 10)
-        throw MyException("Can't create too narrow VU meters");
+        throw Xcept("Can't create too narrow VU meters");
     meterWidth = int(width - 2);
     meterRed = meterWidth * 7 / 8;
     meterYel = meterWidth * 6 / 8;
@@ -35,7 +35,7 @@ void VUMeterGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t
 {
     CursesWin::Resize(height, width, yPos, xPos);
     if (width < 10)
-        throw MyException("Can't create too narrow VU meters");
+        throw Xcept("Can't create too narrow VU meters");
     meterWidth = int(width - 2);
     meterRed = meterWidth * 7 / 8;
     meterYel = meterWidth * 6 / 8;

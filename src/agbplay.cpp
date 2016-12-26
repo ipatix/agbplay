@@ -9,7 +9,7 @@
 #include "SoundData.h"
 #include "Debug.h"
 #include "WindowGUI.h"
-#include "MyException.h"
+#include "Xcept.h"
 
 using namespace std;
 using namespace agbplay;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     try {
         setlocale(LC_ALL, "");
         if (Pa_Initialize() != paNoError)
-            throw MyException("Couldn't init portaudio");
+            throw Xcept("Couldn't init portaudio");
         cout << "Loading ROM..." << endl;
         FileContainer fc(argv[1]);
         cout << "Loaded ROM successfully" << endl;

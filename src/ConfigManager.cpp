@@ -6,7 +6,7 @@
 
 #include "ConfigManager.h"
 #include "Util.h"
-#include "MyException.h"
+#include "Xcept.h"
 
 using namespace std;
 using namespace agbplay;
@@ -17,7 +17,7 @@ ConfigManager::ConfigManager(std::string configPath)
     // parse things from config file
     ifstream configFile(configPath);
     if (!configFile.is_open()) {
-        throw MyException(FormatString("Error while opening config file: %s", strerror(errno)));
+        throw Xcept("Error while opening config file: %s", strerror(errno));
     }
     string line;
     GameConfig *currentGame = nullptr;
@@ -31,7 +31,7 @@ ConfigManager::ConfigManager(std::string configPath)
 
     while (getline(configFile, line)) {
         if (configFile.bad()) {
-            throw MyException(FormatString("Error while reading config file: %s", strerror(errno)));
+            throw Xcept("Error while reading config file: %s", strerror(errno));
         }
         smatch sm;
         if (regex_match(line, sm, songExpr) && sm.size() == 3 && currentGame != nullptr) {

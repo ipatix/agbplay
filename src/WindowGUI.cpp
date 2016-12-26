@@ -8,7 +8,7 @@
 #include <cstring>
 #include <iomanip>
 
-#include "MyException.h"
+#include "Xcept.h"
 #include "Debug.h"
 #include "ColorDef.h"
 #include "WindowGUI.h"
@@ -27,7 +27,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata)
     this->containerWin = initscr();
     updateWindowSize();
     if (has_colors() == false)
-        throw MyException("Error, your terminal doesn't support colors");
+        throw Xcept("Error, your terminal doesn't support colors");
     initColors();
     noecho();
     curs_set(0);
@@ -285,9 +285,9 @@ void WindowGUI::initColors()
 {
     start_color();
     if (use_default_colors() == ERR)
-        throw MyException("Using default terminal colors failed");
+        throw Xcept("Using default terminal colors failed");
     if (COLORS != 256)
-        throw MyException("Terminal does not support 256 colors");
+        throw Xcept("Terminal does not support 256 colors");
     init_pair((int)Color::DEF_DEF, -1, -1);
     init_pair((int)Color::BANNER_TEXT, COLOR_YELLOW, -1);
     init_pair((int)Color::WINDOW_FRAME, COLOR_GREEN, -1);
@@ -534,7 +534,7 @@ void WindowGUI::rename()
     keypad(renWin, true);
     curs_set(1);
     if (renWin == nullptr)
-        throw MyException("Error creating renaming window");
+        throw Xcept("Error creating renaming window");
     wattrset(renWin, COLOR_PAIR(Color::DEF_DEF) | A_REVERSE);
     string line = "";
     line.resize(renWidth, ' ');
@@ -587,7 +587,7 @@ void WindowGUI::rename()
     noecho();
     curs_set(0);
     if (delwin(renWin) == ERR) {
-        throw MyException("Error while deleting renaming window");
+        throw Xcept("Error while deleting renaming window");
     }
 }
 

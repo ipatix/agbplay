@@ -1,5 +1,5 @@
 #include "SonglistGUI.h"
-#include "MyException.h"
+#include "Xcept.h"
 #include "ColorDef.h"
 #include "Debug.h"
 #include <cstring>
@@ -166,7 +166,7 @@ void SonglistGUI::update()
 void SonglistGUI::checkDimensions(uint32_t height, uint32_t width) 
 {
     if (height <= 1)
-        throw MyException("Songlist GUI height must not be 0");
+        throw Xcept("Songlist GUI height must not be 0");
     if (width < 5)
-        throw MyException("Songlist GUI width must be wider than 5");
+        throw Xcept("Songlist GUI width must be wider than 5");
 }

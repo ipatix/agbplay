@@ -5,7 +5,7 @@
 #include "Debug.h"
 #include "SoundChannel.h"
 #include "Util.h"
-#include "MyException.h"
+#include "Xcept.h"
 
 using namespace std;
 using namespace agbplay;
@@ -119,7 +119,6 @@ int8_t SoundChannel::GetNoteLength()
 void SoundChannel::Release()
 {
     if (eState < EnvState::REL) {
-        __print_debug(FormatString("channel %p getting released", this));
         eState = EnvState::REL;
     }
 }
@@ -147,7 +146,7 @@ bool SoundChannel::TickNote()
             return true;
         } else if (note.length == -1) {
             return true;
-        } else throw MyException(FormatString("Illegal Note countdown: %d", (int)note.length));
+        } else throw Xcept("Illegal Note countdown: %d", (int)note.length);
     } else {
         return false;
     }

@@ -4,7 +4,7 @@
 
 #include "AgbTypes.h"
 #include "Rom.h"
-#include "MyException.h"
+#include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
 
@@ -125,7 +125,7 @@ long Rom::ReadAGBPtrToPos()
 string Rom::ReadString(size_t limit) 
 {
     if (limit > 2048)
-        throw new MyException("Unable to read a string THAT long");
+        throw new Xcept("Unable to read a string THAT long");
     string result = string((const char *)&(*data)[(size_t)pos], limit);
     pos += limit;
     return result;
@@ -181,14 +181,14 @@ string Rom::GetROMCode()
 
 void Rom::checkBounds(long pos, size_t typesz) {
     if (pos < 0 || ((size_t)pos + typesz) > data->size())
-        throw MyException(FormatString("Rom Reader position out of range: %7X", pos));
+        throw Xcept("Rom Reader position out of range: %7X", pos);
 }
 
 void Rom::verify() 
 {
     // check ROM size
     if (data->size() > AGB_ROM_SIZE || data->size() < 0x200)
-        throw MyException("Illegal ROM size");
+        throw Xcept("Illegal ROM size");
     
     // Logo data
     // TODO replace 1 to 1 logo comparison with checksum
@@ -208,7 +208,7 @@ void Rom::verify()
     // check logo
     for (size_t i = 0; i < sizeof(imageBytes); i++) {
         if (imageBytes[i] != (*data)[i + 0x4])
-            throw MyException("ROM verification: Bad Nintendo Logo");
+            throw Xcept("ROM verification: Bad Nintendo Logo");
     }
 
     // check checksum
@@ -219,5 +219,5 @@ void Rom::verify()
     }
     check = (check - 0x19) & 0xFF;
     if (check != checksum)
-        throw MyException(FormatString("ROM verification: Bad Header Checksum: %02X - expected %02X", (int)checksum, (int)check));
+        throw Xcept("ROM verification: Bad Header Checksum: %02X - expected %02X", (int)checksum, (int)check);
 }

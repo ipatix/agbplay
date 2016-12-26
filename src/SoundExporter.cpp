@@ -7,7 +7,7 @@
 
 #include "SoundExporter.h"
 #include "Util.h"
-#include "MyException.h"
+#include "Xcept.h"
 #include "Constants.h"
 
 using namespace agbplay;
@@ -31,7 +31,7 @@ SoundExporter::~SoundExporter()
 void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<bool>& ticked)
 {
     if (entries.size() != ticked.size())
-        throw MyException("SoundExporter: input vectors do not match");
+        throw Xcept("SoundExporter: input vectors do not match");
     vector<SongEntry> tEnts;
     for (size_t i = 0; i < entries.size(); i++) {
         if (!ticked[i])
@@ -43,11 +43,11 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
     boost::filesystem::path dir(outputDir);
     if (boost::filesystem::exists(dir)) {
         if (!boost::filesystem::is_directory(dir)) {
-            throw MyException("Output directory exists but isn't a dir");
+            throw Xcept("Output directory exists but isn't a dir");
         }
     }
     else if (!boost::filesystem::create_directory(dir)) {
-        throw MyException("Creating output directory failed");
+        throw Xcept("Creating output directory failed");
     }
 
     size_t totalBlocksRendered = 0;

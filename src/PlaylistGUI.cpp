@@ -4,7 +4,7 @@
 #include "PlaylistGUI.h"
 #include "ColorDef.h"
 #include "Util.h"
-#include "MyException.h"
+#include "Xcept.h"
 #include "Debug.h"
 
 using namespace agbplay;

@@ -1,6 +1,6 @@
 #include "HotkeybarGUI.h"
 #include "ColorDef.h"
-#include "MyException.h"
+#include "Xcept.h"
 #include <string>
 #include <cstdint>
 
@@ -9,7 +9,7 @@ using namespace agbplay;
 HotkeybarGUI::HotkeybarGUI(uint32_t height, uint32_t width,
         uint32_t yPos, uint32_t xPos) : CursesWin(height, width, yPos, xPos) {
     if (height == 0)
-        throw MyException("Hotkeybar can't be empty");
+        throw Xcept("Hotkeybar can't be empty");
     update();
 }
 

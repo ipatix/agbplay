@@ -1,7 +1,7 @@
 #include <cmath>
 
 #include "StreamGenerator.h"
-#include "MyException.h"
+#include "Xcept.h"
 #include "Util.h"
 #include "Debug.h"
 
@@ -219,7 +219,7 @@ void StreamGenerator::processSequenceTick()
                             cTrk.lastNoteKey = cmd;
                             break;
                         default: 
-                            throw MyException("Invalid Last Event");
+                            throw Xcept("Invalid Last Event");
                     } // end repeat command switch
                 } else if (cmd == 0x80) {
                     // NOP delay
@@ -233,7 +233,6 @@ void StreamGenerator::processSequenceTick()
                         case 0xB1:
                             // FINE, end of track
                             cTrk.isRunning = false;
-                            __print_debug(FormatString("Disabling all channels on track %p", &cTrk));
                             sm.StopChannel(uint8_t(ntrk), NOTE_ALL);
                             break;
                         case 0xB2:
@@ -249,7 +248,7 @@ void StreamGenerator::processSequenceTick()
                         case 0xB3:
                             // PATT, call sub
                             if (cTrk.reptCount > 0)
-                                throw MyException(FormatString("Nested track calls are not allowed: 0x%7X", cTrk.pos));
+                                throw Xcept("Nested track calls are not allowed: 0x%7X", cTrk.pos);
 
                             cTrk.returnPos = cTrk.pos + 4;
                             cTrk.reptCount = 1;
@@ -268,7 +267,7 @@ void StreamGenerator::processSequenceTick()
                         case 0xB5:
                             // REPT
                             if (cTrk.reptCount > 0)
-                                throw MyException(FormatString("Nested track calls are not allowed: 0x%7X", cTrk.pos));
+                                throw Xcept("Nested track calls are not allowed: 0x%7X", cTrk.pos);
 
                             cTrk.reptCount = reader[cTrk.pos++];
                             cTrk.returnPos = cTrk.pos + 4;
@@ -399,7 +398,7 @@ void StreamGenerator::processSequenceTick()
                             }
                             break;
                         default:
-                            throw MyException(FormatString("Unsupported command at 0x%7X: 0x%2X", (int)cTrk.pos, (int)cmd));
+                            throw Xcept("Unsupported command at 0x%7X: 0x%2X", (int)cTrk.pos, (int)cmd);
                     } // end main cmd switch
                 } else {
                     // every other command is a note command

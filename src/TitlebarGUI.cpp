@@ -3,7 +3,7 @@
 #include <vector>
 #include "TitlebarGUI.h"
 #include "ColorDef.h"
-#include "MyException.h"
+#include "Xcept.h"
 
 using namespace agbplay;
 using namespace std;
@@ -20,9 +20,9 @@ TitlebarGUI::TitlebarGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_
     : CursesWin(height, width, yPos, xPos) 
 {
     if (width < bannerText[0].size())
-        throw MyException("Terminal too narrow for banner text");
+        throw Xcept("Terminal too narrow for banner text");
     if (height < bannerText.size())
-        throw MyException("Terminal to flat for banner text");
+        throw Xcept("Terminal to flat for banner text");
     keypad(winPtr, true);
     nodelay(winPtr, true);
     update();

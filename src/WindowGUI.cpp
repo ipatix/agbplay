@@ -320,15 +320,19 @@ void WindowGUI::cycleFocus()
             songUI->Leave();
             cursorl = PLAYLIST;
             playUI->Enter();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
-            trackUI->SetTitle(playUI->GetSong().GetName());
+            try {
+                mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()));
+                trackUI->SetTitle(playUI->GetSong().GetName());
+            } catch (const std::out_of_range& e) { }
             break;
         case PLAYLIST:
             playUI->Leave();
             cursorl = SONGLIST;
             songUI->Enter();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
-            trackUI->SetTitle(songUI->GetSong().GetName());
+            try {
+                mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID()));
+                trackUI->SetTitle(songUI->GetSong().GetName());
+            } catch (const std::out_of_range& e) { }
             break;
         default:
             break;
@@ -375,14 +379,18 @@ void WindowGUI::scrollDown()
     switch (cursorl) {
         case SONGLIST:
             songUI->ScrollDown();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
-            trackUI->SetTitle(songUI->GetSong().GetName());
+            try {
+                mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID()));
+                trackUI->SetTitle(songUI->GetSong().GetName());
+            } catch (const std::out_of_range& e) { }
             break;
         case PLAYLIST:
             playUI->ScrollDown();
             if (!playUI->IsDragging()) {
-                TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
-                trackUI->SetTitle(playUI->GetSong().GetName());
+                try {
+                    mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()));
+                    trackUI->SetTitle(playUI->GetSong().GetName());
+                } catch (const std::out_of_range& e) { }
             }
             break;
         case TRACKS_SONGLIST:
@@ -399,14 +407,18 @@ void WindowGUI::scrollUp()
     switch (cursorl) {
         case SONGLIST:
             songUI->ScrollUp();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
-            trackUI->SetTitle(songUI->GetSong().GetName());
+            try {
+                mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID()));
+                trackUI->SetTitle(songUI->GetSong().GetName());
+            } catch (const std::out_of_range& e) { }
             break;
         case PLAYLIST:
             playUI->ScrollUp();
             if (!playUI->IsDragging()) {
-                TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
-                trackUI->SetTitle(playUI->GetSong().GetName());
+                try {
+                    mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()));
+                    trackUI->SetTitle(playUI->GetSong().GetName());
+                } catch (const std::out_of_range& e) { }
             }
             break;
         case TRACKS_SONGLIST:
@@ -423,14 +435,18 @@ void WindowGUI::pageDown()
     switch (cursorl) {
         case SONGLIST:
             songUI->PageDown();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
-            trackUI->SetTitle(songUI->GetSong().GetName());
+            try {
+                mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID()));
+                trackUI->SetTitle(songUI->GetSong().GetName());
+            } catch (const std::out_of_range& e) { }
             break;
         case PLAYLIST:
             playUI->PageDown();
             if (!playUI->IsDragging()) {
-                TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
-                trackUI->SetTitle(playUI->GetSong().GetName());
+                try {
+                    mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()));
+                    trackUI->SetTitle(playUI->GetSong().GetName());
+                } catch (const std::out_of_range& e) { }
             }
             break;
         case TRACKS_SONGLIST:
@@ -447,14 +463,18 @@ void WindowGUI::pageUp()
     switch (cursorl) {
         case SONGLIST:
             songUI->PageUp();
-            TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID())));
-            trackUI->SetTitle(songUI->GetSong().GetName());
+            try {
+                mplay->LoadSong(sdata.sTable->GetPosOfSong(songUI->GetSong().GetUID()));
+                trackUI->SetTitle(songUI->GetSong().GetName());
+            } catch (const std::out_of_range& e) { }
             break;
         case PLAYLIST:
             playUI->PageUp();
             if (!playUI->IsDragging()) {
-                TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
+                try {
+                mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()));
                 trackUI->SetTitle(playUI->GetSong().GetName());
+                } catch (const std::out_of_range& e) { }
             }
             break;
         case TRACKS_SONGLIST:
@@ -482,7 +502,10 @@ void WindowGUI::add()
 {
     if (cursorl != SONGLIST) 
         return;
-    TRY_OOR(playUI->AddSong(songUI->GetSong()));
+
+    try {
+        playUI->AddSong(songUI->GetSong());
+    } catch (const std::out_of_range& e) { }
 }
 
 void WindowGUI::del() 
@@ -490,8 +513,10 @@ void WindowGUI::del()
     if (cursorl != PLAYLIST) 
         return;
     playUI->RemoveSong();
-    TRY_OOR(mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID())));
-    trackUI->SetTitle(playUI->GetSong().GetName());
+    try {
+        mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()));
+        trackUI->SetTitle(playUI->GetSong().GetName());
+    } catch (const std::out_of_range& e) { }
 }
 
 void WindowGUI::rename()
@@ -502,7 +527,7 @@ void WindowGUI::rename()
     SongEntry *ent;
     try {
         ent = &playUI->GetSong();
-    } catch (exception& e) {
+    } catch (const std::out_of_range& e) {
         return;
     }
     const int renHeight = 5;

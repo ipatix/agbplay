@@ -3,8 +3,6 @@
 #include <stdexcept>
 #include <boost/format.hpp>
 
-#define TRY_OOR(n) { try { n ; } catch (std::out_of_range& e) { } }
-
 template <typename T>
 inline static T clip(T min, T val, T max)
 {

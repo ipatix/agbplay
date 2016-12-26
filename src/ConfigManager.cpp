@@ -1,6 +1,8 @@
 #include <fstream>
 #include <regex>
 #include <cstring>
+#include <iostream>
+#include <cstdlib>
 
 #include "ConfigManager.h"
 #include "Util.h"
@@ -69,7 +71,8 @@ ConfigManager::~ConfigManager()
 {
     ofstream configFile(configPath);
     if (!configFile.is_open()) {
-        throw MyException(FormatString("Error while writing config file: %s", strerror(errno)));
+        std::cerr << "Error while writing config file: " << strerror(errno) << std::endl;
+        exit(EXIT_FAILURE);
     }
     for (GameConfig& cfg : configs)
     {

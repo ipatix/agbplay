@@ -125,7 +125,7 @@ long Rom::ReadAGBPtrToPos()
 string Rom::ReadString(size_t limit) 
 {
     if (limit > 2048)
-        throw new Xcept("Unable to read a string THAT long");
+        throw Xcept("Unable to read a string THAT long");
     string result = string((const char *)&(*data)[(size_t)pos], limit);
     pos += limit;
     return result;

@@ -10,7 +10,7 @@ namespace agbplay
     class ConfigManager
     {
         public:
-            ConfigManager(std::string configPath);
+            ConfigManager(const std::string& configPath);
             ~ConfigManager();
 
             GameConfig& GetConfig(std::string gameCode);

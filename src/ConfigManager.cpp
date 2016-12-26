@@ -11,7 +11,7 @@
 using namespace std;
 using namespace agbplay;
 
-ConfigManager::ConfigManager(std::string configPath)
+ConfigManager::ConfigManager(const string& configPath)
 {
     this->configPath = configPath;
     // parse things from config file

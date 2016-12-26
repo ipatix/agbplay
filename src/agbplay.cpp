@@ -58,12 +58,22 @@ int main(int argc, char *argv[])
         cout << "Analyzed Sound Data" << endl;
         WindowGUI wgui(rom, sdata);
 
-        // blocking call until program get's closed
-        wgui.Handle();
-    } catch (exception& e) {
+        chrono::nanoseconds frameTime(1000000000 / 60);
+
+        auto lastTime = chrono::high_resolution_clock::now();
+
+        while (wgui.Handle()) {
+            auto newTime = chrono::high_resolution_clock::now();
+            if (lastTime + frameTime > newTime) {
+                this_thread::sleep_for(frameTime - (newTime - lastTime));
+                lastTime = chrono::high_resolution_clock::now();
+            } else {
+                lastTime = newTime;
+            }
+        }
+    } catch (const exception& e) {
         endwin();
         cerr << e.what() << endl;
-        __print_debug(e.what());
         return EXIT_FAILURE;
     }
     if (Pa_Terminate() != paNoError)

@@ -115,128 +115,126 @@ WindowGUI::~WindowGUI()
     endwin();
 }
 
-void WindowGUI::Handle() 
+bool WindowGUI::Handle() 
 {
-    while (true) {
-        int ch;
-        while ((ch = titleUI->GetKey()) != ERR) {
-            switch (ch) {
-                case 18: // CTRL+R
-                case KEY_RESIZE:
-                    updateWindowSize();
-                    resizeWindows();
-                    break;
-                case KEY_UP:
-                case 'k':
-                    scrollUp();
-                    break;
-                case KEY_DOWN:
-                case 'j':
-                    scrollDown();
-                    break;
-                case KEY_LEFT:
-                case 'h':
-                    scrollLeft();
-                    break;
-                case KEY_RIGHT:
-                case 'l':
-                    scrollRight();
-                    break;
-                case KEY_PPAGE:
-                    pageUp();
-                    break;
-                case KEY_NPAGE:
-                    pageDown();
-                    break;
-                case KEY_TAB:
-                    cycleFocus();
-                    break;
-                case 'a':
-                    add();
-                    break;
-                case 'd':
-                    del();
-                    break;
-                case 't':
-                    if (cursorl == PLAYLIST)
-                        playUI->ToggleTick();
-                    break;
-                case 'g':
-                    if (cursorl == PLAYLIST)
-                        playUI->ToggleDrag();
-                    break;
-                case 'i':
-                    mplay->Play();
-                    play = true;
-                    break;
-                case 'o':
-                case ' ':
-                    play = true;
-                    mplay->Pause();
-                    break;
-                case 'p':
-                    play = false;
-                    mplay->Stop();
-                    break;
-                case '+':
-                case '=':
-                    mplay->SpeedDouble();
-                    break;
-                case '-':
-                    mplay->SpeedHalve();
-                    break;
-                case 'n':
-                    playUI->Leave();
-                    rename();
-                    trackUI->ForceUpdate();
-                    playUI->Enter();
-                    break;
-                case 'e':
-                    mplay->Stop();
-                    {
-                        SoundExporter se(*conUI, sdata, thisCfg, rom, false, true);
-                        se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
-                    }
-                    break;
-                case 'r':
-                    mplay->Stop();
-                    {
-                        SoundExporter se(*conUI, sdata, thisCfg, rom, false, false);
-                        se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
-                    }
-                    break;
-                case 'b':
-                    mplay->Stop();
-                    {
-                        SoundExporter se(*conUI, sdata, thisCfg, rom, true, false);
-                        se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
-                    }
-                    break;
-                case EOF:
-                case 4: // EOT
-                case 'q':
-                    conUI->WriteLn("Exiting...");
-                    mplay->Stop();
-                    return;
-            } // end key handling switch
-        } // end key loop
-        if (play) {
-            if (!mplay->IsPlaying()) {
-                if (cursorl != PLAYLIST && cursorl != SONGLIST) {
-                    play = false;
-                } else {
-                    scrollDown();
-                    mplay->Play();
+    int ch;
+    while ((ch = titleUI->GetKey()) != ERR) {
+        switch (ch) {
+            case 18: // CTRL+R
+            case KEY_RESIZE:
+                updateWindowSize();
+                resizeWindows();
+                break;
+            case KEY_UP:
+            case 'k':
+                scrollUp();
+                break;
+            case KEY_DOWN:
+            case 'j':
+                scrollDown();
+                break;
+            case KEY_LEFT:
+            case 'h':
+                scrollLeft();
+                break;
+            case KEY_RIGHT:
+            case 'l':
+                scrollRight();
+                break;
+            case KEY_PPAGE:
+                pageUp();
+                break;
+            case KEY_NPAGE:
+                pageDown();
+                break;
+            case KEY_TAB:
+                cycleFocus();
+                break;
+            case 'a':
+                add();
+                break;
+            case 'd':
+                del();
+                break;
+            case 't':
+                if (cursorl == PLAYLIST)
+                    playUI->ToggleTick();
+                break;
+            case 'g':
+                if (cursorl == PLAYLIST)
+                    playUI->ToggleDrag();
+                break;
+            case 'i':
+                mplay->Play();
+                play = true;
+                break;
+            case 'o':
+            case ' ':
+                play = true;
+                mplay->Pause();
+                break;
+            case 'p':
+                play = false;
+                mplay->Stop();
+                break;
+            case '+':
+            case '=':
+                mplay->SpeedDouble();
+                break;
+            case '-':
+                mplay->SpeedHalve();
+                break;
+            case 'n':
+                playUI->Leave();
+                rename();
+                trackUI->ForceUpdate();
+                playUI->Enter();
+                break;
+            case 'e':
+                mplay->Stop();
+                {
+                    SoundExporter se(*conUI, sdata, thisCfg, rom, false, true);
+                    se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
                 }
+                break;
+            case 'r':
+                mplay->Stop();
+                {
+                    SoundExporter se(*conUI, sdata, thisCfg, rom, false, false);
+                    se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
+                }
+                break;
+            case 'b':
+                mplay->Stop();
+                {
+                    SoundExporter se(*conUI, sdata, thisCfg, rom, true, false);
+                    se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
+                }
+                break;
+            case EOF:
+            case 4: // EOT
+            case 'q':
+                conUI->WriteLn("Exiting...");
+                mplay->Stop();
+                return false;
+        } // end key handling switch
+    } // end key loop
+    if (play) {
+        if (!mplay->IsPlaying()) {
+            if (cursorl != PLAYLIST && cursorl != SONGLIST) {
+                play = false;
+            } else {
+                scrollDown();
+                mplay->Play();
             }
-            mplay->UpdateView();
-            float lVol;
-            float rVol;
-            mplay->GetMasterVolLevels(lVol, rVol);
-            meterUI->SetVol(lVol, rVol);
         }
-        this_thread::sleep_for(chrono::microseconds(16000));
-    } // end rendering loop
+        mplay->UpdateView();
+        float lVol;
+        float rVol;
+        mplay->GetMasterVolLevels(lVol, rVol);
+        meterUI->SetVol(lVol, rVol);
+    }
+    return true;
 }
 
 void WindowGUI::resizeWindows() 
@@ -472,8 +470,8 @@ void WindowGUI::pageUp()
             playUI->PageUp();
             if (!playUI->IsDragging()) {
                 try {
-                mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()));
-                trackUI->SetTitle(playUI->GetSong().GetName());
+                    mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()));
+                    trackUI->SetTitle(playUI->GetSong().GetName());
                 } catch (const std::out_of_range& e) { }
             }
             break;

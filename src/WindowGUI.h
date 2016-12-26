@@ -68,7 +68,7 @@ namespace agbplay
             ~WindowGUI();
 
             // main GUI handler
-            void Handle();
+            bool Handle();
         private:
             // sub window control
             void resizeWindows();
@@ -108,7 +108,7 @@ namespace agbplay
 
             // ncurses windows
             WINDOW *containerWin;
-            
+
             int width, height;
             bool play;
             enum {

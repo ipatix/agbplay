@@ -45,6 +45,8 @@ namespace agbplay
             ~ReverbGS2() override;
         protected:
             size_t processInternal(float *buffer, size_t nBlocks) override;
+            std::vector<float> gs2Buffer;
+            size_t gs2Pos;
     };
 
     class ReverbTest : public ReverbEffect

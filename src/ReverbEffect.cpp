@@ -162,8 +162,10 @@ size_t ReverbGS1::processInternal(float *buffer, size_t nBlocks)
  */
 
 ReverbGS2::ReverbGS2(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers)
-    : ReverbEffect(intensity, streamRate, numAgbBuffers)
+    : ReverbEffect(intensity, streamRate, numAgbBuffers), gs2Buffer(streamRate / AGB_FPS, 0.f)
 {
+    bufferPos2 = getBlocksPerBuffer() - 0xB0;
+    gs2Pos = 0;
 }
 
 ReverbGS2::~ReverbGS2()
@@ -173,26 +175,48 @@ ReverbGS2::~ReverbGS2()
 size_t ReverbGS2::processInternal(float *buffer, size_t nBlocks)
 {
     vector<float>& rbuf = reverbBuffer;
-    size_t count;
-    bool reset = false, reset2 = false;
-    if (getBlocksPerBuffer() - bufferPos2 <= nBlocks) {
+    size_t count = nBlocks;
+    bool reset = false, reset2 = false, resetgs2 = false;
+    if (getBlocksPerBuffer() - bufferPos2 <= count) {
         count = getBlocksPerBuffer() - bufferPos2;
         reset2 = true;
-    } else if (getBlocksPerBuffer() - bufferPos <= nBlocks) {
+    } 
+    if (getBlocksPerBuffer() - bufferPos <= count) {
         count = getBlocksPerBuffer() - bufferPos;
         reset = true;
-    } else {
-        count = nBlocks;
+    }
+    if ((gs2Buffer.size() / 2) - gs2Pos <= count) {
+        count = gs2Buffer.size() / 2 - gs2Pos;
+        resetgs2 = true;
     }
     for (size_t c = count; c > 0; c--) 
     {
-        (void)rbuf;
-        (void)buffer;
+        float mixL = buffer[0] + gs2Buffer[gs2Pos * 2    ];
+        float mixR = buffer[1] + gs2Buffer[gs2Pos * 2 + 1];
+
+        float lA = rbuf[bufferPos * 2    ];
+        float rA = rbuf[bufferPos * 2 + 1];
+
+        float lRMix = lA * 0.409f - rA * 0.062f;
+        float rRMix = rA * 0.409f - lA * 0.062f;
+
+        buffer[0] = rbuf[bufferPos * 2    ] = mixL;
+        buffer[1] = rbuf[bufferPos * 2 + 1] = mixR;
+
+        float lB = rbuf[bufferPos2 * 2] * 0.125f;
+
+        gs2Buffer[gs2Pos * 2    ] = lRMix;
+        gs2Buffer[gs2Pos * 2 + 1] = rRMix + lB;
+
+        buffer += 2;
+
         bufferPos++;
         bufferPos2++;
+        gs2Pos++;
     }
     if (reset2) bufferPos2 = 0;
-    else if (reset) bufferPos = 0;
+    if (reset) bufferPos = 0;
+    if (resetgs2) gs2Pos = 0;
     return nBlocks - count;
 }
 

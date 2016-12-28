@@ -18,7 +18,6 @@ ConsoleGUI::ConsoleGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t 
 {
     textWidth = width - 2;
     textHeight = height;
-    textBuffer = vector<string>();
     update();
 }
 

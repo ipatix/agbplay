@@ -18,7 +18,7 @@ FileContainer::FileContainer(string path)
     is.seekg(0, ios_base::end);
     long size = is.tellg();
     is.seekg(0, ios_base::beg);
-    data = vector<uint8_t>((size_t)size, 0);
+    data.resize(size_t(size));
     
     // copy file to memory
     is.read((char *)data.data(), size);
@@ -30,6 +30,6 @@ FileContainer::FileContainer(string path)
     is.close();
 }
 
-FileContainer::~FileContainer() {
-
+FileContainer::~FileContainer() 
+{
 }

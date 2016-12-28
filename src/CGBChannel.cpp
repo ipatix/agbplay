@@ -342,8 +342,7 @@ void SquareChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
     float interStep = freq * args.sampleRateReciprocal;
 
     // TODO add sweep functionality
-    for (size_t cnt = nblocks; cnt > 0; cnt--)
-    {
+    do {
         float samp = pat[pos];
 
         *buffer++ += samp * lVol;
@@ -356,7 +355,7 @@ void SquareChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
         uint32_t posDelta = uint32_t(interPos);
         interPos -= float(posDelta);
         pos = (pos + posDelta) & 0x7;
-    }
+    } while (--nblocks > 0);
     updateVolFade();
 }
 
@@ -422,8 +421,7 @@ void WaveChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
     float rVol = vol.fromVolRight;
     float interStep = freq * args.sampleRateReciprocal;
 
-    for (size_t cnt = nblocks; cnt > 0; cnt--)
-    {
+    do {
         float samp = waveBuffer[pos];
         *buffer++ += samp * lVol;
         *buffer++ += samp * rVol;
@@ -433,7 +431,7 @@ void WaveChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
         uint32_t posDelta = uint32_t(interPos);
         interPos -= float(posDelta);
         pos = (pos + posDelta) & 0x1F;
-    }
+    } while (--nblocks > 0);
 
     updateVolFade();
 }
@@ -485,8 +483,7 @@ void NoiseChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
     switch (def.np)
     {
         case NoisePatt::FINE:
-            for (size_t cnt = nblocks; cnt > 0; cnt--)
-            {
+            do {
                 float samp = CGBPatterns::pat_noise_fine[pos] - 0.5f;
                 *buffer++ += samp * lVol;
                 *buffer++ += samp * rVol;
@@ -496,11 +493,10 @@ void NoiseChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
                 uint32_t posDelta = uint32_t(interPos);
                 interPos -= float(posDelta);
                 pos = (pos + posDelta) & (NOISE_FINE_LEN-1);
-            }
+            } while (--nblocks > 0);
             break;
         case NoisePatt::ROUGH:
-            for (size_t cnt = nblocks; cnt > 0; cnt--)
-            {
+            do {
                 float samp = CGBPatterns::pat_noise_rough[pos] - 0.5f;
                 *buffer++ += samp * lVol;
                 *buffer++ += samp * rVol;
@@ -510,7 +506,7 @@ void NoiseChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
                 uint32_t posDelta = uint32_t(interPos);
                 interPos -= float(posDelta);
                 pos = (pos + posDelta) & (NOISE_ROUGH_LEN-1);
-            }
+            } while (--nblocks > 0);
     }
 
     updateVolFade();

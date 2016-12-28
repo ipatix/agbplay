@@ -250,8 +250,7 @@ void SoundChannel::updateVolFade()
 
 void SoundChannel::processNormal(float *buffer, size_t nblocks, ProcArgs& cargs)
 {
-    for (size_t cnt = nblocks; cnt > 0; cnt--)
-    {
+    do {
         float baseSamp = float(sInfo.samplePtr[pos]) / 128.0f;
         float deltaSamp = float(sInfo.samplePtr[pos+1]) / 128.0f - baseSamp;
         float finalSamp = baseSamp + deltaSamp * interPos;
@@ -280,7 +279,7 @@ void SoundChannel::processNormal(float *buffer, size_t nblocks, ProcArgs& cargs)
                 break;
             }
         }
-    }
+    } while (--nblocks > 0);
 }
 
 void SoundChannel::processModPulse(float *buffer, size_t nblocks, ProcArgs& cargs, float nBlocksReciprocal)
@@ -317,8 +316,7 @@ void SoundChannel::processModPulse(float *buffer, size_t nblocks, ProcArgs& carg
 #undef DEPTH
 #undef INIT_DUTY
 
-    for (size_t cnt = nblocks; cnt > 0; cnt--)
-    {
+    do {
         float baseSamp = interPos < fThreshold ? 0.5f : -0.5f;
         // correct dc offset
         baseSamp += 0.5f - fThreshold;
@@ -332,16 +330,14 @@ void SoundChannel::processModPulse(float *buffer, size_t nblocks, ProcArgs& carg
         interPos += cargs.interStep;
         // this below might glitch for too high frequencies, which usually shouldn't be used anyway
         if (interPos >= 1.0f) interPos -= 1.0f;
-    }
-
+    } while (--nblocks > 0);
 }
 
 void SoundChannel::processSaw(float *buffer, size_t nblocks, ProcArgs& cargs)
 {
     const uint32_t fix = 0x70;
 
-    for (size_t cnt = nblocks; cnt > 0; cnt--)
-    {
+    do {
         /*
          * Sorry that the baseSamp calculation looks ugly.
          * For accuracy it's a 1 to 1 translation of the original assembly code
@@ -361,13 +357,12 @@ void SoundChannel::processSaw(float *buffer, size_t nblocks, ProcArgs& cargs)
 
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
-    }
+    } while (--nblocks > 0);
 }
 
 void SoundChannel::processTri(float *buffer, size_t nblocks, ProcArgs& cargs)
 {
-    for (size_t cnt = nblocks; cnt > 0; cnt--)
-    {
+    do {
         interPos += cargs.interStep;
         if (interPos >= 1.0f) interPos -= 1.0f;
         float baseSamp;
@@ -382,5 +377,5 @@ void SoundChannel::processTri(float *buffer, size_t nblocks, ProcArgs& cargs)
 
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
-    }
+    } while (--nblocks > 0);
 }

@@ -14,6 +14,10 @@ Controls:
 - P: Force Song Stop
 - +=: Double the playback speed
 - -: Halve the playback speed
+- Enter: Toggle Track Muting
+- M: Mute selected Track
+- S: Solo selected Track
+- U: Unmute all Tracks
 - N: Rename the selected song in the playlisy
 - E: Export selected songs to individual track files (to "workdirectory/wav")
 - R: Export selected songs to files (non-split)

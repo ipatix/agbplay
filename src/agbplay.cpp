@@ -38,6 +38,10 @@ int main(int argc, char *argv[])
             "  - P: Force Song Stop" << endl <<
             "  - +=: Double the playback speed" << endl <<
             "  - -: Halve the playback speed" << endl <<
+            "  - Enter: Toggle Track Muting" << endl <<
+            "  - M: Mute selected Track" << endl <<
+            "  - S: Solo selected Track" << endl <<
+            "  - U: Unmute all Tracks" << endl <<
             "  - N: Rename the selected song in the playlisy" << endl <<
             "  - E: Export selected songs to individual track files (to \"workdirectory/wav\")" << endl <<
             "  - R: Export selected songs to files (non-split)" << endl <<

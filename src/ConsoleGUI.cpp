@@ -1,4 +1,5 @@
 #include <string>
+#include <mutex>
 
 #include "ConsoleGUI.h"
 #include "Debug.h"
@@ -19,10 +20,12 @@ ConsoleGUI::ConsoleGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t 
     textWidth = width - 2;
     textHeight = height;
     update();
+    __set_debug_callback(remoteWrite, this);
 }
 
 ConsoleGUI::~ConsoleGUI() 
 {
+    __del_debug_callback();
 }
 
 void ConsoleGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
@@ -36,8 +39,12 @@ void ConsoleGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t
 void ConsoleGUI::WriteLn(const string& str) 
 {
     // shift buffer
+    static mutex write_lock;
+
+    write_lock.lock();
     writeToBuffer(str);
     update();
+    write_lock.unlock();
 }
 
 /*
@@ -70,4 +77,10 @@ void ConsoleGUI::writeToBuffer(const string& str)
     if (textBuffer.size() > textHeight) {
         textBuffer.erase(textBuffer.begin() + 0);
     }
+}
+
+void ConsoleGUI::remoteWrite(const std::string& str, void *obj)
+{
+    ConsoleGUI *ui = (ConsoleGUI *)obj;
+    ui->WriteLn(str);
 }

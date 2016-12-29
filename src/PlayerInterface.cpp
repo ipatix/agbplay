@@ -18,13 +18,16 @@ using namespace agbplay;
 
 PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos, GameConfig& _gameCfg) 
     : rom(_rom), gameCfg(_gameCfg), seq(initSongPos, _gameCfg.GetTrackLimit(), _rom), 
-    rBuf(N_CHANNELS * STREAM_BUF_SIZE), masterLoudness(10.f)
+    rBuf(N_CHANNELS * STREAM_BUF_SIZE), masterLoudness(10.f), mutedTracks(_gameCfg.GetTrackLimit())
 {
     this->trackUI = trackUI;
     playerState = State::THREAD_DELETED;
     speedFactor = 64;
 
-    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f, gameCfg.GetRevType());
+    sg = new StreamGenerator(seq, 
+            EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 
+            1, float(speedFactor) / 64.0f, 
+            gameCfg.GetRevType());
     setupLoudnessCalcs();
     // start audio stream
     PaError err;
@@ -66,7 +69,11 @@ void PlayerInterface::LoadSong(long songPos)
 
     trackUI->SetState(seq, vols);
     delete sg;
-    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f, gameCfg.GetRevType());
+    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), 
+                gameCfg.GetEngineRev(), 
+                gameCfg.GetEngineFreq()), 
+            1, float(speedFactor) / 64.0f, 
+            gameCfg.GetRevType());
     if (play)
         Play();
 }
@@ -180,8 +187,9 @@ bool PlayerInterface::IsPlaying()
 
 void PlayerInterface::UpdateView()
 {
-    if (playerState != State::THREAD_DELETED && playerState != State::SHUTDOWN && playerState != State::TERMINATED)
-    {
+    if (playerState != State::THREAD_DELETED &&
+            playerState != State::SHUTDOWN &&
+            playerState != State::TERMINATED) {
         size_t trks = sg->GetWorkingSequence().tracks.size();
         assert(trks == trackLoudness.size());
         float vols[trks * N_CHANNELS];
@@ -189,6 +197,16 @@ void PlayerInterface::UpdateView()
             trackLoudness[i].GetLoudness(vols[i*N_CHANNELS], vols[i*N_CHANNELS+1]);
         trackUI->SetState(sg->GetWorkingSequence(), vols);
     }
+}
+
+void PlayerInterface::ToggleMute(size_t index)
+{
+    mutedTracks[index] = !mutedTracks[index];
+}
+
+void PlayerInterface::Mute(size_t index, bool mute)
+{
+    mutedTracks[index] = mute;
 }
 
 void PlayerInterface::GetMasterVolLevels(float& left, float& right)
@@ -219,17 +237,23 @@ void PlayerInterface::threadWorker()
                         fill(audio.begin(), audio.end(), 0.0f);
                         // render audio buffers for tracks
                         vector<vector<float>>& raudio = sg->ProcessAndGetAudio();
-                        for (size_t i = 0; i < raudio.size(); i++)
-                        {
+                        for (size_t i = 0; i < raudio.size(); i++) {
                             assert(raudio[i].size() == audio.size());
-                            for (size_t j = 0; j < audio.size(); j++)
-                                audio[j] += raudio[i][j];
+
+                            bool muteThis = mutedTracks[i];
+                            sg->GetWorkingSequence().tracks[i].muted = muteThis;
                             trackLoudness[i].CalcLoudness(raudio[i].data(), nBlocks);
+                            if (muteThis)
+                                continue;
+
+                            for (size_t j = 0; j < audio.size(); j++) {
+                                audio[j] += raudio[i][j];
+                            }
                         }
+                        // blocking write to audio buffer
                         rBuf.Put(audio.data(), audio.size());
                         masterLoudness.CalcLoudness(audio.data(), nBlocks);
-                        if (sg->HasStreamEnded())
-                        {
+                        if (sg->HasStreamEnded()) {
                             playerState = State::SHUTDOWN;
                             break;
                         }
@@ -243,7 +267,7 @@ void PlayerInterface::threadWorker()
             }
         }
     } catch (exception& e) {
-        __print_debug("FATAL ERROR on streaming thread: %s", e.what());
+        __print_vdebug("FATAL ERROR on streaming thread: %s", e.what());
     }
     masterLoudness.Reset();
     for (LoudnessCalculator& c : trackLoudness)

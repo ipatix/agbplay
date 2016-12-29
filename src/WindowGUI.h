@@ -85,6 +85,9 @@ namespace agbplay
             void enter();
             void add();
             void del();
+            void mute();
+            void solo();
+            void tutti();
             void rename();
 
             void updateWindowSize();

@@ -177,6 +177,8 @@ size_t ReverbGS2::processInternal(float *buffer, size_t nBlocks)
     vector<float>& rbuf = reverbBuffer;
     size_t count = nBlocks;
     bool reset = false, reset2 = false, resetgs2 = false;
+
+    // this below will possibly glitch if the buffer sizes don't align properly | FIXME
     if (getBlocksPerBuffer() - bufferPos2 <= count) {
         count = getBlocksPerBuffer() - bufferPos2;
         reset2 = true;

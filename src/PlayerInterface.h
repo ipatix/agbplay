@@ -30,6 +30,9 @@ namespace agbplay
             void SpeedHalve();
             bool IsPlaying();
             void UpdateView();
+            void ToggleMute(size_t index);
+            void Mute(size_t index, bool mute);
+            size_t GetMaxTracks() { return mutedTracks.size(); }
             void GetMasterVolLevels(float& left, float& right);
         private:
             void threadWorker();
@@ -51,6 +54,7 @@ namespace agbplay
 
             LoudnessCalculator masterLoudness;
             std::vector<LoudnessCalculator> trackLoudness;
+            std::vector<bool> mutedTracks;
 
             std::thread *playerThread;
     };

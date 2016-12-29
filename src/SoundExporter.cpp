@@ -58,9 +58,7 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
     {
         string fname = tEnts[i].name;
         boost::replace_all(fname, "/", "_");
-        uilock.lock();
         con.WriteLn(FormatString("%3d %% - Rendering to file: \"%s\"", (i + 1) * 100 / tEnts.size(), fname));
-        uilock.unlock();
         size_t rblocks = exportSong(FormatString("%s/%03d - %s", outputDir, i + 1, fname), tEnts[i].GetUID());
         totalBlocksRendered += rblocks;
     }
@@ -105,9 +103,7 @@ size_t SoundExporter::exportSong(string fileName, uint16_t uid)
                 ofiles[i] = sf_open(FormatString("%s.%02d.wav", fileName, i).c_str(), SFM_WRITE, &oinfos[i]);
                 if (ofiles[i] == NULL)
                 {
-                    uilock.lock();
                     con.WriteLn(FormatString("Error: %s", sf_strerror(NULL)));
-                    uilock.unlock();
                 }
             }
 
@@ -137,9 +133,7 @@ size_t SoundExporter::exportSong(string fileName, uint16_t uid)
                 int err = sf_close(i);
                 if (err != 0)
                 {
-                    uilock.lock();
                     con.WriteLn(FormatString("Error: %s", sf_error_number(err)));
-                    uilock.unlock();
                 }
             }
         }
@@ -152,9 +146,7 @@ size_t SoundExporter::exportSong(string fileName, uint16_t uid)
             oinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
             SNDFILE *ofile = sf_open((fileName + ".wav").c_str(), SFM_WRITE, &oinfo);
             if (ofile == NULL) {
-                uilock.lock();
                 con.WriteLn(FormatString("Error: %s", sf_strerror(NULL)));
-                uilock.unlock();
                 return 0;
             }
             // do rendering and write
@@ -187,9 +179,7 @@ size_t SoundExporter::exportSong(string fileName, uint16_t uid)
 
             int err;
             if ((err = sf_close(ofile)) != 0) {
-                uilock.lock();
                 con.WriteLn(FormatString("Error: %s", sf_error_number(err)));
-                uilock.unlock();
             }
         }
     } 

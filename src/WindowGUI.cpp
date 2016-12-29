@@ -121,6 +121,9 @@ bool WindowGUI::Handle()
     int ch;
     while ((ch = titleUI->GetKey()) != ERR) {
         switch (ch) {
+            case '\n':
+                enter();
+                break;
             case 18: // CTRL+R
             case KEY_RESIZE:
                 updateWindowSize();
@@ -212,6 +215,15 @@ bool WindowGUI::Handle()
                     se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
                 }
                 break;
+            case 'm':
+                mute();
+                break;
+            case 's':
+                solo();
+                break;
+            case 'u':
+                tutti();
+                break;
             case EOF:
             case 4: // EOT
             case 'q':
@@ -298,7 +310,7 @@ void WindowGUI::initColors()
     init_pair((int)Color::VU_MID, 226, -1);
     init_pair((int)Color::VU_HIGH, 202, -1);
     init_pair((int)Color::TRK_NUM, 76, -1);
-    init_pair((int)Color::TRK_NUM_MUTED, 202, -1);
+    init_pair((int)Color::TRK_NUM_MUTED, 196, -1);
     init_pair((int)Color::TRK_LOC, 118, -1);
     init_pair((int)Color::TRK_LOC_CALL, 184, -1);
     init_pair((int)Color::TRK_DEL, 196, -1);
@@ -491,6 +503,7 @@ void WindowGUI::enter()
         case TRACKS_SONGLIST:
         case TRACKS_PLAYLIST:
             // TODO mute/unmute
+            mplay->ToggleMute(trackUI->GetCursorLoc());
             break;
         default:
             break;
@@ -516,6 +529,59 @@ void WindowGUI::del()
         mplay->LoadSong(sdata.sTable->GetPosOfSong(playUI->GetSong().GetUID()));
         trackUI->SetTitle(playUI->GetSong().GetName());
     } catch (const std::out_of_range& e) { }
+}
+
+void WindowGUI::mute()
+{
+    size_t cur;
+    size_t count;
+    switch (cursorl) {
+        case TRACKS_SONGLIST:
+        case TRACKS_PLAYLIST:
+            cur = trackUI->GetCursorLoc();
+            count = mplay->GetMaxTracks();
+            for (size_t i = 0; i < count; i++) {
+                if (cur == i)
+                    mplay->Mute(i, true);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void WindowGUI::solo()
+{
+    size_t cur;
+    size_t count;
+    switch (cursorl) {
+        case TRACKS_SONGLIST:
+        case TRACKS_PLAYLIST:
+            cur = trackUI->GetCursorLoc();
+            count = mplay->GetMaxTracks();
+            for (size_t i = 0; i < count; i++) {
+                mplay->Mute(i, cur != i);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void WindowGUI::tutti()
+{
+    size_t count;
+    switch (cursorl) {
+        case TRACKS_SONGLIST:
+        case TRACKS_PLAYLIST:
+            count = mplay->GetMaxTracks();
+            for (size_t i = 0; i < count; i++) {
+                mplay->Mute(i, false);
+            }
+            break;
+        default:
+            break;
+    }
 }
 
 void WindowGUI::rename()

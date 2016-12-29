@@ -19,6 +19,7 @@ namespace agbplay {
         private:
             void update() override;
             void writeToBuffer(const std::string& str);
+            static void remoteWrite(const std::string& str, void *obj);
 
             uint32_t textWidth, textHeight;
             std::vector<std::string> textBuffer;

@@ -161,7 +161,7 @@ void TrackviewGUI::update()
         // print tickbox and first line
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF));
         mvwprintw(winPtr, (int)(yBias + 1 + th), xBias, "[");
-        wattrset(winPtr, COLOR_PAIR((disp.data[i].isMuted) ? Color::TRK_NUM_MUTED : Color::TRK_NUM) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(disp.data[i].isMuted ? Color::TRK_NUM_MUTED : Color::TRK_NUM) | aFlag);
         wprintw(winPtr, "%02d", i);
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF));
         wprintw(winPtr, "] ");
@@ -254,13 +254,13 @@ void TrackviewGUI::update()
         assert(leftBar + rightBar + leftBlank + rightBlank == 32);
         printBar16(bar, 128 - leftBar);
 
-        wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUDNESS) | A_REVERSE);
+        wattrset(winPtr, COLOR_PAIR(!disp.data[i].isMuted ? Color::TRK_LOUDNESS : Color::TRK_LOUDNESS_MUTED) | A_REVERSE);
         wprintw(winPtr, "%s", bar);
         wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUD_SPLIT));
         wprintw(winPtr, "\u2503");
 
         printBar16(bar, rightBar);
-        wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUDNESS));
+        wattrset(winPtr, COLOR_PAIR(!disp.data[i].isMuted ? Color::TRK_LOUDNESS : Color::TRK_LOUDNESS_MUTED));
         wprintw(winPtr, "%s", bar);
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF));
         whline(winPtr, ' ', width - 60);

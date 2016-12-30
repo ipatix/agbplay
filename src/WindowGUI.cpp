@@ -321,6 +321,7 @@ void WindowGUI::initColors()
     init_pair((int)Color::TRK_MOD, 43, -1);
     init_pair((int)Color::TRK_PITCH, 129, -1);
     init_pair((int)Color::TRK_LOUDNESS, 70, /*238*/-1);
+    init_pair((int)Color::TRK_LOUDNESS_MUTED, 166, /*238*/-1);
     init_pair((int)Color::TRK_LOUD_SPLIT, -1, /*238*/-1);
 }
 

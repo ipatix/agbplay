@@ -24,6 +24,7 @@ namespace agbplay
         TRK_MOD,
         TRK_PITCH,
         TRK_LOUDNESS,
+        TRK_LOUDNESS_MUTED,
         TRK_LOUD_SPLIT,
     };
 }

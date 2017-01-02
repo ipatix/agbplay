@@ -199,16 +199,19 @@ size_t ReverbGS2::processInternal(float *buffer, size_t nBlocks)
         float lA = rbuf[bufferPos * 2    ];
         float rA = rbuf[bufferPos * 2 + 1];
 
-        float lRMix = lA * 0.409f - rA * 0.062f;
-        float rRMix = rA * 0.409f - lA * 0.062f;
+        //float lRMix = lA * 0.409f - rA * 0.062f;
+        //float rRMix = rA * 0.409f - lA * 0.062f;
+        float lRMix = lA * 0.4140625f - rA * 0.0625f;
+        float rRMix = rA * 0.4140625f - lA * 0.0625f;
 
         buffer[0] = rbuf[bufferPos * 2    ] = mixL;
         buffer[1] = rbuf[bufferPos * 2 + 1] = mixR;
 
-        float lB = rbuf[bufferPos2 * 2] * 0.125f;
+        float lB = rbuf[bufferPos2 * 2 + 1] * 0.25f;
+        float rB = mixR * 0.25f;
 
-        gs2Buffer[gs2Pos * 2    ] = lRMix;
-        gs2Buffer[gs2Pos * 2 + 1] = rRMix + lB;
+        gs2Buffer[gs2Pos * 2    ] = lRMix + lB;
+        gs2Buffer[gs2Pos * 2 + 1] = rRMix + rB;
 
         buffer += 2;
 

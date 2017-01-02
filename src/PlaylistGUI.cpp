@@ -94,6 +94,12 @@ void PlaylistGUI::ToggleDrag()
     update();
 }
 
+void PlaylistGUI::UntickAll()
+{
+    fill(ticked->begin(), ticked->end(), false);
+    update();
+}
+
 bool PlaylistGUI::IsDragging()
 {
     return dragging;

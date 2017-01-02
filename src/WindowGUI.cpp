@@ -168,6 +168,10 @@ bool WindowGUI::Handle()
                 if (cursorl == PLAYLIST)
                     playUI->ToggleDrag();
                 break;
+            case 'T':
+                if (cursorl == PLAYLIST)
+                    playUI->UntickAll();
+                break;
             case 'i':
                 mplay->Play();
                 play = true;

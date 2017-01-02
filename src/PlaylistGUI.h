@@ -19,6 +19,7 @@ namespace agbplay {
             void Untick();
             void ToggleTick();
             void ToggleDrag();
+            void UntickAll();
             bool IsDragging();
         private:
             void swapEntry(uint32_t a, uint32_t b);

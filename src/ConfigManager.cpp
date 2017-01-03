@@ -60,6 +60,12 @@ ConfigManager::ConfigManager(const string& configPath)
             else if (res == "GS2") {
                 currentGame->SetRevType(ReverbType::GS2);
             }
+            else if (res == "MGAT") {
+                currentGame->SetRevType(ReverbType::MGAT);
+            }
+            else if (res == "TEST") {
+                currentGame->SetRevType(ReverbType::MGAT);
+            }
         }
         else if (regex_match(line, sm, cfgTrackLimitExpr) && sm.size() == 2 && currentGame != nullptr) {
             currentGame->SetTrackLimit(uint8_t(clip<int>(0, stoi(sm[1]), 16)));
@@ -90,6 +96,12 @@ ConfigManager::~ConfigManager()
                 break;
             case ReverbType::GS2:
                 configFile << "GS2";
+                break;
+            case ReverbType::MGAT:
+                configFile << "MGAT";
+                break;
+            case ReverbType::TEST:
+                configFile << "TEST";
                 break;
         }
         configFile << endl;

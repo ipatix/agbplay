@@ -161,11 +161,16 @@ size_t ReverbGS1::processInternal(float *buffer, size_t nBlocks)
  * ReverbGS2
  */
 
-ReverbGS2::ReverbGS2(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers)
-    : ReverbEffect(intensity, streamRate, numAgbBuffers), gs2Buffer(streamRate / AGB_FPS, 0.f)
+ReverbGS2::ReverbGS2(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers,
+        float rPrimFac, float rSecFac)
+    : ReverbEffect(intensity, streamRate, numAgbBuffers), 
+    gs2Buffer(streamRate / AGB_FPS * N_CHANNELS, 0.f)
 {
-    bufferPos2 = getBlocksPerBuffer() - 0xB0;
+    // equivalent to the offset of -0xB0 samples for a 0x210 buffer size
+    bufferPos2 = getBlocksPerBuffer() - (gs2Buffer.size() / N_CHANNELS / 3);
     gs2Pos = 0;
+    this->rPrimFac = rPrimFac;
+    this->rSecFac = rSecFac;
 }
 
 ReverbGS2::~ReverbGS2()
@@ -199,10 +204,8 @@ size_t ReverbGS2::processInternal(float *buffer, size_t nBlocks)
         float lA = rbuf[bufferPos * 2    ];
         float rA = rbuf[bufferPos * 2 + 1];
 
-        //float lRMix = lA * 0.409f - rA * 0.062f;
-        //float rRMix = rA * 0.409f - lA * 0.062f;
-        float lRMix = lA * 0.4140625f - rA * 0.0625f;
-        float rRMix = rA * 0.4140625f - lA * 0.0625f;
+        float lRMix = lA * rPrimFac + rA * rSecFac;
+        float rRMix = rA * rPrimFac + lA * rSecFac;
 
         buffer[0] = rbuf[bufferPos * 2    ] = mixL;
         buffer[1] = rbuf[bufferPos * 2 + 1] = mixR;
@@ -226,7 +229,7 @@ size_t ReverbGS2::processInternal(float *buffer, size_t nBlocks)
 }
 
 /*
- * protected ReverbTest
+ * ReverbTest
  */
 
 ReverbTest::ReverbTest(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers)

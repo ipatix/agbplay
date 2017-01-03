@@ -41,12 +41,14 @@ namespace agbplay
     class ReverbGS2 : public ReverbEffect
     {
         public:
-            ReverbGS2(uint8_t intesity, size_t streamRate, uint8_t numAgbBuffers);
+            ReverbGS2(uint8_t intesity, size_t streamRate, uint8_t numAgbBuffers,
+                    float rPrimFac, float rSecFac);
             ~ReverbGS2() override;
         protected:
             size_t processInternal(float *buffer, size_t nBlocks) override;
             std::vector<float> gs2Buffer;
             size_t gs2Pos;
+            float rPrimFac, rSecFac;
     };
 
     class ReverbTest : public ReverbEffect

@@ -72,9 +72,14 @@ StreamGenerator::~StreamGenerator()
 {
 }
 
-uint32_t StreamGenerator::GetBufferUnitCount()
+size_t StreamGenerator::GetBufferUnitCount()
 {
     return sm.GetBufferUnitCount();
+}
+
+size_t StreamGenerator::GetActiveChannelCount()
+{
+    return sm.GetActiveChannelCount();
 }
 
 uint32_t StreamGenerator::GetRenderSampleRate()

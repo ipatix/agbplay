@@ -25,7 +25,8 @@ namespace agbplay
             StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype);
             ~StreamGenerator();
 
-            uint32_t GetBufferUnitCount();
+            size_t GetBufferUnitCount();
+            size_t GetActiveChannelCount();
             uint32_t GetRenderSampleRate();
             std::vector<std::vector<float>>& ProcessAndGetAudio();
             bool HasStreamEnded();

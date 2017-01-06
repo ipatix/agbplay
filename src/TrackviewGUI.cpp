@@ -32,6 +32,8 @@ TrackviewGUI::TrackviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint3
 {
     // will clear the screen due to not overriding from CursesWin base class
     cursorPos = 0;
+    maxChannels = 0;
+    activeChannels = 0;
     cursorVisible = false;
     update();
 }
@@ -46,10 +48,16 @@ void TrackviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32
     update();
 }
 
-void TrackviewGUI::SetState(const Sequence& seq, const float *vols)
+void TrackviewGUI::SetState(const Sequence& seq, const float *vols, int activeChannels, int maxChannels)
 {
-    size_t sz;
-    if (disp.data.size() != (sz = seq.tracks.size())) {
+    this->activeChannels = activeChannels;
+    if (maxChannels == -1) {
+        this->maxChannels = std::max(this->maxChannels, this->activeChannels);
+    } else {
+        this->maxChannels = maxChannels;
+    }
+    size_t sz = seq.tracks.size();
+    if (disp.data.size() != sz) {
         disp.data.resize(sz);
     }
     for (size_t i = 0; i < sz; i++) {
@@ -154,7 +162,7 @@ void TrackviewGUI::update()
     wattrset(winPtr, COLOR_PAIR(Color::TRK_NOTE) | A_UNDERLINE);
     wprintw(winPtr, "Note");
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);
-    wprintw(winPtr, " - %-*s", width - 24 - 3, songName.c_str());
+    wprintw(winPtr, " - %-*s %3d/%3d", width - 24 - 3 - 8, songName.c_str(), activeChannels, maxChannels);
 
     for (uint32_t i = 0, th = 0; i < disp.data.size(); i++, th += 2) {
         int aFlag = (cursorVisible && i == cursorPos) ? A_REVERSE : 0;

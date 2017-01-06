@@ -16,7 +16,7 @@ namespace agbplay
             ~TrackviewGUI();
 
             void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;
-            void SetState(const Sequence& seq, const float *vols);
+            void SetState(const Sequence& seq, const float *vols, int activeChannels, int maxChannels);
             void SetTitle(const std::string& name);
             void Enter();
             void Leave();
@@ -33,6 +33,8 @@ namespace agbplay
 
             DisplayContainer disp; std::string songName; 
             uint32_t cursorPos;
+            int maxChannels;
+            int activeChannels;
             bool cursorVisible;
             static const std::vector<const char *> noteNames;
     }; // end TrackviewGUI

@@ -67,7 +67,7 @@ void PlayerInterface::LoadSong(long songPos)
     for (size_t i = 0; i < seq.tracks.size() * N_CHANNELS; i++)
         vols[i] = 0.0f;
 
-    trackUI->SetState(seq, vols);
+    trackUI->SetState(seq, vols, 0, 0);
     delete sg;
     sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), 
                 gameCfg.GetEngineRev(), 
@@ -195,7 +195,7 @@ void PlayerInterface::UpdateView()
         float vols[trks * N_CHANNELS];
         for (size_t i = 0; i < trks; i++)
             trackLoudness[i].GetLoudness(vols[i*N_CHANNELS], vols[i*N_CHANNELS+1]);
-        trackUI->SetState(sg->GetWorkingSequence(), vols);
+        trackUI->SetState(sg->GetWorkingSequence(), vols, int(sg->GetActiveChannelCount()), -1);
     }
 }
 
@@ -220,7 +220,7 @@ void PlayerInterface::GetMasterVolLevels(float& left, float& right)
 
 void PlayerInterface::threadWorker()
 {
-    uint32_t nBlocks = sg->GetBufferUnitCount();
+    size_t nBlocks = sg->GetBufferUnitCount();
     vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
     vector<float> audio(nBlocks * N_CHANNELS, 0.0f);
     try {
@@ -260,7 +260,7 @@ void PlayerInterface::threadWorker()
                     }
                     break;
                 case State::PAUSED:
-                    rBuf.Put(silence.data(), uint32_t(silence.size()));
+                    rBuf.Put(silence.data(), silence.size());
                     break;
                 default:
                     throw Xcept("Internal PlayerInterface error: %d", (int)playerState);
@@ -284,7 +284,7 @@ int PlayerInterface::audioCallback(const void *inputBuffer, void *outputBuffer, 
     (void)timeInfo;
     (void)statusFlags;
     Ringbuffer *rBuf = (Ringbuffer *)userData;
-    rBuf->Take((float *)outputBuffer, uint32_t(framesPerBuffer * N_CHANNELS));
+    rBuf->Take((float *)outputBuffer, size_t(framesPerBuffer * N_CHANNELS));
     return 0;
 }
 

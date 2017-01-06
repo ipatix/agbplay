@@ -33,7 +33,8 @@ namespace agbplay
             int TickTrackNotes(uint8_t owner, std::bitset<NUM_NOTES>& activeNotes);
             void StopChannel(uint8_t owner, uint8_t key);
             std::vector<std::vector<float>>& ProcessAndGetAudio();
-            uint32_t GetBufferUnitCount();
+            size_t GetActiveChannelCount();
+            size_t GetBufferUnitCount();
             uint32_t GetRenderSampleRate();
             void FadeOut(float millis);
             void FadeIn(float millis);
@@ -57,7 +58,7 @@ namespace agbplay
             std::vector<std::vector<float>> soundBuffers;
             uint32_t sampleRate;
             uint32_t fixedModeRate;
-            uint32_t samplesPerBuffer;
+            size_t samplesPerBuffer;
             float sampleRateReciprocal;
 
             // volume control related stuff
@@ -66,7 +67,7 @@ namespace agbplay
             float pcmMasterVolume;
             float fadePos;
             float fadeStepPerMicroframe;
-            uint32_t fadeMicroframesLeft;
+            size_t fadeMicroframesLeft;
 
             uint8_t ntracks;
     };

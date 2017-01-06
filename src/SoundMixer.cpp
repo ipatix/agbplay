@@ -208,7 +208,12 @@ std::vector<std::vector<float>>& SoundMixer::ProcessAndGetAudio()
     return soundBuffers;
 }
 
-uint32_t SoundMixer::GetBufferUnitCount()
+size_t SoundMixer::GetActiveChannelCount()
+{
+    return sndChannels.size();
+}
+
+size_t SoundMixer::GetBufferUnitCount()
 {
     return samplesPerBuffer;
 }
@@ -221,14 +226,14 @@ uint32_t SoundMixer::GetRenderSampleRate()
 void SoundMixer::FadeOut(float millis)
 {
     fadePos = 1.0f;
-    fadeMicroframesLeft = uint32_t(millis / 1000.0f * float(AGB_FPS * INTERFRAMES));
+    fadeMicroframesLeft = size_t(millis / 1000.0f * float(AGB_FPS * INTERFRAMES));
     fadeStepPerMicroframe = -1.0f / float(fadeMicroframesLeft);
 }
 
 void SoundMixer::FadeIn(float millis)
 {
     fadePos = 0.0f;
-    fadeMicroframesLeft = uint32_t(millis / 1000.0f * float(AGB_FPS * INTERFRAMES));
+    fadeMicroframesLeft = size_t(millis / 1000.0f * float(AGB_FPS * INTERFRAMES));
     fadeStepPerMicroframe = 1.0f / float(fadeMicroframesLeft);
 }
 

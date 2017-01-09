@@ -44,7 +44,7 @@ void RomviewGUI::update()
     // draw borders
     wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME) | A_REVERSE);
     mvwvline(winPtr, 1, 0, ' ', height-1);
-    mvwprintw(winPtr, 0, 0, "%*s", width, " ROM Information");
+    mvwprintw(winPtr, 0, 0, "%-*s", width, " ROM Information");
 
     // print information
     wattrset(winPtr, A_UNDERLINE | COLOR_PAIR(Color::DEF_DEF));

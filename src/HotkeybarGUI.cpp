@@ -20,7 +20,7 @@ void HotkeybarGUI::update() {
     //UIMutex.lock();
     wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME) | A_REVERSE);
     // draw initial border
-    mvwprintw(winPtr, 0, 0, "%*s", width, " [q=QUIT] [tab=SWITCH] [a=ADD] [d=DEL] [g=DRAG]");
+    mvwprintw(winPtr, 0, 0, "%-*s", width, " [q=QUIT] [tab=SWITCH] [a=ADD] [d=DEL] [g=DRAG]");
     
     for (uint32_t i = 1; i < height; i++) {
         mvwhline(winPtr, (int)i, 0, ' ', width);

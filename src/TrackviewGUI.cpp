@@ -142,7 +142,7 @@ void TrackviewGUI::update()
     // draw borderlines
     wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME) | A_REVERSE);
     mvwvline(winPtr, 1, 0, ' ', height - 1);
-    mvwprintw(winPtr, 0, 0, "%*s", width, " Tracker");
+    mvwprintw(winPtr, 0, 0, "%-*s", width, " Tracker");
 
     // draw track titlebar
     wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF) | A_UNDERLINE);

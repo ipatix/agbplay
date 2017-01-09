@@ -19,7 +19,7 @@ namespace agbplay
             void ProcessData(float *buffer, size_t nBlocks);
         protected:
             virtual size_t processInternal(float *buffer, size_t nBlocks);
-            size_t getBlocksPerBuffer();
+            size_t getBlocksPerBuffer() const;
             float intensity;
             //size_t streamRate;
             std::vector<float> reverbBuffer;
@@ -34,7 +34,7 @@ namespace agbplay
             ~ReverbGS1() override;
         protected:
             size_t processInternal(float *buffer, size_t nBlocks) override;
-            size_t getBlocksPerGsBuffer();
+            size_t getBlocksPerGsBuffer() const;
             std::vector<float> gsBuffer;
     };
 

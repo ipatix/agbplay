@@ -64,7 +64,7 @@ ConfigManager::ConfigManager(const string& configPath)
                 currentGame->SetRevType(ReverbType::MGAT);
             }
             else if (res == "TEST") {
-                currentGame->SetRevType(ReverbType::MGAT);
+                currentGame->SetRevType(ReverbType::TEST);
             }
         }
         else if (regex_match(line, sm, cfgTrackLimitExpr) && sm.size() == 2 && currentGame != nullptr) {

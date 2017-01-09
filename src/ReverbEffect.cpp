@@ -39,36 +39,34 @@ void ReverbEffect::ProcessData(float *buffer, size_t nBlocks)
  * protected ReverbEffect
  */
 
-size_t ReverbEffect::getBlocksPerBuffer()
+size_t ReverbEffect::getBlocksPerBuffer() const
 {
     return reverbBuffer.size() / N_CHANNELS;
 }
 
 size_t ReverbEffect::processInternal(float *buffer, size_t nBlocks)
 {
+    assert(nBlocks > 0);
     vector<float>& rbuf = reverbBuffer;
-    size_t count;
+    size_t count = std::min(std::min(getBlocksPerBuffer() - bufferPos2, getBlocksPerBuffer() - bufferPos), nBlocks);
     bool reset = false, reset2 = false;
-    if (getBlocksPerBuffer() - bufferPos2 <= nBlocks) {
-        count = getBlocksPerBuffer() - bufferPos2;
-        reset2 = true;
-    } else if (getBlocksPerBuffer() - bufferPos <= nBlocks) {
-        count = getBlocksPerBuffer() - bufferPos;
+    if (getBlocksPerBuffer() - bufferPos == count) {
         reset = true;
-    } else {
-        count = nBlocks;
     }
-    for (size_t c = count; c > 0; c--) 
-    {
+    if (getBlocksPerBuffer() - bufferPos2 == count) {
+        reset2 = true;
+    } 
+    size_t c = count;
+    do {
         float rev = (rbuf[bufferPos * 2] + rbuf[bufferPos * 2 + 1] + 
                 rbuf[bufferPos2 * 2] + rbuf[bufferPos2 * 2 + 1]) * intensity * (1.0f / 4.0f);
         rbuf[bufferPos * 2] = *buffer++ += rev;
         rbuf[bufferPos * 2 + 1] = *buffer++ += rev;
         bufferPos++;
         bufferPos2++;
-    }
+    } while (--c > 0);
     if (reset2) bufferPos2 = 0;
-    else if (reset) bufferPos = 0;
+    if (reset) bufferPos = 0;
     return nBlocks - count;
 }
 
@@ -87,7 +85,7 @@ ReverbGS1::~ReverbGS1()
 {
 }
 
-size_t ReverbGS1::getBlocksPerGsBuffer()
+size_t ReverbGS1::getBlocksPerGsBuffer() const
 {
     return gsBuffer.size() / N_CHANNELS;
 }
@@ -179,25 +177,27 @@ ReverbGS2::~ReverbGS2()
 
 size_t ReverbGS2::processInternal(float *buffer, size_t nBlocks)
 {
+    assert(nBlocks > 0);
     vector<float>& rbuf = reverbBuffer;
-    size_t count = nBlocks;
+    size_t count = std::min(
+            std::min(getBlocksPerBuffer() - bufferPos2, getBlocksPerBuffer() - bufferPos), 
+            std::min(nBlocks, gs2Buffer.size() / N_CHANNELS - gs2Pos)
+            );
     bool reset = false, reset2 = false, resetgs2 = false;
 
     // this below will possibly glitch if the buffer sizes don't align properly | FIXME
     if (getBlocksPerBuffer() - bufferPos2 <= count) {
-        count = getBlocksPerBuffer() - bufferPos2;
         reset2 = true;
     } 
     if (getBlocksPerBuffer() - bufferPos <= count) {
-        count = getBlocksPerBuffer() - bufferPos;
         reset = true;
     }
     if ((gs2Buffer.size() / 2) - gs2Pos <= count) {
-        count = gs2Buffer.size() / 2 - gs2Pos;
         resetgs2 = true;
     }
-    for (size_t c = count; c > 0; c--) 
-    {
+
+    size_t c = count;
+    do {
         float mixL = buffer[0] + gs2Buffer[gs2Pos * 2    ];
         float mixR = buffer[1] + gs2Buffer[gs2Pos * 2 + 1];
 
@@ -221,7 +221,7 @@ size_t ReverbGS2::processInternal(float *buffer, size_t nBlocks)
         bufferPos++;
         bufferPos2++;
         gs2Pos++;
-    }
+    } while (--c > 0);
     if (reset2) bufferPos2 = 0;
     if (reset) bufferPos = 0;
     if (resetgs2) gs2Pos = 0;
@@ -243,20 +243,18 @@ ReverbTest::~ReverbTest()
 
 size_t ReverbTest::processInternal(float *buffer, size_t nBlocks)
 {
+    assert(nBlocks > 0);
     vector<float>& rbuf = reverbBuffer;
-    size_t count;
+    size_t count = std::min(std::min(getBlocksPerBuffer() - bufferPos, getBlocksPerBuffer() - bufferPos2), nBlocks);
     bool reset = false, reset2 = false;
-    if (getBlocksPerBuffer() - bufferPos2 <= nBlocks) {
-        count = getBlocksPerBuffer() - bufferPos2;
+    if (getBlocksPerBuffer() - bufferPos2 == count) {
         reset2 = true;
-    } else if (getBlocksPerBuffer() - bufferPos <= nBlocks) {
-        count = getBlocksPerBuffer() - bufferPos;
-        reset = true;
-    } else {
-        count = nBlocks;
     }
-    for (size_t c = count; c > 0; c--) 
-    {
+    if (getBlocksPerBuffer() - bufferPos == count) {
+        reset = true;
+    }
+    size_t c = count;
+    do {
         (void)rbuf;
         (void)buffer;
         /*
@@ -287,8 +285,8 @@ size_t ReverbTest::processInternal(float *buffer, size_t nBlocks)
 
         bufferPos++;
         bufferPos2++;
-    }
+    } while (--c > 0);
     if (reset2) bufferPos2 = 0;
-    else if (reset) bufferPos = 0;
+    if (reset) bufferPos = 0;
     return nBlocks - count;
 }

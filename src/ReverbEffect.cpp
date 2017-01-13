@@ -94,61 +94,39 @@ size_t ReverbGS1::processInternal(float *buffer, size_t nBlocks)
 {
     // FIXME experimental, just to mess around and not to implement the actual alogrithm
     vector<float>& rbuf = reverbBuffer;
-    size_t count;
-    bool reset = false, resetGS = false;
-
     const size_t bPerBuf = getBlocksPerBuffer();
     const size_t bPerGsBuf = getBlocksPerGsBuffer();
+    size_t count = std::min(std::min(bPerBuf - bufferPos, bPerGsBuf - bufferPos2), nBlocks);
+    bool reset = false, resetGS = false;
 
-    
-    if (min(bPerBuf - bufferPos, bPerGsBuf - bufferPos2) <= nBlocks)
-    {
-        if (bPerBuf - bufferPos < bPerGsBuf - bufferPos2)
-        {
-            reset = true;
-            count = bPerBuf - bufferPos;
-        }
-        else if (bPerBuf - bufferPos == bPerGsBuf - bufferPos2)
-        {
-            reset = true;
-            resetGS = true;
-            count = bPerBuf - bufferPos;
-        }
-        else
-        {
-            resetGS = true;
-            count = bPerGsBuf - bufferPos2;
-        }
-    }
-    else
-    {
-        count = nBlocks;
-    }
+    if (count == bPerBuf - bufferPos)
+        reset = true;
+    if (count == bPerGsBuf - bufferPos2)
+        resetGS = true;
 
-    assert(count % 4 == 0);
-    for (size_t c = count; c > 0; c--)
-    {
-        float rev_l = gsBuffer[bufferPos2 * 2];
-        float rev_r = gsBuffer[bufferPos2 * 2 + 1];
-        float in_l = buffer[0];
-        float in_r = buffer[1];
-        float long_rev_l = rbuf[bufferPos * 2];
-        float long_rev_r = rbuf[bufferPos * 2 + 1];
 
-        float new_l = in_l + (1.f / 128.f) * rev_l + (1.f / 64.f) * long_rev_l;
-        float new_r = in_r + (1.f / 128.f) * rev_r + (1.f / 64.f) * long_rev_r;
-        gsBuffer[bufferPos2 * 2] = new_l;
-        gsBuffer[bufferPos2 * 2 + 1] = new_r;
+    size_t c = count;
+    do {
+        float mixL = buffer[0] + gsBuffer[bufferPos2 * 2    ];
+        float mixR = buffer[1] + gsBuffer[bufferPos2 * 2 + 1];
 
-        *buffer++ += rbuf[bufferPos * 2];
-        *buffer++ += rbuf[bufferPos * 2 + 1];
+        float lA = rbuf[bufferPos * 2    ];
+        float rA = rbuf[bufferPos * 2 + 1];
 
-        rbuf[bufferPos * 2] = new_l;
-        rbuf[bufferPos * 2 + 1] = new_r;
+        buffer[0] = rbuf[bufferPos * 2    ] = mixL;
+        buffer[1] = rbuf[bufferPos * 2 + 1] = mixR;
+
+        float lRMix = 0.25f * mixL + 0.25f * rA;
+        float rRMix = 0.25f * mixR + 0.25f * lA;
+
+        gsBuffer[bufferPos2 * 2    ] = lRMix;
+        gsBuffer[bufferPos2 * 2 + 1] = rRMix;
+
+        buffer += 2;
 
         bufferPos++;
         bufferPos2++;
-    }
+    } while (--c > 0);
 
     if (resetGS) bufferPos2 = 0;
     if (reset) bufferPos = 0;
@@ -185,7 +163,6 @@ size_t ReverbGS2::processInternal(float *buffer, size_t nBlocks)
             );
     bool reset = false, reset2 = false, resetgs2 = false;
 
-    // this below will possibly glitch if the buffer sizes don't align properly | FIXME
     if (getBlocksPerBuffer() - bufferPos2 <= count) {
         reset2 = true;
     } 
@@ -204,11 +181,11 @@ size_t ReverbGS2::processInternal(float *buffer, size_t nBlocks)
         float lA = rbuf[bufferPos * 2    ];
         float rA = rbuf[bufferPos * 2 + 1];
 
-        float lRMix = lA * rPrimFac + rA * rSecFac;
-        float rRMix = rA * rPrimFac + lA * rSecFac;
-
         buffer[0] = rbuf[bufferPos * 2    ] = mixL;
         buffer[1] = rbuf[bufferPos * 2 + 1] = mixR;
+
+        float lRMix = lA * rPrimFac + rA * rSecFac;
+        float rRMix = rA * rPrimFac + lA * rSecFac;
 
         float lB = rbuf[bufferPos2 * 2 + 1] * 0.25f;
         float rB = mixR * 0.25f;

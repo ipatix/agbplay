@@ -2,6 +2,9 @@
 "agbplay" is a music player with Terminal interface for GBA ROMs that use the most common (aka mp2k/m4a) sound engine format.
 The code itself is written in C++.
 
+Quick overview:
+![agbplay](https://cloud.githubusercontent.com/assets/8502545/24632845/faa2503c-18c5-11e7-84a3-cecec08e034a.png)
+
 Controls:
 - Arrow Keys or HJKL: Navigate through the program
 - Tab: Change between Playlist and Songlist
@@ -48,9 +51,11 @@ However, because on all of my computers I had issues installing 'portaudio-dev' 
 
 Clone the code repositories of agbplay and portaudio to a folder structure like this:
 
+```
 .
 ├── agbplay
 └── portaudio
+```
 
 Go into the portaudio folder and execute "./configure && make" to build portaudio. 
 Now you should be able to do "make" in the agbplay folder and hopefully everything compiles correctly

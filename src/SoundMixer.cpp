@@ -24,6 +24,9 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reve
             case ReverbType::NORMAL:
                 revdsps.push_back(new ReverbEffect(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS))));
                 break;
+            case ReverbType::NONE:
+                revdsps.push_back(new ReverbEffect(0, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS))));
+                break;
             case ReverbType::GS1:
                 revdsps.push_back(new ReverbGS1(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS))));
                 break;

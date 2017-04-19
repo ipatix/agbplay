@@ -11,7 +11,7 @@ namespace agbplay
     enum class EnvState : int { INIT = 0, ATK, DEC, SUS, REL, DIE, DEAD };
     enum class WaveDuty : int { D12 = 0, D25, D50, D75 };
     enum class NoisePatt : int { FINE = 0, ROUGH };
-    enum class ReverbType { NORMAL, GS1, GS2, MGAT, TEST };
+    enum class ReverbType { NORMAL, GS1, GS2, MGAT, TEST, NONE };
 
     union CGBDef
     {

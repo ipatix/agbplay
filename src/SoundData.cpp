@@ -1,4 +1,5 @@
 #include <cstring>
+#include <iostream>
 #include <cassert>
 #include <algorithm>
 
@@ -415,14 +416,24 @@ long SongTable::locateSongTable()
     for (long i = 0x200; i < (long)rom.Size(); i += 4) {
         bool validEntries = true;
         long location = i;
-        for (long j = 0; j < MIN_SONG_NUM; j++) {
+        long j = 0;
+        for (j = 0; j < MIN_SONG_NUM; j++) {
             if (!validateTableEntry(i + j * 8)) {
+                i += j * 8;
                 validEntries = false;
                 break;
             }
         }
-        if (validEntries)
-            return location;
+        if (validEntries) {
+            // before returning, check if reference to song table exists
+            rom.Seek(0x200);
+            for (long k = 0x200; k < (long)rom.Size(); k += 4) {
+                long value = (long)rom.ReadUInt32() - 0x8000000;
+                if (value == location)
+                    return location;
+            }
+            i += j * 8;
+        }
     }
     throw Xcept("Unable to find songtable");
 }

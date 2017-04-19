@@ -92,7 +92,6 @@ size_t ReverbGS1::getBlocksPerGsBuffer() const
 
 size_t ReverbGS1::processInternal(float *buffer, size_t nBlocks)
 {
-    // FIXME experimental, just to mess around and not to implement the actual alogrithm
     vector<float>& rbuf = reverbBuffer;
     const size_t bPerBuf = getBlocksPerBuffer();
     const size_t bPerGsBuf = getBlocksPerGsBuffer();

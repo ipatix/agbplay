@@ -192,36 +192,43 @@ void StreamGenerator::processSequenceTick()
                             }
                             break;
                         case LEvent::NOTE:
-                            // if velocity parameter provided
-                            if (reader[cTrk.pos] < 128) {
-                                // if gate parameter provided
-                                if (reader[cTrk.pos+1] < 128) {
-                                    uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
-                                    int8_t len = int8_t(cTrk.lastNoteLen + reader[cTrk.pos++]);
-                                    playNote(cTrk, Note(cmd, vel, len), uint8_t(ntrk));
+                            {
+                                uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(cmd));
+                                // if velocity parameter provided
+                                if (reader[cTrk.pos] < 128) {
+                                    // if gate parameter provided
+                                    if (reader[cTrk.pos+1] < 128) {
+                                        uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
+                                        int8_t len = int8_t(cTrk.lastNoteLen + reader[cTrk.pos++]);
+                                        playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
+                                    } else {
+                                        uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
+                                        int8_t len = cTrk.lastNoteLen;
+                                        playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
+                                    }
                                 } else {
-                                    uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
-                                    int8_t len = cTrk.lastNoteLen;
-                                    playNote(cTrk, Note(cmd, vel, len), uint8_t(ntrk));
+                                    playNote(cTrk, Note(key, cTrk.lastNoteVel, cTrk.lastNoteLen), uint8_t(ntrk));
                                 }
-                            } else {
-                                playNote(cTrk, Note(cmd, cTrk.lastNoteVel, cTrk.lastNoteLen), uint8_t(ntrk));
                             }
-                            cTrk.lastNoteKey = cmd;
                             break;
                         case LEvent::TIE:
-                            // if velocity parameter provided
-                            if (reader[cTrk.pos] < 128) {
-                                uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
-                                playNote(cTrk, Note(cmd, vel, NOTE_TIE), uint8_t(ntrk));
-                            } else {
-                                playNote(cTrk, Note(cmd, cTrk.lastNoteVel, NOTE_TIE), uint8_t(ntrk));
+                            {
+                                uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(cmd));
+                                // if velocity parameter provided
+                                if (reader[cTrk.pos] < 128) {
+                                    uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
+                                    playNote(cTrk, Note(key, vel, NOTE_TIE), uint8_t(ntrk));
+                                } else {
+                                    playNote(cTrk, Note(key, cTrk.lastNoteVel, NOTE_TIE), uint8_t(ntrk));
+                                }
                             }
-                            cTrk.lastNoteKey = cmd;
                             break;
                         case LEvent::EOT:
-                            sm.StopChannel(uint8_t(ntrk), cmd);
-                            cTrk.lastNoteKey = cmd;
+                            {
+                                uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(cmd));
+                                sm.StopChannel(uint8_t(ntrk), key);
+                                cTrk.lastNoteKey = key;
+                            }
                             break;
                         default: 
                             throw Xcept("Invalid Last Event");
@@ -373,8 +380,8 @@ void StreamGenerator::processSequenceTick()
                                 cTrk.lastEvent = LEvent::EOT;
                                 uint8_t next = reader[cTrk.pos];
                                 if (next < 128) {
-                                    sm.StopChannel(uint8_t(ntrk), next);
-                                    cTrk.lastNoteKey = next;
+                                    sm.StopChannel(uint8_t(ntrk), uint8_t(cTrk.keyShift + int(next)));
+                                    cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(next));
                                     cTrk.pos++;
                                 } else {
                                     sm.StopChannel(uint8_t(ntrk), cTrk.lastNoteKey);
@@ -389,12 +396,12 @@ void StreamGenerator::processSequenceTick()
                                 // new midi key
                                 if (reader[cTrk.pos+1] < 128) {
                                     // new velocity
-                                    uint8_t key = cTrk.lastNoteKey = reader[cTrk.pos++];
+                                    uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(reader[cTrk.pos++]));
                                     uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
                                     playNote(cTrk, Note(key, vel, NOTE_TIE), uint8_t(ntrk));
                                 } else {
                                     // repeat velocity
-                                    uint8_t key = cTrk.lastNoteKey = reader[cTrk.pos++];
+                                    uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(reader[cTrk.pos++]));
                                     playNote(cTrk, Note(key, cTrk.lastNoteVel, NOTE_TIE), uint8_t(ntrk));
                                 }
                             } else {
@@ -416,19 +423,19 @@ void StreamGenerator::processSequenceTick()
                             // is gate time parameter provided?
                             if (reader[cTrk.pos+2] < 128) {
                                 // add gate time
-                                uint8_t key = cTrk.lastNoteKey = reader[cTrk.pos++];
+                                uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(reader[cTrk.pos++]));
                                 uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
                                 len = int8_t(len + reader[cTrk.pos++]);
                                 playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
                             } else {
                                 // no gate time
-                                uint8_t key = cTrk.lastNoteKey = reader[cTrk.pos++];
+                                uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(reader[cTrk.pos++]));
                                 uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
                                 playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
                             }
                         } else {
                             // repeast note velocity
-                            uint8_t key = cTrk.lastNoteKey = reader[cTrk.pos++];
+                            uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(reader[cTrk.pos++]));
                             playNote(cTrk, Note(key, cTrk.lastNoteVel, len), uint8_t(ntrk));
                         }
                     } else {

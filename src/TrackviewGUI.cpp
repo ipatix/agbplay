@@ -184,28 +184,94 @@ void TrackviewGUI::update()
         wattrset(winPtr, COLOR_PAIR(Color::TRK_NOTE));
 
         // print notes
-        char noteBuffer[width + 1];
-        size_t noteBufferIndex = 0;
+#define DECIDE_COL_C(a, b)\
+        !a && !b ? (int)Color::TRK_FGB_BGCW :\
+        !a &&  b ? (int)Color::TRK_FGC_BGCW :\
+        a  && !b ? (int)Color::TRK_FGB_BGC :\
+        (int)Color::TRK_FGC_BGC
 
-        for (size_t j = 0; j < disp.data[i].activeNotes.size(); j++) {
-            if (disp.data[i].activeNotes[j]) {
-                CStrAppend(noteBuffer, &noteBufferIndex, noteNames[j]);
-                noteBuffer[noteBufferIndex++] = ' ';
-            }
+#define DECIDE_COL_D(a, b)\
+        !a && !b ? (int)Color::TRK_FGB_BGW :\
+        !a &&  b ? (int)Color::TRK_FGC_BGW :\
+        a  && !b ? (int)Color::TRK_FGB_BGC :\
+        (int)Color::TRK_FGC_BGC
+
+#define DECIDE_COL_E(a, b)\
+        !a && !b ? (int)Color::TRK_FGW_BGW :\
+        !a &&  b ? (int)Color::TRK_FGC_BGW :\
+        a  && !b ? (int)Color::TRK_FGW_BGC :\
+        (int)Color::TRK_FGC_BGC
+
+        for (size_t j = 0;; j++) {
+            // C and C#
+            wattrset(winPtr, COLOR_PAIR(DECIDE_COL_C(
+                            disp.data[i].activeNotes[j*12+0],
+                            disp.data[i].activeNotes[j*12+1])));
+            waddstr(winPtr, "\u259D");
+
+            // D and D#
+            wattrset(winPtr, COLOR_PAIR(DECIDE_COL_D(
+                        disp.data[i].activeNotes[j*12+2],
+                        disp.data[i].activeNotes[j*12+3])));
+            waddstr(winPtr, "\u259D");
+
+            // E and F
+            wattrset(winPtr, COLOR_PAIR(DECIDE_COL_E(
+                        disp.data[i].activeNotes[j*12+4],
+                        disp.data[i].activeNotes[j*12+5])));
+            waddstr(winPtr, "\u2590");
+
+            // F# and G
+            wattrset(winPtr, COLOR_PAIR(DECIDE_COL_D(
+                        disp.data[i].activeNotes[j*12+7],
+                        disp.data[i].activeNotes[j*12+6])));
+            waddstr(winPtr, "\u2598");
+
+            // keys only go up to key 127, this is the breakout point
+            if (j == 10)
+                break;
+
+            // G# and A
+            wattrset(winPtr, COLOR_PAIR(DECIDE_COL_D(
+                        disp.data[i].activeNotes[j*12+9],
+                        disp.data[i].activeNotes[j*12+8])));
+            waddstr(winPtr, "\u2598");
+
+            // A# and B
+            wattrset(winPtr, COLOR_PAIR(DECIDE_COL_D(
+                        disp.data[i].activeNotes[j*12+11],
+                        disp.data[i].activeNotes[j*12+10])));
+            waddstr(winPtr, "\u2598");
         }
 
-        if (width < 20) {
-            noteBuffer[0] = '\0';
-        } else if (noteBufferIndex > width - 20) {
-            noteBuffer[width - 20] = '\0';
-        } else {
-            size_t leftChars = width - 20 - noteBufferIndex;
-            for (size_t j = 0; j < leftChars; j++)
-                noteBuffer[noteBufferIndex++] = ' ';
-            noteBuffer[noteBufferIndex++] = '\0';
-        }
+#undef DECIDE_COL_C
+#undef DECIDE_COL_D
+#undef DECIDE_COL_E
 
-        wprintw(winPtr, "%s", noteBuffer);
+        // FIXME
+        //char noteBuffer[width + 1];
+        //size_t noteBufferIndex = 0;
+
+        //for (size_t j = 0; j < disp.data[i].activeNotes.size(); j++) {
+            //if (disp.data[i].activeNotes[j]) {
+                //CStrAppend(noteBuffer, &noteBufferIndex, noteNames[j]);
+                //noteBuffer[noteBufferIndex++] = ' ';
+            //}
+        //}
+
+        //if (width < 20) {
+            //noteBuffer[0] = '\0';
+        //} else if (noteBufferIndex > width - 20) {
+            //noteBuffer[width - 20] = '\0';
+        //} else {
+            //size_t leftChars = width - 20 - noteBufferIndex;
+            //for (size_t j = 0; j < leftChars; j++)
+                //noteBuffer[noteBufferIndex++] = ' ';
+            //noteBuffer[noteBufferIndex++] = '\0';
+        //}
+
+        //wprintw(winPtr, "%s", noteBuffer);
+        // FIXME
 
         // print track values and sencond line
         wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF));
@@ -265,7 +331,7 @@ void TrackviewGUI::update()
 
         wattrset(winPtr, COLOR_PAIR(!disp.data[i].isMuted ? Color::TRK_LOUDNESS : Color::TRK_LOUDNESS_MUTED) | A_REVERSE);
         wprintw(winPtr, "%s", bar);
-        wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUD_SPLIT));
+        wattrset(winPtr, COLOR_PAIR(Color::TRK_LOUDNESS));
         wprintw(winPtr, "\u2503");
 
         printBar16(bar, rightBar);

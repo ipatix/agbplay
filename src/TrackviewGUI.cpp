@@ -183,6 +183,7 @@ void TrackviewGUI::update()
         wprintw(winPtr, " ");
         wattrset(winPtr, COLOR_PAIR(Color::TRK_NOTE));
 
+        // print notes
         char noteBuffer[width + 1];
         size_t noteBufferIndex = 0;
 
@@ -196,7 +197,7 @@ void TrackviewGUI::update()
         if (width < 20) {
             noteBuffer[0] = '\0';
         } else if (noteBufferIndex > width - 20) {
-            noteBuffer[width - 20] = '0';
+            noteBuffer[width - 20] = '\0';
         } else {
             size_t leftChars = width - 20 - noteBufferIndex;
             for (size_t j = 0; j < leftChars; j++)

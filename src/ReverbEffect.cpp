@@ -266,3 +266,115 @@ size_t ReverbTest::processInternal(float *buffer, size_t nBlocks)
     if (reset) bufferPos = 0;
     return nBlocks - count;
 }
+
+ReverbPS1::ReverbPS1(uint8_t intesity, size_t streamRate, uint8_t numAgbBuffers) 
+    : ReverbEffect(intesity, streamRate, numAgbBuffers)
+{
+    currAddr = 0x0;
+    startAddr = 0x0;
+
+    // test values
+
+    FB_SRC_A    = 0x01A5;
+    FB_SRC_B    = 0x0139;
+    IIR_ALPHA   = float(+0x6000) / float(0x8000);
+    ACC_COEF_A  = float(+0x5000) / float(0x8000);
+    ACC_COEF_B  = float(+0x4C00) / float(0x8000);
+    ACC_COEF_C  = float(-0x4800) / float(0x8000); //0xB800;
+    ACC_COEF_D  = float(-0x4400) / float(0x8000); //0xBC00;
+    IIR_COEF    = float(-0x4000) / float(0x8000); //0xC000;
+    FB_ALPHA    = float(+0x6000) / float(0x8000);
+    FB_ALPHA_S  = FB_ALPHA - 1.0f;
+    FB_X        = float(+0x5C00) / float(0x8000);
+    IIR_DEST_A0 = 0x15BA;
+    IIR_DEST_A1 = 0x11BB;
+    ACC_SRC_A0  = 0x14C2;
+    ACC_SRC_A1  = 0x10BD;
+    ACC_SRC_B0  = 0x11BC;
+    ACC_SRC_B1  = 0x0DC1;
+    IIR_SRC_A0  = 0x11C0;
+    IIR_SRC_A1  = 0x0DC3;
+    IIR_DEST_B0 = 0x0DC0;
+    IIR_DEST_B1 = 0x09C1;
+    ACC_SRC_C0  = 0x0BC4;
+    ACC_SRC_C1  = 0x07C1;
+    ACC_SRC_D0  = 0x0A00;
+    ACC_SRC_D1  = 0x06CD;
+    IIR_SRC_B1  = 0x09C2;
+    IIR_SRC_B0  = 0x05C1;
+    MIX_DEST_A0 = 0x05C0;
+    MIX_DEST_A1 = 0x041A;
+    MIX_DEST_B0 = 0x0274;
+    MIX_DEST_B1 = 0x013A;
+    IN_COEF_L   = float(-0x8000) / float(0x8000); // 0x8000
+    IN_COEF_R   = float(-0x8000) / float(0x8000); // 0x8000
+
+    ps1buffer.resize(0x40000);
+}
+
+ReverbPS1::~ReverbPS1()
+{
+}
+
+size_t ReverbPS1::processInternal(float *buffer, size_t nBlocks) 
+{
+    auto rvbIn = [this](int index){
+        int sz = int(ps1buffer.size());
+        return size_t((((index + (int)this->currAddr) % sz) + sz) % sz);
+    };
+
+    size_t c = nBlocks;
+
+    // algorithm below (C) 2002 by Pete Bernert from the audacious PSF plugin
+
+    do {
+        float input_l = buffer[0];
+        float input_r = buffer[1];
+        float IIR_INPUT_A0 = ps1buffer[rvbIn(IIR_SRC_A0 * 4)] * IIR_COEF + input_l * IN_COEF_L;
+        float IIR_INPUT_A1 = ps1buffer[rvbIn(IIR_SRC_A1 * 4)] * IIR_COEF + input_r * IN_COEF_R;
+        float IIR_INPUT_B0 = ps1buffer[rvbIn(IIR_SRC_B0 * 4)] * IIR_COEF + input_l * IN_COEF_L;
+        float IIR_INPUT_B1 = ps1buffer[rvbIn(IIR_SRC_B1 * 4)] * IIR_COEF + input_r * IN_COEF_R;
+        float IIR_A0 = IIR_INPUT_A0 * IIR_ALPHA + ps1buffer[rvbIn(IIR_DEST_A0 * 4)] * (1.0f - IIR_ALPHA);
+        float IIR_A1 = IIR_INPUT_A1 * IIR_ALPHA + ps1buffer[rvbIn(IIR_DEST_A1 * 4)] * (1.0f - IIR_ALPHA);
+        float IIR_B0 = IIR_INPUT_B0 * IIR_ALPHA + ps1buffer[rvbIn(IIR_DEST_B0 * 4)] * (1.0f - IIR_ALPHA);
+        float IIR_B1 = IIR_INPUT_B1 * IIR_ALPHA + ps1buffer[rvbIn(IIR_DEST_B1 * 4)] * (1.0f - IIR_ALPHA);
+    
+        ps1buffer[rvbIn(IIR_DEST_A0 * 4 + 1)] = IIR_A0;
+        ps1buffer[rvbIn(IIR_DEST_A1 * 4 + 1)] = IIR_A1;
+        ps1buffer[rvbIn(IIR_DEST_B0 * 4 + 1)] = IIR_B0;
+        ps1buffer[rvbIn(IIR_DEST_B1 * 4 + 1)] = IIR_B1;
+    
+        float ACC0 = 
+            ps1buffer[rvbIn(ACC_SRC_A0 * 4)] * ACC_COEF_A +
+            ps1buffer[rvbIn(ACC_SRC_B0 * 4)] * ACC_COEF_B +   
+            ps1buffer[rvbIn(ACC_SRC_C0 * 4)] * ACC_COEF_C +   
+            ps1buffer[rvbIn(ACC_SRC_D0 * 4)] * ACC_COEF_D;    
+        float ACC1 = 
+            ps1buffer[rvbIn(ACC_SRC_A1 * 4)] * ACC_COEF_A +
+            ps1buffer[rvbIn(ACC_SRC_B1 * 4)] * ACC_COEF_B +   
+            ps1buffer[rvbIn(ACC_SRC_C1 * 4)] * ACC_COEF_C +   
+            ps1buffer[rvbIn(ACC_SRC_D1 * 4)] * ACC_COEF_D;    
+
+        float FB_A0 = ps1buffer[rvbIn((MIX_DEST_A0 - FB_SRC_A) * 4)];
+        float FB_A1 = ps1buffer[rvbIn((MIX_DEST_A1 - FB_SRC_A) * 4)];
+        float FB_B0 = ps1buffer[rvbIn((MIX_DEST_B0 - FB_SRC_B) * 4)];
+        float FB_B1 = ps1buffer[rvbIn((MIX_DEST_B1 - FB_SRC_B) * 4)];
+
+        ps1buffer[rvbIn(MIX_DEST_A0 * 4)] = ACC0 - FB_A0 * FB_ALPHA;
+        ps1buffer[rvbIn(MIX_DEST_A1 * 4)] = ACC1 - FB_A1 * FB_ALPHA;
+
+        ps1buffer[rvbIn(MIX_DEST_B0 * 4)] = FB_ALPHA * ACC0 - FB_A0 - FB_ALPHA_S - FB_B0 * FB_X;
+        ps1buffer[rvbIn(MIX_DEST_B1 * 4)] = FB_ALPHA * ACC0 - FB_A1 - FB_ALPHA_S - FB_B1 * FB_X;
+            
+        float out_l = ps1buffer[rvbIn(MIX_DEST_A0 * 4)] + ps1buffer[rvbIn(MIX_DEST_B0 * 4)];
+        float out_r = ps1buffer[rvbIn(MIX_DEST_A1 * 4)] + ps1buffer[rvbIn(MIX_DEST_B1 * 4)];
+
+        *buffer++ = out_l / 3.0f;
+        *buffer++ = out_r / 3.0f;
+
+        currAddr++;
+        if (currAddr >= ps1buffer.size())
+            currAddr = startAddr;
+    } while (--c > 0);
+    return 0;
+}

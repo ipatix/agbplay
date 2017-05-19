@@ -374,8 +374,8 @@ size_t ReverbPS1::processInternal(float *buffer, size_t nBlocks)
         float out_l = rvbIn(MIX_DEST_A0) + rvbIn(MIX_DEST_B0);
         float out_r = rvbIn(MIX_DEST_A1) + rvbIn(MIX_DEST_B1);
 
-        *buffer++ = out_l / 3.0f;
-        *buffer++ = out_r / 3.0f;
+        *buffer++ += out_l / 3.0f;
+        *buffer++ += out_r / 3.0f;
 
         currAddr++;
         if (currAddr >= ps1buffer.size())

@@ -64,7 +64,7 @@ void Ringbuffer::Clear()
 
 size_t Ringbuffer::put(float *inData, size_t nElements)
 {
-    bool wrap = nElements > bufData.size() - freePos;
+    bool wrap = nElements >= bufData.size() - freePos;
     size_t count;
     size_t newfree;
     if (wrap) {
@@ -83,7 +83,7 @@ size_t Ringbuffer::put(float *inData, size_t nElements)
 
 size_t Ringbuffer::take(float *outData, size_t nElements)
 {
-    bool wrap = nElements > bufData.size() - dataPos;
+    bool wrap = nElements >= bufData.size() - dataPos;
     size_t count;
     size_t newdata;
     if (wrap) {

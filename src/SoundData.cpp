@@ -427,7 +427,7 @@ long SongTable::locateSongTable()
         if (validEntries) {
             // before returning, check if reference to song table exists
             rom.Seek(0x200);
-            for (long k = 0x200; k < (long)rom.Size(); k += 4) {
+            for (long k = 0x200; k < (long)rom.Size() - 3; k += 4) { // -3 due to possible alignment issues
                 long value = (long)rom.ReadUInt32() - 0x8000000;
                 if (value == location)
                     return location;

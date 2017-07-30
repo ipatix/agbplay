@@ -326,7 +326,6 @@ void TrackviewGUI::update()
         uint32_t leftBar = disp.data[i].envL / 2;
         uint32_t rightBar = disp.data[i].envR / 2;
 
-        assert(leftBar + rightBar + leftBlank + rightBlank == 32);
         printBar16(bar, 128 - leftBar);
 
         wattrset(winPtr, COLOR_PAIR(!disp.data[i].isMuted ? Color::TRK_LOUDNESS : Color::TRK_LOUDNESS_MUTED) | A_REVERSE);

@@ -162,13 +162,13 @@ size_t ReverbGS2::processInternal(float *buffer, size_t nBlocks)
             );
     bool reset = false, reset2 = false, resetgs2 = false;
 
-    if (getBlocksPerBuffer() - bufferPos2 <= count) {
+    if (getBlocksPerBuffer() - bufferPos2 == count) {
         reset2 = true;
     } 
-    if (getBlocksPerBuffer() - bufferPos <= count) {
+    if (getBlocksPerBuffer() - bufferPos == count) {
         reset = true;
     }
-    if ((gs2Buffer.size() / 2) - gs2Pos <= count) {
+    if ((gs2Buffer.size() / 2) - gs2Pos == count) {
         resetgs2 = true;
     }
 
@@ -231,8 +231,24 @@ size_t ReverbTest::processInternal(float *buffer, size_t nBlocks)
     }
     size_t c = count;
     do {
-        (void)rbuf;
-        (void)buffer;
+        const float g = 0.8f;
+        float input_l = buffer[0];
+        float input_r = buffer[1];
+
+        float feedback_l = rbuf[bufferPos * 2    ];
+        float feedback_r = rbuf[bufferPos * 2 + 1];
+
+        float new_feedback_l = input_l + g * feedback_l;
+        float new_feedback_r = input_r + g * feedback_r;
+
+        float output_l = -g * new_feedback_l + feedback_l;
+        float output_r = -g * new_feedback_r + feedback_r;
+
+        *buffer++ = output_l;
+        *buffer++ = output_r;
+
+        rbuf[bufferPos * 2    ] = -new_feedback_l;
+        rbuf[bufferPos * 2 + 1] = -new_feedback_r;
         /*
            float in_delay_1_l = rbuf[bufferPos * 2], in_delay_1_r = rbuf[bufferPos * 2 + 1];
            float in_delay_2_l = rbuf[bufferPos2 * 2], in_delay_2_r = rbuf[bufferPos2 * 2 + 1];

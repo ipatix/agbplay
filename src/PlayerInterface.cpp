@@ -103,6 +103,9 @@ void PlayerInterface::Play()
         case State::THREAD_DELETED:
             playerState = State::PLAYING;
             playerThread = new std::thread(&PlayerInterface::threadWorker, this);
+#ifdef __linux__
+            pthread_setname_np(playerThread->native_handle(), "mixer thread");
+#endif
             // start thread and play back song
             break;
     }

@@ -21,7 +21,7 @@ namespace agbplay
         public:
             SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
             ~SoundChannel();
-            void Process(float *buffer, size_t nblocks, MixingArgs& args);
+            void Process(float *buffer, size_t nblocks, const MixingArgs& args);
             uint8_t GetOwner();
             void SetVol(uint8_t vol, int8_t pan);
             uint8_t GetMidiKey();
@@ -38,6 +38,7 @@ namespace agbplay
             void updateVolFade();
             ChnVol getVol();
             void processNormal(float *buffer, size_t nblocks, ProcArgs& cargs);
+            void processFixed(float *buffer, size_t nblocks, ProcArgs& cargs);
             void processModPulse(float *buffer, size_t nblocks, ProcArgs& cargs, float nBlocksReciprocal);
             void processSaw(float *buffer, size_t nblocks, ProcArgs& cargs);
             void processTri(float *buffer, size_t nblocks, ProcArgs& cargs);

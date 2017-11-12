@@ -39,7 +39,7 @@ SoundChannel::~SoundChannel()
 {
 }
 
-void SoundChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
+void SoundChannel::Process(float *buffer, size_t nblocks, const MixingArgs& args)
 {
     stepEnvelope();
     if (GetState() == EnvState::DEAD)
@@ -75,7 +75,10 @@ void SoundChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
             processTri(buffer, nblocks, cargs);
         }
     } else {
-        processNormal(buffer, nblocks, cargs);
+        if (fixed)
+            processFixed(buffer, nblocks, cargs);
+        else
+            processNormal(buffer, nblocks, cargs);
     }
     updateVolFade();
 }
@@ -248,11 +251,49 @@ void SoundChannel::updateVolFade()
  * private SoundChannel
  */
 
-void SoundChannel::processNormal(float *buffer, size_t nblocks, ProcArgs& cargs)
-{
+void SoundChannel::processNormal(float *buffer, size_t nblocks, ProcArgs& cargs) {
     do {
         float baseSamp = float(sInfo.samplePtr[pos]) / 128.0f;
         float deltaSamp = float(sInfo.samplePtr[pos+1]) / 128.0f - baseSamp;
+        float finalSamp = baseSamp + deltaSamp * interPos;
+        // ugh, cosine interpolation sounds worse, disabled
+        /*float samp1 = float(info.samplePtr[chn.pos]) / 128.0f;
+          float samp2 = float(info.samplePtr[chn.pos + 1]) / 128.0f;
+          float amp = (samp1 - samp2) * (1.0f / 2.0f);
+          float avg = (samp1 + samp2) * (1.0f / 2.0f);
+          float finalSamp = amp * cosf(chn.interPos * (float)M_PI) + avg;*/
+
+        *buffer++ += finalSamp * cargs.lVol;
+        *buffer++ += finalSamp * cargs.rVol;
+
+        cargs.lVol += cargs.lVolStep;
+        cargs.rVol += cargs.rVolStep;
+
+        interPos += cargs.interStep;
+        uint32_t posDelta = uint32_t(interPos);
+        interPos -= float(posDelta);
+        pos += posDelta;
+        if (pos >= sInfo.endPos) {
+            if (sInfo.loopEnabled) {
+                pos = sInfo.loopPos;
+            } else {
+                Kill();
+                break;
+            }
+        }
+    } while (--nblocks > 0);
+}
+
+void SoundChannel::processFixed(float *buffer, size_t nblocks, ProcArgs& cargs) {
+    do {
+        float baseSamp = float(sInfo.samplePtr[pos]) / 128.0f;
+        float deltaSamp;
+
+        if (pos + 1 >= sInfo.endPos)
+            deltaSamp = 0.0f;
+        else
+            deltaSamp = float(sInfo.samplePtr[pos+1]) / 128.0f - baseSamp;
+
         float finalSamp = baseSamp + deltaSamp * interPos;
         // ugh, cosine interpolation sounds worse, disabled
         /*float samp1 = float(info.samplePtr[chn.pos]) / 128.0f;

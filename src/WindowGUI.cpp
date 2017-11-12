@@ -328,8 +328,8 @@ void WindowGUI::initColors()
     init_pair((int)Color::TRK_LOUDNESS_MUTED, 166, /*238*/-1);
     init_pair((int)Color::TRK_LOUD_SPLIT, -1, /*238*/-1);
 
-    init_pair((int)Color::TRK_FGB_BGCW, 232, 249);
-    init_pair((int)Color::TRK_FGC_BGCW, 198, 249);
+    init_pair((int)Color::TRK_FGB_BGCW, 232, 251);
+    init_pair((int)Color::TRK_FGC_BGCW, 198, 251);
     init_pair((int)Color::TRK_FGB_BGW, 232, 255);
     init_pair((int)Color::TRK_FGC_BGW, 198, 255);
     init_pair((int)Color::TRK_FGB_BGC, 232, 198);

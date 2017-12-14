@@ -46,19 +46,7 @@ Depenencies:
 - libsndfile
 
 Compiling:
-Install all the required dev packages and run the Makefile.
-However, because on all of my computers I had issues installing 'portaudio-dev' and I used a modified portaudio version to supress ALSA errors, you need to do the following to make things work:
-
-Clone the code repositories of agbplay and portaudio to a folder structure like this:
-
-```
-.
-├── agbplay
-└── portaudio
-```
-
-Go into the portaudio folder and execute "./configure && make" to build portaudio. 
-Now you should be able to do "make" in the agbplay folder and hopefully everything compiles correctly
+Install all the required dev packages and run the Makefile (make).
 
 The code itself is written to be cross-platform compatible. That's why I've decided to go with Boost and portaudio.
 I personally have tested it on 64 bit Cygwin (Windows) and 64 bit Debian Linux.

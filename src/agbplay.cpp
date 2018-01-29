@@ -53,7 +53,7 @@ int CheckForAppleTerminal() {
     char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
     do  {
         ret = proc_pidpath (pid, pathbuf, sizeof(pathbuf));
-        if (strncmp(pathbuf, "/Applications/Utilities/Terminal.app", 36) == 0) {
+        if (strncmp(pathbuf, "/Applications/Utilities/Terminal.app", 37) == 0) {
             return 1;
         }
         oldpid = pid;

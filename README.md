@@ -50,3 +50,7 @@ Install all the required dev packages and run the Makefile (make).
 The code itself is written to be cross-platform compatible. That's why I've decided to go with Boost and portaudio.
 I personally have tested it on 64 bit Cygwin (Windows) and 64 bit Debian Linux.
 Native Windows support with Visual Studio is NOT supported by me and I NEVER will. Getting terminal things to work on Windows with UTF-8, colors and resizing terminal just doesn't work.
+
+Contibuting:
+If you have any suggestions feel free to open up a Pull Request or just an Issue with some basic information. For issues I'm at the momentan mostly focused on fixing bugs and not really on any new features.
+Please be reminded that this was a "C++ learning project" for me and therefore the code is quite weird and probably contains a lot of "bad practices" in a few places.

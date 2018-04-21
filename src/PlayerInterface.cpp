@@ -12,6 +12,8 @@
 using namespace std;
 using namespace agbplay;
 
+#define MAX_LOOPS 1
+
 /*
  * public PlayerInterface
  */
@@ -26,7 +28,7 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
 
     sg = new StreamGenerator(seq, 
             EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 
-            1, float(speedFactor) / 64.0f, 
+            MAX_LOOPS, float(speedFactor) / 64.0f, 
             gameCfg.GetRevType());
     setupLoudnessCalcs();
     // start audio stream
@@ -72,7 +74,7 @@ void PlayerInterface::LoadSong(long songPos)
     sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), 
                 gameCfg.GetEngineRev(), 
                 gameCfg.GetEngineFreq()), 
-            1, float(speedFactor) / 64.0f, 
+            MAX_LOOPS, float(speedFactor) / 64.0f, 
             gameCfg.GetRevType());
     if (play)
         Play();
@@ -159,7 +161,7 @@ void PlayerInterface::Stop()
             delete playerThread;
             playerState = State::THREAD_DELETED;
             delete sg;
-            sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f, gameCfg.GetRevType());
+            sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), MAX_LOOPS, float(speedFactor) / 64.0f, gameCfg.GetRevType());
             break;            
         case State::THREAD_DELETED:
             // ignore this
@@ -232,7 +234,7 @@ void PlayerInterface::threadWorker()
             switch (playerState) {
                 case State::RESTART:
                     delete sg;
-                    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 1, float(speedFactor) / 64.0f, gameCfg.GetRevType());
+                    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), MAX_LOOPS, float(speedFactor) / 64.0f, gameCfg.GetRevType());
                     playerState = State::PLAYING;
                 case State::PLAYING:
                     {

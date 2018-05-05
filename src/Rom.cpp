@@ -214,7 +214,7 @@ void Rom::verify()
     // check checksum
     uint8_t checksum = (*data)[0xBD];
     int check = 0;
-    for (size_t i = 0xA0; i < 0xBC; i++) {
+    for (size_t i = 0xA0; i < 0xBD; i++) {
         check -= (*data)[i];
     }
     check = (check - 0x19) & 0xFF;

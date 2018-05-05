@@ -161,8 +161,6 @@ int SoundMixer::TickTrackNotes(uint8_t owner, bitset<NUM_NOTES>& activeNotes)
 
 void SoundMixer::StopChannel(uint8_t owner, uint8_t key)
 {
-    if (key == NOTE_ALL)
-        __print_debug("stopchannel ALL");
     for (SoundChannel& chn : sndChannels) 
     {
         if (chn.GetOwner() == owner && (

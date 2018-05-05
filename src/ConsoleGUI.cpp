@@ -15,17 +15,16 @@ using namespace std;
  */
 
 ConsoleGUI::ConsoleGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
-    : CursesWin(height, width, yPos, xPos) 
+    : CursesWin(height, width, yPos, xPos), msgQueue(32)
 {
     textWidth = width - 2;
     textHeight = height;
     update();
-    __set_debug_callback(remoteWrite, this);
+    _set_debug_callback(remoteWrite, this);
 }
 
 ConsoleGUI::~ConsoleGUI() 
 {
-    __del_debug_callback();
 }
 
 void ConsoleGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
@@ -36,15 +35,15 @@ void ConsoleGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t
     update();    
 }
 
-void ConsoleGUI::WriteLn(const string& str) 
-{
-    // shift buffer
-    static mutex write_lock;
-
-    write_lock.lock();
-    writeToBuffer(str);
-    update();
-    write_lock.unlock();
+void ConsoleGUI::Refresh() {
+    string newText;
+    bool modified = false;
+    while (msgQueue.pop(newText)) {
+        writeToBuffer(newText);
+        modified = true;
+    }
+    if (modified)
+        update();
 }
 
 /*
@@ -82,5 +81,5 @@ void ConsoleGUI::writeToBuffer(const string& str)
 void ConsoleGUI::remoteWrite(const std::string& str, void *obj)
 {
     ConsoleGUI *ui = (ConsoleGUI *)obj;
-    ui->WriteLn(str);
+    ui->msgQueue.push(str);
 }

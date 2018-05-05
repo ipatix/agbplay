@@ -231,7 +231,7 @@ bool WindowGUI::Handle()
             case EOF:
             case 4: // EOT
             case 'q':
-                conUI->WriteLn("Exiting...");
+                _print_debug("Exiting...");
                 mplay->Stop();
                 return false;
         } // end key handling switch
@@ -251,6 +251,7 @@ bool WindowGUI::Handle()
         mplay->GetMasterVolLevels(lVol, rVol);
         meterUI->SetVol(lVol, rVol);
     }
+    conUI->Refresh();
     return true;
 }
 

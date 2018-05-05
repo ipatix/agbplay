@@ -36,11 +36,11 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     //uint32_t nBlocks = sg->GetBufferUnitCount();
     uint32_t outSampleRate = sg->GetRenderSampleRate();
     if ((err = Pa_OpenDefaultStream(&audioStream, 0, N_CHANNELS, paFloat32, outSampleRate, /*nBlocks * N_CHANNELS*/0, audioCallback, (void *)&rBuf)) != paNoError) {
-        __print_debug("Pa_OpenDefaultStream: %s", Pa_GetErrorText(err));
+        _print_debug("Pa_OpenDefaultStream: %s", Pa_GetErrorText(err));
         return;
     }
     if ((err = Pa_StartStream(audioStream)) != paNoError) {
-        __print_debug("PA_StartStream: %s", Pa_GetErrorText(err));
+        _print_debug("PA_StartStream: %s", Pa_GetErrorText(err));
         return;
     }
 }
@@ -51,10 +51,10 @@ PlayerInterface::~PlayerInterface()
     Stop();
     PaError err;
     if ((err = Pa_StopStream(audioStream)) != paNoError) {
-        __print_debug("Pa_StopStream: %s", Pa_GetErrorText(err));
+        _print_debug("Pa_StopStream: %s", Pa_GetErrorText(err));
     }
     if ((err = Pa_CloseStream(audioStream)) != paNoError) {
-        __print_debug("Pa_CloseStream: %s", Pa_GetErrorText(err));
+        _print_debug("Pa_CloseStream: %s", Pa_GetErrorText(err));
     }
     delete sg;
 }
@@ -272,7 +272,7 @@ void PlayerInterface::threadWorker()
             }
         }
     } catch (exception& e) {
-        __print_vdebug("FATAL ERROR on streaming thread: %s", e.what());
+        _print_debug("FATAL ERROR on streaming thread: %s", e.what());
     }
     masterLoudness.Reset();
     for (LoudnessCalculator& c : trackLoudness)

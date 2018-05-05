@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+#include <boost/lockfree/spsc_queue.hpp>
+
 #include "CursesWin.h"
 
 namespace agbplay {
@@ -15,7 +17,7 @@ namespace agbplay {
             ~ConsoleGUI();
             void Resize(uint32_t height, uint32_t width,
                     uint32_t yPos, uint32_t xPos) override;
-            void WriteLn(const std::string& str);
+            void Refresh();
         private:
             void update() override;
             void writeToBuffer(const std::string& str);
@@ -23,5 +25,6 @@ namespace agbplay {
 
             uint32_t textWidth, textHeight;
             std::vector<std::string> textBuffer;
+            boost::lockfree::spsc_queue<std::string> msgQueue;
     };
 }

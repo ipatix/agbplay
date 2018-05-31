@@ -285,7 +285,7 @@ Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom& rom) : rom(rom)
 
     // reset runtime variables
     bpmStack = 0;
-    bpm = 120;
+    bpm = 150;
 }
 
 Sequence::~Sequence() 

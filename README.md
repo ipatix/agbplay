@@ -38,11 +38,14 @@ Todo:
 - Change to an audio library that doesn't print ANYTHING messages on stdout
 - Redo config system (perhaps in XML) to support games to share playlist (for games only differing in terms of language) and to allow multiple playlists for one game
 
-Depenencies:
-- boost
-- portaudio
-- (n)cursesw
-- libsndfile
+Depenencies (Debian Package Names):
+- libboost-all-dev
+- portaudio19-dev
+- libncursesw5-dev
+- libsndfile1-dev
+
+If you have issues installing portaudio19-dev on Debian (conflicting packages) make sure to install "libjack-jackd2-dev" before.
+The reason for this is that portaudio on Debian depends on either the old dev package for jack or the jack2 dev package. By default apt wants to install the old one which for some reason causes problems on a lot of systems.
 
 Compiling:
 Install all the required dev packages and run the Makefile (make).

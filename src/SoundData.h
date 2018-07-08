@@ -72,7 +72,7 @@ namespace agbplay
                 bool isRunning;
             }; // end Track
 
-            static const std::vector<int16_t> sineLut;
+            static const std::vector<int16_t> triLut;
             std::vector<Track> tracks;
             // processing variables
             int32_t bpmStack;

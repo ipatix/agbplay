@@ -123,20 +123,20 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
         auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + mappedInstr * 12];
         if (subInstr->type == 0x1 || subInstr->type == 0x9 || subInstr->type == 0x2 || subInstr->type == 0xA) {
             switch (subInstr->field_4.dutyCycle) {
-                case 0: def.wd = WaveDuty::D12; break;
-                case 1: def.wd = WaveDuty::D25; break;
-                case 2: def.wd = WaveDuty::D50; break;
-                case 3: def.wd = WaveDuty::D75; break;
-                default:
+            case 0: def.wd = WaveDuty::D12; break;
+            case 1: def.wd = WaveDuty::D25; break;
+            case 2: def.wd = WaveDuty::D50; break;
+            case 3: def.wd = WaveDuty::D75; break;
+            default:
                     throw Xcept("Invalid Square Wave duty cycle at 0x%07X", rom.GetPos());
             }
         } else if (subInstr->type == 0x3 || subInstr->type == 0xB) {
             def.wavePtr = &rom[rom.AGBPtrToPos(subInstr->field_4.wavePtr)];
         } else if (subInstr->type == 0x4 || subInstr->type == 0xC) {
             switch (subInstr->field_4.dutyCycle) {
-                case 0: def.np = NoisePatt::FINE; break;
-                case 1: def.np = NoisePatt::ROUGH; break;
-                default: 
+            case 0: def.np = NoisePatt::FINE; break;
+            case 1: def.np = NoisePatt::ROUGH; break;
+            default:
                     throw Xcept("Invalid Noise Pattern at 0x%07X", rom.GetPos());
             }
         } else {
@@ -146,20 +146,20 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
         auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + midiKey * 12];
         if (subInstr->type == 0x1 || subInstr->type == 0x9 || subInstr->type == 0x2 || subInstr->type == 0xA) {
             switch (subInstr->field_4.dutyCycle) {
-                case 0: def.wd = WaveDuty::D12; break;
-                case 1: def.wd = WaveDuty::D25; break;
-                case 2: def.wd = WaveDuty::D50; break;
-                case 3: def.wd = WaveDuty::D75; break;
-                default:
+            case 0: def.wd = WaveDuty::D12; break;
+            case 1: def.wd = WaveDuty::D25; break;
+            case 2: def.wd = WaveDuty::D50; break;
+            case 3: def.wd = WaveDuty::D75; break;
+            default:
                     throw Xcept("Invalid Square Wave duty cycle at 0x%07X", rom.GetPos());
             }
         } else if (subInstr->type == 0x3 || subInstr->type == 0xB) {
             def.wavePtr = &rom[rom.AGBPtrToPos(subInstr->field_4.wavePtr)];
         } else if (subInstr->type == 0x4 || subInstr->type == 0xC) {
             switch (subInstr->field_4.dutyCycle) {
-                case 0: def.np = NoisePatt::FINE; break;
-                case 1: def.np = NoisePatt::ROUGH; break;
-                default: 
+            case 0: def.np = NoisePatt::FINE; break;
+            case 1: def.np = NoisePatt::ROUGH; break;
+            default:
                     throw Xcept("Invalid Noise Pattern at 0x%07X", rom.GetPos());
             }
         } else {
@@ -168,20 +168,20 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
     } else {
         if (instr->type == 0x1 || instr->type == 0x9 || instr->type == 0x2 || instr->type == 0xA) {
             switch (instr->field_4.dutyCycle) {
-                case 0: def.wd = WaveDuty::D12; break;
-                case 1: def.wd = WaveDuty::D25; break;
-                case 2: def.wd = WaveDuty::D50; break;
-                case 3: def.wd = WaveDuty::D75; break;
-                default:
+            case 0: def.wd = WaveDuty::D12; break;
+            case 1: def.wd = WaveDuty::D25; break;
+            case 2: def.wd = WaveDuty::D50; break;
+            case 3: def.wd = WaveDuty::D75; break;
+            default:
                     throw Xcept("Invalid Square Wave duty cycle at 0x%07X", rom.GetPos());
             }
         } else if (instr->type == 0x3 || instr->type == 0xB) {
             def.wavePtr = &rom[rom.AGBPtrToPos(instr->field_4.wavePtr)];
         } else if (instr->type == 0x4 || instr->type == 0xC) {
             switch (instr->field_4.dutyCycle) {
-                case 0: def.np = NoisePatt::FINE; break;
-                case 1: def.np = NoisePatt::ROUGH; break;
-                default: 
+            case 0: def.np = NoisePatt::FINE; break;
+            case 1: def.np = NoisePatt::ROUGH; break;
+            default:
                     throw Xcept("Invalid Noise Pattern at 0x%07X", rom.GetPos());
             }
         } else {
@@ -339,40 +339,40 @@ Sequence::Track::~Track()
 {
 }
 
-const vector<int16_t> Sequence::sineLut = {
-    0, 19, 38, 56, 75, 94, 113, 131, 150, 168, 186, 205, 223, 241, 258, 276, 
-    294, 311, 328, 345, 362, 378, 394, 410, 426, 442, 457, 472, 487, 501, 515, 529, 
-    542, 555, 568, 581, 593, 605, 616, 627, 638, 648, 658, 667, 676, 685, 693, 701, 
-    709, 716, 722, 728, 734, 739, 744, 748, 752, 756, 759, 761, 763, 765, 766, 767, 
-    767, 767, 766, 765, 763, 761, 759, 756, 752, 748, 744, 739, 734, 728, 722, 716, 
-    709, 701, 693, 685, 676, 667, 658, 648, 638, 627, 616, 605, 593, 581, 568, 555, 
-    542, 529, 515, 501, 487, 472, 457, 442, 426, 410, 394, 378, 362, 345, 328, 311, 
-    294, 276, 258, 241, 223, 205, 186, 168, 150, 131, 113, 94, 75, 56, 38, 19, 
-    0, -19, -38, -56, -75, -94, -113, -131, -150, -168, -186, -205, -223, -241, -258, -276, 
-    -294, -311, -328, -345, -362, -378, -394, -410, -426, -442, -457, -472, -487, -501, -515, -529, 
-    -542, -555, -568, -581, -593, -605, -616, -627, -638, -648, -658, -667, -676, -685, -693, -701, 
-    -709, -716, -722, -728, -734, -739, -744, -748, -752, -756, -759, -761, -763, -765, -766, -767, 
-    -767, -767, -766, -765, -763, -761, -759, -756, -752, -748, -744, -739, -734, -728, -722, -716, 
-    -709, -701, -693, -685, -676, -667, -658, -648, -638, -627, -616, -605, -593, -581, -568, -555, 
-    -542, -529, -515, -501, -487, -472, -457, -442, -426, -410, -394, -378, -362, -345, -328, -311, 
-    -294, -276, -258, -241, -223, -205, -186, -168, -150, -131, -113, -94, -75, -56, -38, -19 
+const vector<int16_t> Sequence::triLut = {
+    0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 132, 144, 156, 168, 180,
+    192, 204, 216, 228, 240, 252, 264, 276, 288, 300, 312, 324, 336, 348, 360, 372,
+    384, 396, 408, 420, 432, 444, 456, 468, 480, 492, 504, 516, 528, 540, 552, 564,
+    576, 588, 600, 612, 624, 636, 648, 660, 672, 684, 696, 708, 720, 732, 744, 756,
+    768, 756, 744, 732, 720, 708, 696, 684, 672, 660, 648, 636, 624, 612, 600, 588,
+    576, 564, 552, 540, 528, 516, 504, 492, 480, 468, 456, 444, 432, 420, 408, 396,
+    384, 372, 360, 348, 336, 324, 312, 300, 288, 276, 264, 252, 240, 228, 216, 204,
+    192, 180, 168, 156, 144, 132, 120, 108, 96, 84, 72, 60, 48, 36, 24, 12,
+    0, -12, -24, -36, -48, -60, -72, -84, -96, -108, -120, -132, -144, -156, -168, -180,
+    -192, -204, -216, -228, -240, -252, -264, -276, -288, -300, -312, -324, -336, -348, -360, -372,
+    -384, -396, -408, -420, -432, -444, -456, -468, -480, -492, -504, -516, -528, -540, -552, -564,
+    -576, -588, -600, -612, -624, -636, -648, -660, -672, -684, -696, -708, -720, -732, -744, -756,
+    -768, -756, -744, -732, -720, -708, -696, -684, -672, -660, -648, -636, -624, -612, -600, -588,
+    -576, -564, -552, -540, -528, -516, -504, -492, -480, -468, -456, -444, -432, -420, -408, -396,
+    -384, -372, -360, -348, -336, -324, -312, -300, -288, -276, -264, -252, -240, -228, -216, -204,
+    -192, -180, -168, -156, -144, -132, -120, -108, -96, -84, -72, -60, -48, -36, -24, -12
 };
 
 int16_t Sequence::Track::GetPitch()
 {
-    int m = (modt == MODT::PITCH) ? (sineLut[lfoPhase] * mod) >> 8 : 0;
+    int m = (modt == MODT::PITCH) ? (triLut[lfoPhase] * mod) >> 8 : 0;
     return int16_t(bend * bendr + tune + m);
 }
 
 uint8_t Sequence::Track::GetVol()
 {
-    int m = (modt == MODT::VOL) ? (sineLut[lfoPhase] * mod * 3 * vol) >> 19 : 0;
+    int m = (modt == MODT::VOL) ? (triLut[lfoPhase] * mod * 3 * vol) >> 19 : 0;
     return uint8_t(clip(0, vol + m, 127));
 }
 
 int8_t Sequence::Track::GetPan()
 {
-    int m = (modt == MODT::PAN) ? (sineLut[lfoPhase] * mod * 3) >> 12 : 0;
+    int m = (modt == MODT::PAN) ? (triLut[lfoPhase] * mod * 3) >> 12 : 0;
     return int8_t(clip(-64, pan + m, 63));
 }
 
@@ -442,9 +442,9 @@ bool SongTable::validateTableEntry(long pos)
 {
     // check if the pointer is actually valid
     /*long debug_pos = 0x6C5BDC;
-    if (pos == debug_pos) {
-        _print_debug("Checking...");
-    }*/
+      if (pos == debug_pos) {
+      _print_debug("Checking...");
+      }*/
     rom.Seek(pos);
 
     agbptr_t songPtr = rom.ReadUInt32();
@@ -454,9 +454,9 @@ bool SongTable::validateTableEntry(long pos)
         return false;
 
     /*
-    if (pos == debug_pos) {
-        _print_debug("Passed pointer test");
-    }*/
+       if (pos == debug_pos) {
+       _print_debug("Passed pointer test");
+       }*/
     // check if the song groups are set appropriately
     rom.Seek(pos + 4);
 
@@ -469,13 +469,13 @@ bool SongTable::validateTableEntry(long pos)
         return false;
 
     /*if (pos == debug_pos) {
-        _print_debug("Passed song group and zero check");
-    }*/
+      _print_debug("Passed song group and zero check");
+      }*/
     // now check if the pointer points to a valid song
     if (!validateSong(songPtr))
         return false;
     /*if (pos == debug_pos)
-        _print_debug("Passed actual song test");*/
+      _print_debug("Passed actual song test");*/
     return true;
 }
 

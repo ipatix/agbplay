@@ -18,9 +18,9 @@ namespace agbplay
             SoundExporter(ConsoleGUI& _con, SoundData& _sd, GameConfig& _cfg, Rom& _rom, bool _benchmarkOnly, bool seperate);
             ~SoundExporter();
 
-            void Export(std::string outputDir, std::vector<SongEntry>& entries, std::vector<bool>& ticked);
+            void Export(const std::string& outputDir, std::vector<SongEntry>& entries, std::vector<bool>& ticked);
         private:
-            size_t exportSong(std::string fileName, uint16_t uid);
+            size_t exportSong(const std::string& fileName, uint16_t uid);
 
             ConsoleGUI& con;
             GameConfig& cfg;

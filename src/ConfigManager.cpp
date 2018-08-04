@@ -85,10 +85,10 @@ ConfigManager::~ConfigManager()
     }
     for (GameConfig& cfg : configs)
     {
-        configFile << FormatString("[%s]", cfg.GetGameCode().c_str()) << endl;
-        configFile << FormatString("ENG_VOL = %d", (int)cfg.GetPCMVol()) << endl;
-        configFile << FormatString("ENG_FREQ = %d", (int)cfg.GetEngineFreq()) << endl;
-        configFile << FormatString("ENG_REV = %d", (int)cfg.GetEngineRev()) << endl;
+        configFile << "[" << cfg.GetGameCode() << "]" << endl;
+        configFile << "ENG_VOL = " << static_cast<int>(cfg.GetPCMVol()) << endl;
+        configFile << "ENG_FREQ = " << static_cast<int>(cfg.GetEngineFreq()) << endl;
+        configFile << "ENG_REV = " << static_cast<int>(cfg.GetEngineRev()) << endl;
         configFile << "ENG_REV_TYPE = ";
         switch (cfg.GetRevType()) {
             case ReverbType::NORMAL:
@@ -111,11 +111,21 @@ ConfigManager::~ConfigManager()
                 break;
         }
         configFile << endl;
-        configFile << FormatString("TRACK_LIMIT = %d", (int)cfg.GetTrackLimit()) << endl;
-        for (SongEntry entr : cfg.GetGameEntries())
-        {
-            configFile << FormatString("%04d = %s", (int)entr.GetUID(), entr.name.c_str()) << endl;
+        configFile << "TRACK_LIMIT = " << static_cast<int>(cfg.GetTrackLimit()) << endl;
+
+
+        for (SongEntry entr : cfg.GetGameEntries()) {
+            char oldFill = configFile.fill('0');
+            streamsize oldWidth = configFile.width(4);
+
+            configFile << static_cast<int>(entr.GetUID());
+
+            configFile.width(oldWidth);
+            configFile.fill(oldFill);
+
+            configFile << " = " << entr.name << endl;
         }
+
     }
 }
 

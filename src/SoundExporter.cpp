@@ -4,6 +4,7 @@
 #undef BOOST_FILESYSTEM_NO_DEPRECATED
 #include <boost/algorithm/string/replace.hpp>
 #include <chrono>
+#include <climits>
 
 #include "SoundExporter.h"
 #include "Util.h"
@@ -29,7 +30,7 @@ SoundExporter::~SoundExporter()
 {
 }
 
-void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<bool>& ticked)
+void SoundExporter::Export(const string& outputDir, vector<SongEntry>& entries, vector<bool>& ticked)
 {
     if (entries.size() != ticked.size())
         throw Xcept("SoundExporter: input vectors do not match");
@@ -60,7 +61,9 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
         string fname = tEnts[i].name;
         boost::replace_all(fname, "/", "_");
         _print_debug("%3d %% - Rendering to file: \"%s\"", (i + 1) * 100 / tEnts.size(), fname);
-        size_t rblocks = exportSong(FormatString("%s/%03d - %s", outputDir, i + 1, fname), tEnts[i].GetUID());
+        char dispName[512];
+        snprintf(dispName, sizeof(dispName), "%s/%03zu - %s", outputDir.c_str(), i + 1, fname.c_str());
+        size_t rblocks = exportSong(dispName, tEnts[i].GetUID());
         totalBlocksRendered += rblocks;
     }
 
@@ -79,7 +82,7 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
  * private SoundExporter
  */
 
-size_t SoundExporter::exportSong(string fileName, uint16_t uid)
+size_t SoundExporter::exportSong(const string& fileName, uint16_t uid)
 {
     // setup our generators
     Sequence seq(sd.sTable->GetPosOfSong(uid), cfg.GetTrackLimit(), rom);
@@ -101,7 +104,9 @@ size_t SoundExporter::exportSong(string fileName, uint16_t uid)
                 oinfos[i].samplerate = STREAM_SAMPLERATE;
                 oinfos[i].channels = N_CHANNELS;
                 oinfos[i].format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
-                ofiles[i] = sf_open(FormatString("%s.%02d.wav", fileName, i).c_str(), SFM_WRITE, &oinfos[i]);
+                char outName[PATH_MAX];
+                snprintf(outName, sizeof(outName), "%s.%02zu.wav", fileName.c_str(), i);
+                ofiles[i] = sf_open(outName, SFM_WRITE, &oinfos[i]);
                 if (ofiles[i] == NULL)
                     _print_debug("Error: %s", sf_strerror(NULL));
             }

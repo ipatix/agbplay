@@ -617,7 +617,7 @@ void WindowGUI::rename()
     curs_set(1);
     if (renWin == nullptr)
         throw Xcept("Error creating renaming window");
-    wattrset(renWin, COLOR_PAIR(Color::DEF_DEF) | A_REVERSE);
+    wattrset(renWin, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)) | A_REVERSE);
     mvwhline(renWin, 0, 0, ' ', renWidth);
     // pls no unicode in title or size() below requires fix
     string title = "New Name";
@@ -640,11 +640,11 @@ void WindowGUI::rename()
     line.append("\u2510 ");
     mvwprintw(renWin, 1, 0, "%s", line.c_str());
     mvwprintw(renWin, 2, 0, " \u2502 ");
-    wattrset(renWin, COLOR_PAIR(Color::DEF_DEF));
+    wattrset(renWin, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
     line = "";
     line.resize(renWidth - 6, ' ');
     wprintw(renWin, "%s", line.c_str());
-    wattrset(renWin, COLOR_PAIR(Color::DEF_DEF) | A_REVERSE);
+    wattrset(renWin, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)) | A_REVERSE);
     wprintw(renWin, " \u2502 ");
     line = " \u2514";
     for (int i = 0; i < renWidth - 4; i++)
@@ -658,7 +658,7 @@ void WindowGUI::rename()
     mvwprintw(renWin, 4, 0, "%s", line.c_str());
 
     // finished drawing windows, now read the user input
-    wattrset(renWin, COLOR_PAIR(Color::DEF_DEF));
+    wattrset(renWin, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
     char inputBuf[renWidth - 6];
     echo();
     if (mvwgetnstr(renWin, 2, 3, inputBuf, sizeof(inputBuf) - 1) != ERR) {

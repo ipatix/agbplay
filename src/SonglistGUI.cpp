@@ -141,13 +141,13 @@ void SonglistGUI::scrollUpNoUpdate()
 
 void SonglistGUI::update() 
 {
-    wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME) | A_REVERSE);
+    wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::WINDOW_FRAME)) | A_REVERSE);
     mvwprintw(winPtr, 0, 0, "%-*.*s", contentWidth, contentWidth, "Songlist:");
     for (uint32_t i = 0; i < contentHeight; i++) {
         if (i + viewPos == cursorPos && cursorVisible)
-            wattrset(winPtr, COLOR_PAIR(Color::LIST_ENTRY) | A_REVERSE);
+            wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::LIST_ENTRY)) | A_REVERSE);
         else
-            wattrset(winPtr, COLOR_PAIR(Color::LIST_ENTRY));
+            wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::LIST_ENTRY)));
         // generate list of songs
         if (i + viewPos < songlist->size()) {
             mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, "%-*.*s", 

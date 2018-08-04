@@ -65,7 +65,7 @@ void VUMeterGUI::update()
     }
     CStrAppend(line, &currentLinePos, "\u2513");
     line[currentLinePos] = '\0';
-    wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME));
+    wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::WINDOW_FRAME)));
     mvwprintw(winPtr, 0, 0, "%s", line);
 
     // FIRST BAR
@@ -82,7 +82,7 @@ void VUMeterGUI::update()
         }
     }
     line[currentLinePos] = '\0';
-    wattrset(winPtr, COLOR_PAIR(Color::VU_LOW));
+    wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::VU_LOW)));
     wprintw(winPtr, "%s", line);
 
     currentLinePos = 0;
@@ -94,7 +94,7 @@ void VUMeterGUI::update()
         }
     }
     line[currentLinePos] = '\0';
-    wattrset(winPtr, COLOR_PAIR(Color::VU_MID));
+    wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::VU_MID)));
     wprintw(winPtr, "%s", line);
 
     currentLinePos = 0;
@@ -106,10 +106,10 @@ void VUMeterGUI::update()
         }
     }
     line[currentLinePos] = '\0';
-    wattrset(winPtr, COLOR_PAIR(Color::VU_HIGH));
+    wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::VU_HIGH)));
     wprintw(winPtr, "%s", line);
 
-    wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME));
+    wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::WINDOW_FRAME)));
     wprintw(winPtr, "\u2503");
 
     // MIDDLE BORDER
@@ -125,7 +125,7 @@ void VUMeterGUI::update()
     // SECOND BAR
     float rightLevel = vuLevelRight * levelFactor;
     int bRightLevel = int(rightLevel);
-    wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME));
+    wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::WINDOW_FRAME)));
     mvwprintw(winPtr, 3, 0, "\u2503");
 
     currentLinePos = 0;
@@ -137,7 +137,7 @@ void VUMeterGUI::update()
         }
     }
     line[currentLinePos] = '\0';
-    wattrset(winPtr, COLOR_PAIR(Color::VU_LOW));
+    wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::VU_LOW)));
     wprintw(winPtr, "%s", line);
 
     currentLinePos = 0;
@@ -149,7 +149,7 @@ void VUMeterGUI::update()
         }
     }
     line[currentLinePos] = '\0';
-    wattrset(winPtr, COLOR_PAIR(Color::VU_MID));
+    wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::VU_MID)));
     wprintw(winPtr, "%s", line);
 
     currentLinePos = 0;
@@ -161,10 +161,10 @@ void VUMeterGUI::update()
         }
     }
     line[currentLinePos] = '\0';
-    wattrset(winPtr, COLOR_PAIR(Color::VU_HIGH));
+    wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::VU_HIGH)));
     wprintw(winPtr, "%s", line);
 
-    wattrset(winPtr, COLOR_PAIR(Color::WINDOW_FRAME));
+    wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::WINDOW_FRAME)));
     wprintw(winPtr, "\u2503");
 
     // BOTTOM BORDER

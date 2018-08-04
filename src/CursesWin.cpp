@@ -37,6 +37,6 @@ void CursesWin::Resize(uint32_t height, uint32_t width,
 }
 
 void CursesWin::update() {
-    wattrset(winPtr, COLOR_PAIR(Color::DEF_DEF));
+    wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
     wclear(winPtr);
 }

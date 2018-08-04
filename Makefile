@@ -3,6 +3,8 @@ CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -D NDEBUG -O
 #CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -Og -g
 BINARY = agbplay
 LIBS = -lncursesw -lboost_system -lboost_filesystem -lsndfile -lportaudio
+# Use this macro if you have linker errors with ncursesw
+# LIBS = -lncurses -lboost_system -lboost_filesystem -lsndfile -lportaudio
 
 GREEN = \033[1;32m
 RED = \033[1;31m

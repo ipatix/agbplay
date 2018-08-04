@@ -59,13 +59,13 @@ void TitlebarGUI::update()
     {
         // print upper padding
         if (i < upperPadding || i > height - upperPadding) {
-            wattrset(winPtr, COLOR_PAIR(Color::BANNER_TEXT));
+            wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::BANNER_TEXT)));
             mvwhline(winPtr, (int)i, 0, ' ', width);
         } else {
             uint32_t leftPadding = (uint32_t)((width - bannerText[i - upperPadding].size()) / 2);
             uint32_t rightPadding = (uint32_t)((width - bannerText[i - upperPadding].size()) / 2 +
                     ((width - bannerText[i - upperPadding].size()) % 2));
-            wattrset(winPtr, COLOR_PAIR(Color::BANNER_TEXT));
+            wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::BANNER_TEXT)));
             mvwprintw(winPtr, (int)i, 0, "%*s%s%*s", leftPadding, "", bannerText[i - upperPadding].c_str(), rightPadding, "");
         }
     }

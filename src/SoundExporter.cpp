@@ -59,7 +59,7 @@ void SoundExporter::Export(string outputDir, vector<SongEntry>& entries, vector<
     {
         string fname = tEnts[i].name;
         boost::replace_all(fname, "/", "_");
-        _print_debug("%3d %% - Rendering to file: \"%s\"", (i + 1) * 100 / tEnts.size(), fname);
+        _print_debug("%3d %% - Rendering to file: \"%s\"", (i + 1) * 100 / tEnts.size(), fname.c_str());
         size_t rblocks = exportSong(FormatString("%s/%03d - %s", outputDir, i + 1, fname), tEnts[i].GetUID());
         totalBlocksRendered += rblocks;
     }

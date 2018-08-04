@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -D NDEBUG -O3 -g -D_GLIBCXX_USE_C99=1 -D_BSD_SOURCE
 #CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -Og -g -D_GLIBCXX_USE_C99=1 -D_BSD_SOURCE
 BINARY = agbplay
-LIBS = -lm -lncursesw -lboost_system -lboost_thread -lboost_filesystem -pthread -lsndfile -lportaudio
+LIBS = -lm -lncurses -lboost_system -lboost_thread-mt -lboost_filesystem -pthread -lsndfile -lportaudio
 
 GREEN = \033[1;32m
 RED = \033[1;31m

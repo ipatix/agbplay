@@ -55,9 +55,9 @@ const map<uint8_t, int8_t> StreamGenerator::noteLut = {
     {0xF8,76}, {0xF9,78}, {0xFA,80}, {0xFB,84}, {0xFC,88}, {0xFD,90}, {0xFE,92}, {0xFF,96}
 };
 
-StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype) 
-: seq(seq), sbnk(seq.GetRom(), seq.GetSndBnk()), 
-    sm(STREAM_SAMPLERATE, freqLut[clip<uint8_t>(0, uint8_t(ep.freq-1), 11)], 
+StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype)
+: seq(seq), sbnk(seq.GetRom(), seq.GetSndBnk()),
+    sm(STREAM_SAMPLERATE, freqLut[clip<uint8_t>(0, uint8_t(ep.freq-1), 11)],
             (ep.rev >= 0x80) ? ep.rev & 0x7F : seq.GetReverb() & 0x7F,
             float(ep.vol + 1) / 16.0f,
             rtype, (uint8_t)seq.tracks.size())
@@ -132,7 +132,7 @@ void StreamGenerator::processSequenceTick()
             continue;
 
         isSongRunning = true;
-        
+
         if (sm.TickTrackNotes(uint8_t(ntrk), cTrk.activeNotes) > 0) {
             if (cTrk.lfodlCount > 0) {
                 cTrk.lfodlCount--;
@@ -157,7 +157,7 @@ void StreamGenerator::processSequenceTick()
                         case LEvent::VOICE:
                             cTrk.prog = cmd;
                             break;
-                        case LEvent::VOL:    
+                        case LEvent::VOL:
                             cTrk.vol = cmd;
                             updatePV = true;
                             break;
@@ -181,7 +181,7 @@ void StreamGenerator::processSequenceTick()
                             cTrk.tune = int8_t(cmd - 0x40);
                             updatePV = true;
                             break;
-                        case LEvent::XCMD: 
+                        case LEvent::XCMD:
                             {
                                 uint8_t arg = reader[cTrk.pos++];
                                 if (cmd == 0x8) {
@@ -197,7 +197,7 @@ void StreamGenerator::processSequenceTick()
                                 // if velocity parameter provided
                                 if (reader[cTrk.pos] < 128) {
                                     // if gate parameter provided
-                                    if (reader[cTrk.pos+1] < 128) {
+                                    if (reader[cTrk.pos+1] <= 3 && reader[cTrk.pos+1] >= 1) {
                                         uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
                                         int8_t len = int8_t(cTrk.lastNoteLen + reader[cTrk.pos++]);
                                         playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
@@ -230,7 +230,7 @@ void StreamGenerator::processSequenceTick()
                                 cTrk.lastNoteKey = key;
                             }
                             break;
-                        default: 
+                        default:
                             throw Xcept("Invalid Last Event");
                     } // end repeat command switch
                 } else if (cmd == 0x80) {
@@ -243,6 +243,7 @@ void StreamGenerator::processSequenceTick()
                     // non note commands
                     switch (cmd) {
                         case 0xB1:
+                        case 0xB6:
                             // FINE, end of track
                             cTrk.isRunning = false;
                             sm.StopChannel(uint8_t(ntrk), NOTE_ALL);
@@ -421,7 +422,7 @@ void StreamGenerator::processSequenceTick()
                         // is note volocity parameter provided?
                         if (reader[cTrk.pos+1] < 128) {
                             // is gate time parameter provided?
-                            if (reader[cTrk.pos+2] < 128) {
+                            if (reader[cTrk.pos+2] <= 3 && reader[cTrk.pos+2] >= 1) {
                                 // add gate time
                                 uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(reader[cTrk.pos++]));
                                 uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
@@ -446,7 +447,7 @@ void StreamGenerator::processSequenceTick()
             } // end of processing loop
         } // end of single tick processing handler
         if (updatePV || cTrk.mod > 0) {
-            sm.SetTrackPV(uint8_t(ntrk), 
+            sm.SetTrackPV(uint8_t(ntrk),
                     cTrk.GetVol(),
                     cTrk.GetPan(),
                     cTrk.pitch = cTrk.GetPitch());
@@ -499,29 +500,29 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, uint8_t owner)
             break;
         case InstrType::SQ1:
             sm.NewCGBNote(
-                    owner, 
+                    owner,
                     sbnk.GetCGBDef(trk.prog, oldKey),
                     sbnk.GetADSR(trk.prog, oldKey),
-                    note, 
-                    trk.GetVol(), 
-                    trk.GetPan(), 
-                    trk.GetPitch(), 
+                    note,
+                    trk.GetVol(),
+                    trk.GetPan(),
+                    trk.GetPitch(),
                     CGBType::SQ1);
             break;
         case InstrType::SQ2:
             sm.NewCGBNote(
-                    owner, 
+                    owner,
                     sbnk.GetCGBDef(trk.prog, oldKey),
                     sbnk.GetADSR(trk.prog, oldKey),
-                    note, 
-                    trk.GetVol(), 
-                    trk.GetPan(), 
-                    trk.GetPitch(), 
+                    note,
+                    trk.GetVol(),
+                    trk.GetPan(),
+                    trk.GetPitch(),
                     CGBType::SQ2);
             break;
         case InstrType::WAVE:
             sm.NewCGBNote(
-                    owner, 
+                    owner,
                     sbnk.GetCGBDef(trk.prog, oldKey),
                     sbnk.GetADSR(trk.prog, oldKey),
                     note,
@@ -532,13 +533,13 @@ void StreamGenerator::playNote(Sequence::Track& trk, Note note, uint8_t owner)
             break;
         case InstrType::NOISE:
             sm.NewCGBNote(
-                    owner, 
+                    owner,
                     sbnk.GetCGBDef(trk.prog, oldKey),
                     sbnk.GetADSR(trk.prog, oldKey),
-                    note, 
+                    note,
                     trk.GetVol(),
                     trk.GetPan(),
-                    trk.GetPitch(), 
+                    trk.GetPitch(),
                     CGBType::NOISE);
             break;
         case InstrType::INVALID:

@@ -57,7 +57,7 @@ const map<uint8_t, int8_t> StreamGenerator::noteLut = {
 
 StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype)
 : seq(seq), sbnk(seq.GetRom(), seq.GetSndBnk()),
-    sm(freqLut[clip<uint8_t>(0, uint8_t(ep.freq-1), 11)], 10548,
+    sm(STREAM_SAMPLERATE, freqLut[clip<uint8_t>(0, uint8_t(ep.freq-1), 11)],
             (ep.rev >= 0x80) ? ep.rev & 0x7F : seq.GetReverb() & 0x7F,
             float(ep.vol + 1) / 16.0f,
             rtype, (uint8_t)seq.tracks.size())
@@ -243,6 +243,7 @@ void StreamGenerator::processSequenceTick()
                     // non note commands
                     switch (cmd) {
                         case 0xB1:
+                        case 0xB6:
                             // FINE, end of track
                             cTrk.isRunning = false;
                             sm.StopChannel(uint8_t(ntrk), NOTE_ALL);

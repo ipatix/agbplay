@@ -126,8 +126,9 @@ void StreamGenerator::processSequenceTick()
     Rom& reader = seq.GetRom();
     // process all tracks
     bool isSongRunning = false;
-    int ntrk = 0;
+    int ntrk = -1;
     for (Sequence::Track& cTrk : seq.tracks) {
+        ntrk += 1;
         if (!cTrk.isRunning)
             continue;
 
@@ -453,7 +454,6 @@ void StreamGenerator::processSequenceTick()
         } else {
             cTrk.pitch = cTrk.GetPitch();
         }
-        ntrk++;
     } // end of track iteration
     if (!isSongRunning && !isEnding) {
         sm.FadeOut(SONG_FINISH_TIME);

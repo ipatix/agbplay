@@ -54,7 +54,7 @@ void Ringbuffer::Take(float *outData, size_t nElements)
 
 void Ringbuffer::Clear()
 {
-    unique_lock<mutex>(countLock);
+    unique_lock<mutex> lock(countLock);
     fill(bufData.begin(), bufData.end(), 0.0f);
 }
 

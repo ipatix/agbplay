@@ -2,8 +2,10 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <memory>
 
 #include "Types.h"
+#include "Resampler.h"
 
 namespace agbplay
 {
@@ -38,10 +40,11 @@ namespace agbplay
             void updateVolFade();
             ChnVol getVol();
             void processNormal(float *buffer, size_t nblocks, ProcArgs& cargs);
-            void processFixed(float *buffer, size_t nblocks, ProcArgs& cargs);
             void processModPulse(float *buffer, size_t nblocks, ProcArgs& cargs, float nBlocksReciprocal);
             void processSaw(float *buffer, size_t nblocks, ProcArgs& cargs);
             void processTri(float *buffer, size_t nblocks, ProcArgs& cargs);
+            static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
+            std::unique_ptr<Resampler> rs;
             uint32_t pos;
             float interPos;
             float freq;

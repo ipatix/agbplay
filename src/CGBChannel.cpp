@@ -16,7 +16,6 @@ using namespace agbplay;
 
 CGBChannel::CGBChannel()
 {
-    this->interPos = 0.0f;
     this->pos = 0;
     this->owner = INVALID_OWNER;
     this->envInterStep = 0;
@@ -332,6 +331,8 @@ void SquareChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
     stepEnvelope();
     if (eState == EnvState::DEAD)
         return;
+    if (nblocks == 0)
+        return;
 
     ChnVol vol = getVol();
     assert(pat);
@@ -342,21 +343,37 @@ void SquareChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
     float interStep = freq * args.sampleRateReciprocal;
 
     // TODO add sweep functionality
-    do {
-        float samp = pat[pos];
 
+    float outBuffer[nblocks];
+
+    rs.Process(outBuffer, nblocks, interStep, sampleFetchCallback, this);
+
+    size_t i = 0;
+    do {
+        float samp = outBuffer[i++];
         *buffer++ += samp * lVol;
         *buffer++ += samp * rVol;
-
         lVol += lVolStep;
         rVol += rVolStep;
-
-        interPos += interStep;
-        uint32_t posDelta = uint32_t(interPos);
-        interPos -= float(posDelta);
-        pos = (pos + posDelta) & 0x7;
     } while (--nblocks > 0);
+
     updateVolFade();
+}
+
+bool SquareChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
+{
+    if (fetchBuffer.size() >= samplesRequired)
+        return true;
+    SquareChannel *_this = static_cast<SquareChannel *>(cbdata);
+    size_t samplesToFetch = samplesRequired - fetchBuffer.size();
+    size_t i = fetchBuffer.size();
+    fetchBuffer.resize(samplesRequired);
+
+    do {
+        fetchBuffer[i++] = _this->pat[_this->pos++];
+        _this->pos %= 8;
+    } while (--samplesToFetch > 0);
+    return true;
 }
 
 /*
@@ -406,6 +423,7 @@ void WaveChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
 
 void WaveChannel::SetPitch(int16_t pitch)
 {
+    // 7040 = 440 * 16
     freq = 7040.0f * powf(2.0f, float(note.midiKey - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
@@ -414,6 +432,8 @@ void WaveChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
     stepEnvelope();
     if (eState == EnvState::DEAD)
         return;
+    if (nblocks == 0)
+        return;
     ChnVol vol = getVol();
     float lVolStep = (vol.toVolLeft - vol.fromVolLeft) * args.nBlocksReciprocal;
     float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.nBlocksReciprocal;
@@ -421,19 +441,36 @@ void WaveChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
     float rVol = vol.fromVolRight;
     float interStep = freq * args.sampleRateReciprocal;
 
+    float outBuffer[nblocks];
+
+    rs.Process(outBuffer, nblocks, interStep, sampleFetchCallback, this);
+
+    size_t i = 0;
     do {
-        float samp = waveBuffer[pos];
+        float samp = outBuffer[i++];
         *buffer++ += samp * lVol;
         *buffer++ += samp * rVol;
         lVol += lVolStep;
         rVol += rVolStep;
-        interPos += interStep;
-        uint32_t posDelta = uint32_t(interPos);
-        interPos -= float(posDelta);
-        pos = (pos + posDelta) & 0x1F;
     } while (--nblocks > 0);
 
     updateVolFade();
+}
+
+bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
+{
+    if (fetchBuffer.size() >= samplesRequired)
+        return true;
+    WaveChannel *_this = static_cast<WaveChannel *>(cbdata);
+    size_t samplesToFetch = samplesRequired - fetchBuffer.size();
+    size_t i = fetchBuffer.size();
+    fetchBuffer.resize(samplesRequired);
+
+    do {
+        fetchBuffer[i++] = _this->waveBuffer[_this->pos++];
+        _this->pos %= 32;
+    } while (--samplesToFetch > 0);
+    return true;
 }
 
 /*
@@ -480,34 +517,41 @@ void NoiseChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
     float rVol = vol.fromVolRight;
     float interStep = freq * args.sampleRateReciprocal;
 
-    switch (def.np)
-    {
-        case NoisePatt::FINE:
-            do {
-                float samp = CGBPatterns::pat_noise_fine[pos] - 0.5f;
-                *buffer++ += samp * lVol;
-                *buffer++ += samp * rVol;
-                lVol += lVolStep;
-                rVol += rVolStep;
-                interPos += interStep;
-                uint32_t posDelta = uint32_t(interPos);
-                interPos -= float(posDelta);
-                pos = (pos + posDelta) & (NOISE_FINE_LEN-1);
-            } while (--nblocks > 0);
-            break;
-        case NoisePatt::ROUGH:
-            do {
-                float samp = CGBPatterns::pat_noise_rough[pos] - 0.5f;
-                *buffer++ += samp * lVol;
-                *buffer++ += samp * rVol;
-                lVol += lVolStep;
-                rVol += rVolStep;
-                interPos += interStep;
-                uint32_t posDelta = uint32_t(interPos);
-                interPos -= float(posDelta);
-                pos = (pos + posDelta) & (NOISE_ROUGH_LEN-1);
-            } while (--nblocks > 0);
-    }
+    float outBuffer[nblocks];
+
+    rs.Process(outBuffer, nblocks, interStep, sampleFetchCallback, this);
+
+    size_t i = 0;
+    do {
+        float samp = outBuffer[i++];
+        *buffer++ += samp * lVol;
+        *buffer++ += samp * rVol;
+        lVol += lVolStep;
+        rVol += rVolStep;
+    } while (--nblocks > 0);
 
     updateVolFade();
+}
+
+bool NoiseChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
+{
+    if (fetchBuffer.size() >= samplesRequired)
+        return true;
+    NoiseChannel *_this = static_cast<NoiseChannel *>(cbdata);
+    size_t samplesToFetch = samplesRequired - fetchBuffer.size();
+    size_t i = fetchBuffer.size();
+    fetchBuffer.resize(samplesRequired);
+
+    if (_this->def.np == NoisePatt::FINE) {
+        do {
+            fetchBuffer[i++] = CGBPatterns::pat_noise_fine[_this->pos++] - 0.5f;
+            _this->pos %= NOISE_FINE_LEN;
+        } while (--samplesToFetch > 0);
+    } else if (_this->def.np == NoisePatt::ROUGH) {
+        do {
+            fetchBuffer[i++] = CGBPatterns::pat_noise_rough[_this->pos++] - 0.5f;
+            _this->pos %= NOISE_ROUGH_LEN;
+        } while (--samplesToFetch > 0);
+    }
+    return true;
 }

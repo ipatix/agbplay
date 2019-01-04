@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -D NDEBUG -O3 -g
-#CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -Og -g
+#CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++0x -Og -g -fsanitize=address
 BINARY = agbplay
 LIBS = -lm -lncursesw -pthread -lboost_system -lboost_filesystem -lsndfile -lportaudio
 # Use this macro if you have linker errors with ncursesw

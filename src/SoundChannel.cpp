@@ -1,13 +1,13 @@
 #include <cmath>
 #include <cassert>
 #include <string>
+#include <algorithm>
 
 #include "Debug.h"
 #include "SoundChannel.h"
 #include "Util.h"
 #include "Xcept.h"
 
-using namespace std;
 using namespace agbplay;
 
 /*
@@ -20,11 +20,16 @@ SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note,
     this->note = note;
     this->env = env;
     this->sInfo = sInfo;
-    this->interPos = 0.0f;
     this->eState = EnvState::INIT;
     this->envInterStep = 0;
     SetVol(vol, pan);
     this->fixed = fixed;
+    // TODO g++ (Debian 8.2.0-13) will say for make_unique that memory is not included???
+    if (fixed)
+        this->rs = std::unique_ptr<Resampler>(new NearestResampler());
+    else
+        this->rs = std::unique_ptr<Resampler>(new LinearResampler());
+    this->interPos = 0.0f;
     SetPitch(pitch);
     // if instant attack is ative directly max out the envelope to not cut off initial sound
     this->pos = 0;
@@ -43,6 +48,8 @@ void SoundChannel::Process(float *buffer, size_t nblocks, const MixingArgs& args
 {
     stepEnvelope();
     if (GetState() == EnvState::DEAD)
+        return;
+    if (nblocks == 0)
         return;
 
     float nBlocksReciprocal = 1.f / float(nblocks);
@@ -75,10 +82,7 @@ void SoundChannel::Process(float *buffer, size_t nblocks, const MixingArgs& args
             processTri(buffer, nblocks, cargs);
         }
     } else {
-        if (fixed)
-            processFixed(buffer, nblocks, cargs);
-        else
-            processNormal(buffer, nblocks, cargs);
+        processNormal(buffer, nblocks, cargs);
     }
     updateVolFade();
 }
@@ -173,71 +177,71 @@ uint8_t SoundChannel::GetInterStep()
 void SoundChannel::stepEnvelope()
 {
     switch (eState) {
-        case EnvState::INIT:
-            fromLeftVol = leftVol;
-            fromRightVol = rightVol;
-            if (env.att == 0xFF) {
-                fromEnvLevel = 0xFF;
-            } else {
-                fromEnvLevel = 0x0;
-            }
-            envLevel = env.att;
+    case EnvState::INIT:
+        fromLeftVol = leftVol;
+        fromRightVol = rightVol;
+        if (env.att == 0xFF) {
+            fromEnvLevel = 0xFF;
+        } else {
+            fromEnvLevel = 0x0;
+        }
+        envLevel = env.att;
+        envInterStep = 0;
+        eState = EnvState::ATK;
+        break;
+    case EnvState::ATK:
+        if (++envInterStep >= INTERFRAMES) {
+            fromEnvLevel = envLevel;
             envInterStep = 0;
-            eState = EnvState::ATK;
-            break;
-        case EnvState::ATK:
-            if (++envInterStep >= INTERFRAMES) {
-                fromEnvLevel = envLevel;
-                envInterStep = 0;
-                int newLevel = envLevel + env.att;
-                if (newLevel >= 0xFF) {
-                    eState = EnvState::DEC;
-                    envLevel = 0xFF;
-                } else {
-                    envLevel = uint8_t(newLevel);
-                }
+            int newLevel = envLevel + env.att;
+            if (newLevel >= 0xFF) {
+                eState = EnvState::DEC;
+                envLevel = 0xFF;
+            } else {
+                envLevel = uint8_t(newLevel);
             }
-            break;
-        case EnvState::DEC:
-            if (++envInterStep >= INTERFRAMES) {
-                fromEnvLevel = envLevel;
-                envInterStep = 0;
-                int newLevel = (envLevel * env.dec) >> 8;
-                if (newLevel <= env.sus) {
-                    eState = EnvState::SUS;
-                    envLevel = env.sus;
-                } else {
-                    envLevel = uint8_t(newLevel);
-                }
+        }
+        break;
+    case EnvState::DEC:
+        if (++envInterStep >= INTERFRAMES) {
+            fromEnvLevel = envLevel;
+            envInterStep = 0;
+            int newLevel = (envLevel * env.dec) >> 8;
+            if (newLevel <= env.sus) {
+                eState = EnvState::SUS;
+                envLevel = env.sus;
+            } else {
+                envLevel = uint8_t(newLevel);
             }
-            break;
-        case EnvState::SUS:
-            if (++envInterStep >= INTERFRAMES) {
-                fromEnvLevel = envLevel;
-                envInterStep = 0;
+        }
+        break;
+    case EnvState::SUS:
+        if (++envInterStep >= INTERFRAMES) {
+            fromEnvLevel = envLevel;
+            envInterStep = 0;
+        }
+        break;
+    case EnvState::REL:
+        if (++envInterStep >= INTERFRAMES) {
+            fromEnvLevel = envLevel;
+            envInterStep = 0;
+            int newLevel = (envLevel * env.rel) >> 8;
+            if (newLevel <= 0) {
+                eState = EnvState::DIE;
+                envLevel = 0;
+            } else {
+                envLevel = uint8_t(newLevel);
             }
-            break;
-        case EnvState::REL:
-            if (++envInterStep >= INTERFRAMES) {
-                fromEnvLevel = envLevel;
-                envInterStep = 0;
-                int newLevel = (envLevel * env.rel) >> 8;
-                if (newLevel <= 0) {
-                    eState = EnvState::DIE;
-                    envLevel = 0;
-                } else {
-                    envLevel = uint8_t(newLevel);
-                }
-            }
-            break;
-        case EnvState::DIE:
-            if (++envInterStep >= INTERFRAMES) {
-                fromEnvLevel = envLevel;
-                eState = EnvState::DEAD;
-            }
-            break;
-        case EnvState::DEAD:
-            break;
+        }
+        break;
+    case EnvState::DIE:
+        if (++envInterStep >= INTERFRAMES) {
+            fromEnvLevel = envLevel;
+            eState = EnvState::DEAD;
+        }
+        break;
+    case EnvState::DEAD:
+        break;
     }
 }
 
@@ -252,75 +256,23 @@ void SoundChannel::updateVolFade()
  */
 
 void SoundChannel::processNormal(float *buffer, size_t nblocks, ProcArgs& cargs) {
+    if (nblocks == 0)
+        return;
+    float outBuffer[nblocks];
+
+    bool running = rs->Process(outBuffer, nblocks, cargs.interStep, sampleFetchCallback, this);
+
+    size_t i = 0;
     do {
-        float baseSamp = float(sInfo.samplePtr[pos]) / 128.0f;
-        float deltaSamp = float(sInfo.samplePtr[pos+1]) / 128.0f - baseSamp;
-        float finalSamp = baseSamp + deltaSamp * interPos;
-        // ugh, cosine interpolation sounds worse, disabled
-        /*float samp1 = float(info.samplePtr[chn.pos]) / 128.0f;
-          float samp2 = float(info.samplePtr[chn.pos + 1]) / 128.0f;
-          float amp = (samp1 - samp2) * (1.0f / 2.0f);
-          float avg = (samp1 + samp2) * (1.0f / 2.0f);
-          float finalSamp = amp * cosf(chn.interPos * (float)M_PI) + avg;*/
+        float samp = outBuffer[i++];
 
-        *buffer++ += finalSamp * cargs.lVol;
-        *buffer++ += finalSamp * cargs.rVol;
-
+        *buffer++ += samp * cargs.lVol;
+        *buffer++ += samp * cargs.rVol;
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
-
-        interPos += cargs.interStep;
-        uint32_t posDelta = uint32_t(interPos);
-        interPos -= float(posDelta);
-        pos += posDelta;
-        if (pos >= sInfo.endPos) {
-            if (sInfo.loopEnabled) {
-                pos = sInfo.loopPos;
-            } else {
-                Kill();
-                break;
-            }
-        }
     } while (--nblocks > 0);
-}
-
-void SoundChannel::processFixed(float *buffer, size_t nblocks, ProcArgs& cargs) {
-    do {
-        float baseSamp = float(sInfo.samplePtr[pos]) / 128.0f;
-        float deltaSamp;
-
-        if (pos + 1 >= sInfo.endPos)
-            deltaSamp = 0.0f;
-        else
-            deltaSamp = float(sInfo.samplePtr[pos+1]) / 128.0f - baseSamp;
-
-        float finalSamp = baseSamp + deltaSamp * interPos;
-        // ugh, cosine interpolation sounds worse, disabled
-        /*float samp1 = float(info.samplePtr[chn.pos]) / 128.0f;
-          float samp2 = float(info.samplePtr[chn.pos + 1]) / 128.0f;
-          float amp = (samp1 - samp2) * (1.0f / 2.0f);
-          float avg = (samp1 + samp2) * (1.0f / 2.0f);
-          float finalSamp = amp * cosf(chn.interPos * (float)M_PI) + avg;*/
-
-        *buffer++ += finalSamp * cargs.lVol;
-        *buffer++ += finalSamp * cargs.rVol;
-
-        cargs.lVol += cargs.lVolStep;
-        cargs.rVol += cargs.rVolStep;
-
-        interPos += cargs.interStep;
-        uint32_t posDelta = uint32_t(interPos);
-        interPos -= float(posDelta);
-        pos += posDelta;
-        if (pos >= sInfo.endPos) {
-            if (sInfo.loopEnabled) {
-                pos = sInfo.loopPos;
-            } else {
-                Kill();
-                break;
-            }
-        }
-    } while (--nblocks > 0);
+    if (!running)
+        Kill();
 }
 
 void SoundChannel::processModPulse(float *buffer, size_t nblocks, ProcArgs& cargs, float nBlocksReciprocal)
@@ -419,4 +371,34 @@ void SoundChannel::processTri(float *buffer, size_t nblocks, ProcArgs& cargs)
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
     } while (--nblocks > 0);
+}
+
+bool SoundChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
+{
+    if (fetchBuffer.size() >= samplesRequired)
+        return true;
+    SoundChannel *_this = static_cast<SoundChannel *>(cbdata);
+    size_t samplesToFetch = samplesRequired - fetchBuffer.size();
+    size_t i = fetchBuffer.size();
+    fetchBuffer.resize(samplesRequired);
+
+    do {
+        size_t samplesTilLoop = _this->sInfo.endPos - _this->pos;
+        size_t thisFetch = std::min(samplesTilLoop, samplesToFetch);
+
+        samplesToFetch -= thisFetch;
+        do {
+            fetchBuffer[i++] = float(_this->sInfo.samplePtr[_this->pos++]) / 128.0f;
+        } while (--thisFetch > 0);
+
+        if (_this->pos >= _this->sInfo.endPos) {
+            if (_this->sInfo.loopEnabled) {
+                _this->pos = _this->sInfo.loopPos;
+            } else {
+                std::fill(fetchBuffer.begin() + i, fetchBuffer.end(), 0.0f);
+                return false;
+            }
+        }
+    } while (samplesToFetch > 0);
+    return true;
 }

@@ -4,6 +4,7 @@
 #include <cstddef>
 
 #include "Types.h"
+#include "Resampler.h"
 
 #define INVALID_OWNER 0xFF
 
@@ -30,7 +31,6 @@ namespace agbplay
             ChnVol getVol();
             enum class Pan { LEFT, CENTER, RIGHT };
             uint32_t pos;
-            float interPos;
             float freq;
             ADSR env;
             Note note;
@@ -38,6 +38,7 @@ namespace agbplay
             EnvState eState;
             EnvState nextState;
             Pan pan;
+            NearestResampler rs;
             uint8_t envInterStep;
             uint8_t envLevel;
             uint8_t envPeak;
@@ -59,6 +60,8 @@ namespace agbplay
             void Process(float *buffer, size_t nblocks, MixingArgs& args) override;
 
             const float *pat;
+        private:
+            static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
     };
 
     class WaveChannel : public CGBChannel
@@ -71,6 +74,7 @@ namespace agbplay
             void SetPitch(int16_t pitch) override;
             void Process(float *buffer, size_t nblocks, MixingArgs& args) override;
         private:
+            static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
             float waveBuffer[32];
             static uint8_t volLut[16];
     };
@@ -84,5 +88,7 @@ namespace agbplay
             void Init(uint8_t owner, CGBDef def, Note note, ADSR env) override;
             void SetPitch(int16_t pitch) override;
             void Process(float *buffer, size_t nblocks, MixingArgs& args) override;
+        private:
+            static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
     };
 }

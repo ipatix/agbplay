@@ -17,6 +17,7 @@ public:
     virtual ~Resampler();
 protected:
     Resampler();
+    Resampler(size_t initSize);
     std::vector<float> fetchBuffer;
     float phase;
 };
@@ -33,4 +34,14 @@ public:
     LinearResampler();
     ~LinearResampler() override;
     bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+};
+
+class SincResampler : public Resampler {
+public:
+    SincResampler();
+    ~SincResampler() override;
+    bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+private:
+    static float windowFunc(float t);
+    static const size_t WINDOW_SIZE;
 };

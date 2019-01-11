@@ -43,5 +43,4 @@ public:
     bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
 private:
     static float windowFunc(float t);
-    static const size_t WINDOW_SIZE;
 };

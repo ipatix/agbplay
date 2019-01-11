@@ -7,6 +7,8 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#define PI_F (float(M_PI))
+
 template <typename T>
 inline static T clip(T min, T val, T max)
 {

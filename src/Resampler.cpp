@@ -96,11 +96,6 @@ bool LinearResampler::Process(float *outData, size_t numBlocks, float phaseInc, 
     return result;
 }
 
-static float sinc(float t)
-{
-    return boost::math::sinc_pi(PI_F * t);
-}
-
 //static float triangle(float t)
 //{
 //    if (t < -1.0f)
@@ -150,10 +145,10 @@ bool SincResampler::Process(float *outData, size_t numBlocks, float phaseInc, re
         float kernelSum = 0.0f;
         for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi++) {
             float sincIndex = (float(wi) - phase) * sincStep;
-            float windowIndex = (float(wi) - phase) / SINC_WINDOW_SIZE;
+            float windowIndex = float(wi) - phase;
             //_print_debug("wi=%zu phase=%f sincStep=%f sincIndex=%f", wi, phase, sincStep, sincIndex);
-            float s = sinc(sincIndex);
-            float w = windowFunc(windowIndex);
+            float s = fast_sincf(sincIndex);
+            float w = window_func(windowIndex);
             //float s = triangle(sincIndex);
             //float w = 1.0f;
             float kernel = s * w;
@@ -171,20 +166,84 @@ bool SincResampler::Process(float *outData, size_t numBlocks, float phaseInc, re
         //*outData++ = sampleSum;
         //_print_debug("kernel sum: %f\n", kernelSum);
     } while (--numBlocks > 0);
-
     // remove first i elements from the fetch buffer since they are no longer needed
     fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + i);
 
     return result;
 }
 
-float SincResampler::windowFunc(float t)
+/*
+ * fast trigonometric functions
+ */
+
+#define LUT_SIZE 1024
+
+static std::vector<float> cos_lut = []() {
+    std::vector<float> l(LUT_SIZE);
+    for (size_t i = 0; i < l.size(); i++) {
+        float index = float(i) * float(2.0 * M_PI / double(LUT_SIZE));
+        l[i] = cosf(index);
+    }
+    return l;
+}();
+
+static std::vector<float> sinc_lut = []() {
+    std::vector<float> l(LUT_SIZE+2);
+    for (size_t i = 0; i < LUT_SIZE+1; i++) {
+        float index = float(i) * float(SINC_WINDOW_SIZE * M_PI / double(LUT_SIZE));
+        l[i] = boost::math::sinc_pi(index);
+    }
+    l[LUT_SIZE+1] = 0.0f;
+    return l;
+}();
+
+static std::vector<float> win_lut = []() {
+    std::vector<float> l(LUT_SIZE+2);
+    for (size_t i = 0; i < LUT_SIZE+1; i++) {
+        float index = float(i) * float(M_PI / double(LUT_SIZE));
+        l[i] = 0.5f + (0.5f * cosf(index));
+    }
+    l[LUT_SIZE+1] = 0.0f;
+    return l;
+}();
+
+float SincResampler::fast_sinf(float t)
 {
-    if (t <= -1.0f)
-        return 0.0f;
-    if (t >= 1.0f)
-        return 0.0f;
+    return SincResampler::fast_cosf(t - float(M_PI / 2.0));
+}
+
+float SincResampler::fast_cosf(float t)
+{
+    t = fabs(t);
+    t *= float(double(LUT_SIZE) / (2.0 * M_PI));
+    unsigned int left_index = static_cast<unsigned int>(t);
+    float fraction = t - static_cast<float>(left_index);
+    unsigned int right_index = (left_index + 1) % LUT_SIZE;
+    left_index %= LUT_SIZE;
+    return cos_lut[left_index] + fraction * (cos_lut[right_index] - cos_lut[left_index]);
+}
+
+float SincResampler::fast_sincf(float t)
+{
+    t = fabs(t);
+    assert(t <= SINC_WINDOW_SIZE);
+    t *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));
+    unsigned int left_index = static_cast<unsigned int>(t);
+    float fraction = t - static_cast<float>(left_index);
+    unsigned int right_index = left_index + 1;
+    return sinc_lut[left_index] + fraction * (sinc_lut[right_index] - sinc_lut[left_index]);
+}
+
+float SincResampler::window_func(float t)
+{
+    assert(t >= -float(SINC_WINDOW_SIZE));
+    assert(t <= +float(SINC_WINDOW_SIZE));
     //return 0.42659f - 0.49656f * cosf(2.0f * PI_F * t / float(SINC_WINDOW_SIZE - 1)) +
     //    0.076849f * cosf(4.0f * PI_F * t / float(SINC_WINDOW_SIZE - 1));
-    return 0.5f + (0.5f * cosf(PI_F * t));
+    t = fabs(t);
+    t *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));
+    unsigned int left_index = static_cast<unsigned int>(t);
+    float fraction = t - static_cast<float>(left_index);
+    unsigned int right_index = left_index + 1;
+    return win_lut[left_index] + fraction * (win_lut[right_index] - win_lut[left_index]);
 }

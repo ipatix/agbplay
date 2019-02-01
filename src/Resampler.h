@@ -47,3 +47,12 @@ private:
     static float fast_sincf(float t);
     static float window_func(float t);
 };
+
+class BlepResampler : public Resampler {
+public:
+    BlepResampler();
+    ~BlepResampler() override;
+    bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+private:
+    static float fast_Si(float t);
+};

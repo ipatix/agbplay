@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <memory>
 
 #include "Types.h"
 #include "Resampler.h"
@@ -38,7 +39,7 @@ namespace agbplay
             EnvState eState;
             EnvState nextState;
             Pan pan;
-            NearestResampler rs;
+            std::unique_ptr<Resampler> rs;
             uint8_t envInterStep;
             uint8_t envLevel;
             uint8_t envPeak;

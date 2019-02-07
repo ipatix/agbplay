@@ -293,6 +293,7 @@ void CGBChannel::updateVolFade()
 
 SquareChannel::SquareChannel() : CGBChannel()
 {
+    rs = std::make_unique<BlepResampler>();
     pat = CGBPatterns::pat_sq50;
 }
 
@@ -346,7 +347,7 @@ void SquareChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
 
     float outBuffer[nblocks];
 
-    rs.Process(outBuffer, nblocks, interStep, sampleFetchCallback, this);
+    rs->Process(outBuffer, nblocks, interStep, sampleFetchCallback, this);
 
     size_t i = 0;
     do {
@@ -388,6 +389,7 @@ uint8_t WaveChannel::volLut[] = {
 
 WaveChannel::WaveChannel() : CGBChannel()
 {
+    rs = std::make_unique<BlepResampler>();
     for (int i = 0; i < 32; i++)
     {
         waveBuffer[i] = 0.0f;
@@ -443,7 +445,7 @@ void WaveChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
 
     float outBuffer[nblocks];
 
-    rs.Process(outBuffer, nblocks, interStep, sampleFetchCallback, this);
+    rs->Process(outBuffer, nblocks, interStep, sampleFetchCallback, this);
 
     size_t i = 0;
     do {
@@ -479,6 +481,7 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
 
 NoiseChannel::NoiseChannel() : CGBChannel()
 {
+    rs = std::make_unique<NearestResampler>();
     def.np = NoisePatt::FINE;
 }
 
@@ -519,7 +522,7 @@ void NoiseChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
 
     float outBuffer[nblocks];
 
-    rs.Process(outBuffer, nblocks, interStep, sampleFetchCallback, this);
+    rs->Process(outBuffer, nblocks, interStep, sampleFetchCallback, this);
 
     size_t i = 0;
     do {

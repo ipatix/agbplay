@@ -24,13 +24,10 @@ SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note,
     this->envInterStep = 0;
     SetVol(vol, pan);
     this->fixed = fixed;
-    // TODO g++ (Debian 8.2.0-13) will say for make_unique that memory is not included???
     if (fixed)
-        this->rs = std::unique_ptr<Resampler>(new LinearResampler());
-        //this->rs = std::unique_ptr<Resampler>(new SincResampler());
+        this->rs = std::make_unique<LinearResampler>();
     else
-        this->rs = std::unique_ptr<Resampler>(new LinearResampler());
-        //this->rs = std::unique_ptr<Resampler>(new SincResampler());
+        this->rs = std::make_unique<LinearResampler>();
     this->interPos = 0.0f;
     SetPitch(pitch);
     // if instant attack is ative directly max out the envelope to not cut off initial sound

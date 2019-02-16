@@ -330,13 +330,15 @@ void WindowGUI::initColors()
     init_pair((int)Color::TRK_LOUD_SPLIT, -1, /*238*/-1);
 
     init_pair((int)Color::TRK_FGB_BGCW, 232, 251);
-    init_pair((int)Color::TRK_FGC_BGCW, 198, 251);
+    init_pair((int)Color::TRK_FGC_BGCW, 161, 251);
     init_pair((int)Color::TRK_FGB_BGW, 232, 255);
-    init_pair((int)Color::TRK_FGC_BGW, 198, 255);
-    init_pair((int)Color::TRK_FGB_BGC, 232, 198);
-    init_pair((int)Color::TRK_FGC_BGC, 198, 198);
+    init_pair((int)Color::TRK_FGC_BGW, 161, 255);
+    init_pair((int)Color::TRK_FGB_BGC, 232, 199);
+    init_pair((int)Color::TRK_FGC_BGC, 161, 199);
     init_pair((int)Color::TRK_FGW_BGW, 255, 255);
-    init_pair((int)Color::TRK_FGW_BGC, 255, 198);
+    init_pair((int)Color::TRK_FGW_BGC, 255, 199);
+    init_pair((int)Color::TRK_FGEC_BGW, 199, 255);
+    init_pair((int)Color::TRK_FGEC_BGC, 199, 199);
 }
 
 void WindowGUI::cycleFocus() 

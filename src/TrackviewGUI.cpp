@@ -198,9 +198,9 @@ void TrackviewGUI::update()
 
 #define DECIDE_COL_E(a, b)\
         !a && !b ? static_cast<int>(Color::TRK_FGW_BGW) :\
-        !a &&  b ? static_cast<int>(Color::TRK_FGC_BGW) :\
+        !a &&  b ? static_cast<int>(Color::TRK_FGEC_BGW) :\
         a  && !b ? static_cast<int>(Color::TRK_FGW_BGC) :\
-        static_cast<int>(Color::TRK_FGC_BGC)
+        static_cast<int>(Color::TRK_FGEC_BGC)
 
         for (size_t j = 0;; j++) {
             // C and C#

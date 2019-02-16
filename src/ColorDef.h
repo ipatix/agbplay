@@ -40,8 +40,8 @@ namespace agbplay
         TRK_FGC_BGC,    // D pressed, D# pressed
 
         TRK_FGW_BGW,    // E not pressed, F not pressed
-        // TRK_FGC_BGW  // E not pressed, F pressed
+        TRK_FGEC_BGW,   // E not pressed, F pressed
         TRK_FGW_BGC,    // E pressed, F not pressed
-        // TRK_FGC_BGC  // E pressed, F pressed
+        TRK_FGEC_BGC,   // E pressed, F pressed
     };
 }

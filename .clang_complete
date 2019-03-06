@@ -1,7 +1,0 @@
--Wall
--Wextra
--Wconversion
--Werror
--Wunreachable-code
--I../portaudio/include
--std=c++0x

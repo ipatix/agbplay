@@ -59,6 +59,8 @@
 #include "VUMeterGUI.h"
 #include "ConfigManager.h"
 
+#include <memory>
+
 namespace agbplay 
 {
     class WindowGUI 
@@ -93,19 +95,19 @@ namespace agbplay
             void updateWindowSize();
 
             // console GUI element
-            ConsoleGUI *conUI;
-            HotkeybarGUI *hotUI;
-            SonglistGUI *songUI;
-            PlaylistGUI *playUI;
-            TitlebarGUI *titleUI;
-            RomviewGUI *romUI;
-            TrackviewGUI *trackUI;
-            VUMeterGUI *meterUI;
+            std::unique_ptr<ConsoleGUI> conUI;
+            std::unique_ptr<HotkeybarGUI> hotUI;
+            std::unique_ptr<SonglistGUI> songUI;
+            std::unique_ptr<PlaylistGUI> playUI;
+            std::unique_ptr<TitlebarGUI> titleUI;
+            std::unique_ptr<RomviewGUI> romUI;
+            std::unique_ptr<TrackviewGUI> trackUI;
+            std::unique_ptr<VUMeterGUI> meterUI;
 
             // resource
             Rom& rom;
             SoundData& sdata;
-            PlayerInterface *mplay;
+            std::unique_ptr<PlayerInterface> mplay;
 
             // ncurses windows
             WINDOW *containerWin;

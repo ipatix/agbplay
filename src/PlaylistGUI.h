@@ -27,7 +27,7 @@ namespace agbplay {
             void scrollDownNoUpdate() override;
             void scrollUpNoUpdate() override;
 
-            std::vector<bool> *ticked;
+            std::vector<bool> ticked;
             std::string gameCode;
             bool dragging;
     };

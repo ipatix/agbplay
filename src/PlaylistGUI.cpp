@@ -19,7 +19,7 @@ PlaylistGUI::PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_
     : SonglistGUI(height, width, yPos, xPos, false)
 {
     // init
-    ticked = new vector<bool>(ConfigManager::Instance().GetCfg().GetGameEntries().size(), true);
+    ticked.resize(ConfigManager::Instance().GetCfg().GetGameEntries().size(), true);
     this->gameCode = gameCode;
     dragging = false;
     update();
@@ -28,13 +28,12 @@ PlaylistGUI::PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_
 
 PlaylistGUI::~PlaylistGUI() 
 {
-    delete ticked;
 }
 
 void PlaylistGUI::AddSong(SongEntry entry) 
 {
     ConfigManager::Instance().GetCfg().GetGameEntries().push_back(entry);
-    ticked->push_back(true);
+    ticked.push_back(true);
     update();
 }
 
@@ -46,7 +45,7 @@ void PlaylistGUI::RemoveSong()
         return;
 
     cfg.GetGameEntries().erase(cfg.GetGameEntries().begin() + cursorPos);
-    ticked->erase(ticked->begin() + cursorPos);
+    ticked.erase(ticked.begin() + cursorPos);
 
     if (cursorPos != 0 && cursorPos >= cfg.GetGameEntries().size()) {
         cursorPos--;
@@ -61,7 +60,7 @@ void PlaylistGUI::ClearSongs()
     cursorPos = 0;
     GameConfig& cfg = ConfigManager::Instance().GetCfg();
     cfg.GetGameEntries().clear();
-    ticked->clear();
+    ticked.clear();
     update();
 }
 
@@ -73,27 +72,27 @@ SongEntry& PlaylistGUI::GetSong()
 
 vector<bool>& PlaylistGUI::GetTicked()
 {
-    return *ticked;
+    return ticked;
 }
 
 void PlaylistGUI::Tick() 
 {
-    if (ticked->size() == 0) return;
-    ticked->at(cursorPos) = true;
+    if (ticked.size() == 0) return;
+    ticked.at(cursorPos) = true;
     update();
 }
 
 void PlaylistGUI::Untick() 
 {
-    if (ticked->size() == 0) return;
-    ticked->at(cursorPos) = false;
+    if (ticked.size() == 0) return;
+    ticked.at(cursorPos) = false;
     update();
 }
 
 void PlaylistGUI::ToggleTick() 
 {
-    if (ticked->size() == 0) return;
-    ticked->at(cursorPos) = !ticked->at(cursorPos);
+    if (ticked.size() == 0) return;
+    ticked.at(cursorPos) = !ticked.at(cursorPos);
     update();
 }
 
@@ -105,7 +104,7 @@ void PlaylistGUI::ToggleDrag()
 
 void PlaylistGUI::UntickAll()
 {
-    fill(ticked->begin(), ticked->end(), false);
+    fill(ticked.begin(), ticked.end(), false);
     update();
 }
 
@@ -145,7 +144,7 @@ void PlaylistGUI::update()
             wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::LIST_ENTRY)));
         string songText;
         if (entry < cfg.GetGameEntries().size()) {
-            songText = (ticked->at(entry)) ? "[x] " : "[ ] ";
+            songText = (ticked.at(entry)) ? "[x] " : "[ ] ";
             songText.append(cfg.GetGameEntries()[entry].name);
         } else {
             songText = "";
@@ -189,6 +188,6 @@ void PlaylistGUI::swapEntry(uint32_t a, uint32_t b)
     if (a >= s || b >= s)
         return;
     swap(cfg.GetGameEntries()[a], cfg.GetGameEntries()[b]);
-    swap((*ticked)[a], (*ticked)[b]);
+    swap(ticked[a], ticked[b]);
     update();
 }

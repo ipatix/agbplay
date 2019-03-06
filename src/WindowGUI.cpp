@@ -38,19 +38,19 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata)
     this->cursorl = SONGLIST;
 
     // create subwindows
-    conUI = new ConsoleGUI(
+    conUI = make_unique<ConsoleGUI>(
             CONSOLE_HEIGHT(height, width),
             CONSOLE_WIDTH(height, width),
             CONSOLE_YPOS(height, width),
             CONSOLE_XPOS(height, width));
 
-    hotUI = new HotkeybarGUI(
+    hotUI = make_unique<HotkeybarGUI>(
             HOTKEYBAR_HEIGHT(height, width),
             HOTKEYBAR_WIDTH(height, width),
             HOTKEYBAR_YPOS(height, width),
             HOTKEYBAR_XPOS(height, width));
 
-    songUI = new SonglistGUI(
+    songUI = make_unique<SonglistGUI>(
             SONGLIST_HEIGHT(height, width),
             SONGLIST_WIDTH(height, width),
             SONGLIST_YPOS(height, width),
@@ -64,54 +64,45 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata)
     }
     songUI->Enter();
 
-    playUI = new PlaylistGUI(
+    playUI = make_unique<PlaylistGUI>(
             PLAYLIST_HEIGHT(height, width),
             PLAYLIST_WIDTH(height, width),
             PLAYLIST_YPOS(height, width),
             PLAYLIST_XPOS(height, width));
 
-    titleUI = new TitlebarGUI(
+    titleUI = make_unique<TitlebarGUI>(
             TITLEBAR_HEIGHT(height, width),
             TITLEBAR_WIDTH(height, width),
             TITLEBAR_YPOS(height, width),
             TITLEBAR_XPOS(height, width));
 
-    romUI = new RomviewGUI(
+    romUI = make_unique<RomviewGUI>(
             ROMVIEW_HEIGHT(height, width),
             ROMVIEW_WIDTH(height, width),
             ROMVIEW_YPOS(height, width),
             ROMVIEW_XPOS(height, width),
             rom, sdata);
 
-    trackUI = new TrackviewGUI(
+    trackUI = make_unique<TrackviewGUI>(
             TRACKVIEW_HEIGHT(height, width),
             TRACKVIEW_WIDTH(height, width),
             TRACKVIEW_YPOS(height, width),
             TRACKVIEW_XPOS(height, width));
 
-    meterUI = new VUMeterGUI(
+    meterUI = make_unique<VUMeterGUI>(
             VUMETER_HEIGHT(height, width),
             VUMETER_WIDTH(height, width),
             VUMETER_YPOS(height, width),
             VUMETER_XPOS(height, width));
 
     rom.Seek(sdata.sTable->GetSongTablePos());
-    mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos());
+    mplay = make_unique<PlayerInterface>(rom, trackUI.get(), rom.ReadAGBPtrToPos());
     mplay->LoadSong(sdata.sTable->GetPosOfSong(0));
     trackUI->SetTitle(songUI->GetSong().GetName());
 }
 
 WindowGUI::~WindowGUI() 
 {
-    delete mplay;
-    delete conUI;
-    delete hotUI;
-    delete songUI;
-    delete playUI;
-    delete titleUI;
-    delete romUI;
-    delete trackUI;
-    delete meterUI;
     endwin();
 }
 

@@ -19,7 +19,7 @@ namespace agbplay
     class PlayerInterface 
     {
         public:
-            PlayerInterface(Rom& rom, TrackviewGUI *trackUI, long initSongPos, GameConfig& _gameCfg);
+            PlayerInterface(Rom& rom, TrackviewGUI *trackUI, long initSongPos);
             ~PlayerInterface();
             
             void LoadSong(long songPos);
@@ -46,7 +46,6 @@ namespace agbplay
             uint32_t speedFactor; // 64 = normal
             volatile enum class State : int { RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED } playerState;
             Rom& rom;
-            GameConfig& gameCfg;
             Sequence seq;
             StreamGenerator *sg;
             TrackviewGUI *trackUI;

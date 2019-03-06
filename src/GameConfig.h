@@ -17,6 +17,10 @@ namespace agbplay
             const std::string& GetGameCode();
             ReverbType GetRevType();
             void SetRevType(ReverbType revType);
+            ResamplerType GetResTypeFixed();
+            void SetResTypeFixed(ResamplerType resType);
+            ResamplerType GetResType();
+            void SetResType(ResamplerType resType);
             uint8_t GetPCMVol();
             void SetPCMVol(uint8_t pcmVol);
             uint8_t GetEngineFreq();
@@ -32,6 +36,8 @@ namespace agbplay
             std::string gameCode;
             std::vector<SongEntry> gameEntries;
             ReverbType revType;
+            ResamplerType resTypeFixed;
+            ResamplerType resType;
             uint8_t pcmVol;
             uint8_t engineFreq;
             uint8_t engineRev;

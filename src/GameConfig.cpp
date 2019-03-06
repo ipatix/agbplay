@@ -12,6 +12,8 @@ GameConfig::GameConfig(const string& gameCode)
 {
     this->gameCode = gameCode;
     revType = ReverbType::NORMAL;
+    resTypeFixed = ResamplerType::LINEAR;
+    resType = ResamplerType::LINEAR;
     pcmVol = 0xF;
     engineFreq = 0x4;
     engineRev = 0x0;
@@ -35,6 +37,26 @@ ReverbType GameConfig::GetRevType()
 void GameConfig::SetRevType(ReverbType revType)
 {
     this->revType = revType;
+}
+
+ResamplerType GameConfig::GetResTypeFixed()
+{
+    return resTypeFixed;
+}
+
+void GameConfig::SetResTypeFixed(ResamplerType resType)
+{
+    this->resTypeFixed = resType;
+}
+
+ResamplerType GameConfig::GetResType()
+{
+    return resType;
+}
+
+void GameConfig::SetResType(ResamplerType resType)
+{
+    this->resType = resType;
 }
 
 uint8_t GameConfig::GetPCMVol()

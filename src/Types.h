@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 // for increased quality we process in subframes (including the base frame)
 #define INTERFRAMES 4
@@ -12,6 +13,12 @@ namespace agbplay
     enum class WaveDuty : int { D12 = 0, D25, D50, D75 };
     enum class NoisePatt : int { FINE = 0, ROUGH };
     enum class ReverbType { NORMAL, GS1, GS2, MGAT, TEST, NONE };
+    enum class ResamplerType { NEAREST, LINEAR, SINC, BLEP };
+
+    ReverbType str2rev(const std::string& str);
+    std::string rev2str(ReverbType t);
+    ResamplerType str2res(const std::string& str);
+    std::string res2str(ResamplerType t);
 
     union CGBDef
     {

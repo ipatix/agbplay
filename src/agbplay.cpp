@@ -15,6 +15,7 @@
 #include "Debug.h"
 #include "WindowGUI.h"
 #include "Xcept.h"
+#include "ConfigManager.h"
 
 using namespace std;
 using namespace agbplay;
@@ -117,6 +118,8 @@ int main(int argc, char *argv[])
         cout << "Loaded ROM successfully" << endl;
         Rom rom(fc);
         cout << "Created ROM object" << endl;
+        ConfigManager::Instance().SetGameCode(rom.GetROMCode());
+        cout << "Loaded Config" << endl;
         SoundData sdata(rom);
         cout << "Analyzed Sound Data" << endl;
         WindowGUI wgui(rom, sdata);

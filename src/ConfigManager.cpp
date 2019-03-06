@@ -20,7 +20,6 @@ ConfigManager::ConfigManager(const string& configPath)
         throw Xcept("Error while opening config file: %s", strerror(errno));
     }
     string line;
-    GameConfig *currentGame = nullptr;
     regex gameExpr("^\\s*\\[([0-9A-Z]{4})\\]\\s*$");
     regex songExpr("^\\s*(\\d+)\\s*=\\s*\\b(.+)\\b\\s*$");
     regex cfgVolExpr("^\\s*ENG_VOL\\s*=\\s*(\\d+)\\s*$");
@@ -28,52 +27,45 @@ ConfigManager::ConfigManager(const string& configPath)
     regex cfgRevExpr("^\\s*ENG_REV\\s*=\\s*(\\d+)\\s*$");
     regex cfgRevTypeExpr("^\\s*ENG_REV_TYPE\\s*=\\s*(.*)\\s*$");
     regex cfgTrackLimitExpr("^\\s*TRACK_LIMIT\\s*=\\s*(\\d+)\\s*$");
+    regex cfgPcmRes("^\\s*PCM_RES_TYPE\\s*=\\s*(.*)\\s*$");
+    regex cfgPcmFixedRes("^\\s*PCM_FIX_RES_TYPE\\s*=\\s*(.*)\\s*$");
 
     while (getline(configFile, line)) {
         if (configFile.bad()) {
             throw Xcept("Error while reading config file: %s", strerror(errno));
         }
         smatch sm;
-        if (regex_match(line, sm, songExpr) && sm.size() == 3 && currentGame != nullptr) {
-            currentGame->GetGameEntries().push_back(SongEntry(sm[2], (uint16_t(stoi(sm[1])))));
+        if (regex_match(line, sm, songExpr) && sm.size() == 3 && curCfg) {
+            curCfg->GetGameEntries().push_back(SongEntry(sm[2], (uint16_t(stoi(sm[1])))));
         }
         else if (regex_match(line, sm, gameExpr) && sm.size() == 2) {
-            currentGame = &GetConfig(sm[1]);
+            // set's curCfg
+            SetGameCode(sm[1]);
         }
-        else if (regex_match(line, sm, cfgVolExpr) && sm.size() == 2 && currentGame != nullptr) {
-            currentGame->SetPCMVol(uint8_t(clip<int>(0, stoi(sm[1]), 15)));
+        else if (regex_match(line, sm, cfgVolExpr) && sm.size() == 2 && curCfg) {
+            curCfg ->SetPCMVol(uint8_t(clip<int>(0, stoi(sm[1]), 15)));
         }
-        else if (regex_match(line, sm, cfgFreqExpr) && sm.size() == 2 && currentGame != nullptr) {
-            currentGame->SetEngineFreq(uint8_t(clip<int>(0, stoi(sm[1]), 15)));
+        else if (regex_match(line, sm, cfgFreqExpr) && sm.size() == 2 && curCfg) {
+            curCfg->SetEngineFreq(uint8_t(clip<int>(0, stoi(sm[1]), 15)));
         }
-        else if (regex_match(line, sm, cfgRevExpr) && sm.size() == 2 && currentGame != nullptr) {
-            currentGame->SetEngineRev(uint8_t(clip<int>(0, stoi(sm[1]), 255)));
+        else if (regex_match(line, sm, cfgRevExpr) && sm.size() == 2 && curCfg) {
+            curCfg->SetEngineRev(uint8_t(clip<int>(0, stoi(sm[1]), 255)));
         }
-        else if (regex_match(line, sm, cfgRevTypeExpr) && sm.size() == 2 && currentGame != nullptr) {
-            string res = sm[1];
-            if (res == "NORMAL") {
-                currentGame->SetRevType(ReverbType::NORMAL);
-            }
-            else if (res == "GS1") {
-                currentGame->SetRevType(ReverbType::GS1);
-            }
-            else if (res == "GS2") {
-                currentGame->SetRevType(ReverbType::GS2);
-            }
-            else if (res == "MGAT") {
-                currentGame->SetRevType(ReverbType::MGAT);
-            }
-            else if (res == "TEST") {
-                currentGame->SetRevType(ReverbType::TEST);
-            }
-            else if (res == "NONE") {
-                currentGame->SetRevType(ReverbType::NONE);
-            }
+        else if (regex_match(line, sm, cfgRevTypeExpr) && sm.size() == 2 && curCfg) {
+            curCfg->SetRevType(str2rev(sm[1]));
         }
-        else if (regex_match(line, sm, cfgTrackLimitExpr) && sm.size() == 2 && currentGame != nullptr) {
-            currentGame->SetTrackLimit(uint8_t(clip<int>(0, stoi(sm[1]), 16)));
+        else if (regex_match(line, sm, cfgTrackLimitExpr) && sm.size() == 2 && curCfg) {
+            curCfg->SetTrackLimit(uint8_t(clip<int>(0, stoi(sm[1]), 16)));
+        }
+        else if (regex_match(line, sm, cfgPcmRes) && sm.size() == 2 && curCfg) {
+            curCfg->SetResType(str2res(sm[1]));
+        }
+        else if (regex_match(line, sm, cfgPcmFixedRes) && sm.size() == 2 && curCfg) {
+            curCfg->SetResTypeFixed(str2res(sm[1]));
         }
     }
+
+    curCfg = nullptr;
 }
 
 ConfigManager::~ConfigManager()
@@ -89,28 +81,9 @@ ConfigManager::~ConfigManager()
         configFile << "ENG_VOL = " << static_cast<int>(cfg.GetPCMVol()) << endl;
         configFile << "ENG_FREQ = " << static_cast<int>(cfg.GetEngineFreq()) << endl;
         configFile << "ENG_REV = " << static_cast<int>(cfg.GetEngineRev()) << endl;
-        configFile << "ENG_REV_TYPE = ";
-        switch (cfg.GetRevType()) {
-            case ReverbType::NORMAL:
-                configFile << "NORMAL";
-                break;
-            case ReverbType::GS1:
-                configFile << "GS1";
-                break;
-            case ReverbType::GS2:
-                configFile << "GS2";
-                break;
-            case ReverbType::MGAT:
-                configFile << "MGAT";
-                break;
-            case ReverbType::TEST:
-                configFile << "TEST";
-                break;
-            case ReverbType::NONE:
-                configFile << "NONE";
-                break;
-        }
-        configFile << endl;
+        configFile << "ENG_REV_TYPE = " << rev2str(cfg.GetRevType()) << endl;
+        configFile << "PCM_RES_TYPE = " << res2str(cfg.GetResType()) << endl;
+        configFile << "PCM_FIX_RES_TYPE = " << res2str(cfg.GetResTypeFixed()) << endl;
         configFile << "TRACK_LIMIT = " << static_cast<int>(cfg.GetTrackLimit()) << endl;
 
 
@@ -129,14 +102,29 @@ ConfigManager::~ConfigManager()
     }
 }
 
-GameConfig& ConfigManager::GetConfig(const string& gameCode)
+ConfigManager& ConfigManager::Instance()
+{
+    static ConfigManager cm("agbplay.ini");
+    return cm;
+}
+
+GameConfig& ConfigManager::GetCfg()
+{
+    if (curCfg)
+        return *curCfg;
+    else
+        throw Xcept("Trying to get the game config without setting the game code");
+}
+
+void ConfigManager::SetGameCode(const std::string& gameCode)
 {
     for (GameConfig& game : configs)
     {
         if (game.GetGameCode() == gameCode) {
-            return game;
+            curCfg = &game;
+            return;
         }
     }
     configs.emplace_back(gameCode);
-    return configs[configs.size() - 1];
+    curCfg = &configs[configs.size() - 1];
 }

@@ -8,6 +8,7 @@
 #include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
+#include "ConfigManager.h"
 
 using namespace std;
 using namespace agbplay;
@@ -18,14 +19,15 @@ using namespace agbplay;
  * public PlayerInterface
  */
 
-PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos, GameConfig& _gameCfg) 
-    : rom(_rom), gameCfg(_gameCfg), seq(initSongPos, _gameCfg.GetTrackLimit(), _rom), 
-    rBuf(N_CHANNELS * STREAM_BUF_SIZE), masterLoudness(10.f), mutedTracks(_gameCfg.GetTrackLimit())
+PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos) 
+    : rom(_rom), seq(initSongPos, ConfigManager::Instance().GetCfg().GetTrackLimit(), _rom), 
+    rBuf(N_CHANNELS * STREAM_BUF_SIZE), masterLoudness(10.f), mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit())
 {
     this->trackUI = trackUI;
     playerState = State::THREAD_DELETED;
     speedFactor = 64;
 
+    GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
     sg = new StreamGenerator(seq, 
             EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 
             MAX_LOOPS, float(speedFactor) / 64.0f, 
@@ -63,6 +65,7 @@ void PlayerInterface::LoadSong(long songPos)
 {
     bool play = playerState == State::PLAYING;
     Stop();
+    GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
     seq = Sequence(songPos, gameCfg.GetTrackLimit(), rom);
     setupLoudnessCalcs();
     float vols[seq.tracks.size() * N_CHANNELS];
@@ -139,6 +142,7 @@ void PlayerInterface::Pause()
 
 void PlayerInterface::Stop()
 {
+    GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
     switch (playerState) {
         case State::RESTART:
             // wait until player has initialized and quit then
@@ -225,6 +229,7 @@ void PlayerInterface::GetMasterVolLevels(float& left, float& right)
 
 void PlayerInterface::threadWorker()
 {
+    GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
     size_t nBlocks = sg->GetBufferUnitCount();
     vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
     vector<float> audio(nBlocks * N_CHANNELS, 0.0f);

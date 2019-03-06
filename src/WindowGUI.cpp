@@ -22,7 +22,7 @@ using namespace agbplay;
 using namespace std;
 
 WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) 
-    : rom(rrom), sdata(rsdata), cfg("agbplay.ini"), thisCfg(cfg.GetConfig(rom.GetROMCode()))
+    : rom(rrom), sdata(rsdata)
 {
     // init ncurses stuff
     this->containerWin = initscr();
@@ -68,8 +68,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata)
             PLAYLIST_HEIGHT(height, width),
             PLAYLIST_WIDTH(height, width),
             PLAYLIST_YPOS(height, width),
-            PLAYLIST_XPOS(height, width),
-            thisCfg);
+            PLAYLIST_XPOS(height, width));
 
     titleUI = new TitlebarGUI(
             TITLEBAR_HEIGHT(height, width),
@@ -97,7 +96,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata)
             VUMETER_XPOS(height, width));
 
     rom.Seek(sdata.sTable->GetSongTablePos());
-    mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos(), thisCfg);
+    mplay = new PlayerInterface(rom, trackUI, rom.ReadAGBPtrToPos());
     mplay->LoadSong(sdata.sTable->GetPosOfSong(0));
     trackUI->SetTitle(songUI->GetSong().GetName());
 }
@@ -201,22 +200,22 @@ bool WindowGUI::Handle()
             case 'e':
                 mplay->Stop();
                 {
-                    SoundExporter se(*conUI, sdata, thisCfg, rom, false, true);
-                    se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
+                    SoundExporter se(*conUI, sdata, rom, false, true);
+                    se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
             case 'r':
                 mplay->Stop();
                 {
-                    SoundExporter se(*conUI, sdata, thisCfg, rom, false, false);
-                    se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
+                    SoundExporter se(*conUI, sdata, rom, false, false);
+                    se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
             case 'b':
                 mplay->Stop();
                 {
-                    SoundExporter se(*conUI, sdata, thisCfg, rom, true, false);
-                    se.Export("wav", thisCfg.GetGameEntries(), playUI->GetTicked());
+                    SoundExporter se(*conUI, sdata, rom, true, false);
+                    se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
             case 'm':

@@ -7,6 +7,7 @@
 #include "SoundChannel.h"
 #include "Util.h"
 #include "Xcept.h"
+#include "ConfigManager.h"
 
 using namespace agbplay;
 
@@ -24,10 +25,24 @@ SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note,
     this->envInterStep = 0;
     SetVol(vol, pan);
     this->fixed = fixed;
-    if (fixed)
+
+    GameConfig& cfg = ConfigManager::Instance().GetCfg();
+    ResamplerType t = fixed ? cfg.GetResTypeFixed() : cfg.GetResType();
+    switch (t) {
+    case ResamplerType::NEAREST:
+        this->rs = std::make_unique<NearestResampler>();
+        break;
+    case ResamplerType::LINEAR:
         this->rs = std::make_unique<LinearResampler>();
-    else
-        this->rs = std::make_unique<LinearResampler>();
+        break;
+    case ResamplerType::SINC:
+        this->rs = std::make_unique<SincResampler>();
+        break;
+    case ResamplerType::BLEP:
+        this->rs = std::make_unique<BlepResampler>();
+        break;
+    }
+
     this->interPos = 0.0f;
     SetPitch(pitch);
     // if instant attack is ative directly max out the envelope to not cut off initial sound

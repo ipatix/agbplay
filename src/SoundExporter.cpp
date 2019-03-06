@@ -11,6 +11,7 @@
 #include "Xcept.h"
 #include "Constants.h"
 #include "Debug.h"
+#include "ConfigManager.h"
 
 using namespace agbplay;
 using namespace std;
@@ -19,8 +20,8 @@ using namespace std;
  * public SoundExporter
  */
 
-SoundExporter::SoundExporter(ConsoleGUI& _con, SoundData& _sd, GameConfig& _cfg, Rom& _rom, bool _benchmarkOnly, bool seperate)
-: con(_con), cfg(_cfg), sd(_sd), rom(_rom)
+SoundExporter::SoundExporter(ConsoleGUI& _con, SoundData& _sd, Rom& _rom, bool _benchmarkOnly, bool seperate)
+: con(_con), sd(_sd), rom(_rom)
 {
     benchmarkOnly = _benchmarkOnly;
     this->seperate = seperate;
@@ -85,6 +86,7 @@ void SoundExporter::Export(const string& outputDir, vector<SongEntry>& entries, 
 size_t SoundExporter::exportSong(const string& fileName, uint16_t uid)
 {
     // setup our generators
+    GameConfig& cfg = ConfigManager::Instance().GetCfg();
     Sequence seq(sd.sTable->GetPosOfSong(uid), cfg.GetTrackLimit(), rom);
     StreamGenerator sg(seq, EnginePars(cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()), 1, 1.0f, cfg.GetRevType());
     size_t blocksRendered = 0;

@@ -88,21 +88,21 @@ The 'magic' samplerate values are shown in the following table. Note that the 'm
 
 One more thing about reverb: Most games just use Nintendo's default reverb algorithm (or reverb of 0 for no reverb at all). However, some games have implemented their own algorithms. You can use the following values in combination with the option `ENG_REV_TYPE` to set it:
 
-- NORMAL = Nintendo's normal reverb algorithm
-- GS1 = Camelot's reverb used in Golden Sun 1
-- GS2 = Camelot's reverb used in Golden Sun TLA (aka Golden Sun 2)
-- MGAT = Camelot's reverb used in Mario Golf - Advance Tour
-- TEST = Only use this if you use the TestReverb class for developing your own algrithm
-- NONE = disabled (not used in normal games)
+- `NORMAL` = Nintendo's normal reverb algorithm
+- `GS1` = Camelot's reverb used in Golden Sun 1
+- `GS2` = Camelot's reverb used in Golden Sun TLA (aka Golden Sun 2)
+- `MGAT` = Camelot's reverb used in Mario Golf - Advance Tour
+- `TEST` = Only use this if you use the TestReverb class for developing your own algrithm
+- `NONE` = disabled (not used in normal games)
 
 
 Last but not least, agbplay now supports different resampling algorithms which can be set in the INI-File. There is a setting for normal PCM sounds `PCM_RES_TYPE` and `PCM_FIX_RES_TYPE` for fixed frequency sounds (mostly used for drums).
 They sypport the following values:
 
-- NEAREST = Fast! Commonly referred to as "no interpolation". Sounds pretty bad in most cases but can give you that low quality crunchyness. You most likely want to use BLEP over this one (NEAREST is wayyyyyyy cheaper to compute, though).
-- LINEAR = Fast! Interpolate samples in a triangular fasion. This is what's used on Nintendo's hardware (although with different target samplerates). Recommended for normal sounds.
-- SINC = Slow! Use a sinc based filter to avoid aliasing. For most games this will filter out a lot of the high end freuqnecies. The only case I'd recommend this is for games that generally use high samplerate waveforms (I like to use it on Golden Sun TLA which uses 31 kHz for drums).
-- BLEP = Slow! This generates bandlimited rectangular pulses for the samples. It's similar to NEAREST but NEAREST will not bandlimit the rectangular pulses, so it's going to cause frequency band folding. Use BLEP if you want to fake some brightness into your drums (i.e. fixed frequency sounds) since this is the way hardware does it (except BLEP will clean up the higher frequencies which NEAREST doesn't).
+- `NEAREST` = Fast! Commonly referred to as "no interpolation". Sounds pretty bad in most cases but can give you that low quality crunchyness. You most likely want to use BLEP over this one (NEAREST is wayyyyyyy cheaper to compute, though).
+- `LINEAR` = Fast! Interpolate samples in a triangular fasion. This is what's used on Nintendo's hardware (although with different target samplerates). Recommended for normal sounds.
+- `SINC` = Slow! Use a sinc based filter to avoid aliasing. For most games this will filter out a lot of the high end freuqnecies. The only case I'd recommend this is for games that generally use high samplerate waveforms (I like to use it on Golden Sun TLA which uses 31 kHz for drums).
+- `BLEP` = Slow! This generates bandlimited rectangular pulses for the samples. It's similar to NEAREST but NEAREST will not bandlimit the rectangular pulses, so it's going to cause frequency band folding. Use BLEP if you want to fake some brightness into your drums (i.e. fixed frequency sounds) since this is the way hardware does it (except BLEP will clean up the higher frequencies which NEAREST doesn't).
 
 This is how a finaly config would look like:
 ```

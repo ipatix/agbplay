@@ -102,12 +102,12 @@ void GameConfig::SetTrackLimit(uint8_t trackLimit)
 
 uint16_t GameConfig::GetRevBufSize()
 {
-	return revBufSize;
+    return revBufSize;
 }
 
 void GameConfig::SetRevBufSize(uint16_t revBufSize)
 {
-	this->revBufSize = revBufSize;
+    this->revBufSize = revBufSize;
 }
 
 vector<SongEntry>& GameConfig::GetGameEntries()

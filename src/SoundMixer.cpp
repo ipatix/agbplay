@@ -18,7 +18,7 @@ using namespace agbplay;
 SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype, uint8_t ntracks)
     : sq1(), sq2(), wave(), noise()
 {
-	GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
+    GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
     samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
     for (size_t i = 0; i < ntracks; i++)
     {

@@ -64,8 +64,8 @@ ConfigManager::ConfigManager(const string& configPath)
         else if (regex_match(line, sm, cfgPcmFixedRes) && sm.size() == 2 && curCfg) {
             curCfg->SetResTypeFixed(str2res(sm[1]));
         }
-	    else if (regex_match(line, sm, cfgRevBufSize) && curCfg) {
-		    curCfg->SetRevBufSize(uint16_t(stoul(sm[1], NULL, 16)));
+        else if (regex_match(line, sm, cfgRevBufSize) && curCfg) {
+            curCfg->SetRevBufSize(uint16_t(stoul(sm[1], NULL, 16)));
 	    }
     }
 

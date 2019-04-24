@@ -29,7 +29,7 @@ ConfigManager::ConfigManager(const string& configPath)
     regex cfgTrackLimitExpr("^\\s*TRACK_LIMIT\\s*=\\s*(\\d+)\\s*$");
     regex cfgPcmRes("^\\s*PCM_RES_TYPE\\s*=\\s*(.*)\\s*$");
     regex cfgPcmFixedRes("^\\s*PCM_FIX_RES_TYPE\\s*=\\s*(.*)\\s*$");
-	regex cfgRevBufSize("^\\s*REV_BUF_SIZE\\s*=\\s*0x(\\d+)\\s*$");
+    regex cfgRevBufSize("^\\s*REV_BUF_SIZE\\s*=\\s*0x(\\d+)\\s*$");
 
     while (getline(configFile, line)) {
         if (configFile.bad()) {
@@ -64,9 +64,9 @@ ConfigManager::ConfigManager(const string& configPath)
         else if (regex_match(line, sm, cfgPcmFixedRes) && sm.size() == 2 && curCfg) {
             curCfg->SetResTypeFixed(str2res(sm[1]));
         }
-		else if (regex_match(line, sm, cfgRevBufSize) && curCfg) {
-			curCfg->SetRevBufSize(uint16_t(stoul(sm[1], NULL, 16)));
-		}
+	    else if (regex_match(line, sm, cfgRevBufSize) && curCfg) {
+		    curCfg->SetRevBufSize(uint16_t(stoul(sm[1], NULL, 16)));
+	    }
     }
 
     curCfg = nullptr;
@@ -89,7 +89,7 @@ ConfigManager::~ConfigManager()
         configFile << "PCM_RES_TYPE = " << res2str(cfg.GetResType()) << endl;
         configFile << "PCM_FIX_RES_TYPE = " << res2str(cfg.GetResTypeFixed()) << endl;
         configFile << "TRACK_LIMIT = " << static_cast<int>(cfg.GetTrackLimit()) << endl;
-		configFile << "REV_BUF_SIZE = 0x" << std::uppercase << std::hex << (cfg.GetRevBufSize()) << endl << std::dec << std::nouppercase;
+	    configFile << "REV_BUF_SIZE = 0x" << std::uppercase << std::hex << (cfg.GetRevBufSize()) << endl << std::dec << std::nouppercase;
 
 
         for (SongEntry entr : cfg.GetGameEntries()) {

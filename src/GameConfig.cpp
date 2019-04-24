@@ -18,7 +18,7 @@ GameConfig::GameConfig(const string& gameCode)
     engineFreq = 0x4;
     engineRev = 0x0;
     trackLimit = 16;
-	revBufSize = 1584;
+    revBufSize = 1584;
 }
 
 GameConfig::~GameConfig()

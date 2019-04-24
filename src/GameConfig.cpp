@@ -18,6 +18,7 @@ GameConfig::GameConfig(const string& gameCode)
     engineFreq = 0x4;
     engineRev = 0x0;
     trackLimit = 16;
+    revBufSize = 1584;
 }
 
 GameConfig::~GameConfig()
@@ -97,6 +98,16 @@ uint8_t GameConfig::GetTrackLimit()
 void GameConfig::SetTrackLimit(uint8_t trackLimit)
 {
     this->trackLimit = clip<uint8_t>(0, trackLimit, 16);
+}
+
+uint16_t GameConfig::GetRevBufSize()
+{
+    return revBufSize;
+}
+
+void GameConfig::SetRevBufSize(uint16_t revBufSize)
+{
+    this->revBufSize = revBufSize;
 }
 
 vector<SongEntry>& GameConfig::GetGameEntries()

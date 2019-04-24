@@ -6,6 +6,7 @@
 #include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
+#include "ConfigManager.h"
 
 using namespace std;
 using namespace agbplay;
@@ -17,29 +18,30 @@ using namespace agbplay;
 SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype, uint8_t ntracks)
     : sq1(), sq2(), wave(), noise()
 {
+	GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
     samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
     for (size_t i = 0; i < ntracks; i++)
     {
         switch (rtype) {
             case ReverbType::NORMAL:
-                revdsps.push_back(new ReverbEffect(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS))));
+                revdsps.push_back(new ReverbEffect(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
                 break;
             case ReverbType::NONE:
-                revdsps.push_back(new ReverbEffect(0, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS))));
+                revdsps.push_back(new ReverbEffect(0, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
                 break;
             case ReverbType::GS1:
-                revdsps.push_back(new ReverbGS1(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS))));
+                revdsps.push_back(new ReverbGS1(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
                 break;
             case ReverbType::GS2:
-                revdsps.push_back(new ReverbGS2(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)),
+                revdsps.push_back(new ReverbGS2(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
                         0.4140625f, -0.0625f));
                 break;
             case ReverbType::MGAT:
-                revdsps.push_back(new ReverbGS2(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS)),
+                revdsps.push_back(new ReverbGS2(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
                         0.25f, -0.046875f));
                 break;
             case ReverbType::TEST:
-                revdsps.push_back(new ReverbTest(reverb, sampleRate, uint8_t(0x630 / (fixedModeRate / AGB_FPS))));
+                revdsps.push_back(new ReverbTest(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
                 break;
             default:
                 throw Xcept("Invalid Reverb Effect");

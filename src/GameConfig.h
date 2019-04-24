@@ -29,6 +29,8 @@ namespace agbplay
             void SetEngineRev(uint8_t engineRev);
             uint8_t GetTrackLimit();
             void SetTrackLimit(uint8_t trackLimit);
+			uint16_t GetRevBufSize();
+			void SetRevBufSize(uint16_t revBufSize);
 
             std::vector<SongEntry>& GetGameEntries();
 
@@ -42,5 +44,6 @@ namespace agbplay
             uint8_t engineFreq;
             uint8_t engineRev;
             uint8_t trackLimit;
+			uint16_t revBufSize;
     };
 }

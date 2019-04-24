@@ -89,7 +89,7 @@ ConfigManager::~ConfigManager()
         configFile << "PCM_RES_TYPE = " << res2str(cfg.GetResType()) << endl;
         configFile << "PCM_FIX_RES_TYPE = " << res2str(cfg.GetResTypeFixed()) << endl;
         configFile << "TRACK_LIMIT = " << static_cast<int>(cfg.GetTrackLimit()) << endl;
-	    configFile << "REV_BUF_SIZE = 0x" << std::uppercase << std::hex << (cfg.GetRevBufSize()) << endl << std::dec << std::nouppercase;
+        configFile << "REV_BUF_SIZE = 0x" << std::uppercase << std::hex << (cfg.GetRevBufSize()) << endl << std::dec << std::nouppercase;
 
 
         for (SongEntry entr : cfg.GetGameEntries()) {

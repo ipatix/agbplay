@@ -42,6 +42,8 @@ void CGBChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
     this->env.sus = env.sus & 0xF;
     this->env.rel = env.rel & 0x7;
     this->eState = EnvState::INIT;
+    this->pos = 0;
+    this->rs->Reset();
 }
 
 uint8_t CGBChannel::GetOwner()

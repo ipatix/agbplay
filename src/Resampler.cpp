@@ -7,26 +7,23 @@
 // FIXME the resamplers fetch data greedy from the input stream
 // this might possibly cause the stream to drop prefetched samples
 
-Resampler::Resampler()
-    : phase(0.0f)
-{
-}
-
-Resampler::Resampler(size_t initSize)
-    : fetchBuffer(initSize, 0.0f), phase(0.0f)
-{
-}
-
 Resampler::~Resampler()
 {
 }
 
 NearestResampler::NearestResampler()
 {
+    Reset();
 }
 
 NearestResampler::~NearestResampler()
 {
+}
+
+void NearestResampler::Reset()
+{
+    fetchBuffer.clear();
+    phase = 0.0f;
 }
 
 bool NearestResampler::Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
@@ -58,10 +55,17 @@ bool NearestResampler::Process(float *outData, size_t numBlocks, float phaseInc,
 
 LinearResampler::LinearResampler()
 {
+    Reset();
 }
 
 LinearResampler::~LinearResampler()
 {
+}
+
+void LinearResampler::Reset()
+{
+    fetchBuffer.clear();
+    phase = 0.0f;
 }
 
 bool LinearResampler::Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
@@ -112,14 +116,20 @@ bool LinearResampler::Process(float *outData, size_t numBlocks, float phaseInc, 
 #define SINC_FILT_THRESH 0.8f
 
 SincResampler::SincResampler()
-    : Resampler::Resampler(SINC_WINDOW_SIZE)
 {
+    Reset();
 }
 
 SincResampler::~SincResampler()
 {
 }
 
+void SincResampler::Reset()
+{
+    fetchBuffer.clear();
+    fetchBuffer.resize(SINC_WINDOW_SIZE, 0.0f);
+    phase = 0.0f;
+}
 
 bool SincResampler::Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
 {
@@ -250,10 +260,18 @@ float SincResampler::window_func(float t)
 
 BlepResampler::BlepResampler()
 {
+    Reset();
 }
 
 BlepResampler::~BlepResampler()
 {
+}
+
+void BlepResampler::Reset()
+{
+    fetchBuffer.clear();
+    fetchBuffer.resize(SINC_WINDOW_SIZE, 0.0f);
+    phase = 0.0f;
 }
 
 bool BlepResampler::Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)

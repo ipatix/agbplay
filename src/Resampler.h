@@ -14,10 +14,9 @@ class Resampler {
 public:
     // return value false by Process signals the "end of stream"
     virtual bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) = 0;
+    virtual void Reset() = 0;
     virtual ~Resampler();
 protected:
-    Resampler();
-    Resampler(size_t initSize);
     std::vector<float> fetchBuffer;
     float phase;
 };
@@ -27,6 +26,7 @@ public:
     NearestResampler();
     ~NearestResampler() override;
     bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+    void Reset() override;
 };
 
 class LinearResampler : public Resampler {
@@ -34,6 +34,7 @@ public:
     LinearResampler();
     ~LinearResampler() override;
     bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+    void Reset() override;
 };
 
 class SincResampler : public Resampler {
@@ -41,6 +42,7 @@ public:
     SincResampler();
     ~SincResampler() override;
     bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+    void Reset() override;
 private:
     static float fast_sinf(float t);
     static float fast_cosf(float t);
@@ -53,6 +55,7 @@ public:
     BlepResampler();
     ~BlepResampler() override;
     bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+    void Reset() override;
 private:
     static float fast_Si(float t);
 };

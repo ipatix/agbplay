@@ -16,6 +16,15 @@ public:
     virtual bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) = 0;
     virtual void Reset() = 0;
     virtual ~Resampler();
+    static bool ResamplerChainSampleFetchCB(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
+    struct ResamplerChainData {
+        // pointer to access our object
+        Resampler *_this;
+        // parameters for process method
+        float phaseInc;
+        res_data_fetch_cb cbPtr;
+        void *cbdata;
+    };
 protected:
     std::vector<float> fetchBuffer;
     float phase;

@@ -9,6 +9,8 @@
 
 #define INVALID_OWNER 0xFF
 
+#define NOISE_SAMPLING_FREQ 65536.0f
+
 namespace agbplay
 {
     class CGBChannel
@@ -91,5 +93,6 @@ namespace agbplay
             void Process(float *buffer, size_t nblocks, MixingArgs& args) override;
         private:
             static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
+            SincResampler srs;
     };
 }

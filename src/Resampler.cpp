@@ -4,11 +4,21 @@
 #include "Util.h"
 #include "Debug.h"
 
-// FIXME the resamplers fetch data greedy from the input stream
-// this might possibly cause the stream to drop prefetched samples
-
 Resampler::~Resampler()
 {
+}
+
+bool Resampler::ResamplerChainSampleFetchCB(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
+{
+    if (fetchBuffer.size() >= samplesRequired)
+        return true;
+    ResamplerChainData *chainData = static_cast<ResamplerChainData *>(cbdata);
+    size_t samplesToFetch = samplesRequired - fetchBuffer.size();
+    size_t i = fetchBuffer.size();
+    fetchBuffer.resize(samplesRequired);
+
+    return chainData->_this->Process(&fetchBuffer[i], samplesToFetch,
+            chainData->phaseInc, chainData->cbPtr, chainData->cbdata);
 }
 
 NearestResampler::NearestResampler()

@@ -6,6 +6,7 @@
 #include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
+#include "Constants.h"
 
 using namespace std;
 using namespace agbplay;
@@ -520,11 +521,19 @@ void NoiseChannel::Process(float *buffer, size_t nblocks, MixingArgs& args)
     float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.nBlocksReciprocal;
     float lVol = vol.fromVolLeft;
     float rVol = vol.fromVolRight;
-    float interStep = freq * args.sampleRateReciprocal;
+    float interStep = freq / NOISE_SAMPLING_FREQ;
 
     float outBuffer[nblocks];
 
-    rs->Process(outBuffer, nblocks, interStep, sampleFetchCallback, this);
+    Resampler::ResamplerChainData rcd;
+    rcd._this = rs.get();
+    rcd.phaseInc = interStep;
+    rcd.cbPtr = sampleFetchCallback;
+    rcd.cbdata = this;
+
+    srs.Process(outBuffer, nblocks,
+            NOISE_SAMPLING_FREQ / float(STREAM_SAMPLERATE),
+            Resampler::ResamplerChainSampleFetchCB, &rcd);
 
     size_t i = 0;
     do {

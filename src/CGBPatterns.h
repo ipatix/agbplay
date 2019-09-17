@@ -2,8 +2,8 @@
 
 #include <bitset>
 
-#define NOISE_FINE_LEN 32768
-#define NOISE_ROUGH_LEN 128
+#define NOISE_FINE_LEN 32767
+#define NOISE_ROUGH_LEN 127
 
 namespace agbplay
 {
@@ -15,6 +15,9 @@ namespace agbplay
             static const float pat_sq25[];
             static const float pat_sq50[];
             static const float pat_sq75[];
+
+            //LUT for noise channel frequencies
+            static const uint8_t NoiseKeyToFreqLUT[];
 
             //static const float pat_noise_fine[];
             //static const float pat_noise_rough[];

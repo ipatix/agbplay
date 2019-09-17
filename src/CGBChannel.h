@@ -89,6 +89,7 @@ namespace agbplay
             ~NoiseChannel();
 
             void Init(uint8_t owner, CGBDef def, Note note, ADSR env) override;
+            float NoiseKeyToFreq(int8_t key);
             void SetPitch(int16_t pitch) override;
             void Process(float *buffer, size_t nblocks, MixingArgs& args) override;
         private:

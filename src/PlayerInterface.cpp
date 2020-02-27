@@ -37,7 +37,28 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     PaError err;
     //uint32_t nBlocks = sg->GetBufferUnitCount();
     uint32_t outSampleRate = sg->GetRenderSampleRate();
-    if ((err = Pa_OpenDefaultStream(&audioStream, 0, N_CHANNELS, paFloat32, outSampleRate, /*nBlocks * N_CHANNELS*/0, audioCallback, (void *)&rBuf)) != paNoError) {
+    PaDeviceIndex deviceIndex;
+    PaHostApiIndex jackApiIndex = Pa_HostApiTypeIdToHostApiIndex(paJACK);
+    if (jackApiIndex >= 0) {
+        // jack available
+        const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(jackApiIndex);
+        if (apiinfo == NULL)
+            throw Xcept("Pa_GetHostApiInfo with valid index failed");
+        deviceIndex = apiinfo->defaultOutputDevice;
+    } else {
+        // jack not available
+        const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(Pa_GetDefaultHostApi());
+        if (apiinfo == NULL)
+            throw Xcept("Pa_GetHostApiInfo with valid index failed");
+        deviceIndex = apiinfo->defaultOutputDevice;
+    }
+    PaStreamParameters outputStreamParameters;
+    outputStreamParameters.device = deviceIndex;
+    outputStreamParameters.channelCount = N_CHANNELS;
+    outputStreamParameters.sampleFormat = paFloat32;
+    outputStreamParameters.suggestedLatency = 0.0;
+    outputStreamParameters.hostApiSpecificStreamInfo = NULL;
+    if ((err = Pa_OpenStream(&audioStream, NULL, &outputStreamParameters, outSampleRate, 0, paNoFlag, audioCallback, (void *)&rBuf)) != paNoError) {
         _print_debug("Pa_OpenDefaultStream: %s", Pa_GetErrorText(err));
         return;
     }

@@ -37,26 +37,39 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     PaError err;
     //uint32_t nBlocks = sg->GetBufferUnitCount();
     uint32_t outSampleRate = sg->GetRenderSampleRate();
-    PaDeviceIndex deviceIndex;
-    PaHostApiIndex jackApiIndex = Pa_HostApiTypeIdToHostApiIndex(paJACK);
-    if (jackApiIndex >= 0) {
-        // jack available
-        const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(jackApiIndex);
-        if (apiinfo == NULL)
-            throw Xcept("Pa_GetHostApiInfo with valid index failed");
-        deviceIndex = apiinfo->defaultOutputDevice;
-    } else {
-        // jack not available
-        const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(Pa_GetDefaultHostApi());
+
+    // init host api
+    PaDeviceIndex deviceIndex = -1;
+    PaHostApiIndex hostApiIndex = -1;
+    for (const auto apiType : hostApiPriority) {
+        hostApiIndex = Pa_HostApiTypeIdToHostApiIndex(apiType);
+        // prioritized host api available ?
+        if (hostApiIndex < 0)
+            continue;
+
+        const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(hostApiIndex);
         if (apiinfo == NULL)
             throw Xcept("Pa_GetHostApiInfo with valid index failed");
         deviceIndex = apiinfo->defaultOutputDevice;
     }
+    if (hostApiIndex < 0) {
+        // no prioritized api was found, use default
+        const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(Pa_GetDefaultHostApi());
+        _print_debug("No supported API found, falling back to: %s", apiinfo->name);
+        if (apiinfo == NULL)
+            throw Xcept("Pa_GetHostApiInfo with valid index failed");
+        deviceIndex = apiinfo->defaultOutputDevice;
+    }
+
+    const PaDeviceInfo *devinfo = Pa_GetDeviceInfo(deviceIndex);
+    if (devinfo == NULL)
+        throw Xcept("Pa_GetDeviceInfo with valid index failed");
+
     PaStreamParameters outputStreamParameters;
     outputStreamParameters.device = deviceIndex;
     outputStreamParameters.channelCount = N_CHANNELS;
     outputStreamParameters.sampleFormat = paFloat32;
-    outputStreamParameters.suggestedLatency = 0.0;
+    outputStreamParameters.suggestedLatency = devinfo->defaultLowOutputLatency;
     outputStreamParameters.hostApiSpecificStreamInfo = NULL;
     if ((err = Pa_OpenStream(&audioStream, NULL, &outputStreamParameters, outSampleRate, 0, paNoFlag, audioCallback, (void *)&rBuf)) != paNoError) {
         _print_debug("Pa_OpenDefaultStream: %s", Pa_GetErrorText(err));
@@ -247,6 +260,17 @@ void PlayerInterface::GetMasterVolLevels(float& left, float& right)
 /*
  * private PlayerInterface
  */
+
+// first portaudio hostapi has highest priority, last hostapi has lowest
+// if none are available, the default one is selected.
+// they are also the ones which are known to work
+const std::vector<PaHostApiTypeId> PlayerInterface::hostApiPriority = {
+    // Unix
+    paJACK,
+    paALSA,
+    // Windows
+    paMME, // only option for cygwin
+};
 
 void PlayerInterface::threadWorker()
 {

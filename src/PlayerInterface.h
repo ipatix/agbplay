@@ -42,6 +42,8 @@ namespace agbplay
 
             void setupLoudnessCalcs();
 
+            static const std::vector<PaHostApiTypeId> hostApiPriority;
+
             PaStream *audioStream;
             uint32_t speedFactor; // 64 = normal
             volatile enum class State : int { RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED } playerState;

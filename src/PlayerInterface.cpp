@@ -51,6 +51,7 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
         if (apiinfo == NULL)
             throw Xcept("Pa_GetHostApiInfo with valid index failed");
         deviceIndex = apiinfo->defaultOutputDevice;
+        break;
     }
     if (hostApiIndex < 0) {
         // no prioritized api was found, use default

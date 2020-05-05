@@ -37,26 +37,40 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     PaError err;
     //uint32_t nBlocks = sg->GetBufferUnitCount();
     uint32_t outSampleRate = sg->GetRenderSampleRate();
-    PaDeviceIndex deviceIndex;
-    PaHostApiIndex jackApiIndex = Pa_HostApiTypeIdToHostApiIndex(paJACK);
-    if (jackApiIndex >= 0) {
-        // jack available
-        const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(jackApiIndex);
-        if (apiinfo == NULL)
-            throw Xcept("Pa_GetHostApiInfo with valid index failed");
-        deviceIndex = apiinfo->defaultOutputDevice;
-    } else {
-        // jack not available
-        const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(Pa_GetDefaultHostApi());
+
+    // init host api
+    PaDeviceIndex deviceIndex = -1;
+    PaHostApiIndex hostApiIndex = -1;
+    for (const auto apiType : hostApiPriority) {
+        hostApiIndex = Pa_HostApiTypeIdToHostApiIndex(apiType);
+        // prioritized host api available ?
+        if (hostApiIndex < 0)
+            continue;
+
+        const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(hostApiIndex);
         if (apiinfo == NULL)
             throw Xcept("Pa_GetHostApiInfo with valid index failed");
         deviceIndex = apiinfo->defaultOutputDevice;
     }
+    if (hostApiIndex < 0) {
+        // no prioritized api was found, use default
+        const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(Pa_GetDefaultHostApi());
+        _print_debug("Could not find prioritized API, falling back to: %s", apiinfo->name);
+        if (apiinfo == NULL)
+            throw Xcept("Pa_GetHostApiInfo with valid index failed");
+        deviceIndex = apiinfo->defaultOutputDevice;
+    }
+
+    const PaDeviceInfo *devinfo = Pa_GetDeviceInfo(deviceIndex);
+    if (devinfo == NULL)
+        throw Xcept("Pa_GetDeviceInfo with valid index failed");
+    _print_debug("opening device: %s, low latency: %f", devinfo->name, devinfo->defaultLowOutputLatency);
+
     PaStreamParameters outputStreamParameters;
     outputStreamParameters.device = deviceIndex;
     outputStreamParameters.channelCount = N_CHANNELS;
     outputStreamParameters.sampleFormat = paFloat32;
-    outputStreamParameters.suggestedLatency = 0.0;
+    outputStreamParameters.suggestedLatency = devinfo->defaultLowOutputLatency;
     outputStreamParameters.hostApiSpecificStreamInfo = NULL;
     if ((err = Pa_OpenStream(&audioStream, NULL, &outputStreamParameters, outSampleRate, 0, paNoFlag, audioCallback, (void *)&rBuf)) != paNoError) {
         _print_debug("Pa_OpenDefaultStream: %s", Pa_GetErrorText(err));
@@ -66,6 +80,8 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
         _print_debug("PA_StartStream: %s", Pa_GetErrorText(err));
         return;
     }
+    const PaStreamInfo *strinf = Pa_GetStreamInfo(audioStream);
+    _print_debug("output latency: %f", strinf->outputLatency);
 }
 
 PlayerInterface::~PlayerInterface() 
@@ -247,6 +263,12 @@ void PlayerInterface::GetMasterVolLevels(float& left, float& right)
 /*
  * private PlayerInterface
  */
+
+// first portaudio hostapi has highest priority, last hostapi has lowest
+// if none are available, the default one is selected
+const std::vector<PaHostApiTypeId> PlayerInterface::hostApiPriority = {
+    paJACK,
+};
 
 void PlayerInterface::threadWorker()
 {

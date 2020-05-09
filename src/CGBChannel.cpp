@@ -55,10 +55,10 @@ uint8_t CGBChannel::GetOwner()
 void CGBChannel::SetVol(uint8_t vol, int8_t pan)
 {
     if (eState < EnvState::REL) {
-        if (pan < -32) {
+        if (pan < -21) {
             // snap left
             this->pan = Pan::LEFT;
-        } else if (pan > 32) {
+        } else if (pan > 20) {
             // snap right
             this->pan = Pan::RIGHT;
         } else {

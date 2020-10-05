@@ -36,6 +36,7 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reve
                 revdsps.push_back(new ReverbGS2(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
                         0.4140625f, -0.0625f));
                 break;
+                // Mario Power Tennis uses same coefficients as Mario Golf Advance Tour
             case ReverbType::MGAT:
                 revdsps.push_back(new ReverbGS2(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
                         0.25f, -0.046875f));

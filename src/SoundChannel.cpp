@@ -47,11 +47,24 @@ SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note,
     SetPitch(pitch);
     // if instant attack is ative directly max out the envelope to not cut off initial sound
     this->pos = 0;
+
+    // Golden Sun's synth instruments are marked by having a length of zero and a loop of zero
     if (sInfo.loopEnabled == true && sInfo.loopPos == 0 && sInfo.endPos == 0) {
         this->isGS = true;
     } else {
         this->isGS = false;
     }
+
+    // Mario Power Tennis compressed instruments have a 'negative' length
+    if (fixed && sInfo.endPos >= 0x80000000) {
+        this->isMPTcompressed = true;
+        // flip it to it's intended length
+        this->sInfo.endPos = -this->sInfo.endPos;
+    } else {
+        this->isMPTcompressed = false;
+    }
+    this->levelMPTcompressed = 0;
+    this->shiftMPTcompressed = 0x38;
 }
 
 SoundChannel::~SoundChannel()
@@ -274,7 +287,12 @@ void SoundChannel::processNormal(float *buffer, size_t nblocks, ProcArgs& cargs)
         return;
     float outBuffer[nblocks];
 
-    bool running = rs->Process(outBuffer, nblocks, cargs.interStep, sampleFetchCallback, this);
+    bool running;
+    if (this->isMPTcompressed) {
+        running = rs->Process(outBuffer, nblocks, cargs.interStep, sampleFetchCallbackMPTDecomp, this);
+    } else {
+        running = rs->Process(outBuffer, nblocks, cargs.interStep, sampleFetchCallback, this);
+    }
 
     size_t i = 0;
     do {
@@ -412,6 +430,57 @@ bool SoundChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t s
                 std::fill(fetchBuffer.begin() + i, fetchBuffer.end(), 0.0f);
                 return false;
             }
+        }
+    } while (samplesToFetch > 0);
+    return true;
+}
+
+bool SoundChannel::sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
+{
+    if (fetchBuffer.size() >= samplesRequired)
+        return true;
+    SoundChannel *_this = static_cast<SoundChannel *>(cbdata);
+    size_t samplesToFetch = samplesRequired - fetchBuffer.size();
+    size_t i = fetchBuffer.size();
+    fetchBuffer.resize(samplesRequired);
+
+    do {
+        size_t samplesTilLoop = _this->sInfo.endPos - _this->pos;
+        size_t thisFetch = std::min(samplesTilLoop, samplesToFetch);
+
+        samplesToFetch -= thisFetch;
+        do {
+            // once again, I just took over the assembly implementation
+            // there is probably plenty of room to make this nicer, but it at least works for now
+            bool loNibble = _this->pos & 1;
+            uint32_t samplePos = _this->pos++ >> 1u;
+            int8_t data = _this->sInfo.samplePtr[samplePos];
+
+            // 4 bit nibble is shifted up to bit 31..28
+            int32_t nibble;
+            if (loNibble)
+                nibble = (int32_t(data) << 28) & 0xF0000000;
+            else
+                nibble = (int32_t(data) << 24) & 0xF0000000;
+
+            // in the ARM ASM you can easily just shift by more than 31, but this does not work on x86/C++
+            if (_this->shiftMPTcompressed <= 63) {
+                int32_t actualShift = (int32_t)(_this->shiftMPTcompressed >> 1u);
+                _this->levelMPTcompressed = int16_t(_this->levelMPTcompressed + (nibble >> actualShift));
+            }
+
+            if (nibble & 0x80000000)
+                nibble = -nibble;
+            _this->shiftMPTcompressed = uint8_t(_this->shiftMPTcompressed + 4);
+            _this->shiftMPTcompressed = uint8_t((uint32_t)_this->shiftMPTcompressed - ((uint32_t)nibble >> 28u));
+
+            fetchBuffer[i++] = float(_this->levelMPTcompressed) / 128.0f;
+        } while (--thisFetch > 0);
+
+        if (_this->pos >= _this->sInfo.endPos) {
+            // MPT compressed sample cannot loop
+            std::fill(fetchBuffer.begin() + i, fetchBuffer.end(), 0.0f);
+            return false;
         }
     } while (samplesToFetch > 0);
     return true;

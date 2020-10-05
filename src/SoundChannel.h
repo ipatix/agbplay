@@ -44,6 +44,7 @@ namespace agbplay
             void processSaw(float *buffer, size_t nblocks, ProcArgs& cargs);
             void processTri(float *buffer, size_t nblocks, ProcArgs& cargs);
             static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
+            static bool sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequires, void *cbdata);
             std::unique_ptr<Resampler> rs;
             uint32_t pos;
             float interPos;
@@ -53,7 +54,10 @@ namespace agbplay
             SampleInfo sInfo;
             EnvState eState;
             bool fixed;
-            bool isGS;
+            bool isGS;              // is Golden Sun synth
+            bool isMPTcompressed;   // is Mario Power Tennis compressed
+            int16_t levelMPTcompressed;
+            uint8_t shiftMPTcompressed;
             uint8_t owner;
             uint8_t envInterStep;
             uint8_t leftVol;

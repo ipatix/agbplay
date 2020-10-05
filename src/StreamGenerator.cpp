@@ -134,17 +134,20 @@ void StreamGenerator::processSequenceTick()
 
         isSongRunning = true;
         
+        if (cTrk.mod > 0)
+            cTrk.lfoPhase = uint8_t(cTrk.lfoPhase + cTrk.lfos);
+        else
+            cTrk.lfoPhase = 0; // if mod is 0, set phase to 0 too
         if (sm.TickTrackNotes(uint8_t(ntrk), cTrk.activeNotes) > 0) {
             if (cTrk.lfodlCount > 0) {
                 cTrk.lfodlCount--;
                 cTrk.lfoPhase = 0;
-            } else {
-                cTrk.lfoPhase = uint8_t(cTrk.lfoPhase + cTrk.lfos);
             }
-        } else {
-            cTrk.lfoPhase = 0;
+        } else
             cTrk.lfodlCount = cTrk.lfodl;
-        }
+        if ((cTrk.lfodl == cTrk.lfodlCount && cTrk.lfodl != 0) || (cTrk.lfos == 0))
+            cTrk.lfoPhase = 0;
+
         // count down last delay and process
         bool updatePV = false;
         if (--cTrk.delay <= 0) {

@@ -4,7 +4,8 @@ the most common (mp2k/m4a) sound engine format. The code itself is written in
 C++.
 
 ### Quick overview
-![agbplay](https://cloud.githubusercontent.com/assets/8502545/24632845/faa2503c-18c5-11e7-84a3-cecec08e034a.png)
+![agbplay](https://user-images.githubusercontent.com/8502545/95079441-e9e97c00-0716-11eb-8ea2-5240a19614ae.png)
+
 
 ### Controls
 - Arrow Keys or HJKL: Navigate through the program

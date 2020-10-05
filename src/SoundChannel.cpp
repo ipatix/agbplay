@@ -56,7 +56,9 @@ SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note,
     }
 
     // Mario Power Tennis compressed instruments have a 'negative' length
-    if (fixed && sInfo.endPos >= 0x80000000) {
+    // strictly speaking, these are originally only available at 'fixed' frequency,
+    // but we enhance song #17 which otherwise would have garbled/no sound
+    if (sInfo.endPos >= 0x80000000) {
         this->isMPTcompressed = true;
         // flip it to it's intended length
         this->sInfo.endPos = -this->sInfo.endPos;

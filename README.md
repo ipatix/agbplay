@@ -122,7 +122,7 @@ for drums). They sypport the following values:
   likely want to use BLEP over this one (NEAREST is wayyyyyyy cheaper to
   compute, though).
 - `LINEAR` = Fast! Interpolate samples in a triangular fasion. This is what's
-  used on Nintendo's hardware (although with different target samplerates).
+  used with Nintendo's sound driver (although with different target samplerates).
   Recommended for normal sounds.
 - `SINC` = Slow! Use a sinc based filter to avoid aliasing. For most games this
   will filter out a lot of the high end freuqnecies. The only case I'd

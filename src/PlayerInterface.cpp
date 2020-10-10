@@ -287,6 +287,7 @@ void PlayerInterface::threadWorker()
                     delete sg;
                     sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), MAX_LOOPS, float(speedFactor) / 64.0f, gameCfg.GetRevType());
                     playerState = State::PLAYING;
+                    [[fallthrough]];
                 case State::PLAYING:
                     {
                         // clear high level mixing buffer

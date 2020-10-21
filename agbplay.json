@@ -5,7 +5,8 @@
 		{
 			"games" : 
 			[
-				"BPED"
+				"BPED",
+				"BPEE"
 			],
 			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 12,
@@ -1502,103 +1503,6 @@
 		{
 			"games" : 
 			[
-				"BPRE"
-			],
-			"pcm-fixed-rate-resampling-algo" : "blep",
-			"pcm-master-volume" : 12,
-			"pcm-resampling-algo" : "linear",
-			"pcm-reverb-buffer-len" : 1584,
-			"pcm-reverb-level" : 0,
-			"pcm-reverb-type" : "normal",
-			"pcm-samplerate" : 4,
-			"song-track-limit" : 16,
-			"songs" : 
-			[
-				{
-					"index" : 384,
-					"name" : "0384"
-				},
-				{
-					"index" : 401,
-					"name" : "0401"
-				},
-				{
-					"index" : 406,
-					"name" : "0406"
-				},
-				{
-					"index" : 407,
-					"name" : "0407"
-				},
-				{
-					"index" : 410,
-					"name" : "0410"
-				},
-				{
-					"index" : 412,
-					"name" : "0412"
-				},
-				{
-					"index" : 416,
-					"name" : "0416"
-				},
-				{
-					"index" : 417,
-					"name" : "0417"
-				},
-				{
-					"index" : 375,
-					"name" : "0375"
-				},
-				{
-					"index" : 397,
-					"name" : "0397"
-				},
-				{
-					"index" : 428,
-					"name" : "0428"
-				},
-				{
-					"index" : 435,
-					"name" : "0435"
-				},
-				{
-					"index" : 439,
-					"name" : "0439"
-				},
-				{
-					"index" : 440,
-					"name" : "0440"
-				},
-				{
-					"index" : 441,
-					"name" : "0441"
-				},
-				{
-					"index" : 442,
-					"name" : "0442"
-				},
-				{
-					"index" : 445,
-					"name" : "0445"
-				},
-				{
-					"index" : 446,
-					"name" : "0446"
-				},
-				{
-					"index" : 450,
-					"name" : "0450"
-				},
-				{
-					"index" : 456,
-					"name" : "0456"
-				}
-			]
-		},
-		{
-			"games" : 
-			[
 				"AMKE"
 			],
 			"pcm-fixed-rate-resampling-algo" : "blep",
@@ -2998,7 +2902,8 @@
 		{
 			"games" : 
 			[
-				"BPRD"
+				"BPRD",
+				"BPRE"
 			],
 			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 12,
@@ -3308,27 +3213,6 @@
 			"pcm-samplerate" : 4,
 			"song-track-limit" : 16,
 			"songs" : null
-		},
-		{
-			"games" : 
-			[
-				"BPEE"
-			],
-			"pcm-fixed-rate-resampling-algo" : "blep",
-			"pcm-master-volume" : 12,
-			"pcm-resampling-algo" : "linear",
-			"pcm-reverb-buffer-len" : 1584,
-			"pcm-reverb-level" : 0,
-			"pcm-reverb-type" : "normal",
-			"pcm-samplerate" : 4,
-			"song-track-limit" : 10,
-			"songs" : 
-			[
-				{
-					"index" : 477,
-					"name" : "0477"
-				}
-			]
 		},
 		{
 			"games" : 

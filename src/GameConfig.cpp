@@ -10,7 +10,20 @@ using namespace agbplay;
 
 GameConfig::GameConfig(const string& gameCode)
 {
-    this->gameCode = gameCode;
+    gameCodes.push_back(gameCode);
+    revType = ReverbType::NORMAL;
+    resTypeFixed = ResamplerType::LINEAR;
+    resType = ResamplerType::LINEAR;
+    pcmVol = 0xF;
+    engineFreq = 0x4;
+    engineRev = 0x0;
+    trackLimit = 16;
+    revBufSize = 1584;
+}
+
+GameConfig::GameConfig(const vector<string>& gameCodes)
+{
+    this->gameCodes = gameCodes;
     revType = ReverbType::NORMAL;
     resTypeFixed = ResamplerType::LINEAR;
     resType = ResamplerType::LINEAR;
@@ -25,9 +38,9 @@ GameConfig::~GameConfig()
 {
 }
 
-const string& GameConfig::GetGameCode()
+const std::vector<std::string>& GameConfig::GetGameCodes()
 {
-    return gameCode;
+    return gameCodes;
 }
 
 ReverbType GameConfig::GetRevType()

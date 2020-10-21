@@ -1,0 +1,3725 @@
+{
+	"id" : "agbplay",
+	"playlists" : 
+	[
+		{
+			"games" : 
+			[
+				"BPED"
+			],
+			"pcm-fixed-rate-resampling-algo" : "blep",
+			"pcm-master-volume" : 12,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 10,
+			"songs" : 
+			[
+				{
+					"index" : 414,
+					"name" : "Intro Video"
+				},
+				{
+					"index" : 442,
+					"name" : "The Pokemon"
+				},
+				{
+					"index" : 413,
+					"name" : "Title Screen"
+				},
+				{
+					"index" : 374,
+					"name" : "Game Introduction"
+				},
+				{
+					"index" : 453,
+					"name" : "TV Show"
+				},
+				{
+					"index" : 405,
+					"name" : "Littleroot Town"
+				},
+				{
+					"index" : 415,
+					"name" : "May's Theme"
+				},
+				{
+					"index" : 410,
+					"name" : "Help"
+				},
+				{
+					"index" : 474,
+					"name" : "Wild Battle"
+				},
+				{
+					"index" : 352,
+					"name" : "Battle Won"
+				},
+				{
+					"index" : 353,
+					"name" : "Battle Won /w Intro"
+				},
+				{
+					"index" : 359,
+					"name" : "Route 101"
+				},
+				{
+					"index" : 383,
+					"name" : "Birch's Lab"
+				},
+				{
+					"index" : 363,
+					"name" : "Oldale Town"
+				},
+				{
+					"index" : 400,
+					"name" : "Poke Center"
+				},
+				{
+					"index" : 380,
+					"name" : "Boy Encounter"
+				},
+				{
+					"index" : 407,
+					"name" : "Girl Encounter"
+				},
+				{
+					"index" : 476,
+					"name" : "Trainer Battle"
+				},
+				{
+					"index" : 412,
+					"name" : "Trainer Defeated"
+				},
+				{
+					"index" : 362,
+					"name" : "Petalburg City"
+				},
+				{
+					"index" : 420,
+					"name" : "Show me around"
+				},
+				{
+					"index" : 401,
+					"name" : "Route 104"
+				},
+				{
+					"index" : 366,
+					"name" : "Caves and Forests"
+				},
+				{
+					"index" : 419,
+					"name" : "Team Aqua Encounter"
+				},
+				{
+					"index" : 475,
+					"name" : "Team A/M Battle"
+				},
+				{
+					"index" : 424,
+					"name" : "Team A/M Defeated"
+				},
+				{
+					"index" : 399,
+					"name" : "Rustboro City"
+				},
+				{
+					"index" : 435,
+					"name" : "Trainer School"
+				},
+				{
+					"index" : 364,
+					"name" : "Gym"
+				},
+				{
+					"index" : 477,
+					"name" : "Gym Leaeder Battle"
+				},
+				{
+					"index" : 354,
+					"name" : "Gym Leader Defeated"
+				},
+				{
+					"index" : 431,
+					"name" : "Sailing"
+				},
+				{
+					"index" : 427,
+					"name" : "Dewford Town"
+				},
+				{
+					"index" : 379,
+					"name" : "Tuber Encounter"
+				},
+				{
+					"index" : 433,
+					"name" : "Slateport City"
+				},
+				{
+					"index" : 375,
+					"name" : "Slateport Museum"
+				},
+				{
+					"index" : 384,
+					"name" : "Battle Camp"
+				},
+				{
+					"index" : 360,
+					"name" : "Route 110"
+				},
+				{
+					"index" : 448,
+					"name" : "Trick House"
+				},
+				{
+					"index" : 403,
+					"name" : "Bicycle"
+				},
+				{
+					"index" : 426,
+					"name" : "Casino"
+				},
+				{
+					"index" : 392,
+					"name" : "Reel Time"
+				},
+				{
+					"index" : 398,
+					"name" : "Verdanturf Town"
+				},
+				{
+					"index" : 418,
+					"name" : "Route 113"
+				},
+				{
+					"index" : 449,
+					"name" : "Kid Encounter"
+				},
+				{
+					"index" : 437,
+					"name" : "Fallarbor Town"
+				},
+				{
+					"index" : 386,
+					"name" : "Meteor Falls"
+				},
+				{
+					"index" : 451,
+					"name" : "Hiker Encounter"
+				},
+				{
+					"index" : 425,
+					"name" : "Cablecar"
+				},
+				{
+					"index" : 406,
+					"name" : "Chimney Mountain"
+				},
+				{
+					"index" : 409,
+					"name" : "Desert"
+				},
+				{
+					"index" : 365,
+					"name" : "Surfing"
+				},
+				{
+					"index" : 402,
+					"name" : "Route 119"
+				},
+				{
+					"index" : 382,
+					"name" : "Fortree City"
+				},
+				{
+					"index" : 361,
+					"name" : "Route 120"
+				},
+				{
+					"index" : 428,
+					"name" : "Safari Zone"
+				},
+				{
+					"index" : 397,
+					"name" : "Sailor Encounter"
+				},
+				{
+					"index" : 408,
+					"name" : "Lilycove City"
+				},
+				{
+					"index" : 373,
+					"name" : "Lilycove Museum"
+				},
+				{
+					"index" : 421,
+					"name" : "Brendan's Theme"
+				},
+				{
+					"index" : 481,
+					"name" : "Rival Battle"
+				},
+				{
+					"index" : 377,
+					"name" : "Evolution"
+				},
+				{
+					"index" : 452,
+					"name" : "Contest Lobby"
+				},
+				{
+					"index" : 393,
+					"name" : "Contest Variation 1"
+				},
+				{
+					"index" : 394,
+					"name" : "Contest Variation 2"
+				},
+				{
+					"index" : 395,
+					"name" : "Contest Variation 3"
+				},
+				{
+					"index" : 396,
+					"name" : "Contest Variation 4"
+				},
+				{
+					"index" : 440,
+					"name" : "Pokemon Contest"
+				},
+				{
+					"index" : 446,
+					"name" : "Contest Results"
+				},
+				{
+					"index" : 439,
+					"name" : "Contest Won"
+				},
+				{
+					"index" : 404,
+					"name" : "Shop"
+				},
+				{
+					"index" : 432,
+					"name" : "Mt. Pyre"
+				},
+				{
+					"index" : 416,
+					"name" : "Electric Encounter"
+				},
+				{
+					"index" : 423,
+					"name" : "Psychic Encounter"
+				},
+				{
+					"index" : 434,
+					"name" : "Mt. Pyre Peak"
+				},
+				{
+					"index" : 430,
+					"name" : "Team A/M Hideout"
+				},
+				{
+					"index" : 388,
+					"name" : "Legend Awakes"
+				},
+				{
+					"index" : 441,
+					"name" : "Team Magma Encounter"
+				},
+				{
+					"index" : 483,
+					"name" : "Team Leader Battle"
+				},
+				{
+					"index" : 444,
+					"name" : "The Drought"
+				},
+				{
+					"index" : 443,
+					"name" : "The Flood"
+				},
+				{
+					"index" : 411,
+					"name" : "Dive"
+				},
+				{
+					"index" : 445,
+					"name" : "Sootopolis City"
+				},
+				{
+					"index" : 464,
+					"name" : "Rayquaza Theme"
+				},
+				{
+					"index" : 470,
+					"name" : "Legendary Battle"
+				},
+				{
+					"index" : 385,
+					"name" : "Swimmer Encounter"
+				},
+				{
+					"index" : 422,
+					"name" : "Evergrande City"
+				},
+				{
+					"index" : 438,
+					"name" : "Sealed Chamber"
+				},
+				{
+					"index" : 479,
+					"name" : "Regi Battle"
+				},
+				{
+					"index" : 381,
+					"name" : "Shipwreck"
+				},
+				{
+					"index" : 429,
+					"name" : "Victory Road"
+				},
+				{
+					"index" : 417,
+					"name" : "Ace Encounter"
+				},
+				{
+					"index" : 450,
+					"name" : "Elite 4 Encounter"
+				},
+				{
+					"index" : 482,
+					"name" : "Elite 4 Battle"
+				},
+				{
+					"index" : 454,
+					"name" : "Champ Encounter"
+				},
+				{
+					"index" : 478,
+					"name" : "Champ Battle"
+				},
+				{
+					"index" : 355,
+					"name" : "Champ Defeated"
+				},
+				{
+					"index" : 447,
+					"name" : "Hall of Fame"
+				},
+				{
+					"index" : 436,
+					"name" : "You're the Champ"
+				},
+				{
+					"index" : 455,
+					"name" : "Ending Credits"
+				},
+				{
+					"index" : 456,
+					"name" : "The End"
+				},
+				{
+					"index" : 457,
+					"name" : "Battle Zone"
+				},
+				{
+					"index" : 465,
+					"name" : "Battle Tower"
+				},
+				{
+					"index" : 473,
+					"name" : "Battle Dome Lobby"
+				},
+				{
+					"index" : 467,
+					"name" : "Dome Tournament"
+				},
+				{
+					"index" : 469,
+					"name" : "Battle Factory"
+				},
+				{
+					"index" : 468,
+					"name" : "Battle Tube"
+				},
+				{
+					"index" : 458,
+					"name" : "Battle Arena"
+				},
+				{
+					"index" : 463,
+					"name" : "Battle Palace"
+				},
+				{
+					"index" : 461,
+					"name" : "Battle Pyramid"
+				},
+				{
+					"index" : 462,
+					"name" : "Top of the Pyramid"
+				},
+				{
+					"index" : 471,
+					"name" : "Frontier Battle"
+				},
+				{
+					"index" : 472,
+					"name" : "Mew Battle"
+				},
+				{
+					"index" : 350,
+					"name" : "Littleroot Town Test"
+				},
+				{
+					"index" : 484,
+					"name" : "Show Me Around"
+				},
+				{
+					"index" : 485,
+					"name" : "Game Corner"
+				},
+				{
+					"index" : 486,
+					"name" : "Evil Lurks"
+				},
+				{
+					"index" : 487,
+					"name" : "Gym"
+				},
+				{
+					"index" : 489,
+					"name" : "Intro Video"
+				},
+				{
+					"index" : 490,
+					"name" : "Title Screen"
+				},
+				{
+					"index" : 491,
+					"name" : "Cinnabar Island"
+				},
+				{
+					"index" : 492,
+					"name" : "Lavander Town"
+				},
+				{
+					"index" : 494,
+					"name" : "Bicycle"
+				},
+				{
+					"index" : 495,
+					"name" : "Encounter 1"
+				},
+				{
+					"index" : 496,
+					"name" : "Encounter 2"
+				},
+				{
+					"index" : 497,
+					"name" : "Encounter 3"
+				},
+				{
+					"index" : 498,
+					"name" : "You're in the Hall of Fame"
+				},
+				{
+					"index" : 499,
+					"name" : "Viridian Forest"
+				},
+				{
+					"index" : 500,
+					"name" : "Mount Moon"
+				},
+				{
+					"index" : 501,
+					"name" : "Abandoned Place"
+				},
+				{
+					"index" : 502,
+					"name" : "Ending Credits"
+				},
+				{
+					"index" : 503,
+					"name" : "Route Theme 1"
+				},
+				{
+					"index" : 504,
+					"name" : "Route Theme 2"
+				},
+				{
+					"index" : 505,
+					"name" : "Route Theme 3"
+				},
+				{
+					"index" : 506,
+					"name" : "Route Theme 4"
+				},
+				{
+					"index" : 507,
+					"name" : "Indigo Plateau"
+				},
+				{
+					"index" : 508,
+					"name" : "Gym Leader Battle"
+				},
+				{
+					"index" : 509,
+					"name" : "Trainer Battle"
+				},
+				{
+					"index" : 510,
+					"name" : "Wild Battle"
+				},
+				{
+					"index" : 511,
+					"name" : "Champ Battle"
+				},
+				{
+					"index" : 512,
+					"name" : "Pallet Town"
+				},
+				{
+					"index" : 513,
+					"name" : "Oak's Lab"
+				},
+				{
+					"index" : 514,
+					"name" : "Oak's Theme"
+				},
+				{
+					"index" : 515,
+					"name" : "Pokemon Center"
+				},
+				{
+					"index" : 516,
+					"name" : "SS Anne"
+				},
+				{
+					"index" : 517,
+					"name" : "Surfing"
+				},
+				{
+					"index" : 518,
+					"name" : "Pokemon Tower"
+				},
+				{
+					"index" : 520,
+					"name" : "Cerulean City"
+				},
+				{
+					"index" : 521,
+					"name" : "Celadon City"
+				},
+				{
+					"index" : 522,
+					"name" : "Trainer Defeat"
+				},
+				{
+					"index" : 523,
+					"name" : "Wild Pokemon Defeat"
+				},
+				{
+					"index" : 525,
+					"name" : "Vermillion City"
+				},
+				{
+					"index" : 526,
+					"name" : "Viridian City"
+				},
+				{
+					"index" : 527,
+					"name" : "Gary's Theme /w Intro"
+				},
+				{
+					"index" : 528,
+					"name" : "Gary's Theme"
+				},
+				{
+					"index" : 533,
+					"name" : "Gamefreak"
+				},
+				{
+					"index" : 534,
+					"name" : "Wild Pokemon Defeat"
+				},
+				{
+					"index" : 535,
+					"name" : "Intro Message 1"
+				},
+				{
+					"index" : 536,
+					"name" : "Intro Message 2"
+				},
+				{
+					"index" : 537,
+					"name" : "Intro Message 3"
+				},
+				{
+					"index" : 538,
+					"name" : "Multiplayer #1"
+				},
+				{
+					"index" : 539,
+					"name" : "Multiplayer #2"
+				},
+				{
+					"index" : 540,
+					"name" : "Net Center"
+				},
+				{
+					"index" : 541,
+					"name" : "Mystery Connection"
+				},
+				{
+					"index" : 542,
+					"name" : "Multiplayer #3"
+				},
+				{
+					"index" : 543,
+					"name" : "Mount Ember"
+				},
+				{
+					"index" : 544,
+					"name" : "Show Me Around"
+				},
+				{
+					"index" : 545,
+					"name" : "Sevii Island Paths"
+				},
+				{
+					"index" : 546,
+					"name" : "Tanoby Ruins"
+				},
+				{
+					"index" : 547,
+					"name" : "Islands 1-3"
+				},
+				{
+					"index" : 548,
+					"name" : "Islands 4-5"
+				},
+				{
+					"index" : 549,
+					"name" : "Islands 6-7"
+				},
+				{
+					"index" : 551,
+					"name" : "Deoxys Battle"
+				},
+				{
+					"index" : 552,
+					"name" : "Legendary Battle #1"
+				},
+				{
+					"index" : 553,
+					"name" : "Legendary Battle #2"
+				},
+				{
+					"index" : 554,
+					"name" : "Encounter 4"
+				},
+				{
+					"index" : 555,
+					"name" : "Deoxys Encounter"
+				},
+				{
+					"index" : 557,
+					"name" : "Pallet Town Alternation"
+				},
+				{
+					"index" : 558,
+					"name" : "Teachy TV"
+				}
+			]
+		},
+		{
+			"games" : 
+			[
+				"AGFD"
+			],
+			"pcm-fixed-rate-resampling-algo" : "sinc",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "gs2",
+			"pcm-samplerate" : 9,
+			"song-track-limit" : 10,
+			"songs" : 
+			[
+				{
+					"index" : 70,
+					"name" : "Golden Sun Theme"
+				},
+				{
+					"index" : 74,
+					"name" : "Menu Screen"
+				},
+				{
+					"index" : 723,
+					"name" : "Thunderstorm"
+				},
+				{
+					"index" : 67,
+					"name" : "Wrong Happy End"
+				},
+				{
+					"index" : 700,
+					"name" : "Vale"
+				},
+				{
+					"index" : 61,
+					"name" : "Villain Theme"
+				},
+				{
+					"index" : 720,
+					"name" : "Sanctums"
+				},
+				{
+					"index" : 750,
+					"name" : "Isaac Battle"
+				},
+				{
+					"index" : 89,
+					"name" : "New Level"
+				},
+				{
+					"index" : 58,
+					"name" : "Battle Won"
+				},
+				{
+					"index" : 721,
+					"name" : "Sun and Moon"
+				},
+				{
+					"index" : 722,
+					"name" : "Sol Sanctum"
+				},
+				{
+					"index" : 63,
+					"name" : "The old Wise"
+				},
+				{
+					"index" : 702,
+					"name" : "Sad City Theme"
+				},
+				{
+					"index" : 86,
+					"name" : "Sleep Well"
+				},
+				{
+					"index" : 742,
+					"name" : "World Map gs1"
+				},
+				{
+					"index" : 81,
+					"name" : "New Follower"
+				},
+				{
+					"index" : 709,
+					"name" : "I'll show You"
+				},
+				{
+					"index" : 60,
+					"name" : "Ivan's Theme"
+				},
+				{
+					"index" : 724,
+					"name" : "Cave Theme"
+				},
+				{
+					"index" : 703,
+					"name" : "Castle"
+				},
+				{
+					"index" : 726,
+					"name" : "Imil"
+				},
+				{
+					"index" : 84,
+					"name" : "Lighthouse Pray"
+				},
+				{
+					"index" : 727,
+					"name" : "Mercury Lighthouse"
+				},
+				{
+					"index" : 751,
+					"name" : "Saturos Battle"
+				},
+				{
+					"index" : 63,
+					"name" : "Lighting the Beacons"
+				},
+				{
+					"index" : 701,
+					"name" : "City Theme"
+				},
+				{
+					"index" : 705,
+					"name" : "Temple of Fuchin"
+				},
+				{
+					"index" : 704,
+					"name" : "Flodded Altin"
+				},
+				{
+					"index" : 752,
+					"name" : "Boss Battle gs1"
+				},
+				{
+					"index" : 725,
+					"name" : "Desert of Lamakan"
+				},
+				{
+					"index" : 706,
+					"name" : "Kalay"
+				},
+				{
+					"index" : 741,
+					"name" : "Karagol Ship"
+				},
+				{
+					"index" : 710,
+					"name" : "Tolbi"
+				},
+				{
+					"index" : 730,
+					"name" : "Babi's Theme"
+				},
+				{
+					"index" : 707,
+					"name" : "Colosso 1"
+				},
+				{
+					"index" : 708,
+					"name" : "Colosso 2"
+				},
+				{
+					"index" : 55,
+					"name" : "Colosso Round"
+				},
+				{
+					"index" : 91,
+					"name" : "Colosso First Win"
+				},
+				{
+					"index" : 92,
+					"name" : "Colosso Second Win"
+				},
+				{
+					"index" : 76,
+					"name" : "Colosso Battle"
+				},
+				{
+					"index" : 93,
+					"name" : "Colosso Final Win"
+				},
+				{
+					"index" : 729,
+					"name" : "Treasure Island Caves"
+				},
+				{
+					"index" : 728,
+					"name" : "Babi's Lighthouse"
+				},
+				{
+					"index" : 743,
+					"name" : "Venus Lighthouse"
+				},
+				{
+					"index" : 753,
+					"name" : "Boss and Menardi Battle"
+				},
+				{
+					"index" : 754,
+					"name" : "Fusion Dragon"
+				},
+				{
+					"index" : 59,
+					"name" : "Game Over"
+				},
+				{
+					"index" : 40,
+					"name" : "Title Screen"
+				},
+				{
+					"index" : 71,
+					"name" : "Transfer Password"
+				},
+				{
+					"index" : 68,
+					"name" : "Golden Sun Rises"
+				},
+				{
+					"index" : 727,
+					"name" : "Venus Lighthouse - Outside"
+				},
+				{
+					"index" : 49,
+					"name" : "Jenna's Battle Theme"
+				},
+				{
+					"index" : 42,
+					"name" : "World Map 1"
+				},
+				{
+					"index" : 50,
+					"name" : "Alex' Battle Theme"
+				},
+				{
+					"index" : 4,
+					"name" : "Daila"
+				},
+				{
+					"index" : 3,
+					"name" : "Kandorean Temple - Outside"
+				},
+				{
+					"index" : 9,
+					"name" : "Kandorean Temple - Inside"
+				},
+				{
+					"index" : 23,
+					"name" : "Cave of Indra"
+				},
+				{
+					"index" : 13,
+					"name" : "Madra"
+				},
+				{
+					"index" : 22,
+					"name" : "Catacombs of Madra"
+				},
+				{
+					"index" : 725,
+					"name" : "Yampi Desert"
+				},
+				{
+					"index" : 52,
+					"name" : "Boss Battle"
+				},
+				{
+					"index" : 2,
+					"name" : "Alhafra"
+				},
+				{
+					"index" : 35,
+					"name" : "Briggs' Theme"
+				},
+				{
+					"index" : 39,
+					"name" : "Trouble Brewing"
+				},
+				{
+					"index" : 51,
+					"name" : "Boss Battle Human"
+				},
+				{
+					"index" : 20,
+					"name" : "Air's Rock"
+				},
+				{
+					"index" : 15,
+					"name" : "Garoh"
+				},
+				{
+					"index" : 10,
+					"name" : "Naribwe"
+				},
+				{
+					"index" : 11,
+					"name" : "Akafubu's Ceremony"
+				},
+				{
+					"index" : 25,
+					"name" : "The Great Gabomba"
+				},
+				{
+					"index" : 36,
+					"name" : "Karst's Appearance"
+				},
+				{
+					"index" : 41,
+					"name" : "Sailing"
+				},
+				{
+					"index" : 56,
+					"name" : "Sailing Battle"
+				},
+				{
+					"index" : 34,
+					"name" : "Karst and Agatio's Theme"
+				},
+				{
+					"index" : 7,
+					"name" : "Izumo under the Serpent"
+				},
+				{
+					"index" : 24,
+					"name" : "Gaia Rock"
+				},
+				{
+					"index" : 6,
+					"name" : "Izumo Festivals"
+				},
+				{
+					"index" : 5,
+					"name" : "Apojii Islands"
+				},
+				{
+					"index" : 21,
+					"name" : "Aqua Rock"
+				},
+				{
+					"index" : 16,
+					"name" : "Yallam"
+				},
+				{
+					"index" : 17,
+					"name" : "Yepp's Song"
+				},
+				{
+					"index" : 18,
+					"name" : "Yepp's Song 2"
+				},
+				{
+					"index" : 30,
+					"name" : "Taopo Swamp"
+				},
+				{
+					"index" : 29,
+					"name" : "Tundaria Tower"
+				},
+				{
+					"index" : 14,
+					"name" : "SE Angara Islet"
+				},
+				{
+					"index" : 31,
+					"name" : "Ankohl Ruins"
+				},
+				{
+					"index" : 65,
+					"name" : "Poseidon's Realm"
+				},
+				{
+					"index" : 12,
+					"name" : "Lemuria"
+				},
+				{
+					"index" : 38,
+					"name" : "Crying in Sorrow"
+				},
+				{
+					"index" : 37,
+					"name" : "Shaman Village"
+				},
+				{
+					"index" : 721,
+					"name" : "Contigo"
+				},
+				{
+					"index" : 1,
+					"name" : "Gamble 'o' Dice"
+				},
+				{
+					"index" : 26,
+					"name" : "Jupiter Lighthouse"
+				},
+				{
+					"index" : 57,
+					"name" : "Karst and Agatio Battle"
+				},
+				{
+					"index" : 43,
+					"name" : "World Map 2"
+				},
+				{
+					"index" : 27,
+					"name" : "Magma Rock"
+				},
+				{
+					"index" : 62,
+					"name" : "Freezing Prox"
+				},
+				{
+					"index" : 28,
+					"name" : "Mars Lighthouse"
+				},
+				{
+					"index" : 53,
+					"name" : "Flame Dragons"
+				},
+				{
+					"index" : 8,
+					"name" : "Sorrow and Regret"
+				},
+				{
+					"index" : 54,
+					"name" : "Doom Dragon Battle"
+				},
+				{
+					"index" : 64,
+					"name" : "Doom Dragon Slain"
+				},
+				{
+					"index" : 72,
+					"name" : "Light the Mars Beacon"
+				},
+				{
+					"index" : 44,
+					"name" : "Ending Scene"
+				},
+				{
+					"index" : 73,
+					"name" : "Golden Sun Theme Variation"
+				},
+				{
+					"index" : 75,
+					"name" : "Golden Sun Sets"
+				},
+				{
+					"index" : 80,
+					"name" : "Secret Discovered"
+				},
+				{
+					"index" : 82,
+					"name" : "Revived"
+				},
+				{
+					"index" : 83,
+					"name" : "Item Aquired"
+				},
+				{
+					"index" : 85,
+					"name" : "Game Saved"
+				},
+				{
+					"index" : 87,
+					"name" : "Curse Broken"
+				},
+				{
+					"index" : 88,
+					"name" : "Poisen Cured"
+				}
+			]
+		},
+		{
+			"games" : 
+			[
+				"AOWP"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 7,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BZ6P"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 6,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"B24P"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 14,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 6,
+			"song-track-limit" : 16,
+			"songs" : 
+			[
+				{
+					"index" : 40,
+					"name" : "Intro Video"
+				},
+				{
+					"index" : 43,
+					"name" : "Title Screen"
+				},
+				{
+					"index" : 8,
+					"name" : "Main Menu"
+				},
+				{
+					"index" : 12,
+					"name" : "Personality Test"
+				},
+				{
+					"index" : 101,
+					"name" : "Awakening"
+				},
+				{
+					"index" : 10,
+					"name" : "Trouble"
+				},
+				{
+					"index" : 125,
+					"name" : "Tiny Woods"
+				},
+				{
+					"index" : 114,
+					"name" : "At the End of the Road"
+				},
+				{
+					"index" : 103,
+					"name" : "Job Clear"
+				},
+				{
+					"index" : 1,
+					"name" : "Team Base"
+				},
+				{
+					"index" : 46,
+					"name" : "Opening Title"
+				},
+				{
+					"index" : 14,
+					"name" : "Thunderwave Cave"
+				},
+				{
+					"index" : 4,
+					"name" : "Dream"
+				},
+				{
+					"index" : 7,
+					"name" : "Pokemon Square"
+				},
+				{
+					"index" : 107,
+					"name" : "Friend Area - Field"
+				},
+				{
+					"index" : 105,
+					"name" : "Friend Area - Steppe"
+				},
+				{
+					"index" : 121,
+					"name" : "Friend Area - Forest"
+				},
+				{
+					"index" : 116,
+					"name" : "Friend Area - Wilds"
+				},
+				{
+					"index" : 2,
+					"name" : "Friend Area - Swamp"
+				},
+				{
+					"index" : 16,
+					"name" : "Friend Area - Pond"
+				},
+				{
+					"index" : 120,
+					"name" : "Mt. Steel"
+				},
+				{
+					"index" : 11,
+					"name" : "Boss Battle"
+				},
+				{
+					"index" : 112,
+					"name" : "Friend Area - Lab"
+				},
+				{
+					"index" : 110,
+					"name" : "Makuhita Dojo"
+				},
+				{
+					"index" : 15,
+					"name" : "Sinister Woods"
+				},
+				{
+					"index" : 9,
+					"name" : "Danger"
+				},
+				{
+					"index" : 113,
+					"name" : "Silent Chasm"
+				},
+				{
+					"index" : 111,
+					"name" : "Mt. Thunder"
+				},
+				{
+					"index" : 126,
+					"name" : "Mt. Thunder Peak"
+				},
+				{
+					"index" : 20,
+					"name" : "Grand Canyon"
+				},
+				{
+					"index" : 6,
+					"name" : "The Legend of Ninetales"
+				},
+				{
+					"index" : 24,
+					"name" : "Run Away"
+				},
+				{
+					"index" : 102,
+					"name" : "Lapis Cave"
+				},
+				{
+					"index" : 25,
+					"name" : "Mt. Blaze"
+				},
+				{
+					"index" : 17,
+					"name" : "Kecleon Shop"
+				},
+				{
+					"index" : 33,
+					"name" : "Mt. Blaze Peak"
+				},
+				{
+					"index" : 36,
+					"name" : "Escape through the Snow"
+				},
+				{
+					"index" : 104,
+					"name" : "Frosty Forest"
+				},
+				{
+					"index" : 39,
+					"name" : "Frosty Grotto"
+				},
+				{
+					"index" : 5,
+					"name" : "Benevolent Spirit"
+				},
+				{
+					"index" : 115,
+					"name" : "Mt. Freeze"
+				},
+				{
+					"index" : 123,
+					"name" : "Mt. Freeze Peak"
+				},
+				{
+					"index" : 108,
+					"name" : "Magma Cavern"
+				},
+				{
+					"index" : 128,
+					"name" : "Monster House"
+				},
+				{
+					"index" : 124,
+					"name" : "Magma Cavern Pit"
+				},
+				{
+					"index" : 19,
+					"name" : "World Calamity"
+				},
+				{
+					"index" : 22,
+					"name" : "Sky Tower"
+				},
+				{
+					"index" : 23,
+					"name" : "Sky Tower Summit"
+				},
+				{
+					"index" : 32,
+					"name" : "Legendary Boss Battle"
+				},
+				{
+					"index" : 41,
+					"name" : "Aftermath"
+				},
+				{
+					"index" : 42,
+					"name" : "Farewell"
+				},
+				{
+					"index" : 106,
+					"name" : "Friend Area - Oceanic"
+				},
+				{
+					"index" : 3,
+					"name" : "Friend Area - Caves"
+				},
+				{
+					"index" : 21,
+					"name" : "Stormy Sea"
+				},
+				{
+					"index" : 13,
+					"name" : "Buried Relic"
+				},
+				{
+					"index" : 44,
+					"name" : "Staff Credits"
+				},
+				{
+					"index" : 45,
+					"name" : "Reunion"
+				},
+				{
+					"index" : 100,
+					"name" : "Friend Area - PLACEHOLDER"
+				},
+				{
+					"index" : 109,
+					"name" : "Friend Area - Ravaged Field"
+				},
+				{
+					"index" : 52,
+					"name" : "Dungeon Complete"
+				},
+				{
+					"index" : 51,
+					"name" : "Dungeon Failed"
+				}
+			]
+		},
+		{
+			"games" : 
+			[
+				"BPRE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "blep",
+			"pcm-master-volume" : 12,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : 
+			[
+				{
+					"index" : 384,
+					"name" : "0384"
+				},
+				{
+					"index" : 401,
+					"name" : "0401"
+				},
+				{
+					"index" : 406,
+					"name" : "0406"
+				},
+				{
+					"index" : 407,
+					"name" : "0407"
+				},
+				{
+					"index" : 410,
+					"name" : "0410"
+				},
+				{
+					"index" : 412,
+					"name" : "0412"
+				},
+				{
+					"index" : 416,
+					"name" : "0416"
+				},
+				{
+					"index" : 417,
+					"name" : "0417"
+				},
+				{
+					"index" : 375,
+					"name" : "0375"
+				},
+				{
+					"index" : 397,
+					"name" : "0397"
+				},
+				{
+					"index" : 428,
+					"name" : "0428"
+				},
+				{
+					"index" : 435,
+					"name" : "0435"
+				},
+				{
+					"index" : 439,
+					"name" : "0439"
+				},
+				{
+					"index" : 440,
+					"name" : "0440"
+				},
+				{
+					"index" : 441,
+					"name" : "0441"
+				},
+				{
+					"index" : 442,
+					"name" : "0442"
+				},
+				{
+					"index" : 445,
+					"name" : "0445"
+				},
+				{
+					"index" : 446,
+					"name" : "0446"
+				},
+				{
+					"index" : 450,
+					"name" : "0450"
+				},
+				{
+					"index" : 456,
+					"name" : "0456"
+				}
+			]
+		},
+		{
+			"games" : 
+			[
+				"AMKE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "blep",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 3,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"A7KP"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"AGSD"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "gs1",
+			"pcm-samplerate" : 7,
+			"song-track-limit" : 10,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"AWAE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "blep",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : 
+			[
+				{
+					"index" : 635,
+					"name" : "Intro"
+				},
+				{
+					"index" : 636,
+					"name" : "Work It"
+				},
+				{
+					"index" : 638,
+					"name" : "Enter The Pyramid"
+				},
+				{
+					"index" : 639,
+					"name" : "Map"
+				},
+				{
+					"index" : 672,
+					"name" : "Hall of Hieroglyphs"
+				},
+				{
+					"index" : 651,
+					"name" : "Palm Tree Paradise"
+				},
+				{
+					"index" : 652,
+					"name" : "Palm Tree Paradise Caves"
+				},
+				{
+					"index" : 653,
+					"name" : "Palm Tree Paradise Back From Cave"
+				},
+				{
+					"index" : 654,
+					"name" : "Wildflower Fields"
+				},
+				{
+					"index" : 655,
+					"name" : "Mystic Lake Lakeside"
+				},
+				{
+					"index" : 656,
+					"name" : "Mystic Lake Inside Jungle"
+				},
+				{
+					"index" : 657,
+					"name" : "Mystic Lake Back To Lakeside"
+				},
+				{
+					"index" : 658,
+					"name" : "Monsoon Jungle"
+				},
+				{
+					"index" : 659,
+					"name" : "The Curious Factory"
+				},
+				{
+					"index" : 660,
+					"name" : "The Toxic Landfill"
+				},
+				{
+					"index" : 662,
+					"name" : "40 Below Fridge"
+				},
+				{
+					"index" : 661,
+					"name" : "Pinball Zone"
+				},
+				{
+					"index" : 663,
+					"name" : "Toy Block Tower"
+				},
+				{
+					"index" : 664,
+					"name" : "The Big Board"
+				},
+				{
+					"index" : 665,
+					"name" : "Doodle Woods"
+				},
+				{
+					"index" : 666,
+					"name" : "Domino Row"
+				},
+				{
+					"index" : 667,
+					"name" : "Crescent Moon Village"
+				},
+				{
+					"index" : 668,
+					"name" : "Arabian Night"
+				},
+				{
+					"index" : 670,
+					"name" : "Fiery Cavern"
+				},
+				{
+					"index" : 669,
+					"name" : "Hotel Horror"
+				},
+				{
+					"index" : 671,
+					"name" : "Golden Passage"
+				},
+				{
+					"index" : 617,
+					"name" : "Wario's Workout"
+				},
+				{
+					"index" : 673,
+					"name" : "Puzzle Room"
+				},
+				{
+					"index" : 217,
+					"name" : "Hurry Up Time Limit"
+				},
+				{
+					"index" : 681,
+					"name" : "Hurry Up"
+				},
+				{
+					"index" : 450,
+					"name" : "Only A Few Seconds Left"
+				},
+				{
+					"index" : 452,
+					"name" : "Coin Loss"
+				},
+				{
+					"index" : 642,
+					"name" : "Inside the Void"
+				},
+				{
+					"index" : 342,
+					"name" : "Four Pieces"
+				},
+				{
+					"index" : 594,
+					"name" : "High Score"
+				},
+				{
+					"index" : 448,
+					"name" : "Doot To Next Stage Opens 2"
+				},
+				{
+					"index" : 457,
+					"name" : "Door To Next Stage Opens"
+				},
+				{
+					"index" : 447,
+					"name" : "Stage Already Cleared"
+				},
+				{
+					"index" : 421,
+					"name" : "Boss Already Cleared"
+				},
+				{
+					"index" : 425,
+					"name" : "Boss Room Opens"
+				},
+				{
+					"index" : 473,
+					"name" : "Enter Boss Room"
+				},
+				{
+					"index" : 474,
+					"name" : "Cant Enter Boss Room"
+				},
+				{
+					"index" : 640,
+					"name" : "Boss Room"
+				},
+				{
+					"index" : 801,
+					"name" : "Boss Room Unused"
+				},
+				{
+					"index" : 682,
+					"name" : "Item Shop"
+				},
+				{
+					"index" : 493,
+					"name" : "Boss' Presence"
+				},
+				{
+					"index" : 683,
+					"name" : "Here Comes The Mystery Man"
+				},
+				{
+					"index" : 684,
+					"name" : "Here Comes The Mystery Man 2"
+				},
+				{
+					"index" : 508,
+					"name" : "Bugle"
+				},
+				{
+					"index" : 511,
+					"name" : "Large Lips"
+				},
+				{
+					"index" : 512,
+					"name" : "Large Lips 2"
+				},
+				{
+					"index" : 513,
+					"name" : "Random Damage Sound"
+				},
+				{
+					"index" : 95,
+					"name" : "Big Hit"
+				},
+				{
+					"index" : 207,
+					"name" : "Boss is Ready"
+				},
+				{
+					"index" : 687,
+					"name" : "Boss"
+				},
+				{
+					"index" : 444,
+					"name" : "Boss Time Limit"
+				},
+				{
+					"index" : 429,
+					"name" : "Treasures 1"
+				},
+				{
+					"index" : 430,
+					"name" : "Treasures 2"
+				},
+				{
+					"index" : 431,
+					"name" : "Treasures 3"
+				},
+				{
+					"index" : 422,
+					"name" : "Victory"
+				},
+				{
+					"index" : 701,
+					"name" : "Mini Game Shop"
+				},
+				{
+					"index" : 709,
+					"name" : "Wario's Homerun Derby"
+				},
+				{
+					"index" : 715,
+					"name" : "Cheerleaders Enter"
+				},
+				{
+					"index" : 716,
+					"name" : "Cheerleaders Leave"
+				},
+				{
+					"index" : 710,
+					"name" : "Homerun"
+				},
+				{
+					"index" : 702,
+					"name" : "The Wario Hop Begins"
+				},
+				{
+					"index" : 703,
+					"name" : "The Wario Hop 1"
+				},
+				{
+					"index" : 704,
+					"name" : "The Wario Hop 2"
+				},
+				{
+					"index" : 705,
+					"name" : "The Wario Hop 3"
+				},
+				{
+					"index" : 706,
+					"name" : "The Wario Hop 4"
+				},
+				{
+					"index" : 708,
+					"name" : "Wario's Roulette"
+				},
+				{
+					"index" : 582,
+					"name" : "Nice"
+				},
+				{
+					"index" : 711,
+					"name" : "Failure 1"
+				},
+				{
+					"index" : 712,
+					"name" : "Failure 2"
+				},
+				{
+					"index" : 713,
+					"name" : "Failure 3"
+				},
+				{
+					"index" : 714,
+					"name" : "Failure 4"
+				},
+				{
+					"index" : 593,
+					"name" : "Mini Game High Score"
+				},
+				{
+					"index" : 191,
+					"name" : "Golden Diva Appears"
+				},
+				{
+					"index" : 183,
+					"name" : "Golden Diva is Ready"
+				},
+				{
+					"index" : 688,
+					"name" : "Golden Diva"
+				},
+				{
+					"index" : 689,
+					"name" : "Golden Diva's Lip is Left"
+				},
+				{
+					"index" : 489,
+					"name" : "All of my Treasures"
+				},
+				{
+					"index" : 800,
+					"name" : "Escape From the Pyramid"
+				},
+				{
+					"index" : 802,
+					"name" : "Thank You Wario"
+				},
+				{
+					"index" : 475,
+					"name" : "Final Victory 1"
+				},
+				{
+					"index" : 422,
+					"name" : "Final Victory 2"
+				},
+				{
+					"index" : 809,
+					"name" : "Japanese Ending Song"
+				},
+				{
+					"index" : 818,
+					"name" : "English Ending Song"
+				},
+				{
+					"index" : 804,
+					"name" : "Toy Block Tower Ending Mix"
+				},
+				{
+					"index" : 805,
+					"name" : "Monsoon Jungle Ending Mix"
+				},
+				{
+					"index" : 807,
+					"name" : "Crescent Moon Village Ending Mix"
+				},
+				{
+					"index" : 808,
+					"name" : "Doodle Woods Ending Mix"
+				},
+				{
+					"index" : 810,
+					"name" : "Hall of Hieroglyphs Ending Mix"
+				},
+				{
+					"index" : 811,
+					"name" : "Wildflower Fields Ending Mix"
+				},
+				{
+					"index" : 813,
+					"name" : "Mystic Lake Ending Mix"
+				},
+				{
+					"index" : 814,
+					"name" : "The Big Board Ending Mix"
+				},
+				{
+					"index" : 618,
+					"name" : "Sound Room"
+				},
+				{
+					"index" : 619,
+					"name" : "About That Shepherd"
+				},
+				{
+					"index" : 620,
+					"name" : "Things That Never Change"
+				},
+				{
+					"index" : 621,
+					"name" : "Tomorrows Blood Pressure"
+				},
+				{
+					"index" : 622,
+					"name" : "Beyond the Headrush"
+				},
+				{
+					"index" : 623,
+					"name" : "Driftwood and the Island Dog"
+				},
+				{
+					"index" : 624,
+					"name" : "The Judges Feet"
+				},
+				{
+					"index" : 625,
+					"name" : "The Moons Lamppost"
+				},
+				{
+					"index" : 626,
+					"name" : "Soft Shell"
+				},
+				{
+					"index" : 627,
+					"name" : "So Sleepy"
+				},
+				{
+					"index" : 628,
+					"name" : "The Short Futon"
+				},
+				{
+					"index" : 629,
+					"name" : "Avocado Song"
+				},
+				{
+					"index" : 630,
+					"name" : "Mr. Fly"
+				},
+				{
+					"index" : 631,
+					"name" : "Yesterdays Words"
+				},
+				{
+					"index" : 632,
+					"name" : "The Errand"
+				},
+				{
+					"index" : 633,
+					"name" : "You and Your Shoes"
+				},
+				{
+					"index" : 634,
+					"name" : "Mr. Ether and Planaria"
+				},
+				{
+					"index" : 728,
+					"name" : "Medamayaki Karaoke"
+				},
+				{
+					"index" : 729,
+					"name" : "Medamayaki Voice"
+				},
+				{
+					"index" : 26,
+					"name" : "Explorer Ouch"
+				}
+			]
+		},
+		{
+			"games" : 
+			[
+				"AE7E"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"AGDE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 7,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"AN8E"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BZMP"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BZ4P"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BZ5P"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 6,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"CYAN"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"AXVE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "blep",
+			"pcm-master-volume" : 12,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 10,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"KWJ6"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 13,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : 
+			[
+				{
+					"index" : 0,
+					"name" : "Test Song"
+				},
+				{
+					"index" : 1,
+					"name" : "Catnip Dreams Memories"
+				},
+				{
+					"index" : 2,
+					"name" : "Monkey Island Theme"
+				},
+				{
+					"index" : 3,
+					"name" : "The incredible Toon Machine"
+				},
+				{
+					"index" : 4,
+					"name" : "Pachelbel Canon"
+				},
+				{
+					"index" : 5,
+					"name" : "Duke Nukem 3D Grabbag"
+				},
+				{
+					"index" : 6,
+					"name" : "0006"
+				},
+				{
+					"index" : 7,
+					"name" : "0007"
+				},
+				{
+					"index" : 8,
+					"name" : "0008"
+				},
+				{
+					"index" : 9,
+					"name" : "Azumanga Eye Catcher"
+				},
+				{
+					"index" : 10,
+					"name" : "0010"
+				},
+				{
+					"index" : 11,
+					"name" : "0011"
+				},
+				{
+					"index" : 12,
+					"name" : "Kawa's Theme"
+				},
+				{
+					"index" : 13,
+					"name" : "Zero Wing Medley"
+				},
+				{
+					"index" : 14,
+					"name" : "0014"
+				},
+				{
+					"index" : 15,
+					"name" : "0015"
+				},
+				{
+					"index" : 16,
+					"name" : "Pokemon Pallet Town"
+				},
+				{
+					"index" : 17,
+					"name" : "0017"
+				}
+			]
+		},
+		{
+			"games" : 
+			[
+				"AFXP"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 5,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BPGX"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 12,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 8,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"A2CP"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"AWRE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"AW2E"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BE8P"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"AE7X"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BMGD"
+			],
+			"pcm-fixed-rate-resampling-algo" : "blep",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "mgat",
+			"pcm-samplerate" : 5,
+			"song-track-limit" : 16,
+			"songs" : 
+			[
+				{
+					"index" : 1,
+					"name" : "Opening"
+				},
+				{
+					"index" : 2,
+					"name" : "Title"
+				},
+				{
+					"index" : 50,
+					"name" : "Marion Club"
+				},
+				{
+					"index" : 51,
+					"name" : "Entrance"
+				},
+				{
+					"index" : 3,
+					"name" : "Main Menu"
+				},
+				{
+					"index" : 52,
+					"name" : "Hall of Fame"
+				},
+				{
+					"index" : 35,
+					"name" : "Marion Club Course"
+				},
+				{
+					"index" : 104,
+					"name" : "Good Night"
+				},
+				{
+					"index" : 105,
+					"name" : "A Fresh New Day"
+				},
+				{
+					"index" : 108,
+					"name" : "Generic Introduction"
+				},
+				{
+					"index" : 42,
+					"name" : "Lesson Course"
+				},
+				{
+					"index" : 32,
+					"name" : "Special Task"
+				},
+				{
+					"index" : 107,
+					"name" : "Tournament Introduction"
+				},
+				{
+					"index" : 33,
+					"name" : "Marion Club Tournament"
+				},
+				{
+					"index" : 57,
+					"name" : "Dormie Hole"
+				},
+				{
+					"index" : 10,
+					"name" : "Birdie Putt"
+				},
+				{
+					"index" : 11,
+					"name" : "Par Putt"
+				},
+				{
+					"index" : 13,
+					"name" : "Hole in One"
+				},
+				{
+					"index" : 14,
+					"name" : "Birdie"
+				},
+				{
+					"index" : 15,
+					"name" : "Par"
+				},
+				{
+					"index" : 17,
+					"name" : "Bogey"
+				},
+				{
+					"index" : 20,
+					"name" : "Results"
+				},
+				{
+					"index" : 18,
+					"name" : "Expercience Gained"
+				},
+				{
+					"index" : 6,
+					"name" : "Victory Ceremony"
+				},
+				{
+					"index" : 106,
+					"name" : "Match Introduction"
+				},
+				{
+					"index" : 70,
+					"name" : "Marion Club Single Match"
+				},
+				{
+					"index" : 16,
+					"name" : "Lose"
+				},
+				{
+					"index" : 74,
+					"name" : "Marion Club Double Match"
+				},
+				{
+					"index" : 109,
+					"name" : "Highlight Introduction"
+				},
+				{
+					"index" : 45,
+					"name" : "Highlight Replay"
+				},
+				{
+					"index" : 58,
+					"name" : "Out and About"
+				},
+				{
+					"index" : 101,
+					"name" : "Hidden Item"
+				},
+				{
+					"index" : 30,
+					"name" : "Field Challange"
+				},
+				{
+					"index" : 31,
+					"name" : "Field Course"
+				},
+				{
+					"index" : 61,
+					"name" : "Custom Club Shop"
+				},
+				{
+					"index" : 103,
+					"name" : "New Club"
+				},
+				{
+					"index" : 59,
+					"name" : "Lucky Country"
+				},
+				{
+					"index" : 41,
+					"name" : "Go-Go-Gates Forest"
+				},
+				{
+					"index" : 53,
+					"name" : "Palms Club"
+				},
+				{
+					"index" : 36,
+					"name" : "Palms Club Course"
+				},
+				{
+					"index" : 43,
+					"name" : "Palms Club Tournament"
+				},
+				{
+					"index" : 71,
+					"name" : "Palms Club Single Match"
+				},
+				{
+					"index" : 75,
+					"name" : "Palms Club Double Match"
+				},
+				{
+					"index" : 54,
+					"name" : "Dunes Club"
+				},
+				{
+					"index" : 37,
+					"name" : "Dunes Club Course"
+				},
+				{
+					"index" : 44,
+					"name" : "Dunes Dlub Tournament"
+				},
+				{
+					"index" : 72,
+					"name" : "Dunes Club Single Match"
+				},
+				{
+					"index" : 76,
+					"name" : "Dunes Club Double Match"
+				},
+				{
+					"index" : 55,
+					"name" : "Links Club"
+				},
+				{
+					"index" : 38,
+					"name" : "Links Club Course"
+				},
+				{
+					"index" : 34,
+					"name" : "Links Club Tournament"
+				},
+				{
+					"index" : 73,
+					"name" : "Links Club Single Match"
+				},
+				{
+					"index" : 77,
+					"name" : "Links Club Double Match"
+				},
+				{
+					"index" : 40,
+					"name" : "Elf's Short Course"
+				},
+				{
+					"index" : 4,
+					"name" : "Astonishing Success"
+				},
+				{
+					"index" : 102,
+					"name" : "Mysterious Letter"
+				},
+				{
+					"index" : 56,
+					"name" : "Princess' Castle"
+				},
+				{
+					"index" : 39,
+					"name" : "Mushroom Tournament"
+				},
+				{
+					"index" : 62,
+					"name" : "Invincible"
+				},
+				{
+					"index" : 12,
+					"name" : "Birdie Putt 2"
+				},
+				{
+					"index" : 7,
+					"name" : "Staff Roll"
+				},
+				{
+					"index" : 60,
+					"name" : "The End"
+				},
+				{
+					"index" : 5,
+					"name" : "Opening Remix"
+				},
+				{
+					"index" : 19,
+					"name" : "You Lose"
+				}
+			]
+		},
+		{
+			"games" : 
+			[
+				"B8CP"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"AB2P"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"B36P"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BTMP"
+			],
+			"pcm-fixed-rate-resampling-algo" : "blep",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "mgat",
+			"pcm-samplerate" : 5,
+			"song-track-limit" : 16,
+			"songs" : 
+			[
+				{
+					"index" : 387,
+					"name" : "Nintendo"
+				},
+				{
+					"index" : 388,
+					"name" : "Camelot"
+				},
+				{
+					"index" : 49,
+					"name" : "Opening"
+				},
+				{
+					"index" : 50,
+					"name" : "Title"
+				},
+				{
+					"index" : 27,
+					"name" : "Newcomer"
+				},
+				{
+					"index" : 38,
+					"name" : "Inside Lodge"
+				},
+				{
+					"index" : 2,
+					"name" : "Tennis Academy Area"
+				},
+				{
+					"index" : 20,
+					"name" : "Mysterious Event"
+				},
+				{
+					"index" : 37,
+					"name" : "Restaurant"
+				},
+				{
+					"index" : 14,
+					"name" : "Teaching Course"
+				},
+				{
+					"index" : 48,
+					"name" : "Ambitions"
+				},
+				{
+					"index" : 105,
+					"name" : "Good Morning"
+				},
+				{
+					"index" : 104,
+					"name" : "Game Saved"
+				},
+				{
+					"index" : 16,
+					"name" : "Main Menu"
+				},
+				{
+					"index" : 18,
+					"name" : "Training Session"
+				},
+				{
+					"index" : 24,
+					"name" : "Training Match"
+				},
+				{
+					"index" : 15,
+					"name" : "Training Center"
+				},
+				{
+					"index" : 25,
+					"name" : "Tennis Wall"
+				},
+				{
+					"index" : 26,
+					"name" : "Tennis Machine"
+				},
+				{
+					"index" : 23,
+					"name" : "Teadmill"
+				},
+				{
+					"index" : 21,
+					"name" : "Bicep Pump"
+				},
+				{
+					"index" : 19,
+					"name" : "Duck Walk"
+				},
+				{
+					"index" : 22,
+					"name" : "Rope Climb"
+				},
+				{
+					"index" : 13,
+					"name" : "Dictionary"
+				},
+				{
+					"index" : 17,
+					"name" : "Versus Screen"
+				},
+				{
+					"index" : 106,
+					"name" : "Match Start A"
+				},
+				{
+					"index" : 107,
+					"name" : "Match Start B"
+				},
+				{
+					"index" : 108,
+					"name" : "Match Start C"
+				},
+				{
+					"index" : 6,
+					"name" : "Exhibition Match"
+				},
+				{
+					"index" : 109,
+					"name" : "Peach Dome Match Start"
+				},
+				{
+					"index" : 32,
+					"name" : "Peach Dome Exhibition Match"
+				},
+				{
+					"index" : 30,
+					"name" : "Game Point"
+				},
+				{
+					"index" : 35,
+					"name" : "Match Point"
+				},
+				{
+					"index" : 36,
+					"name" : "Tiebreak"
+				},
+				{
+					"index" : 34,
+					"name" : "Lose Match"
+				},
+				{
+					"index" : 33,
+					"name" : "Win Match"
+				},
+				{
+					"index" : 8,
+					"name" : "Gained Experience"
+				},
+				{
+					"index" : 29,
+					"name" : "Level Up"
+				},
+				{
+					"index" : 41,
+					"name" : "Junior Class Low Rank Match"
+				},
+				{
+					"index" : 40,
+					"name" : "Junior Class High Rank Match"
+				},
+				{
+					"index" : 45,
+					"name" : "Senior Class Low Rank Match"
+				},
+				{
+					"index" : 44,
+					"name" : "Senior Class High Rank Match"
+				},
+				{
+					"index" : 43,
+					"name" : "Varsity Class Low Rank Match"
+				},
+				{
+					"index" : 42,
+					"name" : "Varsity Class High Rank Match"
+				},
+				{
+					"index" : 11,
+					"name" : "Island Open Area"
+				},
+				{
+					"index" : 12,
+					"name" : "Island Open Stadium"
+				},
+				{
+					"index" : 10,
+					"name" : "Island Open Residence"
+				},
+				{
+					"index" : 39,
+					"name" : "Island Open Tournament"
+				},
+				{
+					"index" : 7,
+					"name" : "Island Open Final"
+				},
+				{
+					"index" : 4,
+					"name" : "Island Open Championship"
+				},
+				{
+					"index" : 51,
+					"name" : "Mario Appears"
+				},
+				{
+					"index" : 31,
+					"name" : "Peach Tournament Match"
+				},
+				{
+					"index" : 5,
+					"name" : "Staff Roll"
+				},
+				{
+					"index" : 1,
+					"name" : "Unused Match 1"
+				},
+				{
+					"index" : 9,
+					"name" : "Unused Match 2"
+				},
+				{
+					"index" : 46,
+					"name" : "Unused Match 3"
+				}
+			]
+		},
+		{
+			"games" : 
+			[
+				"BPRD"
+			],
+			"pcm-fixed-rate-resampling-algo" : "blep",
+			"pcm-master-volume" : 12,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 10,
+			"songs" : 
+			[
+				{
+					"index" : 321,
+					"name" : "Gamefreak"
+				},
+				{
+					"index" : 277,
+					"name" : "Intro Video"
+				},
+				{
+					"index" : 278,
+					"name" : "Title Screen"
+				},
+				{
+					"index" : 323,
+					"name" : "Intro Text 1"
+				},
+				{
+					"index" : 324,
+					"name" : "Intro Text 2"
+				},
+				{
+					"index" : 325,
+					"name" : "Intro Text 3"
+				},
+				{
+					"index" : 292,
+					"name" : "Prof. Oak Intro"
+				},
+				{
+					"index" : 300,
+					"name" : "Pallet Town"
+				},
+				{
+					"index" : 302,
+					"name" : "Prof. Oak's Theme"
+				},
+				{
+					"index" : 301,
+					"name" : "Prof. Oak's Lab"
+				},
+				{
+					"index" : 315,
+					"name" : "Gary Arrives"
+				},
+				{
+					"index" : 297,
+					"name" : "Trainer Battle"
+				},
+				{
+					"index" : 310,
+					"name" : "Trainer Defeated"
+				},
+				{
+					"index" : 316,
+					"name" : "Gary Leaves"
+				},
+				{
+					"index" : 291,
+					"name" : "Route 1"
+				},
+				{
+					"index" : 298,
+					"name" : "Wild Battle"
+				},
+				{
+					"index" : 311,
+					"name" : "Pokemon Defeated"
+				},
+				{
+					"index" : 314,
+					"name" : "Viridian City"
+				},
+				{
+					"index" : 287,
+					"name" : "Viridian Forest"
+				},
+				{
+					"index" : 285,
+					"name" : "Boy Encounter"
+				},
+				{
+					"index" : 303,
+					"name" : "Pokemon Center"
+				},
+				{
+					"index" : 327,
+					"name" : "Wireless Club"
+				},
+				{
+					"index" : 272,
+					"name" : "Show Me Around"
+				},
+				{
+					"index" : 346,
+					"name" : "Teachy TV"
+				},
+				{
+					"index" : 276,
+					"name" : "Jiggly Puff Song"
+				},
+				{
+					"index" : 275,
+					"name" : "Gym"
+				},
+				{
+					"index" : 342,
+					"name" : "Gym Leader Encounter"
+				},
+				{
+					"index" : 296,
+					"name" : "Gym Leader Battle"
+				},
+				{
+					"index" : 312,
+					"name" : "Gym Leader Defeated"
+				},
+				{
+					"index" : 264,
+					"name" : "Evolution"
+				},
+				{
+					"index" : 293,
+					"name" : "Route 3"
+				},
+				{
+					"index" : 284,
+					"name" : "Girl Encounter"
+				},
+				{
+					"index" : 288,
+					"name" : "Mt. Moon"
+				},
+				{
+					"index" : 308,
+					"name" : "Cerulean City"
+				},
+				{
+					"index" : 313,
+					"name" : "Vermilion City"
+				},
+				{
+					"index" : 304,
+					"name" : "SS Anne"
+				},
+				{
+					"index" : 282,
+					"name" : "Bicycle"
+				},
+				{
+					"index" : 280,
+					"name" : "Lavender Town"
+				},
+				{
+					"index" : 306,
+					"name" : "Pokemon Tower"
+				},
+				{
+					"index" : 294,
+					"name" : "Route 12"
+				},
+				{
+					"index" : 309,
+					"name" : "Caledon City"
+				},
+				{
+					"index" : 273,
+					"name" : "Game Corner"
+				},
+				{
+					"index" : 274,
+					"name" : "Team Rocket HQ"
+				},
+				{
+					"index" : 283,
+					"name" : "Team Rocket Encounter"
+				},
+				{
+					"index" : 307,
+					"name" : "Silph Corporation"
+				},
+				{
+					"index" : 305,
+					"name" : "Surfer"
+				},
+				{
+					"index" : 289,
+					"name" : "Abandoned Power Station"
+				},
+				{
+					"index" : 341,
+					"name" : "Legendary Battle"
+				},
+				{
+					"index" : 279,
+					"name" : "Cinnabar Island"
+				},
+				{
+					"index" : 328,
+					"name" : "Net Center"
+				},
+				{
+					"index" : 330,
+					"name" : "Multiplayer Game"
+				},
+				{
+					"index" : 295,
+					"name" : "Indigo Plateau"
+				},
+				{
+					"index" : 299,
+					"name" : "Champ Battle"
+				},
+				{
+					"index" : 345,
+					"name" : "Oak Ending Theme"
+				},
+				{
+					"index" : 286,
+					"name" : "You're in the Hall of Fame"
+				},
+				{
+					"index" : 290,
+					"name" : "Staff Credits"
+				},
+				{
+					"index" : 336,
+					"name" : "Island 4-5"
+				},
+				{
+					"index" : 333,
+					"name" : "Island Route"
+				},
+				{
+					"index" : 337,
+					"name" : "Island 6-7"
+				},
+				{
+					"index" : 340,
+					"name" : "Mewtwo Battle"
+				},
+				{
+					"index" : 343,
+					"name" : "Deoxys Encounter"
+				},
+				{
+					"index" : 339,
+					"name" : "Deoxys Battle"
+				},
+				{
+					"index" : 329,
+					"name" : "Mystery Connection"
+				}
+			]
+		},
+		{
+			"games" : 
+			[
+				"AZLE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BE3E"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BFGE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BPEE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "blep",
+			"pcm-master-volume" : 12,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 10,
+			"songs" : 
+			[
+				{
+					"index" : 477,
+					"name" : "0477"
+				}
+			]
+		},
+		{
+			"games" : 
+			[
+				"BYDE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BOAX"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"BNRJ"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"A4ND"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"A2NE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"B3SE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"A4NE"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"ABFP"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 5,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"ASOJ"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : null
+		},
+		{
+			"games" : 
+			[
+				"A3JJ"
+			],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 15,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 16,
+			"songs" : 
+			[
+				{
+					"index" : 301,
+					"name" : "Prologue 1 p1"
+				},
+				{
+					"index" : 334,
+					"name" : "Prologue 1 p2"
+				},
+				{
+					"index" : 335,
+					"name" : "Prologue 1 p3"
+				},
+				{
+					"index" : 317,
+					"name" : "Courtroom Lobby Ouverture"
+				},
+				{
+					"index" : 318,
+					"name" : "Trial Start"
+				},
+				{
+					"index" : 314,
+					"name" : "Dahlia Hawthorne"
+				},
+				{
+					"index" : 319,
+					"name" : "Question 1"
+				},
+				{
+					"index" : 18,
+					"name" : "Suspens"
+				},
+				{
+					"index" : 320,
+					"name" : "Question 2"
+				},
+				{
+					"index" : 321,
+					"name" : "Objection! 2004"
+				},
+				{
+					"index" : 221,
+					"name" : "Trick and Magic"
+				},
+				{
+					"index" : 322,
+					"name" : "Telling the Truth 2004"
+				},
+				{
+					"index" : 323,
+					"name" : "Pursuit - Caught"
+				},
+				{
+					"index" : 27,
+					"name" : "Recollection"
+				},
+				{
+					"index" : 331,
+					"name" : "Jingle"
+				},
+				{
+					"index" : 302,
+					"name" : "Prologue 2 p1"
+				},
+				{
+					"index" : 333,
+					"name" : "Prologue 2 p2"
+				},
+				{
+					"index" : 305,
+					"name" : "Lordly Tailor"
+				},
+				{
+					"index" : 306,
+					"name" : "Mask DeMasque"
+				},
+				{
+					"index" : 307,
+					"name" : "Luke Atmey"
+				},
+				{
+					"index" : 326,
+					"name" : "Investigation - Opening"
+				},
+				{
+					"index" : 328,
+					"name" : "Detention 2004 Elegy"
+				},
+				{
+					"index" : 204,
+					"name" : "Turnabout Sisters Theme"
+				},
+				{
+					"index" : 1,
+					"name" : "Detective"
+				},
+				{
+					"index" : 12,
+					"name" : "Investigation Suspens"
+				},
+				{
+					"index" : 308,
+					"name" : "Larry Butz"
+				},
+				{
+					"index" : 22,
+					"name" : "Happy People"
+				},
+				{
+					"index" : 209,
+					"name" : "Eccentric People"
+				},
+				{
+					"index" : 337,
+					"name" : "Investigation Middle"
+				},
+				{
+					"index" : 235,
+					"name" : "Psyche Lock"
+				},
+				{
+					"index" : 207,
+					"name" : "Kurain Village"
+				},
+				{
+					"index" : 242,
+					"name" : "Pearls"
+				},
+				{
+					"index" : 316,
+					"name" : "The Fragrance of Dark"
+				},
+				{
+					"index" : 203,
+					"name" : "Recollection 2"
+				},
+				{
+					"index" : 336,
+					"name" : "Prologue 3"
+				},
+				{
+					"index" : 208,
+					"name" : "Detention PW2"
+				},
+				{
+					"index" : 236,
+					"name" : "Hotline of Fate"
+				},
+				{
+					"index" : 309,
+					"name" : "Tr\u00e9s Bien"
+				},
+				{
+					"index" : 310,
+					"name" : "Furio Tigre"
+				},
+				{
+					"index" : 311,
+					"name" : "Victor Kudo"
+				},
+				{
+					"index" : 329,
+					"name" : "Recollection WtOHS"
+				},
+				{
+					"index" : 303,
+					"name" : "Prologue 4"
+				},
+				{
+					"index" : 330,
+					"name" : "Recollection SWtHBiS"
+				},
+				{
+					"index" : 304,
+					"name" : "Prologue 5"
+				},
+				{
+					"index" : 312,
+					"name" : "Hazakurain"
+				},
+				{
+					"index" : 313,
+					"name" : "Elise Deauxnim"
+				},
+				{
+					"index" : 214,
+					"name" : "Investigation Core 2002"
+				},
+				{
+					"index" : 227,
+					"name" : "Another Ouverture"
+				},
+				{
+					"index" : 237,
+					"name" : "Great Revival FVK"
+				},
+				{
+					"index" : 324,
+					"name" : "Pursuit Caught - Variation"
+				},
+				{
+					"index" : 2,
+					"name" : "Cornered"
+				},
+				{
+					"index" : 3,
+					"name" : "Cornered Variation"
+				},
+				{
+					"index" : 315,
+					"name" : "Recollection TBToT"
+				},
+				{
+					"index" : 19,
+					"name" : "Sisters' Ballad"
+				},
+				{
+					"index" : 393,
+					"name" : "Godot ringtone"
+				},
+				{
+					"index" : 332,
+					"name" : "The End"
+				}
+			]
+		},
+		{
+			"games" : 
+			[
+				"AXVD"
+			],
+			"pcm-fixed-rate-resampling-algo" : "blep",
+			"pcm-master-volume" : 12,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 4,
+			"song-track-limit" : 10,
+			"songs" : null
+		}
+	]
+}

@@ -12,9 +12,10 @@ namespace agbplay
     {
         public:
             GameConfig(const std::string& gameCode);
+            GameConfig(const std::vector<std::string>& gameCodes);
             ~GameConfig();
 
-            const std::string& GetGameCode();
+            const std::vector<std::string>& GetGameCodes();
             ReverbType GetRevType();
             void SetRevType(ReverbType revType);
             ResamplerType GetResTypeFixed();
@@ -35,7 +36,7 @@ namespace agbplay
             std::vector<SongEntry>& GetGameEntries();
 
         private:
-            std::string gameCode;
+            std::vector<std::string> gameCodes;
             std::vector<SongEntry> gameEntries;
             ReverbType revType;
             ResamplerType resTypeFixed;

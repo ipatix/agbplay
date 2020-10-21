@@ -3,6 +3,7 @@
 #include <cstring>
 #include <iostream>
 #include <cstdlib>
+#include <json/json.h>
 
 #include "ConfigManager.h"
 #include "Util.h"
@@ -20,54 +21,35 @@ ConfigManager::ConfigManager(const string& configPath)
     if (!configFile.is_open()) {
         throw Xcept("Error while opening config file: %s", strerror(errno));
     }
-    string line;
-    regex gameExpr("^\\s*\\[([0-9A-Z]{4})\\]\\s*$");
-    regex songExpr("^\\s*(\\d+)\\s*=\\s*\\b(.+)\\b\\s*$");
-    regex cfgVolExpr("^\\s*ENG_VOL\\s*=\\s*(\\d+)\\s*$");
-    regex cfgFreqExpr("^\\s*ENG_FREQ\\s*=\\s*(\\d+)\\s*$");
-    regex cfgRevExpr("^\\s*ENG_REV\\s*=\\s*(\\d+)\\s*$");
-    regex cfgRevTypeExpr("^\\s*ENG_REV_TYPE\\s*=\\s*(.*)\\s*$");
-    regex cfgTrackLimitExpr("^\\s*TRACK_LIMIT\\s*=\\s*(\\d+)\\s*$");
-    regex cfgPcmRes("^\\s*PCM_RES_TYPE\\s*=\\s*(.*)\\s*$");
-    regex cfgPcmFixedRes("^\\s*PCM_FIX_RES_TYPE\\s*=\\s*(.*)\\s*$");
-    regex cfgRevBufSize("^\\s*REV_BUF_SIZE\\s*=\\s*(\\d+)\\s*$");
 
-    while (getline(configFile, line)) {
-        if (configFile.bad()) {
-            throw Xcept("Error while reading config file: %s", strerror(errno));
+    Json::Value root;
+    configFile >> root;
+
+    if (root["id"].asString() != "agbplay")
+        throw Xcept("Bad JSON ID: %s", root["id"].asString().c_str());
+
+    for (Json::Value playlist : root["playlists"]) {
+        // parse games
+        std::vector<std::string> games;
+        for (Json::Value game : playlist["games"])
+            games.emplace_back(game.asString());
+        configs.emplace_back(games);
+
+        // parse other parameters
+        configs.back().SetPCMVol(uint8_t(clip<int>(0, playlist.get("pcm-master-volume", 15).asInt(), 15)));
+        configs.back().SetEngineFreq(uint8_t(clip<int>(0, playlist.get("pcm-samplerate", 4).asInt(), 15)));
+        configs.back().SetEngineRev(uint8_t(clip<int>(0, playlist.get("pcm-reverb-level", 0).asInt(), 255)));
+        configs.back().SetRevBufSize(uint16_t(playlist.get("pcm-reverb-buffer-len", 1536).asUInt()));
+        configs.back().SetRevType(str2rev(playlist.get("pcm-reverb-type", "normal").asString()));
+        configs.back().SetResType(str2res(playlist.get("pcm-resampling-algo", "linear").asString()));
+        configs.back().SetResTypeFixed(str2res(playlist.get("pcm-fixed-rate-resampling-algo", "linear").asString()));
+        configs.back().SetTrackLimit(uint8_t(clip<int>(0, playlist.get("song-track-limit", 16).asInt(), 16)));
+
+        for (Json::Value song : playlist["songs"]) {
+            configs.back().GetGameEntries().emplace_back(
+                    song.get("name", "?").asString(),
+                    static_cast<uint16_t>(song.get("index", "0").asUInt()));
         }
-        smatch sm;
-        if (regex_match(line, sm, songExpr) && sm.size() == 3 && curCfg) {
-            curCfg->GetGameEntries().push_back(SongEntry(sm[2], (uint16_t(stoi(sm[1])))));
-        }
-        else if (regex_match(line, sm, gameExpr) && sm.size() == 2) {
-            // set's curCfg
-            SetGameCode(sm[1]);
-        }
-        else if (regex_match(line, sm, cfgVolExpr) && sm.size() == 2 && curCfg) {
-            curCfg ->SetPCMVol(uint8_t(clip<int>(0, stoi(sm[1]), 15)));
-        }
-        else if (regex_match(line, sm, cfgFreqExpr) && sm.size() == 2 && curCfg) {
-            curCfg->SetEngineFreq(uint8_t(clip<int>(0, stoi(sm[1]), 15)));
-        }
-        else if (regex_match(line, sm, cfgRevExpr) && sm.size() == 2 && curCfg) {
-            curCfg->SetEngineRev(uint8_t(clip<int>(0, stoi(sm[1]), 255)));
-        }
-        else if (regex_match(line, sm, cfgRevTypeExpr) && sm.size() == 2 && curCfg) {
-            curCfg->SetRevType(str2rev(sm[1]));
-        }
-        else if (regex_match(line, sm, cfgTrackLimitExpr) && sm.size() == 2 && curCfg) {
-            curCfg->SetTrackLimit(uint8_t(clip<int>(0, stoi(sm[1]), 16)));
-        }
-        else if (regex_match(line, sm, cfgPcmRes) && sm.size() == 2 && curCfg) {
-            curCfg->SetResType(str2res(sm[1]));
-        }
-        else if (regex_match(line, sm, cfgPcmFixedRes) && sm.size() == 2 && curCfg) {
-            curCfg->SetResTypeFixed(str2res(sm[1]));
-        }
-        else if (regex_match(line, sm, cfgRevBufSize) && sm.size() == 2 && curCfg) {
-            curCfg->SetRevBufSize(uint16_t(stoul(sm[1])));
-	    }
     }
 
     curCfg = nullptr;
@@ -79,7 +61,7 @@ ConfigManager::~ConfigManager()
 
 ConfigManager& ConfigManager::Instance()
 {
-    static ConfigManager cm("agbplay.ini");
+    static ConfigManager cm("agbplay.json");
     return cm;
 }
 
@@ -93,48 +75,58 @@ GameConfig& ConfigManager::GetCfg()
 
 void ConfigManager::SetGameCode(const std::string& gameCode)
 {
-    for (GameConfig& game : configs)
+    for (GameConfig& config : configs)
     {
-        if (game.GetGameCode() == gameCode) {
-            curCfg = &game;
+        const auto &gameCodesToCheck = config.GetGameCodes();
+        if (std::find(gameCodesToCheck.begin(), gameCodesToCheck.end(), gameCode) != gameCodesToCheck.end()) {
+            curCfg = &config;
             return;
         }
     }
     configs.emplace_back(gameCode);
-    curCfg = &configs[configs.size() - 1];
+    curCfg = &configs.back();
 }
 
 void ConfigManager::Save()
 {
-    ofstream configFile(configPath);
-    if (!configFile.is_open())
-        throw Xcept("Error while writing config file: %s", strerror(errno));
-
+    Json::Value playlists;
     for (GameConfig& cfg : configs)
     {
-        configFile << "[" << cfg.GetGameCode() << "]" << endl;
-        configFile << "ENG_VOL = " << static_cast<int>(cfg.GetPCMVol()) << endl;
-        configFile << "ENG_FREQ = " << static_cast<int>(cfg.GetEngineFreq()) << endl;
-        configFile << "ENG_REV = " << static_cast<int>(cfg.GetEngineRev()) << endl;
-        configFile << "ENG_REV_TYPE = " << rev2str(cfg.GetRevType()) << endl;
-        configFile << "PCM_RES_TYPE = " << res2str(cfg.GetResType()) << endl;
-        configFile << "PCM_FIX_RES_TYPE = " << res2str(cfg.GetResTypeFixed()) << endl;
-        configFile << "TRACK_LIMIT = " << static_cast<int>(cfg.GetTrackLimit()) << endl;
-        configFile << "REV_BUF_SIZE = " << static_cast<int>(cfg.GetRevBufSize()) << endl;
+        Json::Value playlist;
+        playlist["pcm-master-volume"] = static_cast<int>(cfg.GetPCMVol());
+        playlist["pcm-samplerate"] = static_cast<int>(cfg.GetEngineFreq());
+        playlist["pcm-reverb-level"] = static_cast<int>(cfg.GetEngineRev());
+        playlist["pcm-reverb-buffer-len"] = static_cast<int>(cfg.GetRevBufSize());
+        playlist["pcm-reverb-type"] = rev2str(cfg.GetRevType());
+        playlist["pcm-resampling-algo"] = res2str(cfg.GetResType());
+        playlist["pcm-fixed-rate-resampling-algo"] = res2str(cfg.GetResTypeFixed());
+        playlist["song-track-limit"] = static_cast<int>(cfg.GetTrackLimit());
 
+        Json::Value games;
+        for (const std::string& code : cfg.GetGameCodes())
+            games.append(code);
+        playlist["games"] = games;
 
+        Json::Value songs;
         for (SongEntry entr : cfg.GetGameEntries()) {
-            char oldFill = configFile.fill('0');
-            streamsize oldWidth = configFile.width(4);
-
-            configFile << static_cast<int>(entr.GetUID());
-
-            configFile.width(oldWidth);
-            configFile.fill(oldFill);
-
-            configFile << " = " << entr.name << endl;
+            Json::Value song;
+            song["index"] = entr.GetUID();
+            song["name"] = entr.name;
+            songs.append(song);
         }
-
+        playlist["songs"] = songs;
+        playlists.append(playlist);
     }
+
+    Json::Value root;
+    root["id"] = "agbplay";
+    root["playlists"] = playlists;
+
+    ofstream jsonFile(configPath);
+    if (!jsonFile.is_open())
+        throw Xcept("Error while writing agbplay.json: %s", strerror(errno));
+
+    jsonFile << root << std::endl;
+
     _print_debug("Configuration/Playlist saved!");
 }

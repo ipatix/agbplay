@@ -4,15 +4,15 @@ using namespace agbplay;
 
 ReverbType agbplay::str2rev(const std::string& str)
 {
-    if (str == "GS1")
+    if (str == "gs1")
         return ReverbType::GS1;
-    else if (str == "GS2")
+    else if (str == "gs2")
         return ReverbType::GS2;
-    else if (str == "MGAT")
+    else if (str == "mgat")
         return ReverbType::MGAT;
-    else if (str == "TEST")
+    else if (str == "test")
         return ReverbType::TEST;
-    else if (str == "NONE")
+    else if (str == "none")
         return ReverbType::NONE;
     return ReverbType::NORMAL;
 }
@@ -20,27 +20,27 @@ ReverbType agbplay::str2rev(const std::string& str)
 std::string agbplay::rev2str(ReverbType t)
 {
     if (t == ReverbType::GS1)
-        return "GS1";
+        return "gs1";
     else if (t == ReverbType::GS2)
-        return "GS2";
+        return "gs2";
     else if (t == ReverbType::MGAT)
-        return "MGAT";
+        return "mgat";
     else if (t == ReverbType::TEST)
-        return "TEST";
+        return "test";
     else if (t == ReverbType::NONE)
-        return "NONE";
-    return "NORMAL";
+        return "none";
+    return "normal";
 }
 
 ResamplerType agbplay::str2res(const std::string& str)
 {
-    if (str == "NEAREST")
+    if (str == "nearest")
         return ResamplerType::NEAREST;
-    else if (str == "LINEAR")
+    else if (str == "linear")
         return ResamplerType::LINEAR;
-    else if (str == "SINC")
+    else if (str == "sinc")
         return ResamplerType::SINC;
-    else if (str == "BLEP")
+    else if (str == "blep")
         return ResamplerType::BLEP;
     return ResamplerType::LINEAR;
 }
@@ -48,14 +48,14 @@ ResamplerType agbplay::str2res(const std::string& str)
 std::string agbplay::res2str(ResamplerType t)
 {
     if (t == ResamplerType::NEAREST)
-        return "NEAREST";
+        return "nearest";
     else if (t == ResamplerType::LINEAR)
-        return "LINEAR";
+        return "linear";
     else if (t == ResamplerType::SINC)
-        return "SINC";
+        return "sinc";
     else if (t == ResamplerType::BLEP)
-        return "BLEP";
-    return "LINEAR";
+        return "blep";
+    return "linear";
 }
 
 /*

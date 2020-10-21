@@ -1242,7 +1242,8 @@
 		{
 			"games" : 
 			[
-				"B24P"
+				"B24P",
+				"B24E"
 			],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 14,

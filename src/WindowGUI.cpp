@@ -185,6 +185,7 @@ bool WindowGUI::Handle()
             case 'n':
                 playUI->Leave();
                 rename();
+                trackUI->SetTitle(playUI->GetSong().GetName());
                 trackUI->ForceUpdate();
                 playUI->Enter();
                 break;
@@ -607,8 +608,8 @@ void WindowGUI::rename()
         return;
     }
     const int renHeight = 5;
-    const int renWidth = 40;
-    WINDOW *renWin = newwin(5, 40, (height / 2) - (renHeight / 2), (width / 2) - (renWidth / 2));
+    const int renWidth = 60;
+    WINDOW *renWin = newwin(renHeight, renWidth, (height / 2) - (renHeight / 2), (width / 2) - (renWidth / 2));
     keypad(renWin, true);
     curs_set(1);
     if (renWin == nullptr)

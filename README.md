@@ -101,8 +101,11 @@ The root element in the JSON only has two properties: `id` and `playlists`.
 `id` is a fixed string always set to `"agbplay"`. `playlists` is the array what
 contains the playlist data for the games.
 
-Each element in the array contains the following properties:
+Each playlist entry in the array contains the following properties:
 
+- `games`: A list of game codes which should use the specified playlist.
+  agbplay doesn't generate this on its own, but you can manually edit the JSON
+  to let games share a playlist (for example different localizations).
 - `pcm-master-volume`: Value from 0 to 15.
   The correct setting for this value depends on the game and has to be reverse engineered individually.
 - `pcm-samplerate`: Value from 0 to 15.
@@ -114,6 +117,8 @@ Each element in the array contains the following properties:
 - `pcm-resampling-algo` and `pcm-fixed-rate-resampling-algo`
 - `song-track-limit`: Limit the number of tracks the engine can play.
   Useful for games which have an engine limit, but the song contain more tracks than the engine can handle.
+- `songs`: This is again an array which contains all the playlist's songs.
+  Format is pretty straight forward. There is an `index` property and a `name` property for each song.
 
 #### Sound formatting notes
 

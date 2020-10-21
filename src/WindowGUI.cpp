@@ -218,10 +218,14 @@ bool WindowGUI::Handle()
             case 'u':
                 tutti();
                 break;
+            case 'f':
+                ConfigManager::Instance().Save();
+                break;
             case EOF:
             case 4: // EOT
             case 'q':
                 _print_debug("Exiting...");
+                ConfigManager::Instance().Save();
                 mplay->Stop();
                 return false;
         } // end key handling switch

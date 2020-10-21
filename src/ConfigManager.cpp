@@ -7,6 +7,7 @@
 #include "ConfigManager.h"
 #include "Util.h"
 #include "Xcept.h"
+#include "Debug.h"
 
 using namespace std;
 using namespace agbplay;
@@ -74,37 +75,6 @@ ConfigManager::ConfigManager(const string& configPath)
 
 ConfigManager::~ConfigManager()
 {
-    ofstream configFile(configPath);
-    if (!configFile.is_open()) {
-        std::cerr << "Error while writing config file: " << strerror(errno) << std::endl;
-        abort();
-    }
-    for (GameConfig& cfg : configs)
-    {
-        configFile << "[" << cfg.GetGameCode() << "]" << endl;
-        configFile << "ENG_VOL = " << static_cast<int>(cfg.GetPCMVol()) << endl;
-        configFile << "ENG_FREQ = " << static_cast<int>(cfg.GetEngineFreq()) << endl;
-        configFile << "ENG_REV = " << static_cast<int>(cfg.GetEngineRev()) << endl;
-        configFile << "ENG_REV_TYPE = " << rev2str(cfg.GetRevType()) << endl;
-        configFile << "PCM_RES_TYPE = " << res2str(cfg.GetResType()) << endl;
-        configFile << "PCM_FIX_RES_TYPE = " << res2str(cfg.GetResTypeFixed()) << endl;
-        configFile << "TRACK_LIMIT = " << static_cast<int>(cfg.GetTrackLimit()) << endl;
-        configFile << "REV_BUF_SIZE = " << static_cast<int>(cfg.GetRevBufSize()) << endl;
-
-
-        for (SongEntry entr : cfg.GetGameEntries()) {
-            char oldFill = configFile.fill('0');
-            streamsize oldWidth = configFile.width(4);
-
-            configFile << static_cast<int>(entr.GetUID());
-
-            configFile.width(oldWidth);
-            configFile.fill(oldFill);
-
-            configFile << " = " << entr.name << endl;
-        }
-
-    }
 }
 
 ConfigManager& ConfigManager::Instance()
@@ -132,4 +102,39 @@ void ConfigManager::SetGameCode(const std::string& gameCode)
     }
     configs.emplace_back(gameCode);
     curCfg = &configs[configs.size() - 1];
+}
+
+void ConfigManager::Save()
+{
+    ofstream configFile(configPath);
+    if (!configFile.is_open())
+        throw Xcept("Error while writing config file: %s", strerror(errno));
+
+    for (GameConfig& cfg : configs)
+    {
+        configFile << "[" << cfg.GetGameCode() << "]" << endl;
+        configFile << "ENG_VOL = " << static_cast<int>(cfg.GetPCMVol()) << endl;
+        configFile << "ENG_FREQ = " << static_cast<int>(cfg.GetEngineFreq()) << endl;
+        configFile << "ENG_REV = " << static_cast<int>(cfg.GetEngineRev()) << endl;
+        configFile << "ENG_REV_TYPE = " << rev2str(cfg.GetRevType()) << endl;
+        configFile << "PCM_RES_TYPE = " << res2str(cfg.GetResType()) << endl;
+        configFile << "PCM_FIX_RES_TYPE = " << res2str(cfg.GetResTypeFixed()) << endl;
+        configFile << "TRACK_LIMIT = " << static_cast<int>(cfg.GetTrackLimit()) << endl;
+        configFile << "REV_BUF_SIZE = " << static_cast<int>(cfg.GetRevBufSize()) << endl;
+
+
+        for (SongEntry entr : cfg.GetGameEntries()) {
+            char oldFill = configFile.fill('0');
+            streamsize oldWidth = configFile.width(4);
+
+            configFile << static_cast<int>(entr.GetUID());
+
+            configFile.width(oldWidth);
+            configFile.fill(oldFill);
+
+            configFile << " = " << entr.name << endl;
+        }
+
+    }
+    _print_debug("Configuration/Playlist saved!");
 }

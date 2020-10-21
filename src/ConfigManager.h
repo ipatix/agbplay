@@ -16,6 +16,7 @@ namespace agbplay
 
             GameConfig& GetCfg();
             void SetGameCode(const std::string& gameCode);
+            void Save();
         private:
             ConfigManager(const std::string& configPath);
             std::vector<GameConfig> configs;

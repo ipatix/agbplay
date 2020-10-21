@@ -3,7 +3,7 @@
 #include <cstring>
 #include <iostream>
 #include <cstdlib>
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 
 #include "ConfigManager.h"
 #include "Util.h"

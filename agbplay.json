@@ -24,7 +24,7 @@
 				},
 				{
 					"index" : 442,
-					"name" : "The Pokemon"
+					"name" : "The World of Hoenn"
 				},
 				{
 					"index" : 413,
@@ -48,19 +48,19 @@
 				},
 				{
 					"index" : 410,
-					"name" : "Help"
+					"name" : "H-Help Me!"
 				},
 				{
 					"index" : 474,
-					"name" : "Wild Battle"
+					"name" : "Battle! (Wild Pok\u00e9mon)"
 				},
 				{
 					"index" : 352,
-					"name" : "Battle Won"
+					"name" : "Victory! (Wild Pok\u00e9mon)"
 				},
 				{
 					"index" : 353,
-					"name" : "Battle Won /w Intro"
+					"name" : "Victory! (Wild Pok\u00e9mon, with Intro)"
 				},
 				{
 					"index" : 359,
@@ -76,23 +76,23 @@
 				},
 				{
 					"index" : 400,
-					"name" : "Poke Center"
+					"name" : "Pok\u00e9mon Center"
 				},
 				{
 					"index" : 380,
-					"name" : "Boy Encounter"
+					"name" : "Trainers' Eyes Meet (Youngster)"
 				},
 				{
 					"index" : 407,
-					"name" : "Girl Encounter"
+					"name" : "Trainers' Eyes Meet (Lass)"
 				},
 				{
 					"index" : 476,
-					"name" : "Trainer Battle"
+					"name" : "Battle! (Trainer)"
 				},
 				{
 					"index" : 412,
-					"name" : "Trainer Defeated"
+					"name" : "Victory! (Trainer)"
 				},
 				{
 					"index" : 362,
@@ -100,7 +100,7 @@
 				},
 				{
 					"index" : 420,
-					"name" : "Show me around"
+					"name" : "Show Me Around"
 				},
 				{
 					"index" : 401,
@@ -108,19 +108,19 @@
 				},
 				{
 					"index" : 366,
-					"name" : "Caves and Forests"
+					"name" : "Petalburg Woods"
 				},
 				{
 					"index" : 419,
-					"name" : "Team Aqua Encounter"
+					"name" : "Team Aqua Appears!"
 				},
 				{
 					"index" : 475,
-					"name" : "Team A/M Battle"
+					"name" : "Battle! (Team Aqua/Magma)"
 				},
 				{
 					"index" : 424,
-					"name" : "Team A/M Defeated"
+					"name" : "Victory! (Team Aqua/Magma)"
 				},
 				{
 					"index" : 399,
@@ -128,7 +128,7 @@
 				},
 				{
 					"index" : 435,
-					"name" : "Trainer School"
+					"name" : "Trainers' School"
 				},
 				{
 					"index" : 364,
@@ -136,15 +136,15 @@
 				},
 				{
 					"index" : 477,
-					"name" : "Gym Leaeder Battle"
+					"name" : "Battle! (Gym Leader)"
 				},
 				{
 					"index" : 354,
-					"name" : "Gym Leader Defeated"
+					"name" : "Victory! (Gym Leader)"
 				},
 				{
 					"index" : 431,
-					"name" : "Sailing"
+					"name" : "Crossing the Sea"
 				},
 				{
 					"index" : 427,
@@ -152,7 +152,7 @@
 				},
 				{
 					"index" : 379,
-					"name" : "Tuber Encounter"
+					"name" : "Trainers' Eyes Meet (Tuber)"
 				},
 				{
 					"index" : 433,
@@ -160,11 +160,11 @@
 				},
 				{
 					"index" : 375,
-					"name" : "Slateport Museum"
+					"name" : "Oceanic Museum"
 				},
 				{
 					"index" : 384,
-					"name" : "Battle Camp"
+					"name" : "Battle Tent"
 				},
 				{
 					"index" : 360,
@@ -176,11 +176,11 @@
 				},
 				{
 					"index" : 403,
-					"name" : "Bicycle"
+					"name" : "Cycling"
 				},
 				{
 					"index" : 426,
-					"name" : "Casino"
+					"name" : "Game Corner"
 				},
 				{
 					"index" : 392,
@@ -196,7 +196,7 @@
 				},
 				{
 					"index" : 449,
-					"name" : "Kid Encounter"
+					"name" : "Trainers' Eyes Meet (Twins)"
 				},
 				{
 					"index" : 437,
@@ -208,19 +208,19 @@
 				},
 				{
 					"index" : 451,
-					"name" : "Hiker Encounter"
+					"name" : "Trainers' Eyes Meet (Hiker)"
 				},
 				{
 					"index" : 425,
-					"name" : "Cablecar"
+					"name" : "Cable Car"
 				},
 				{
 					"index" : 406,
-					"name" : "Chimney Mountain"
+					"name" : "Mt. Chimney"
 				},
 				{
 					"index" : 409,
-					"name" : "Desert"
+					"name" : "Route 111"
 				},
 				{
 					"index" : 365,
@@ -244,7 +244,7 @@
 				},
 				{
 					"index" : 397,
-					"name" : "Sailor Encounter"
+					"name" : "Trainers' Eyes Meet (Gentleman)"
 				},
 				{
 					"index" : 408,
@@ -288,19 +288,19 @@
 				},
 				{
 					"index" : 440,
-					"name" : "Pokemon Contest"
+					"name" : "Pok\u00e9mon Contest!\ufffd"
 				},
 				{
 					"index" : 446,
-					"name" : "Contest Results"
+					"name" : "Pok\u00e9mon Contest Results"
 				},
 				{
 					"index" : 439,
-					"name" : "Contest Won"
+					"name" : "Pok\u00e9mon Contest Winner"
 				},
 				{
 					"index" : 404,
-					"name" : "Shop"
+					"name" : "Pok\u00e9 Mart"
 				},
 				{
 					"index" : 432,
@@ -308,11 +308,11 @@
 				},
 				{
 					"index" : 416,
-					"name" : "Electric Encounter"
+					"name" : "Trainers' Eyes Meet (Psychic)"
 				},
 				{
 					"index" : 423,
-					"name" : "Psychic Encounter"
+					"name" : "Trainers' Eyes Meet (Hex Maniac)"
 				},
 				{
 					"index" : 434,
@@ -320,7 +320,7 @@
 				},
 				{
 					"index" : 430,
-					"name" : "Team A/M Hideout"
+					"name" : "Team Aqua/Magma Hideout"
 				},
 				{
 					"index" : 388,
@@ -328,19 +328,19 @@
 				},
 				{
 					"index" : 441,
-					"name" : "Team Magma Encounter"
+					"name" : "Team Magma Appears!"
 				},
 				{
 					"index" : 483,
-					"name" : "Team Leader Battle"
+					"name" : "Battle! (Team Aqua/Magma Leader)"
 				},
 				{
 					"index" : 444,
-					"name" : "The Drought"
+					"name" : "Drought"
 				},
 				{
 					"index" : 443,
-					"name" : "The Flood"
+					"name" : "Heavy Rain"
 				},
 				{
 					"index" : 411,
@@ -356,15 +356,15 @@
 				},
 				{
 					"index" : 470,
-					"name" : "Legendary Battle"
+					"name" : "Battle! (Legendary Pok\u00e9mon)"
 				},
 				{
 					"index" : 385,
-					"name" : "Swimmer Encounter"
+					"name" : "Trainers' Eyes Meet (Swimmer)"
 				},
 				{
 					"index" : 422,
-					"name" : "Evergrande City"
+					"name" : "Ever Grande City"
 				},
 				{
 					"index" : 438,
@@ -372,11 +372,11 @@
 				},
 				{
 					"index" : 479,
-					"name" : "Regi Battle"
+					"name" : "Battle! (Regirock/Regice/Registeel)"
 				},
 				{
 					"index" : 381,
-					"name" : "Shipwreck"
+					"name" : "Abandoned Ship"
 				},
 				{
 					"index" : 429,
@@ -384,35 +384,35 @@
 				},
 				{
 					"index" : 417,
-					"name" : "Ace Encounter"
+					"name" : "Trainers' Eyes Meet (Ace)"
 				},
 				{
 					"index" : 450,
-					"name" : "Elite 4 Encounter"
+					"name" : "The Elite Four Appear!"
 				},
 				{
 					"index" : 482,
-					"name" : "Elite 4 Battle"
+					"name" : "Battle! (Elite Four)"
 				},
 				{
 					"index" : 454,
-					"name" : "Champ Encounter"
+					"name" : "The Champ"
 				},
 				{
 					"index" : 478,
-					"name" : "Champ Battle"
+					"name" : "Battle! (Champ)"
 				},
 				{
 					"index" : 355,
-					"name" : "Champ Defeated"
+					"name" : "Victory! (Champ)"
 				},
 				{
 					"index" : 447,
-					"name" : "Hall of Fame"
+					"name" : "Room of Glory"
 				},
 				{
 					"index" : 436,
-					"name" : "You're the Champ"
+					"name" : "The Hall of Fame"
 				},
 				{
 					"index" : 455,
@@ -424,7 +424,7 @@
 				},
 				{
 					"index" : 457,
-					"name" : "Battle Zone"
+					"name" : "Battle Frontier"
 				},
 				{
 					"index" : 465,
@@ -436,7 +436,7 @@
 				},
 				{
 					"index" : 467,
-					"name" : "Dome Tournament"
+					"name" : "Battle Dome Tournament"
 				},
 				{
 					"index" : 469,
@@ -444,7 +444,7 @@
 				},
 				{
 					"index" : 468,
-					"name" : "Battle Tube"
+					"name" : "Battle Pike"
 				},
 				{
 					"index" : 458,
@@ -464,11 +464,11 @@
 				},
 				{
 					"index" : 471,
-					"name" : "Frontier Battle"
+					"name" : "Battle! (Frontier Brain)"
 				},
 				{
 					"index" : 472,
-					"name" : "Mew Battle"
+					"name" : "Battle! (Mew)"
 				},
 				{
 					"index" : 350,

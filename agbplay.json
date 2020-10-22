@@ -3455,6 +3455,18 @@
 			"pcm-samplerate" : 4,
 			"song-track-limit" : 10,
 			"songs" : null
+		},
+		{
+			"games" : [ "A3UJ" ],
+			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-master-volume" : 12,
+			"pcm-resampling-algo" : "linear",
+			"pcm-reverb-buffer-len" : 1584,
+			"pcm-reverb-level" : 0,
+			"pcm-reverb-type" : "normal",
+			"pcm-samplerate" : 5,
+			"song-track-limit" : 16,
+			"songs" : null
 		}
 	]
 }

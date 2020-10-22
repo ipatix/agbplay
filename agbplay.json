@@ -2083,18 +2083,6 @@
 			"songs" : null
 		},
 		{
-			"games" : [ "AXVE" ],
-			"pcm-fixed-rate-resampling-algo" : "blep",
-			"pcm-master-volume" : 12,
-			"pcm-resampling-algo" : "linear",
-			"pcm-reverb-buffer-len" : 1584,
-			"pcm-reverb-level" : 0,
-			"pcm-reverb-type" : "normal",
-			"pcm-samplerate" : 4,
-			"song-track-limit" : 10,
-			"songs" : null
-		},
-		{
 			"games" : [ "KWJ6" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 13,
@@ -3457,7 +3445,7 @@
 			]
 		},
 		{
-			"games" : [ "AXVD" ],
+			"games" : [ "AXVD", "AXVE" ],
 			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 12,
 			"pcm-resampling-algo" : "linear",

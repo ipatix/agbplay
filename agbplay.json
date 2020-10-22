@@ -2797,7 +2797,7 @@
 			]
 		},
 		{
-			"games" : [ "BPRD", "BPRE" ],
+			"games" : [ "BPRD", "BPRE", "BPGD", "BPGE" ],
 			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 12,
 			"pcm-resampling-algo" : "linear",

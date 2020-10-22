@@ -225,6 +225,7 @@ bool WindowGUI::Handle()
             case EOF:
             case 4: // EOT
             case 'q':
+            case 27: // Escape Key
                 _print_debug("Exiting...");
                 ConfigManager::Instance().Save();
                 mplay->Stop();
@@ -659,7 +660,10 @@ void WindowGUI::rename()
     char inputBuf[renWidth - 6];
     echo();
     if (mvwgetnstr(renWin, 2, 3, inputBuf, sizeof(inputBuf) - 1) != ERR) {
-        ent->name = string(inputBuf, strlen(inputBuf));
+        if (strlen(inputBuf) > 0) {
+            // only change the name if it's not blank
+            ent->name = string(inputBuf, strlen(inputBuf));
+        }
     }
     noecho();
     curs_set(0);

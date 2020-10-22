@@ -3,11 +3,7 @@
 	"playlists" : 
 	[
 		{
-			"games" : 
-			[
-				"BPED",
-				"BPEE"
-			],
+			"games" : [ "BPED", "BPEE" ],
 			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 12,
 			"pcm-resampling-algo" : "linear",
@@ -737,10 +733,7 @@
 			]
 		},
 		{
-			"games" : 
-			[
-				"AGFD"
-			],
+			"games" : [ "AGFD" ],
 			"pcm-fixed-rate-resampling-algo" : "sinc",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -1210,10 +1203,7 @@
 			]
 		},
 		{
-			"games" : 
-			[
-				"AOWP"
-			],
+			"games" : [ "AOWP" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -1225,10 +1215,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BZ6P"
-			],
+			"games" : [ "BZ6P" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -1240,11 +1227,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"B24P",
-				"B24E"
-			],
+			"games" : [ "B24P", "B24E" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 14,
 			"pcm-resampling-algo" : "linear",
@@ -1502,10 +1485,7 @@
 			]
 		},
 		{
-			"games" : 
-			[
-				"AMKE"
-			],
+			"games" : [ "AMKE" ],
 			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -1517,10 +1497,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"A7KP"
-			],
+			"games" : [ "A7KP" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -1532,10 +1509,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"AGSD"
-			],
+			"games" : [ "AGSD" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -1547,10 +1521,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"AWAE"
-			],
+			"games" : [ "AWAE" ],
 			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2028,10 +1999,7 @@
 			]
 		},
 		{
-			"games" : 
-			[
-				"AE7E"
-			],
+			"games" : [ "AE7E" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2043,10 +2011,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"AGDE"
-			],
+			"games" : [ "AGDE" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2058,10 +2023,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"AN8E"
-			],
+			"games" : [ "AN8E" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2073,10 +2035,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BZMP"
-			],
+			"games" : [ "BZMP" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2088,10 +2047,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BZ4P"
-			],
+			"games" : [ "BZ4P" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2103,10 +2059,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BZ5P"
-			],
+			"games" : [ "BZ5P" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2118,10 +2071,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"CYAN"
-			],
+			"games" : [ "CYAN" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2133,10 +2083,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"AXVE"
-			],
+			"games" : [ "AXVE" ],
 			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 12,
 			"pcm-resampling-algo" : "linear",
@@ -2148,10 +2095,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"KWJ6"
-			],
+			"games" : [ "KWJ6" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 13,
 			"pcm-resampling-algo" : "linear",
@@ -2237,10 +2181,7 @@
 			]
 		},
 		{
-			"games" : 
-			[
-				"AFXP"
-			],
+			"games" : [ "AFXP" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2252,10 +2193,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BPGX"
-			],
+			"games" : [ "BPGX" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 12,
 			"pcm-resampling-algo" : "linear",
@@ -2267,10 +2205,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"A2CP"
-			],
+			"games" : [ "A2CP" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2282,10 +2217,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"AWRE"
-			],
+			"games" : [ "AWRE" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2297,10 +2229,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"AW2E"
-			],
+			"games" : [ "AW2E" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2312,10 +2241,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BE8P"
-			],
+			"games" : [ "BE8P" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2327,10 +2253,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"AE7X"
-			],
+			"games" : [ "AE7X" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2342,10 +2265,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BMGD"
-			],
+			"games" : [ "BMGD" ],
 			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2615,10 +2535,7 @@
 			]
 		},
 		{
-			"games" : 
-			[
-				"B8CP"
-			],
+			"games" : [ "B8CP" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2630,10 +2547,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"AB2P"
-			],
+			"games" : [ "AB2P" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2645,10 +2559,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"B36P"
-			],
+			"games" : [ "B36P" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2660,10 +2571,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BTMP"
-			],
+			"games" : [ "BTMP" ],
 			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -2901,11 +2809,7 @@
 			]
 		},
 		{
-			"games" : 
-			[
-				"BPRD",
-				"BPRE"
-			],
+			"games" : [ "BPRD", "BPRE" ],
 			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 12,
 			"pcm-resampling-algo" : "linear",
@@ -3171,10 +3075,7 @@
 			]
 		},
 		{
-			"games" : 
-			[
-				"AZLE"
-			],
+			"games" : [ "AZLE" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3186,10 +3087,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BE3E"
-			],
+			"games" : [ "BE3E" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3201,10 +3099,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BFGE"
-			],
+			"games" : [ "BFGE" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3216,10 +3111,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BYDE"
-			],
+			"games" : [ "BYDE" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3231,10 +3123,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BOAX"
-			],
+			"games" : [ "BOAX" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3246,10 +3135,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"BNRJ"
-			],
+			"games" : [ "BNRJ" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3261,10 +3147,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"A4ND"
-			],
+			"games" : [ "A4ND" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3276,10 +3159,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"A2NE"
-			],
+			"games" : [ "A2NE" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3291,10 +3171,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"B3SE"
-			],
+			"games" : [ "B3SE" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3306,10 +3183,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"A4NE"
-			],
+			"games" : [ "A4NE" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3321,10 +3195,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"ABFP"
-			],
+			"games" : [ "ABFP" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3336,10 +3207,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"ASOJ"
-			],
+			"games" : [ "ASOJ" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3351,10 +3219,7 @@
 			"songs" : null
 		},
 		{
-			"games" : 
-			[
-				"A3JJ"
-			],
+			"games" : [ "A3JJ" ],
 			"pcm-fixed-rate-resampling-algo" : "linear",
 			"pcm-master-volume" : 15,
 			"pcm-resampling-algo" : "linear",
@@ -3592,10 +3457,7 @@
 			]
 		},
 		{
-			"games" : 
-			[
-				"AXVD"
-			],
+			"games" : [ "AXVD" ],
 			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 12,
 			"pcm-resampling-algo" : "linear",

@@ -136,8 +136,10 @@ void ConfigManager::Save()
 
     Json::StreamWriterBuilder builder;
     builder["emitUTF8"] = true;
+    builder["commentStyle"] = "None";   // <-- this prevents trailing whitespaces in all versions
     std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
     writer->write(root, &jsonFile);
+    jsonFile << std::endl;
 
     _print_debug("Configuration/Playlist saved!");
 }

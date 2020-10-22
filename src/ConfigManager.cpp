@@ -141,5 +141,5 @@ void ConfigManager::Save()
     writer->write(root, &jsonFile);
     jsonFile << std::endl;
 
-    _print_debug("Configuration/Playlist saved!");
+    print_debug("Configuration/Playlist saved!");
 }

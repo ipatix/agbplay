@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
         cin.ignore();
     }
     #endif
-    if (!_open_debug()) {
+    if (!open_debug(nullptr)) {
         cout << "Debug Init failed" << endl;
         return EXIT_FAILURE;
     }
@@ -144,6 +144,6 @@ int main(int argc, char *argv[])
     }
     if (Pa_Terminate() != paNoError)
         cerr << "Error while terminating portaudio" << endl;
-    _close_debug();
+    close_debug();
     return 0;
 }

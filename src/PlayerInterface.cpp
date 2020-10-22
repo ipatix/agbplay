@@ -56,7 +56,7 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     if (hostApiIndex < 0) {
         // no prioritized api was found, use default
         const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(Pa_GetDefaultHostApi());
-        _print_debug("No supported API found, falling back to: %s", apiinfo->name);
+        print_debug("No supported API found, falling back to: %s", apiinfo->name);
         if (apiinfo == NULL)
             throw Xcept("Pa_GetHostApiInfo with valid index failed");
         deviceIndex = apiinfo->defaultOutputDevice;
@@ -73,11 +73,11 @@ PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSong
     outputStreamParameters.suggestedLatency = devinfo->defaultLowOutputLatency;
     outputStreamParameters.hostApiSpecificStreamInfo = NULL;
     if ((err = Pa_OpenStream(&audioStream, NULL, &outputStreamParameters, outSampleRate, 0, paNoFlag, audioCallback, (void *)&rBuf)) != paNoError) {
-        _print_debug("Pa_OpenDefaultStream: %s", Pa_GetErrorText(err));
+        print_debug("Pa_OpenDefaultStream: %s", Pa_GetErrorText(err));
         return;
     }
     if ((err = Pa_StartStream(audioStream)) != paNoError) {
-        _print_debug("PA_StartStream: %s", Pa_GetErrorText(err));
+        print_debug("PA_StartStream: %s", Pa_GetErrorText(err));
         return;
     }
 }
@@ -88,10 +88,10 @@ PlayerInterface::~PlayerInterface()
     Stop();
     PaError err;
     if ((err = Pa_StopStream(audioStream)) != paNoError) {
-        _print_debug("Pa_StopStream: %s", Pa_GetErrorText(err));
+        print_debug("Pa_StopStream: %s", Pa_GetErrorText(err));
     }
     if ((err = Pa_CloseStream(audioStream)) != paNoError) {
-        _print_debug("Pa_CloseStream: %s", Pa_GetErrorText(err));
+        print_debug("Pa_CloseStream: %s", Pa_GetErrorText(err));
     }
     delete sg;
 }
@@ -324,7 +324,7 @@ void PlayerInterface::threadWorker()
             }
         }
     } catch (exception& e) {
-        _print_debug("FATAL ERROR on streaming thread: %s", e.what());
+        print_debug("FATAL ERROR on streaming thread: %s", e.what());
     }
     masterLoudness.Reset();
     for (LoudnessCalculator& c : trackLoudness)

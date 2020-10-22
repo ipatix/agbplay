@@ -20,7 +20,7 @@ ConsoleGUI::ConsoleGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t 
     textWidth = width - 2;
     textHeight = height;
     update();
-    _set_debug_callback(remoteWrite, this);
+    set_debug_callback(remoteWrite, this);
 }
 
 ConsoleGUI::~ConsoleGUI() 

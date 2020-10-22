@@ -8,7 +8,10 @@
 
 static FILE *debug_file = nullptr;
 
-bool _open_debug() {
+bool open_debug(const char *file) {
+    if (!file)
+        return true;
+
     debug_file = fopen("_DEBUG.txt", "w");
     if (debug_file == nullptr) {
         perror("fopen");
@@ -17,7 +20,10 @@ bool _open_debug() {
     return true;
 }
 
-bool _close_debug() {
+bool close_debug() {
+    if (debug_file == nullptr)
+        return true;
+
     if (fclose(debug_file) != 0)
         return false;
     debug_file = nullptr;
@@ -28,18 +34,20 @@ bool _close_debug() {
 static void (*callback)(const std::string&, void *) = nullptr;
 static void *cb_obj = nullptr;
 
-void _set_debug_callback(void (*cb)(const std::string&, void *), void *obj) {
+void set_debug_callback(void (*cb)(const std::string&, void *), void *obj) {
     callback = cb;
     cb_obj = obj;
 }
 
-void _print_debug(const char *str, ...) {
+void print_debug(const char *str, ...) {
     va_list args;
     va_start(args, str);
     char txtbuf[512];
     vsnprintf(txtbuf, sizeof(txtbuf), str, args);
-    fprintf(debug_file, "%s\n", txtbuf);
-    fflush(debug_file);
+    if (debug_file) {
+        fprintf(debug_file, "%s\n", txtbuf);
+        fflush(debug_file);
+    }
     va_end(args);
     if (callback) {
         callback(txtbuf, cb_obj);

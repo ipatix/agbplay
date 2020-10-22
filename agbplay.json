@@ -404,11 +404,11 @@
 				},
 				{
 					"index" : 447,
-					"name" : "Room of Glory"
+					"name" : "The Hall of Fame"
 				},
 				{
 					"index" : 436,
-					"name" : "The Hall of Fame"
+					"name" : "You're in the Hall of Fame"
 				},
 				{
 					"index" : 455,
@@ -2834,7 +2834,7 @@
 				},
 				{
 					"index" : 292,
-					"name" : "Prof. Oak Intro"
+					"name" : "Professor Oak Intro"
 				},
 				{
 					"index" : 300,
@@ -2842,23 +2842,23 @@
 				},
 				{
 					"index" : 302,
-					"name" : "Prof. Oak's Theme"
+					"name" : "Professor Oak's Theme"
 				},
 				{
 					"index" : 301,
-					"name" : "Prof. Oak's Lab"
+					"name" : "Professor Oak's Laboratory"
 				},
 				{
 					"index" : 315,
-					"name" : "Gary Arrives"
+					"name" : "Gary Appears"
 				},
 				{
 					"index" : 297,
-					"name" : "Trainer Battle"
+					"name" : "Battle! (Trainer)"
 				},
 				{
 					"index" : 310,
-					"name" : "Trainer Defeated"
+					"name" : "Victory! (Trainer)"
 				},
 				{
 					"index" : 316,
@@ -2870,11 +2870,11 @@
 				},
 				{
 					"index" : 298,
-					"name" : "Wild Battle"
+					"name" : "Battle! (Wild Pokémon)"
 				},
 				{
 					"index" : 311,
-					"name" : "Pokemon Defeated"
+					"name" : "Victory! (Wild Pokémon)"
 				},
 				{
 					"index" : 314,
@@ -2886,11 +2886,11 @@
 				},
 				{
 					"index" : 285,
-					"name" : "Boy Encounter"
+					"name" : "Trainers' Eyes Meet (Boy)"
 				},
 				{
 					"index" : 303,
-					"name" : "Pokemon Center"
+					"name" : "Pokémon Center"
 				},
 				{
 					"index" : 327,
@@ -2910,19 +2910,19 @@
 				},
 				{
 					"index" : 275,
-					"name" : "Gym"
+					"name" : "Pokémon Gym"
 				},
 				{
 					"index" : 342,
-					"name" : "Gym Leader Encounter"
+					"name" : "Trainers' Eyes Meet (Gym Leader)"
 				},
 				{
 					"index" : 296,
-					"name" : "Gym Leader Battle"
+					"name" : "Battle! (Gym Leader)"
 				},
 				{
 					"index" : 312,
-					"name" : "Gym Leader Defeated"
+					"name" : "Victory! (Gym Leader)"
 				},
 				{
 					"index" : 264,
@@ -2934,11 +2934,11 @@
 				},
 				{
 					"index" : 284,
-					"name" : "Girl Encounter"
+					"name" : "Trainers' Eyes Meet (Girl)"
 				},
 				{
 					"index" : 288,
-					"name" : "Mt. Moon"
+					"name" : "Caves of Mt. Moon"
 				},
 				{
 					"index" : 308,
@@ -2950,11 +2950,11 @@
 				},
 				{
 					"index" : 304,
-					"name" : "SS Anne"
+					"name" : "The S.S. Anne"
 				},
 				{
 					"index" : 282,
-					"name" : "Bicycle"
+					"name" : "Cycling"
 				},
 				{
 					"index" : 280,
@@ -2962,7 +2962,7 @@
 				},
 				{
 					"index" : 306,
-					"name" : "Pokemon Tower"
+					"name" : "Pokémon Tower"
 				},
 				{
 					"index" : 294,
@@ -2970,27 +2970,27 @@
 				},
 				{
 					"index" : 309,
-					"name" : "Caledon City"
+					"name" : "Celadon City"
 				},
 				{
 					"index" : 273,
-					"name" : "Game Corner"
+					"name" : "Rocket Game Corner"
 				},
 				{
 					"index" : 274,
-					"name" : "Team Rocket HQ"
+					"name" : "Team Rocket Hideout"
 				},
 				{
 					"index" : 283,
-					"name" : "Team Rocket Encounter"
+					"name" : "Trainers' Eyes Meet (Team Rocket)"
 				},
 				{
 					"index" : 307,
-					"name" : "Silph Corporation"
+					"name" : "Silph Co."
 				},
 				{
 					"index" : 305,
-					"name" : "Surfer"
+					"name" : "Surfing"
 				},
 				{
 					"index" : 289,
@@ -2998,7 +2998,7 @@
 				},
 				{
 					"index" : 341,
-					"name" : "Legendary Battle"
+					"name" : "Battle! (Legendary Pokémon)"
 				},
 				{
 					"index" : 279,
@@ -3006,7 +3006,7 @@
 				},
 				{
 					"index" : 328,
-					"name" : "Net Center"
+					"name" : "Pokémon Net Center"
 				},
 				{
 					"index" : 330,
@@ -3018,11 +3018,11 @@
 				},
 				{
 					"index" : 299,
-					"name" : "Champ Battle"
+					"name" : "Battle! (Champ)"
 				},
 				{
 					"index" : 345,
-					"name" : "Oak Ending Theme"
+					"name" : "Professor Oak's Ending"
 				},
 				{
 					"index" : 286,
@@ -3030,7 +3030,7 @@
 				},
 				{
 					"index" : 290,
-					"name" : "Staff Credits"
+					"name" : "Ending Credits"
 				},
 				{
 					"index" : 336,
@@ -3046,15 +3046,15 @@
 				},
 				{
 					"index" : 340,
-					"name" : "Mewtwo Battle"
+					"name" : "Battle! (Mewtwo)"
 				},
 				{
 					"index" : 343,
-					"name" : "Deoxys Encounter"
+					"name" : "Deoxys Appears"
 				},
 				{
 					"index" : 339,
-					"name" : "Deoxys Battle"
+					"name" : "Battle! (Deoxys)"
 				},
 				{
 					"index" : 329,

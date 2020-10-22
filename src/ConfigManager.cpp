@@ -134,8 +134,10 @@ void ConfigManager::Save()
     if (!jsonFile.is_open())
         throw Xcept("Error while writing agbplay.json: %s", strerror(errno));
 
-    Json::StyledStreamWriter writer;
-    writer.write(jsonFile, root);
+    Json::StreamWriterBuilder builder;
+    builder["emitUTF8"] = true;
+    std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+    writer->write(root, &jsonFile);
 
     _print_debug("Configuration/Playlist saved!");
 }

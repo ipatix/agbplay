@@ -3,7 +3,15 @@
 #include <cstring>
 #include <iostream>
 #include <cstdlib>
+
+// sorry, for some reason multiple versions of jsoncpp use different paths :/
+#if __has_include(<json/json.h>)
+#include <json/json.h>
+#include <json/writer.h>
+#else
 #include <jsoncpp/json/json.h>
+#include <jsoncpp/json/writer.h>
+#endif
 
 #include "ConfigManager.h"
 #include "Util.h"
@@ -126,7 +134,8 @@ void ConfigManager::Save()
     if (!jsonFile.is_open())
         throw Xcept("Error while writing agbplay.json: %s", strerror(errno));
 
-    jsonFile << root << std::endl;
+    Json::StyledStreamWriter writer;
+    writer.write(jsonFile, root);
 
     _print_debug("Configuration/Playlist saved!");
 }

@@ -3458,7 +3458,7 @@
 		},
 		{
 			"games" : [ "A3UJ" ],
-			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 12,
 			"pcm-resampling-algo" : "linear",
 			"pcm-reverb-buffer-len" : 1584,

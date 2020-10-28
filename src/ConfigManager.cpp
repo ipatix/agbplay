@@ -4,6 +4,9 @@
 #include <iostream>
 #include <cstdlib>
 
+#include <unistd.h>
+#include <pwd.h>
+
 // sorry, for some reason multiple versions of jsoncpp use different paths :/
 #if __has_include(<json/json.h>)
 #include <json/json.h>
@@ -21,17 +24,41 @@
 using namespace std;
 using namespace agbplay;
 
-ConfigManager::ConfigManager(const string& configPath)
+ConfigManager::ConfigManager()
 {
-    this->configPath = configPath;
-    // parse things from config file
-    ifstream configFile(configPath);
-    if (!configFile.is_open()) {
-        throw Xcept("Error while opening config file: %s", strerror(errno));
+    std::string xdg_config_home;
+
+    if (char *s = std::getenv("XDG_CONFIG_HOME"); s == nullptr) {
+        // get home directory and concat .config
+        passwd *pw = getpwuid(getuid());
+        if (!pw)
+            throw Xcept("getpwuid failed: %s", strerror(errno));
+        xdg_config_home = pw->pw_dir;
+        xdg_config_home += "/.config";
+    } else {
+        xdg_config_home = s;
     }
 
+    assert(xdg_config_home.size() > 0);
+    configPath = xdg_config_home + "/agbplay.json";
+
+    /* Parse things from config file.
+     * If the config file in home directory is not found,
+     * try reading it from /etc/agbplay/agbplay.json.
+     * If this isn't found either, use an empty config file. */
     Json::Value root;
-    configFile >> root;
+    if (ifstream configFile; configFile.open(configPath), configFile.is_open()) {
+        print_debug("User local configuration found!");
+        configFile >> root;
+    } else if (configFile.open("/etc/agbplay.json"); configFile.is_open()) {
+        print_debug("Global configuration found!");
+        configFile >> root;
+    } else {
+        print_debug("No configuration file found. Creating new configuration.");
+        root["id"] = "agbplay";
+        root["playlists"] = Json::Value();  // null value
+    }
+
 
     if (root["id"].asString() != "agbplay")
         throw Xcept("Bad JSON ID: %s", root["id"].asString().c_str());
@@ -69,7 +96,7 @@ ConfigManager::~ConfigManager()
 
 ConfigManager& ConfigManager::Instance()
 {
-    static ConfigManager cm("agbplay.json");
+    static ConfigManager cm;
     return cm;
 }
 

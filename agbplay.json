@@ -1518,7 +1518,241 @@
 			"pcm-reverb-type" : "gs1",
 			"pcm-samplerate" : 7,
 			"song-track-limit" : 10,
-			"songs" : null
+			"songs" : 
+			[
+				{
+					"index" : 9,
+					"name" : "The Lucky Slots"
+				},
+				{
+					"index" : 67,
+					"name" : "Main Theme"
+				},
+				{
+					"index" : 74,
+					"name" : "Main Menu"
+				},
+				{
+					"index" : 27,
+					"name" : "Lighthouse Theme"
+				},
+				{
+					"index" : 40,
+					"name" : "The Title Screen"
+				},
+				{
+					"index" : 55,
+					"name" : "Suspense"
+				},
+				{
+					"index" : 76,
+					"name" : "Trial Road"
+				},
+				{
+					"index" : 58,
+					"name" : "Fanfare"
+				},
+				{
+					"index" : 59,
+					"name" : "Game Over (Variation)"
+				},
+				{
+					"index" : 60,
+					"name" : "Ivan's Theme"
+				},
+				{
+					"index" : 61,
+					"name" : "Villain Theme"
+				},
+				{
+					"index" : 62,
+					"name" : "Prox In Trouble"
+				},
+				{
+					"index" : 63,
+					"name" : "Lighting The Beacons"
+				},
+				{
+					"index" : 64,
+					"name" : "Doom Dragon Slain"
+				},
+				{
+					"index" : 70,
+					"name" : "Golden Sun Rises"
+				},
+				{
+					"index" : 72,
+					"name" : "Lighting The Mars Beacon"
+				},
+				{
+					"index" : 75,
+					"name" : "Golden Sun Sets..."
+				},
+				{
+					"index" : 0,
+					"name" : "Vale And Vault"
+				},
+				{
+					"index" : 1,
+					"name" : "City Theme"
+				},
+				{
+					"index" : 2,
+					"name" : "Sad Town"
+				},
+				{
+					"index" : 3,
+					"name" : "Castle"
+				},
+				{
+					"index" : 4,
+					"name" : "Flooded Altin"
+				},
+				{
+					"index" : 5,
+					"name" : "Lama Temple"
+				},
+				{
+					"index" : 6,
+					"name" : "Kalay Celebrations"
+				},
+				{
+					"index" : 7,
+					"name" : "Colosso 1"
+				},
+				{
+					"index" : 8,
+					"name" : "Colosso 2"
+				},
+				{
+					"index" : 10,
+					"name" : "Tolbi"
+				},
+				{
+					"index" : 20,
+					"name" : "The Sanctums"
+				},
+				{
+					"index" : 21,
+					"name" : "Contigo"
+				},
+				{
+					"index" : 22,
+					"name" : "Sol Sanctum"
+				},
+				{
+					"index" : 23,
+					"name" : "Lunpa's Hideout"
+				},
+				{
+					"index" : 24,
+					"name" : "Cave Theme"
+				},
+				{
+					"index" : 25,
+					"name" : "Deserts"
+				},
+				{
+					"index" : 26,
+					"name" : "Imil"
+				},
+				{
+					"index" : 28,
+					"name" : "Babi's Lighthouse"
+				},
+				{
+					"index" : 29,
+					"name" : "Tunnel Ruins"
+				},
+				{
+					"index" : 30,
+					"name" : "Babi's Theme"
+				},
+				{
+					"index" : 41,
+					"name" : "Tolbi Bound Ship"
+				},
+				{
+					"index" : 42,
+					"name" : "World Map"
+				},
+				{
+					"index" : 43,
+					"name" : "Venus Lighthouse"
+				},
+				{
+					"index" : 50,
+					"name" : "Enemy Battle"
+				},
+				{
+					"index" : 51,
+					"name" : "Battle With Saturos"
+				},
+				{
+					"index" : 52,
+					"name" : "Boss Battle"
+				},
+				{
+					"index" : 53,
+					"name" : "Saturos And Menardi Battle"
+				},
+				{
+					"index" : 54,
+					"name" : "Fusion Dragon"
+				},
+				{
+					"index" : 80,
+					"name" : "01"
+				},
+				{
+					"index" : 81,
+					"name" : "02"
+				},
+				{
+					"index" : 82,
+					"name" : "03"
+				},
+				{
+					"index" : 83,
+					"name" : "04"
+				},
+				{
+					"index" : 84,
+					"name" : "05"
+				},
+				{
+					"index" : 85,
+					"name" : "06"
+				},
+				{
+					"index" : 86,
+					"name" : "07"
+				},
+				{
+					"index" : 87,
+					"name" : "08"
+				},
+				{
+					"index" : 88,
+					"name" : "09"
+				},
+				{
+					"index" : 89,
+					"name" : "10"
+				},
+				{
+					"index" : 91,
+					"name" : "11"
+				},
+				{
+					"index" : 92,
+					"name" : "12"
+				},
+				{
+					"index" : 93,
+					"name" : "13"
+				}
+			]
 		},
 		{
 			"games" : [ "AWAE" ],

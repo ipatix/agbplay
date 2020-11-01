@@ -39,10 +39,13 @@ def add_minigsf_to_playlist(minigsf_file, playlist):
                 (minigsf_data[11] << 24))
         # I am too lazy to implement CRC32 check at the time
         program_data = zlib.decompress(minigsf_data[0x10 + reserved_data_size : 0x10 + reserved_data_size + program_data_size])
-        if len(program_data) != 14:
+        if len(program_data) != 14 and len(program_data) != 13:
             raise Exception("This converter only supports GSF with 14 bytes program data")
         # get song num
-        song_num = (program_data[12] | (program_data[13] << 8))
+        if len(program_data) == 14:
+            song_num = (program_data[12] | (program_data[13] << 8))
+        else:
+            song_num = program_data[12]
         # get song name from tags
         tag_data = minigsf_data[0x10 + reserved_data_size + program_data_size:]
         if len(tag_data) == 0:

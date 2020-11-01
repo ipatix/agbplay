@@ -2302,7 +2302,277 @@
 			"pcm-reverb-type" : "normal",
 			"pcm-samplerate" : 6,
 			"song-track-limit" : 16,
-			"songs" : null
+			"songs" : 
+			[
+				{
+					"index" : 0,
+					"name" : "Ahead on our Way"
+				},
+				{
+					"index" : 2,
+					"name" : "A Presentiment"
+				},
+				{
+					"index" : 35,
+					"name" : "Four Valiant Hearts"
+				},
+				{
+					"index" : 38,
+					"name" : "Hurry! Hurry!"
+				},
+				{
+					"index" : 13,
+					"name" : "Lenna's Theme"
+				},
+				{
+					"index" : 6,
+					"name" : "Fate in Haze"
+				},
+				{
+					"index" : 43,
+					"name" : "The Battle"
+				},
+				{
+					"index" : 14,
+					"name" : "Victory's Fanfare"
+				},
+				{
+					"index" : 10,
+					"name" : "Requiem"
+				},
+				{
+					"index" : 4,
+					"name" : "Pirates Ahoy!"
+				},
+				{
+					"index" : 5,
+					"name" : "Tenderness in the Air"
+				},
+				{
+					"index" : 52,
+					"name" : "Good Night!"
+				},
+				{
+					"index" : 21,
+					"name" : "Sealed Away"
+				},
+				{
+					"index" : 12,
+					"name" : "Cursed Earths"
+				},
+				{
+					"index" : 15,
+					"name" : "Deception"
+				},
+				{
+					"index" : 33,
+					"name" : "Harvest"
+				},
+				{
+					"index" : 44,
+					"name" : "Walking the Snowy Mountains"
+				},
+				{
+					"index" : 23,
+					"name" : "Danger!"
+				},
+				{
+					"index" : 1,
+					"name" : "The Fierce Battle"
+				},
+				{
+					"index" : 29,
+					"name" : "The Dragon Spreads it's Wings"
+				},
+				{
+					"index" : 51,
+					"name" : "Royal Palace"
+				},
+				{
+					"index" : 24,
+					"name" : "The Fire Powered Ship"
+				},
+				{
+					"index" : 73,
+					"name" : "Run!"
+				},
+				{
+					"index" : 11,
+					"name" : "Nostalgia"
+				},
+				{
+					"index" : 50,
+					"name" : "The Ancient Library"
+				},
+				{
+					"index" : 77,
+					"name" : "Reminiscence"
+				},
+				{
+					"index" : 61,
+					"name" : "Musica Machina"
+				},
+				{
+					"index" : 16,
+					"name" : "The Day Will Come"
+				},
+				{
+					"index" : 37,
+					"name" : "What?"
+				},
+				{
+					"index" : 26,
+					"name" : "Mambo de Chocobo!"
+				},
+				{
+					"index" : 19,
+					"name" : "My Home, Sweet Home"
+				},
+				{
+					"index" : 27,
+					"name" : "Music Box"
+				},
+				{
+					"index" : 40,
+					"name" : "The Airship"
+				},
+				{
+					"index" : 45,
+					"name" : "The Evil Lord Exdeath"
+				},
+				{
+					"index" : 18,
+					"name" : "Exdeath's Castle"
+				},
+				{
+					"index" : 22,
+					"name" : "The Four Warriors of Dawn"
+				},
+				{
+					"index" : 34,
+					"name" : "Battle with Gilgamesh"
+				},
+				{
+					"index" : 39,
+					"name" : "Unknown Lands"
+				},
+				{
+					"index" : 7,
+					"name" : "Critter Tripper Fritter!"
+				},
+				{
+					"index" : 46,
+					"name" : "The Castle of Dawn"
+				},
+				{
+					"index" : 30,
+					"name" : "Beyond the Deep Blue Sea"
+				},
+				{
+					"index" : 25,
+					"name" : "As I Feel, You Feel"
+				},
+				{
+					"index" : 20,
+					"name" : "Waltz Suomi"
+				},
+				{
+					"index" : 3,
+					"name" : "Go Go Boco!"
+				},
+				{
+					"index" : 63,
+					"name" : "The Land Unknown"
+				},
+				{
+					"index" : 36,
+					"name" : "The Book of Sealings"
+				},
+				{
+					"index" : 28,
+					"name" : "Intension of the Earth"
+				},
+				{
+					"index" : 31,
+					"name" : "The Prelude of Empty Skies"
+				},
+				{
+					"index" : 32,
+					"name" : "Searching the Light"
+				},
+				{
+					"index" : 64,
+					"name" : "The Decisive Battle"
+				},
+				{
+					"index" : 9,
+					"name" : "The Last Battle"
+				},
+				{
+					"index" : 65,
+					"name" : "The Silent Beyond"
+				},
+				{
+					"index" : 66,
+					"name" : "Dear Friends"
+				},
+				{
+					"index" : 67,
+					"name" : "Final Fantasy"
+				},
+				{
+					"index" : 68,
+					"name" : "A New Origin"
+				},
+				{
+					"index" : 8,
+					"name" : "The Prelude"
+				},
+				{
+					"index" : 41,
+					"name" : "Fanfare 1"
+				},
+				{
+					"index" : 42,
+					"name" : "Fanfare 2"
+				},
+				{
+					"index" : 47,
+					"name" : "I'm a Dancer"
+				},
+				{
+					"index" : 53,
+					"name" : "Piano Lesson 1"
+				},
+				{
+					"index" : 54,
+					"name" : "Piano Lesson 2"
+				},
+				{
+					"index" : 55,
+					"name" : "Piano Lesson 3"
+				},
+				{
+					"index" : 56,
+					"name" : "Piano Lesson 4"
+				},
+				{
+					"index" : 57,
+					"name" : "Piano Lesson 5"
+				},
+				{
+					"index" : 58,
+					"name" : "Piano Lesson 6"
+				},
+				{
+					"index" : 59,
+					"name" : "Piano Lesson 7"
+				},
+				{
+					"index" : 60,
+					"name" : "Piano Lesson 8"
+				}
+			]
 		},
 		{
 			"games" : [ "CYAN" ],

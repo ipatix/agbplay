@@ -190,13 +190,13 @@ If you have issues installing portaudio19-dev on Debian (conflicting packages) m
 
 Install all dependencies (listed above) and run `make`.
 
-The code itself is written to be cross-platform. That's why I've decided to go
-with Boost and portaudio.
+Ideally the code should compile fine if all dependencies are installed.
 
 It has been tested on Cygwin (Windows), Debian and Arch Linux, all on x86-64.
-Native Windows support with Visual Studio is NOT supported by me and I NEVER
-will. Getting terminal things to work on Windows with UTF-8, colors and
-resizing terminal just doesn't work.
+Native Windows is currently **NOT** supported. I did some compilation tests
+with the MinGW 64 compiler (MSYS2). However, even when compiling the code,
+getting native 256 colors to work and getting all the unicode characters to
+display properly wasn't something I was able to achieve during a long day.
 
 #### Contributing
 

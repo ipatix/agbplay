@@ -4,9 +4,6 @@
 #include <iostream>
 #include <cstdlib>
 
-#include <unistd.h>
-#include <pwd.h>
-
 // sorry, for some reason multiple versions of jsoncpp use different paths :/
 #if __has_include(<json/json.h>)
 #include <json/json.h>
@@ -20,27 +17,15 @@
 #include "Util.h"
 #include "Xcept.h"
 #include "Debug.h"
+#include "OS.h"
 
 using namespace std;
 using namespace agbplay;
 
 ConfigManager::ConfigManager()
 {
-    std::string xdg_config_home;
-
-    if (char *s = std::getenv("XDG_CONFIG_HOME"); s == nullptr) {
-        // get home directory and concat .config
-        passwd *pw = getpwuid(getuid());
-        if (!pw)
-            throw Xcept("getpwuid failed: %s", strerror(errno));
-        xdg_config_home = pw->pw_dir;
-        xdg_config_home += "/.config";
-    } else {
-        xdg_config_home = s;
-    }
-
-    assert(xdg_config_home.size() > 0);
-    configPath = xdg_config_home + "/agbplay.json";
+    configPath = OS::GetLocalConfigDirectory() / "agbplay.json";
+    const auto globalConfigPath = OS::GetGlobalConfigDirectory() / "agbplay.json";
 
     /* Parse things from config file.
      * If the config file in home directory is not found,
@@ -50,7 +35,7 @@ ConfigManager::ConfigManager()
     if (ifstream configFile; configFile.open(configPath), configFile.is_open()) {
         print_debug("User local configuration found!");
         configFile >> root;
-    } else if (configFile.open("/etc/agbplay.json"); configFile.is_open()) {
+    } else if (configFile.open(globalConfigPath); configFile.is_open()) {
         print_debug("Global configuration found!");
         configFile >> root;
     } else {

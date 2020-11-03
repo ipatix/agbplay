@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <filesystem>
 
 #include "GameConfig.h"
 
@@ -20,7 +21,7 @@ namespace agbplay
         private:
             ConfigManager();
             std::vector<GameConfig> configs;
-            std::string configPath;
+            std::filesystem::path configPath;
             GameConfig *curCfg = nullptr;
     };
 }

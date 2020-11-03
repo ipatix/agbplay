@@ -1,7 +1,5 @@
 #include <sndfile.h>
-#define BOOST_FILESYSTEM_NO_DEPRECATED
-#include <boost/filesystem.hpp>
-#undef BOOST_FILESYSTEM_NO_DEPRECATED
+#include <filesystem>
 #include <boost/algorithm/string/replace.hpp>
 #include <chrono>
 #include <climits>
@@ -43,13 +41,13 @@ void SoundExporter::Export(const string& outputDir, vector<SongEntry>& entries, 
     }
 
 
-    boost::filesystem::path dir(outputDir);
-    if (boost::filesystem::exists(dir)) {
-        if (!boost::filesystem::is_directory(dir)) {
+    filesystem::path dir(outputDir);
+    if (filesystem::exists(dir)) {
+        if (!filesystem::is_directory(dir)) {
             throw Xcept("Output directory exists but isn't a dir");
         }
     }
-    else if (!boost::filesystem::create_directory(dir)) {
+    else if (!filesystem::create_directory(dir)) {
         throw Xcept("Creating output directory failed");
     }
 

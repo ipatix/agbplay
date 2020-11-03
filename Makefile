@@ -2,9 +2,9 @@ CXX = g++
 CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -D NDEBUG -O3 -g
 #CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -Og -g -fsanitize=address
 BINARY = agbplay
-LIBS = -lm -lncursesw -pthread -lboost_system -lboost_filesystem -lsndfile -lportaudio -ljsoncpp
+LIBS = -lm -lncursesw -pthread -lboost_system -lsndfile -lportaudio -ljsoncpp
 # Use this macro if you have linker errors with ncursesw
-# LIBS = -lm -lncurses -pthread -lboost_system -lboost_filesystem -lsndfile -lportaudio -ljsoncpp
+# LIBS = -lm -lncurses -pthread -lboost_system -lsndfile -lportaudio -ljsoncpp
 
 GREEN = \033[1;32m
 RED = \033[1;31m

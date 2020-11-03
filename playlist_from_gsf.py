@@ -54,6 +54,14 @@ def add_minigsf_to_playlist(minigsf_file, playlist):
             song_name = parse_songname_from_tags(tag_data)
         playlist.append({ "index" : song_num, "name" : song_name })
 
+# MAIN PROGRAM STARTS HERE
+if len(sys.argv) <= 1:
+    print("This program generates an agbplay JSON playlist from a set of minigsf files")
+    print("")
+    print("Usage:")
+    print("$ playlist_from_gsf.py <input minigsfs...>")
+    sys.exit(0)
+
 # GSF often have the track order encoded in the file name
 minigsfs = sorted(sys.argv[1:])
 

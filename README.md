@@ -169,6 +169,17 @@ for drums). They sypport the following values:
   the way hardware does it (except `blep` will clean up the higher frequencies
   which `nearest` doesn't).
 
+#### Importing tags from GSF files
+
+Manually creating playlists/tags for some games can be avoided if you can find
+an existing GSF set for that particular game.
+
+Use the supplied `playlist_from_gsf.py` script and pass it a set of `.minigsf` files.
+The script will then parse the song names and song numbers from those files and will
+output a JSON formatted array that then can be used for the property `songs`, which
+is explained above. So you can copy that JSON array into your `agbplay.json` for
+that particular game.
+
 ### Additional information
 
 #### Debian portaudio issues

@@ -3,16 +3,16 @@
 #include "Xcept.h"
 
 #include <filesystem>
-#include <utility>
 
 #if defined(_WIN32)
 // if we compile for Windows native
 
 #include <windows.h>
+#include <shlobj.h>
 
 const std::filesystem::path OS::GetLocalConfigDirectory()
 {
-    PWSTR *folderPath = NULL;
+    PWSTR folderPath = NULL;
     HRESULT result = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, NULL, &folderPath);
 
     if (result != S_OK)
@@ -20,12 +20,12 @@ const std::filesystem::path OS::GetLocalConfigDirectory()
 
     std::filesystem::path retval(folderPath);
     CoTaskMemFree(folderPath);
-    return std::move(retval);
+    return retval;
 }
 
 const std::filesystem::path OS::GetGlobalConfigDirectory()
 {
-    PWSTR *folderPath = NULL;
+    PWSTR folderPath = NULL;
     HRESULT result = SHGetKnownFolderPath(FOLDERID_ProgramData, KF_FLAG_DEFAULT, NULL, &folderPath);
 
     if (result != S_OK)

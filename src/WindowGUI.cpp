@@ -298,32 +298,39 @@ void WindowGUI::resizeWindows()
 void WindowGUI::initColors() 
 {
     start_color();
-    if (use_default_colors() == ERR)
-        throw Xcept("Using default terminal colors failed");
+
+    short defFg = -1, defBg = -1;
+    if (use_default_colors() == ERR) {
+        // if this call could have been successful -1 would be the valid default color
+        defFg = COLOR_WHITE;
+        defBg = COLOR_BLACK;
+    }
+
     if (COLORS != 256)
         throw Xcept("Terminal does not support 256 colors");
-    init_pair((int)Color::DEF_DEF, -1, -1);
-    init_pair((int)Color::BANNER_TEXT, COLOR_YELLOW, -1);
-    init_pair((int)Color::WINDOW_FRAME, COLOR_GREEN, -1);
-    init_pair((int)Color::LIST_ENTRY, COLOR_YELLOW, -1);
-    init_pair((int)Color::LIST_SEL, COLOR_RED, -1);
-    init_pair((int)Color::VU_LOW, 82, -1);
-    init_pair((int)Color::VU_MID, 226, -1);
-    init_pair((int)Color::VU_HIGH, 202, -1);
-    init_pair((int)Color::TRK_NUM, 76, -1);
-    init_pair((int)Color::TRK_NUM_MUTED, 196, -1);
-    init_pair((int)Color::TRK_LOC, 118, -1);
-    init_pair((int)Color::TRK_LOC_CALL, 184, -1);
-    init_pair((int)Color::TRK_DEL, 196, -1);
-    init_pair((int)Color::TRK_NOTE, 45, -1);
-    init_pair((int)Color::TRK_VOICE, 217, -1);
-    init_pair((int)Color::TRK_PAN, 214, -1);
-    init_pair((int)Color::TRK_VOL, 154, -1);
-    init_pair((int)Color::TRK_MOD, 43, -1);
-    init_pair((int)Color::TRK_PITCH, 129, -1);
-    init_pair((int)Color::TRK_LOUDNESS, 70, /*238*/-1);
-    init_pair((int)Color::TRK_LOUDNESS_MUTED, 166, /*238*/-1);
-    init_pair((int)Color::TRK_LOUD_SPLIT, -1, /*238*/-1);
+
+    init_pair((int)Color::DEF_DEF, defFg, defBg);
+    init_pair((int)Color::BANNER_TEXT, COLOR_YELLOW, defBg);
+    init_pair((int)Color::WINDOW_FRAME, COLOR_GREEN, defBg);
+    init_pair((int)Color::LIST_ENTRY, COLOR_YELLOW, defBg);
+    init_pair((int)Color::LIST_SEL, COLOR_RED, defBg);
+    init_pair((int)Color::VU_LOW, 82, defBg);
+    init_pair((int)Color::VU_MID, 226, defBg);
+    init_pair((int)Color::VU_HIGH, 202, defBg);
+    init_pair((int)Color::TRK_NUM, 76, defBg);
+    init_pair((int)Color::TRK_NUM_MUTED, 196, defBg);
+    init_pair((int)Color::TRK_LOC, 118, defBg);
+    init_pair((int)Color::TRK_LOC_CALL, 184, defBg);
+    init_pair((int)Color::TRK_DEL, 196, defBg);
+    init_pair((int)Color::TRK_NOTE, 45, defBg);
+    init_pair((int)Color::TRK_VOICE, 217, defBg);
+    init_pair((int)Color::TRK_PAN, 214, defBg);
+    init_pair((int)Color::TRK_VOL, 154, defBg);
+    init_pair((int)Color::TRK_MOD, 43, defBg);
+    init_pair((int)Color::TRK_PITCH, 129, defBg);
+    init_pair((int)Color::TRK_LOUDNESS, 70, /*238*/defBg);
+    init_pair((int)Color::TRK_LOUDNESS_MUTED, 166, /*238*/defBg);
+    init_pair((int)Color::TRK_LOUD_SPLIT, defFg, /*238*/defBg);
 
     init_pair((int)Color::TRK_FGB_BGCW, 232, 251);
     init_pair((int)Color::TRK_FGC_BGCW, 161, 251);

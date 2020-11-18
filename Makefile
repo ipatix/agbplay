@@ -32,6 +32,7 @@ conf_install_global:
 	cp agbplay.json /etc/agbplay.json
 
 conf_install_local:
+	mkdir -p ~/.config/
 	cp agbplay.json ~/.config/agbplay.json
 
 # checkin your local changes from agbplay.json to the git repo

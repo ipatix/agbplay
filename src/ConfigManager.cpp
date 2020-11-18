@@ -142,6 +142,7 @@ void ConfigManager::Save()
     root["id"] = "agbplay";
     root["playlists"] = playlists;
 
+    std::filesystem::create_directories(configPath.parent_path());
     ofstream jsonFile(configPath);
     if (!jsonFile.is_open())
         throw Xcept("Error while writing agbplay.json: %s", strerror(errno));

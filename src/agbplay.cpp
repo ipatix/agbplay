@@ -4,11 +4,6 @@
 #include <curses.h>
 #include <portaudio.h>
 #include <clocale>
-#ifdef __APPLE__
-    #include <libproc.h>
-    #include <unistd.h>
-    #include <sys/sysctl.h>
-#endif
 
 #include "Rom.h"
 #include "SoundData.h"
@@ -16,66 +11,15 @@
 #include "WindowGUI.h"
 #include "Xcept.h"
 #include "ConfigManager.h"
+#include "OS.h"
 
 using namespace std;
 using namespace agbplay;
 
-
-#ifdef __APPLE__
-
-// http://www.objectpark.net/en/parentpid.html
-
-#define OPProcessValueUnknown UINT_MAX
-
-int OPParentIDForProcessID(int pid)
-/*" Returns the parent process id 
-     for the given process id (pid). "*/
-{
-    struct kinfo_proc info;
-    size_t length = sizeof(struct kinfo_proc);
-    int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, pid };
-    if (sysctl(mib, 4, &info, &length, NULL, 0) < 0)
-        return OPProcessValueUnknown;
-    if (length == 0)
-        return OPProcessValueUnknown;
-    return info.kp_eproc.e_ppid;
-}
-
-// adapted from https://stackoverflow.com/a/8149198
-/*
- * Attempts to check for Apple Terminal.
- * Apple Terminal performs hilariously bad in comparison
- * to iTerm2 to the point where it is almost unusable.
- */
-int CheckForAppleTerminal() {
-    pid_t pid = getpid();
-    int ret;
-    pid_t oldpid = getpid();
-    char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
-    do  {
-        ret = proc_pidpath (pid, pathbuf, sizeof(pathbuf));
-        if (strncmp(pathbuf, "/Applications/Utilities/Terminal.app", 37) == 0) {
-            return 1;
-        }
-        oldpid = pid;
-        pid = (pid_t)OPParentIDForProcessID(pid);
-    } while (ret > 0 && pid > 1 /* launchd */ && pid != oldpid && pid != OPProcessValueUnknown);
-    return 0;
-}
-#endif
-
 int main(int argc, char *argv[]) 
 {
-    #ifdef __APPLE__
-    if (CheckForAppleTerminal() == 1) {
-        cout << "It appears that you are using macOS's built-in Terminal.app." << endl << endl <<
-                    "This terminal is prone to some serious lag with agbplay." << endl <<
-                    "It is recommended to use iTerm2 (https://www.iterm2.com/), as it can" << endl <<
-                    "run agbplay without any lag." << endl << endl << 
-                    "Press Return to continue, or Ctrl+C to exit.";
-        cin.ignore();
-    }
-    #endif
+    OS::CheckTerminal();
+
     if (!open_debug(nullptr)) {
         cout << "Debug Init failed" << endl;
         return EXIT_FAILURE;

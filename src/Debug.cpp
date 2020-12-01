@@ -8,7 +8,7 @@
 
 static FILE *debug_file = nullptr;
 
-bool open_debug(const char *file) {
+bool Debug::open(const char *file) {
     if (!file)
         return true;
 
@@ -20,7 +20,7 @@ bool open_debug(const char *file) {
     return true;
 }
 
-bool close_debug() {
+bool Debug::close() {
     if (debug_file == nullptr)
         return true;
 
@@ -34,12 +34,12 @@ bool close_debug() {
 static void (*callback)(const std::string&, void *) = nullptr;
 static void *cb_obj = nullptr;
 
-void set_debug_callback(void (*cb)(const std::string&, void *), void *obj) {
+void Debug::set_callback(void (*cb)(const std::string&, void *), void *obj) {
     callback = cb;
     cb_obj = obj;
 }
 
-void print_debug(const char *str, ...) {
+void Debug::print(const char *str, ...) {
     va_list args;
     va_start(args, str);
     char txtbuf[512];

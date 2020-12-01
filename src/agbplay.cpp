@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 {
     OS::CheckTerminal();
 
-    if (!open_debug(nullptr)) {
+    if (!Debug::open(nullptr)) {
         std::cout << "Debug Init failed" << std::endl;
         return EXIT_FAILURE;
     }
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     }
     if (Pa_Terminate() != paNoError)
         std::cerr << "Error while terminating portaudio" << std::endl;
-    close_debug();
+    Debug::close();
     return 0;
 }
 

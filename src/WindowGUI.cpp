@@ -226,7 +226,7 @@ bool WindowGUI::Handle()
             case 4: // EOT
             case 'q':
             case 27: // Escape Key
-                print_debug("Exiting...");
+                Debug::print("Exiting...");
                 ConfigManager::Instance().Save();
                 mplay->Stop();
                 return false;

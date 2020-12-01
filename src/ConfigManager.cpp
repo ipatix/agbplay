@@ -30,13 +30,13 @@ ConfigManager::ConfigManager()
      * If this isn't found either, use an empty config file. */
     Json::Value root;
     if (std::ifstream configFile; configFile.open(configPath), configFile.is_open()) {
-        print_debug("User local configuration found!");
+        Debug::print("User local configuration found!");
         configFile >> root;
     } else if (configFile.open(globalConfigPath); configFile.is_open()) {
-        print_debug("Global configuration found!");
+        Debug::print("Global configuration found!");
         configFile >> root;
     } else {
-        print_debug("No configuration file found. Creating new configuration.");
+        Debug::print("No configuration file found. Creating new configuration.");
         root["id"] = "agbplay";
         root["playlists"] = Json::Value();  // null value
     }
@@ -147,5 +147,5 @@ void ConfigManager::Save()
     writer->write(root, &jsonFile);
     jsonFile << std::endl;
 
-    print_debug("Configuration/Playlist saved!");
+    Debug::print("Configuration/Playlist saved!");
 }

@@ -19,7 +19,7 @@ using namespace agbplay;
  * public PlayerInterface
  */
 
-PlayerInterface::PlayerInterface(TrackviewGUI *trackUI, long initSongPos)
+PlayerInterface::PlayerInterface(TrackviewGUI *trackUI, size_t initSongPos)
     : rBuf(N_CHANNELS * STREAM_BUF_SIZE), masterLoudness(10.f), mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit())
 {
     seq = std::make_unique<Sequence>(initSongPos, ConfigManager::Instance().GetCfg().GetTrackLimit());
@@ -96,7 +96,7 @@ PlayerInterface::~PlayerInterface()
     delete sg;
 }
 
-void PlayerInterface::LoadSong(long songPos)
+void PlayerInterface::LoadSong(size_t songPos)
 {
     bool play = playerState == State::PLAYING;
     Stop();
@@ -334,7 +334,7 @@ void PlayerInterface::threadWorker()
     playerState = State::TERMINATED;
 }
 
-int PlayerInterface::audioCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
+int PlayerInterface::audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,
         const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags, void *userData)
 {
     (void)inputBuffer;

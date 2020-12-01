@@ -236,9 +236,9 @@ float SincResampler::fast_cosf(float t)
 {
     t = fabs(t);
     t *= float(double(LUT_SIZE) / (2.0 * M_PI));
-    unsigned int left_index = static_cast<unsigned int>(t);
+    uint32_t left_index = static_cast<uint32_t>(t);
     float fraction = t - static_cast<float>(left_index);
-    unsigned int right_index = (left_index + 1) % LUT_SIZE;
+    uint32_t right_index = (left_index + 1) % LUT_SIZE;
     left_index %= LUT_SIZE;
     return cos_lut[left_index] + fraction * (cos_lut[right_index] - cos_lut[left_index]);
 }
@@ -248,9 +248,9 @@ float SincResampler::fast_sincf(float t)
     t = fabs(t);
     assert(t <= SINC_WINDOW_SIZE);
     t *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));
-    unsigned int left_index = static_cast<unsigned int>(t);
+    uint32_t left_index = static_cast<uint32_t>(t);
     float fraction = t - static_cast<float>(left_index);
-    unsigned int right_index = left_index + 1;
+    uint32_t right_index = left_index + 1;
     return sinc_lut[left_index] + fraction * (sinc_lut[right_index] - sinc_lut[left_index]);
 }
 
@@ -262,9 +262,9 @@ float SincResampler::window_func(float t)
     //    0.076849f * cosf(4.0f * PI_F * t / float(SINC_WINDOW_SIZE - 1));
     t = fabs(t);
     t *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));
-    unsigned int left_index = static_cast<unsigned int>(t);
+    uint32_t left_index = static_cast<uint32_t>(t);
     float fraction = t - static_cast<float>(left_index);
-    unsigned int right_index = left_index + 1;
+    uint32_t right_index = left_index + 1;
     return win_lut[left_index] + fraction * (win_lut[right_index] - win_lut[left_index]);
 }
 
@@ -358,9 +358,9 @@ float BlepResampler::fast_Si(float t)
     t = fabs(t);
     t = std::min(t, float(SINC_WINDOW_SIZE));
     t *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));
-    unsigned int left_index = static_cast<unsigned int>(t);
+    uint32_t left_index = static_cast<uint32_t>(t);
     float fraction = t - static_cast<float>(left_index);
-    unsigned int right_index = left_index + 1;
+    uint32_t right_index = left_index + 1;
     float retval = Si_lut[left_index] + fraction * (Si_lut[right_index] - Si_lut[left_index]);
     return copysignf(retval, signed_t);
 }

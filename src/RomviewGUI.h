@@ -17,7 +17,7 @@ namespace agbplay {
             void update() override;
             std::string gameName;
             std::string gameCode;
-            long songTable;
-            unsigned short numSongs;
+            size_t songTable;
+            size_t numSongs;
     };
 }

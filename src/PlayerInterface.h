@@ -19,10 +19,10 @@ namespace agbplay
     class PlayerInterface 
     {
         public:
-            PlayerInterface(TrackviewGUI *trackUI, long initSongPos);
+            PlayerInterface(TrackviewGUI *trackUI, size_t initSongPos);
             ~PlayerInterface();
             
-            void LoadSong(long songPos);
+            void LoadSong(size_t songPos);
             void Play();
             void Pause();
             void Stop();
@@ -36,7 +36,7 @@ namespace agbplay
             void GetMasterVolLevels(float& left, float& right);
         private:
             void threadWorker();
-            static int audioCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
+            static int audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,
                     const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags,
                     void *userData);
 

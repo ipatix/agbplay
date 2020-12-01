@@ -84,15 +84,15 @@ namespace agbplay
 
             size_t GetSongTablePos();
             size_t GetPosOfSong(uint16_t uid);
-            unsigned short GetNumSongs();
+            size_t GetNumSongs();
         private:
             size_t locateSongTable();
             bool validateTableEntry(size_t pos);
             bool validateSong(size_t songPos);
-            unsigned short determineNumSongs();
+            size_t determineNumSongs();
 
             size_t songTablePos;
-            unsigned short numSongs;
+            size_t numSongs;
     };
 
     struct SoundData 

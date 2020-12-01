@@ -293,7 +293,7 @@ size_t SongTable::GetPosOfSong(uint16_t uid) {
     return Rom::Instance().ReadAgbPtrToPos(songTablePos + uid * 8);
 }
 
-unsigned short SongTable::GetNumSongs() {
+size_t SongTable::GetNumSongs() {
     return numSongs;
 }
 
@@ -380,10 +380,10 @@ bool SongTable::validateSong(size_t songPos)
     return true;
 }
 
-unsigned short SongTable::determineNumSongs() 
+size_t SongTable::determineNumSongs() 
 {
     size_t pos = songTablePos;
-    unsigned short count = 0;
+    size_t count = 0;
     while (true) {
         if (!validateTableEntry(pos))
             break;

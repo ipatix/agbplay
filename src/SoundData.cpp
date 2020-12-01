@@ -267,13 +267,13 @@ int16_t Sequence::Track::GetPitch()
 uint8_t Sequence::Track::GetVol()
 {
     int m = (modt == MODT::VOL) ? (triLut[lfoPhase] * mod * 3 * vol) >> 19 : 0;
-    return uint8_t(clip(0, vol + m, 127));
+    return uint8_t(std::clamp(vol + m, 0, 127));
 }
 
 int8_t Sequence::Track::GetPan()
 {
     int m = (modt == MODT::PAN) ? (triLut[lfoPhase] * mod * 3) >> 12 : 0;
-    return int8_t(clip(-64, pan + m, 63));
+    return int8_t(std::clamp(pan + m, -64, 63));
 }
 
 /*

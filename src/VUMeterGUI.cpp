@@ -53,7 +53,7 @@ void VUMeterGUI::update()
 {
     char line[(meterWidth + 2) * strlen("\u250f") + 1];
     size_t currentLinePos = 0;
-    float levelFactor = clip(0.0f, 0.8f * float(meterWidth), float(meterWidth));
+    float levelFactor = std::clamp(0.8f * float(meterWidth), 0.0f, float(meterWidth));
 
     // TOP BORDER
     CStrAppend(line, &currentLinePos, "\u250f");

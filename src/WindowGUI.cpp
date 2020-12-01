@@ -682,6 +682,6 @@ void WindowGUI::rename()
 void WindowGUI::updateWindowSize()
 {
     getmaxyx(stdscr, height, width);
-    width = clip(WINDOW_MIN_WIDTH, width, WINDOW_MAX_WIDTH);
-    height = clip(WINDOW_MIN_HEIGHT, height, WINDOW_MAX_HEIGHT);
+    width = std::clamp(width, WINDOW_MIN_WIDTH, WINDOW_MAX_WIDTH);
+    height = std::clamp(height, WINDOW_MIN_HEIGHT, WINDOW_MAX_HEIGHT);
 }

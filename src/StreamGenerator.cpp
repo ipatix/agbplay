@@ -50,7 +50,7 @@ const std::map<uint8_t, int8_t> StreamGenerator::noteLut = {
 
 StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype) 
 : seq(seq), sbnk(seq.GetSoundBankPos()), ep(ep),
-    sm(STREAM_SAMPLERATE, freqLut[clip<uint8_t>(0, uint8_t(ep.freq-1), 11)], 
+    sm(STREAM_SAMPLERATE, freqLut[std::clamp<uint8_t>(uint8_t(ep.freq-1), 0, 11)], 
             (ep.rev >= 0x80) ? ep.rev & 0x7F : seq.GetReverb() & 0x7F,
             float(ep.vol + 1) / 16.0f,
             rtype, (uint8_t)seq.tracks.size())

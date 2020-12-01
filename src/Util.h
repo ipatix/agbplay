@@ -9,14 +9,6 @@
 
 #define PI_F (float(M_PI))
 
-template <typename T>
-inline static T clip(T min, T val, T max)
-{
-    if (val < min) return min;
-    if (val > max) return max;
-    return val;
-}
-
 inline void CStrAppend(char *dest, size_t *index, const char *src)
 {
     char ch;

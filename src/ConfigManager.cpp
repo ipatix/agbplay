@@ -53,14 +53,14 @@ ConfigManager::ConfigManager()
         configs.emplace_back(games);
 
         // parse other parameters
-        configs.back().SetPCMVol(uint8_t(clip<int>(0, playlist.get("pcm-master-volume", 15).asInt(), 15)));
-        configs.back().SetEngineFreq(uint8_t(clip<int>(0, playlist.get("pcm-samplerate", 4).asInt(), 15)));
-        configs.back().SetEngineRev(uint8_t(clip<int>(0, playlist.get("pcm-reverb-level", 0).asInt(), 255)));
+        configs.back().SetPCMVol(uint8_t(std::clamp<int>(playlist.get("pcm-master-volume", 15).asInt(), 0, 15)));
+        configs.back().SetEngineFreq(uint8_t(std::clamp<int>(playlist.get("pcm-samplerate", 4).asInt(), 0, 15)));
+        configs.back().SetEngineRev(uint8_t(std::clamp<int>(playlist.get("pcm-reverb-level", 0).asInt(), 0, 255)));
         configs.back().SetRevBufSize(uint16_t(playlist.get("pcm-reverb-buffer-len", 1536).asUInt()));
         configs.back().SetRevType(str2rev(playlist.get("pcm-reverb-type", "normal").asString()));
         configs.back().SetResType(str2res(playlist.get("pcm-resampling-algo", "linear").asString()));
         configs.back().SetResTypeFixed(str2res(playlist.get("pcm-fixed-rate-resampling-algo", "linear").asString()));
-        configs.back().SetTrackLimit(uint8_t(clip<int>(0, playlist.get("song-track-limit", 16).asInt(), 16)));
+        configs.back().SetTrackLimit(uint8_t(std::clamp<int>(playlist.get("song-track-limit", 16).asInt(), 0, 16)));
 
         for (Json::Value song : playlist["songs"]) {
             configs.back().GetGameEntries().emplace_back(

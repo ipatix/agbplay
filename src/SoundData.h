@@ -104,5 +104,5 @@ struct SoundData
     SoundData& operator=(const SoundData&) = delete;
     ~SoundData();
 
-    SongTable *sTable;
+    SongTable sTable;
 };

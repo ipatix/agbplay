@@ -17,7 +17,7 @@
 class PlayerInterface 
 {
 public:
-    PlayerInterface(TrackviewGUI *trackUI, size_t initSongPos);
+    PlayerInterface(TrackviewGUI& trackUI, size_t initSongPos);
     PlayerInterface(const PlayerInterface&) = delete;
     PlayerInterface& operator=(const PlayerInterface&) = delete;
     ~PlayerInterface();
@@ -48,13 +48,13 @@ private:
     uint32_t speedFactor; // 64 = normal
     volatile enum class State : int { RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED } playerState;
     std::unique_ptr<Sequence> seq;
-    StreamGenerator *sg;
-    TrackviewGUI *trackUI;
+    std::unique_ptr<StreamGenerator> sg;
+    TrackviewGUI& trackUI;
     Ringbuffer rBuf;
 
     LoudnessCalculator masterLoudness;
     std::vector<LoudnessCalculator> trackLoudness;
     std::vector<bool> mutedTracks;
 
-    std::thread *playerThread;
+    std::unique_ptr<std::thread> playerThread;
 };

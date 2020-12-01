@@ -82,7 +82,7 @@ size_t SoundExporter::exportSong(const std::string& fileName, uint16_t uid)
 {
     // setup our generators
     GameConfig& cfg = ConfigManager::Instance().GetCfg();
-    Sequence seq(sd.sTable->GetPosOfSong(uid), cfg.GetTrackLimit());
+    Sequence seq(sd.sTable.GetPosOfSong(uid), cfg.GetTrackLimit());
     StreamGenerator sg(seq, EnginePars(cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()), 1, 1.0f, cfg.GetRevType());
     size_t blocksRendered = 0;
     size_t nBlocks = sg.GetBufferUnitCount();

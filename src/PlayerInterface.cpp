@@ -16,16 +16,18 @@
  * public PlayerInterface
  */
 
-PlayerInterface::PlayerInterface(TrackviewGUI *trackUI, size_t initSongPos)
-    : rBuf(N_CHANNELS * STREAM_BUF_SIZE), masterLoudness(10.f), mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit())
+PlayerInterface::PlayerInterface(TrackviewGUI& trackUI, size_t initSongPos)
+    : trackUI(trackUI),
+    rBuf(N_CHANNELS * STREAM_BUF_SIZE),
+    masterLoudness(10.f),
+    mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit())
 {
     seq = std::make_unique<Sequence>(initSongPos, ConfigManager::Instance().GetCfg().GetTrackLimit());
-    this->trackUI = trackUI;
     playerState = State::THREAD_DELETED;
     speedFactor = 64;
 
     GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
-    sg = new StreamGenerator(*seq,
+    sg = std::make_unique<StreamGenerator>(*seq,
             EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()),
             MAX_LOOPS, float(speedFactor) / 64.0f, 
             gameCfg.GetRevType());
@@ -90,7 +92,6 @@ PlayerInterface::~PlayerInterface()
     if ((err = Pa_CloseStream(audioStream)) != paNoError) {
         print_debug("Pa_CloseStream: %s", Pa_GetErrorText(err));
     }
-    delete sg;
 }
 
 void PlayerInterface::LoadSong(size_t songPos)
@@ -104,9 +105,8 @@ void PlayerInterface::LoadSong(size_t songPos)
     for (size_t i = 0; i < seq->tracks.size() * N_CHANNELS; i++)
         vols[i] = 0.0f;
 
-    trackUI->SetState(*seq, vols, 0, 0);
-    delete sg;
-    sg = new StreamGenerator(*seq, EnginePars(gameCfg.GetPCMVol(),
+    trackUI.SetState(*seq, vols, 0, 0);
+    sg = std::make_unique<StreamGenerator>(*seq, EnginePars(gameCfg.GetPCMVol(),
                 gameCfg.GetEngineRev(), 
                 gameCfg.GetEngineFreq()), 
             MAX_LOOPS, float(speedFactor) / 64.0f, 
@@ -139,7 +139,7 @@ void PlayerInterface::Play()
             break;
         case State::THREAD_DELETED:
             playerState = State::PLAYING;
-            playerThread = new std::thread(&PlayerInterface::threadWorker, this);
+            playerThread = std::make_unique<std::thread>(&PlayerInterface::threadWorker, this);
 #ifdef __linux__
             pthread_setname_np(playerThread->native_handle(), "mixer thread");
 #endif
@@ -194,10 +194,10 @@ void PlayerInterface::Stop()
         case State::TERMINATED:
         case State::SHUTDOWN:
             playerThread->join();
-            delete playerThread;
+            playerThread.reset();
             playerState = State::THREAD_DELETED;
-            delete sg;
-            sg = new StreamGenerator(*seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), MAX_LOOPS, float(speedFactor) / 64.0f, gameCfg.GetRevType());
+            sg = std::make_unique<StreamGenerator>(
+                    *seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), MAX_LOOPS, float(speedFactor) / 64.0f, gameCfg.GetRevType());
             break;            
         case State::THREAD_DELETED:
             // ignore this
@@ -236,7 +236,7 @@ void PlayerInterface::UpdateView()
         float vols[trks * N_CHANNELS];
         for (size_t i = 0; i < trks; i++)
             trackLoudness[i].GetLoudness(vols[i*N_CHANNELS], vols[i*N_CHANNELS+1]);
-        trackUI->SetState(sg->GetWorkingSequence(), vols, int(sg->GetActiveChannelCount()), -1);
+        trackUI.SetState(sg->GetWorkingSequence(), vols, int(sg->GetActiveChannelCount()), -1);
     }
 }
 
@@ -281,8 +281,7 @@ void PlayerInterface::threadWorker()
         while (playerState != State::SHUTDOWN) {
             switch (playerState) {
                 case State::RESTART:
-                    delete sg;
-                    sg = new StreamGenerator(*seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), MAX_LOOPS, float(speedFactor) / 64.0f, gameCfg.GetRevType());
+                    sg = std::make_unique<StreamGenerator>(*seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), MAX_LOOPS, float(speedFactor) / 64.0f, gameCfg.GetRevType());
                     playerState = State::PLAYING;
                     [[fallthrough]];
                 case State::PLAYING:

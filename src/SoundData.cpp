@@ -404,11 +404,10 @@ size_t SongTable::determineNumSongs()
  */
 
 SoundData::SoundData()
+    : sTable(UNKNOWN_TABLE)
 {
-    sTable = new SongTable(UNKNOWN_TABLE);
 }
 
 SoundData::~SoundData() 
 {
-    delete sTable;
 }

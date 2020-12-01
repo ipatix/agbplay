@@ -34,5 +34,5 @@ protected:
     uint32_t contentWidth;
     bool cursorVisible;
 private:
-    std::vector<SongEntry> *songlist;
+    std::vector<SongEntry> songlist;
 };

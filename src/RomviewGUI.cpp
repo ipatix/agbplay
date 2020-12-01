@@ -13,8 +13,8 @@ RomviewGUI::RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t 
 {
     gameName = Rom::Instance().ReadString(0xA0, 12);
     gameCode = Rom::Instance().ReadString(0xAC, 4);
-    songTable = rsdata.sTable->GetSongTablePos();
-    numSongs = rsdata.sTable->GetNumSongs();
+    songTable = rsdata.sTable.GetSongTablePos();
+    numSongs = rsdata.sTable.GetNumSongs();
     update();
 }
 

@@ -15,7 +15,6 @@ SonglistGUI::SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_
     : CursesWin(height, width, yPos, xPos) 
 {
     checkDimensions(height, width);
-    this->songlist = new std::vector<SongEntry>;
     this->viewPos = 0;
     this->cursorPos = 0;
     this->cursorVisible = false;
@@ -26,7 +25,6 @@ SonglistGUI::SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_
 
 SonglistGUI::~SonglistGUI() 
 {
-    delete this->songlist;
 }
 
 void SonglistGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
@@ -82,7 +80,7 @@ void SonglistGUI::PageUp()
 
 void SonglistGUI::AddSong(SongEntry entry) 
 {
-    songlist->push_back(entry);
+    songlist.push_back(entry);
     update();
 }
 
@@ -90,15 +88,15 @@ void SonglistGUI::ClearSongs()
 {
     viewPos = 0;
     cursorPos = 0;
-    songlist->clear();
+    songlist.clear();
     update();
 }
 
 void SonglistGUI::RemoveSong() 
 {
-    if (songlist->size() == 0) return;
-    songlist->erase(songlist->begin() + cursorPos);
-    if (cursorPos != 0 && cursorPos >= songlist->size()) {
+    if (songlist.size() == 0) return;
+    songlist.erase(songlist.begin() + cursorPos);
+    if (cursorPos != 0 && cursorPos >= songlist.size()) {
         cursorPos--;
     }
     update();
@@ -107,7 +105,7 @@ void SonglistGUI::RemoveSong()
 SongEntry& SonglistGUI::GetSong() 
 {
     // will throw exception of out of bounds
-    return songlist->at(cursorPos);
+    return songlist.at(cursorPos);
 }
 
 /*
@@ -117,12 +115,12 @@ SongEntry& SonglistGUI::GetSong()
 void SonglistGUI::scrollDownNoUpdate() 
 {
     // return if bounds are reached
-    if (cursorPos + 1 >= songlist->size())
+    if (cursorPos + 1 >= songlist.size())
         return;
     cursorPos++;
     /* move viewport down of the cursor is in the lower area
      * and the screen may be scrolled down */
-    if (viewPos + contentHeight < songlist->size() && cursorPos > viewPos + contentHeight - 5)
+    if (viewPos + contentHeight < songlist.size() && cursorPos > viewPos + contentHeight - 5)
         viewPos++;
 }
 
@@ -146,9 +144,9 @@ void SonglistGUI::update()
         else
             wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::LIST_ENTRY)));
         // generate list of songs
-        if (i + viewPos < songlist->size()) {
+        if (i + viewPos < songlist.size()) {
             mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, "%-*.*s", 
-                    width, width, (*songlist)[i + viewPos].name.c_str());
+                    width, width, songlist[i + viewPos].name.c_str());
         } else {
             mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, "%-*.*s", 
                     width, width, "");

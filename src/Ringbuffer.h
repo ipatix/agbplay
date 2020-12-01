@@ -11,7 +11,6 @@ public:
     Ringbuffer(size_t elementCount);
     Ringbuffer(const Ringbuffer&) = delete;
     Ringbuffer& operator=(const Ringbuffer&) = delete;
-    ~Ringbuffer();
 
     void Put(float *inData, size_t nElements);
     void Take(float *outData, size_t nElements);

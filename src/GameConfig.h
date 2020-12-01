@@ -14,7 +14,6 @@ public:
     GameConfig(const GameConfig&) = delete;
     GameConfig(GameConfig&&) = default;
     GameConfig& operator=(const GameConfig&) = delete;
-    ~GameConfig();
 
     const std::vector<std::string>& GetGameCodes();
     ReverbType GetRevType();
@@ -39,12 +38,12 @@ public:
 private:
     std::vector<std::string> gameCodes;
     std::vector<SongEntry> gameEntries;
-    ReverbType revType;
-    ResamplerType resTypeFixed;
-    ResamplerType resType;
-    uint8_t pcmVol;
-    uint8_t engineFreq;
-    uint8_t engineRev;
-    uint8_t trackLimit;
-    uint16_t revBufSize;
+    ReverbType revType = ReverbType::NORMAL;
+    ResamplerType resTypeFixed = ResamplerType::LINEAR;
+    ResamplerType resType = ResamplerType::LINEAR;
+    uint8_t pcmVol = 0xF;
+    uint8_t engineFreq = 0x4;
+    uint8_t engineRev = 0x0;
+    uint8_t trackLimit = 16;
+    uint16_t revBufSize = 1584;
 };

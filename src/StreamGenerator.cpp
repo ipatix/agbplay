@@ -60,10 +60,6 @@ StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops,
     this->isEnding = false;
 }
 
-StreamGenerator::~StreamGenerator()
-{
-}
-
 size_t StreamGenerator::GetBufferUnitCount()
 {
     return sm.GetBufferUnitCount();

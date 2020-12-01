@@ -72,10 +72,6 @@ ConfigManager::ConfigManager()
     curCfg = nullptr;
 }
 
-ConfigManager::~ConfigManager()
-{
-}
-
 ConfigManager& ConfigManager::Instance()
 {
     static ConfigManager cm;

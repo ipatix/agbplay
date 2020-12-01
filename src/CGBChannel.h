@@ -17,7 +17,7 @@ public:
     CGBChannel();
     CGBChannel(const CGBChannel&) = delete;
     CGBChannel& operator=(const CGBChannel&) = delete;
-    ~CGBChannel();
+
     virtual void Init(uint8_t owner, CGBDef def, Note note, ADSR env);
     virtual void Process(float *buffer, size_t nblocks, MixingArgs& args) = 0;
     uint8_t GetOwner();
@@ -56,7 +56,6 @@ class SquareChannel : public CGBChannel
 {
 public:
     SquareChannel();
-    ~SquareChannel();
 
     void Init(uint8_t owner, CGBDef def, Note note, ADSR env) override;
     void SetPitch(int16_t pitch) override;
@@ -71,7 +70,6 @@ class WaveChannel : public CGBChannel
 {
 public:
     WaveChannel();
-    ~WaveChannel();
 
     void Init(uint8_t owner, CGBDef def, Note note, ADSR env) override;
     void SetPitch(int16_t pitch) override;
@@ -86,7 +84,6 @@ class NoiseChannel : public CGBChannel
 {
 public:
     NoiseChannel();
-    ~NoiseChannel();
 
     void Init(uint8_t owner, CGBDef def, Note note, ADSR env) override;
     void SetPitch(int16_t pitch) override;

@@ -4,6 +4,7 @@
 #include <list>
 #include <cstdint>
 #include <bitset>
+#include <memory>
 
 #include "ReverbEffect.h"
 #include "SoundChannel.h"
@@ -26,7 +27,6 @@ public:
     SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype, uint8_t ntracks);
     SoundMixer(const SoundMixer&) = delete;
     SoundMixer& operator=(const SoundMixer&) = delete;
-    ~SoundMixer();
 
     void NewSoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
     void NewCGBNote(uint8_t owner, CGBDef def, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, CGBType type);
@@ -55,7 +55,7 @@ private:
     WaveChannel wave;
     NoiseChannel noise;
 
-    std::vector<ReverbEffect *> revdsps;
+    std::vector<std::unique_ptr<ReverbEffect>> revdsps;
     std::vector<std::vector<float>> soundBuffers;
     uint32_t sampleRate;
     uint32_t fixedModeRate;

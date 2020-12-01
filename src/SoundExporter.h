@@ -16,7 +16,6 @@ public:
     SoundExporter(SoundData& _sd, bool _benchmarkOnly, bool seperate);
     SoundExporter(const SoundExporter&) = delete;
     SoundExporter& operator=(const SoundExporter&) = delete;
-    ~SoundExporter();
 
     void Export(const std::string& outputDir, std::vector<SongEntry>& entries, std::vector<bool>& ticked);
 private:

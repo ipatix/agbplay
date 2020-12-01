@@ -22,7 +22,6 @@ public:
     StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype);
     StreamGenerator(const StreamGenerator&) = delete;
     StreamGenerator& operator=(const StreamGenerator&) = delete;
-    ~StreamGenerator();
 
     size_t GetBufferUnitCount();
     size_t GetActiveChannelCount();

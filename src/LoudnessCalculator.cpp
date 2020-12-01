@@ -6,12 +6,8 @@
 #include "Util.h"
 
 LoudnessCalculator::LoudnessCalculator(const float lowpassFreq)
+    : lpAlpha(calcAlpha(lowpassFreq))
 {
-    float rc = 1.0f / (lowpassFreq * 2.0f * float(M_PI));
-    float dt = 1.0f / float(STREAM_SAMPLERATE);
-    lpAlpha = dt / (rc + dt);
-
-    Reset();
 }
 
 void LoudnessCalculator::CalcLoudness(const float *audio, size_t nBlocks)
@@ -45,4 +41,11 @@ void LoudnessCalculator::Reset()
     avgVolRightSq = 0.f;
     volLeft = 0.f;
     volRight = 0.f;
+}
+
+float LoudnessCalculator::calcAlpha(float lowpassFreq)
+{
+    float rc = 1.0f / (lowpassFreq * 2.0f * float(M_PI));
+    float dt = 1.0f / float(STREAM_SAMPLERATE);
+    return dt / (rc + dt);
 }

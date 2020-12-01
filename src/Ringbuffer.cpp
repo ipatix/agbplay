@@ -15,10 +15,6 @@ Ringbuffer::Ringbuffer(size_t elementCount)
     dataCount = 0;
 }
 
-Ringbuffer::~Ringbuffer()
-{
-}
-
 void Ringbuffer::Put(float *inData, size_t nElements)
 {
     std::unique_lock<std::mutex> lock(countLock);

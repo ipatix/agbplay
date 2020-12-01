@@ -26,10 +26,6 @@ CGBChannel::CGBChannel()
     this->eState = EnvState::DEAD;
 }
 
-CGBChannel::~CGBChannel()
-{
-}
-
 void CGBChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
 {
     this->owner = owner;
@@ -297,10 +293,6 @@ SquareChannel::SquareChannel() : CGBChannel()
     pat = CGBPatterns::pat_sq50;
 }
 
-SquareChannel::~SquareChannel()
-{
-}
-
 void SquareChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
 {
     CGBChannel::Init(owner, def, note, env);
@@ -396,10 +388,6 @@ WaveChannel::WaveChannel() : CGBChannel()
     }
 }
 
-WaveChannel::~WaveChannel()
-{
-}
-
 void WaveChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)
 {
     //env.sus = (env.sus * 2) > 0xF ? 0xF : uint8_t(env.sus * 2);
@@ -483,10 +471,6 @@ NoiseChannel::NoiseChannel() : CGBChannel()
 {
     rs = std::make_unique<NearestResampler>();
     def.np = NoisePatt::FINE;
-}
-
-NoiseChannel::~NoiseChannel()
-{
 }
 
 void NoiseChannel::Init(uint8_t owner, CGBDef def, Note note, ADSR env)

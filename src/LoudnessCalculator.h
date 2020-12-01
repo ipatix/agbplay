@@ -14,10 +14,12 @@ public:
     void GetLoudness(float& lVol, float& rVol);
     void Reset();
 private:
-    float lpAlpha;
-    float avgVolLeftSq;
-    float avgVolRightSq;
+    static float calcAlpha(float lowpassFreq);
 
-    float volLeft;
-    float volRight;
+    float lpAlpha;
+    float avgVolLeftSq = 0.0f;
+    float avgVolRightSq = 0.0f;
+
+    float volLeft = 0.0f;
+    float volRight = 0.0f;
 };

@@ -11,7 +11,7 @@ class SonglistGUI : public CursesWin
 {
 public:
     SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, bool upd);
-    virtual ~SonglistGUI();
+    virtual ~SonglistGUI() override;
     void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;
     virtual void AddSong(SongEntry song);
     virtual void RemoveSong();

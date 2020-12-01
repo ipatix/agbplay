@@ -21,25 +21,25 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reve
     {
         switch (rtype) {
             case ReverbType::NORMAL:
-                revdsps.push_back(new ReverbEffect(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
+                revdsps.emplace_back(new ReverbEffect(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
                 break;
             case ReverbType::NONE:
-                revdsps.push_back(new ReverbEffect(0, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
+                revdsps.emplace_back(new ReverbEffect(0, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
                 break;
             case ReverbType::GS1:
-                revdsps.push_back(new ReverbGS1(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
+                revdsps.emplace_back(new ReverbGS1(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
                 break;
             case ReverbType::GS2:
-                revdsps.push_back(new ReverbGS2(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
+                revdsps.emplace_back(new ReverbGS2(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
                         0.4140625f, -0.0625f));
                 break;
                 // Mario Power Tennis uses same coefficients as Mario Golf Advance Tour
             case ReverbType::MGAT:
-                revdsps.push_back(new ReverbGS2(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
+                revdsps.emplace_back(new ReverbGS2(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
                         0.25f, -0.046875f));
                 break;
             case ReverbType::TEST:
-                revdsps.push_back(new ReverbTest(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
+                revdsps.emplace_back(new ReverbTest(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
                 break;
             default:
                 throw Xcept("Invalid Reverb Effect");
@@ -57,15 +57,6 @@ SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reve
     fadePos = 1.0f;
     fadeStepPerMicroframe = 0.0f;
     this->ntracks = ntracks;
-}
-
-SoundMixer::~SoundMixer()
-{
-    while (!revdsps.empty())
-    {
-        delete revdsps.back();
-        revdsps.pop_back();
-    }
 }
 
 void SoundMixer::NewSoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed)

@@ -5,11 +5,16 @@
  */
 
 SongEntry::SongEntry(const std::string& name, uint16_t uid) 
+    : name(name), uid(uid)
 {
-    this->name = name;
-    this->uid = uid;
 }
 
-SongEntry::~SongEntry() 
+const std::string& SongEntry::GetName() const
 {
+    return name;
+}
+
+uint16_t SongEntry::GetUID() const
+{
+    return uid;
 }

@@ -11,7 +11,7 @@ class TrackviewGUI : public CursesWin
 {
 public:
     TrackviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos);
-    ~TrackviewGUI();
+    ~TrackviewGUI() override;
 
     void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;
     void SetState(const Sequence& seq, const float *vols, int activeChannels, int maxChannels);

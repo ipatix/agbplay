@@ -9,8 +9,6 @@
 class ConfigManager
 {
 public:
-    ~ConfigManager();
-
     static ConfigManager& Instance();
 
     GameConfig& GetCfg();

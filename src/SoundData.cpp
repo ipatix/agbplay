@@ -407,7 +407,3 @@ SoundData::SoundData()
     : sTable(UNKNOWN_TABLE)
 {
 }
-
-SoundData::~SoundData() 
-{
-}

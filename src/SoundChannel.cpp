@@ -67,10 +67,6 @@ SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note,
     this->shiftMPTcompressed = 0x38;
 }
 
-SoundChannel::~SoundChannel()
-{
-}
-
 void SoundChannel::Process(float *buffer, size_t nblocks, const MixingArgs& args)
 {
     stepEnvelope();

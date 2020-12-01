@@ -11,6 +11,9 @@ class GameConfig
 public:
     GameConfig(const std::string& gameCode);
     GameConfig(const std::vector<std::string>& gameCodes);
+    GameConfig(const GameConfig&) = delete;
+    GameConfig(GameConfig&&) = default;
+    GameConfig& operator=(const GameConfig&) = delete;
     ~GameConfig();
 
     const std::vector<std::string>& GetGameCodes();

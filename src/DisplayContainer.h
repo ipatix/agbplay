@@ -28,6 +28,8 @@ struct DisplayContainer
 {
     DisplayContainer();
     DisplayContainer(uint8_t nTracks);
+    DisplayContainer(const DisplayContainer&) = delete;
+    DisplayContainer& operator=(const DisplayContainer&) = delete;
     ~DisplayContainer();
 
     std::vector<DisplayData> data;

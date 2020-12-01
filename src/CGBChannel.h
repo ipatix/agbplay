@@ -15,6 +15,8 @@ class CGBChannel
 {
 public: 
     CGBChannel();
+    CGBChannel(const CGBChannel&) = delete;
+    CGBChannel& operator=(const CGBChannel&) = delete;
     ~CGBChannel();
     virtual void Init(uint8_t owner, CGBDef def, Note note, ADSR env);
     virtual void Process(float *buffer, size_t nblocks, MixingArgs& args) = 0;

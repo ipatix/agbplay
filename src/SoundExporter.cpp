@@ -15,8 +15,8 @@
  * public SoundExporter
  */
 
-SoundExporter::SoundExporter(ConsoleGUI& _con, SoundData& _sd, bool _benchmarkOnly, bool seperate)
-: con(_con), sd(_sd)
+SoundExporter::SoundExporter(SoundData& _sd, bool _benchmarkOnly, bool seperate)
+: sd(_sd)
 {
     benchmarkOnly = _benchmarkOnly;
     this->seperate = seperate;

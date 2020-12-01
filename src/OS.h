@@ -3,9 +3,8 @@
 #include <string>
 #include <filesystem>
 
-class OS {
-public:
-    static void CheckTerminal();
-    static const std::filesystem::path GetLocalConfigDirectory();
-    static const std::filesystem::path GetGlobalConfigDirectory();
+namespace OS {
+    void CheckTerminal();
+    const std::filesystem::path GetLocalConfigDirectory();
+    const std::filesystem::path GetGlobalConfigDirectory();
 };

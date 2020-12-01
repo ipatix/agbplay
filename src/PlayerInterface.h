@@ -18,6 +18,8 @@ class PlayerInterface
 {
 public:
     PlayerInterface(TrackviewGUI *trackUI, size_t initSongPos);
+    PlayerInterface(const PlayerInterface&) = delete;
+    PlayerInterface& operator=(const PlayerInterface&) = delete;
     ~PlayerInterface();
 
     void LoadSong(size_t songPos);

@@ -20,7 +20,10 @@ private:
     };
 public:
     SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
+    SoundChannel(const SoundChannel&) = delete;
+    SoundChannel& operator=(const SoundChannel&) = delete;
     ~SoundChannel();
+
     void Process(float *buffer, size_t nblocks, const MixingArgs& args);
     uint8_t GetOwner();
     void SetVol(uint8_t vol, int8_t pan);

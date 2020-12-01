@@ -64,6 +64,8 @@ class WindowGUI
 {
 public:
     WindowGUI(SoundData& rsdata);
+    WindowGUI(const WindowGUI&) = delete;
+    WindowGUI& operator=(const WindowGUI&) = delete;
     ~WindowGUI();
 
     // main GUI handler

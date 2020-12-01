@@ -24,7 +24,10 @@ class SoundMixer
 {
 public:
     SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype, uint8_t ntracks);
+    SoundMixer(const SoundMixer&) = delete;
+    SoundMixer& operator=(const SoundMixer&) = delete;
     ~SoundMixer();
+
     void NewSoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
     void NewCGBNote(uint8_t owner, CGBDef def, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, CGBType type);
     void SetTrackPV(uint8_t owner, uint8_t vol, int8_t pan, int16_t pitch);

@@ -38,6 +38,10 @@ public:
     struct Track 
     {
         Track(size_t pos);
+        Track(const Track&) = delete;
+        Track(Track &&) = default;
+        Track& operator=(const Track&) = delete;
+
         int16_t GetPitch();
         uint8_t GetVol();
         int8_t GetPan();
@@ -96,6 +100,8 @@ private:
 struct SoundData 
 {
     SoundData();
+    SoundData(const SoundData&) = delete;
+    SoundData& operator=(const SoundData&) = delete;
     ~SoundData();
 
     SongTable *sTable;

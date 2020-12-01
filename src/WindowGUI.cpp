@@ -192,21 +192,21 @@ bool WindowGUI::Handle()
             case 'e':
                 mplay->Stop();
                 {
-                    SoundExporter se(*conUI, sdata, false, true);
+                    SoundExporter se(sdata, false, true);
                     se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
             case 'r':
                 mplay->Stop();
                 {
-                    SoundExporter se(*conUI, sdata, false, false);
+                    SoundExporter se(sdata, false, false);
                     se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
             case 'b':
                 mplay->Stop();
                 {
-                    SoundExporter se(*conUI, sdata, true, false);
+                    SoundExporter se(sdata, true, false);
                     se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;

@@ -20,10 +20,6 @@ EnginePars::EnginePars(uint8_t vol, uint8_t rev, uint8_t freq)
     this->freq = freq;
 }
 
-EnginePars::EnginePars()
-{
-}
-
 /*
  * public StreamGenerator
  */
@@ -53,13 +49,12 @@ const std::map<uint8_t, int8_t> StreamGenerator::noteLut = {
 };
 
 StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype) 
-: seq(seq), sbnk(seq.GetSoundBankPos()),
+: seq(seq), sbnk(seq.GetSoundBankPos()), ep(ep),
     sm(STREAM_SAMPLERATE, freqLut[clip<uint8_t>(0, uint8_t(ep.freq-1), 11)], 
             (ep.rev >= 0x80) ? ep.rev & 0x7F : seq.GetReverb() & 0x7F,
             float(ep.vol + 1) / 16.0f,
             rtype, (uint8_t)seq.tracks.size())
 {
-    this->ep = ep;
     this->maxLoops = maxLoops;
     this->speedFactor = speedFactor;
     this->isEnding = false;

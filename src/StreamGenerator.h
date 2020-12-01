@@ -10,7 +10,6 @@
 struct EnginePars
 {
     EnginePars(uint8_t vol, uint8_t rev, uint8_t freq);
-    EnginePars();
 
     uint8_t vol;
     uint8_t rev;
@@ -21,6 +20,8 @@ class StreamGenerator
 {
 public:
     StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype);
+    StreamGenerator(const StreamGenerator&) = delete;
+    StreamGenerator& operator=(const StreamGenerator&) = delete;
     ~StreamGenerator();
 
     size_t GetBufferUnitCount();

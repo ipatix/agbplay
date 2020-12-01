@@ -54,7 +54,7 @@ uint8_t SoundBank::GetMidiKey(uint8_t instrNum, uint8_t midiKey)
 {
     Rom& rom = Rom::Instance();
 
-    if (rom.ReadU8(bankPos + instrNum * 12 + 0)) {
+    if (rom.ReadU8(bankPos + instrNum * 12 + 0) == 0x80) {
         size_t subBankPos = rom.ReadAgbPtrToPos(bankPos + instrNum * 12 + 0x4);
         return rom.ReadU8(subBankPos + midiKey * 12 + 1);
     } else {
@@ -130,7 +130,8 @@ SampleInfo SoundBank::GetSampInfo(uint8_t instrNum, uint8_t midiKey)
 
     bool loopEnabled = rom.ReadU8(samplePos + 3) & 0x40;
     if (rom.ReadU8(samplePos) != 0)
-        throw Xcept("Sample Error: Unknown/unsupported sample mode: [%08X]=%02X", samplePos, rom.ReadU8(samplePos));
+        throw Xcept("Sample Error: Unknown/unsupported sample mode: [%08X]=%02X, instrument: [%08X]",
+                samplePos, rom.ReadU8(samplePos), pos);
 
     float midCfreq = static_cast<float>(rom.ReadU32(samplePos + 4)) / 1024.0f;
     uint32_t loopPos = rom.ReadU32(samplePos + 8);
@@ -195,7 +196,14 @@ Sequence::Sequence(size_t songHeaderPos, uint8_t trackLimit)
 
 size_t Sequence::GetSoundBankPos()
 {
-    return Rom::Instance().ReadAgbPtrToPos(songHeaderPos + 4);
+    Rom& rom = Rom::Instance();
+    /* Sometimes songs have 0 tracks and will not have a valid
+     * sound bank pointer. Return a dummy result instead since
+     * it should not be accessed anyway */
+    if (!rom.ValidPointer(rom.ReadU32(songHeaderPos + 4)))
+        return 0;
+
+    return rom.ReadAgbPtrToPos(songHeaderPos + 4);
 }
 
 uint8_t Sequence::GetReverb()

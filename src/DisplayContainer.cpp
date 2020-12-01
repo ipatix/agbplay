@@ -1,6 +1,5 @@
 #include "DisplayContainer.h"
 
-using namespace agbplay;
 using namespace std;
 
 /*

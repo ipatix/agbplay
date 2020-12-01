@@ -7,7 +7,6 @@
 #include "Xcept.h"
 #include "ColorDef.h"
 
-using namespace agbplay;
 using namespace std;
 
 /*

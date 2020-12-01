@@ -3,18 +3,15 @@
 #include <cstdint>
 #include <string>
 
-namespace agbplay
+class SongEntry 
 {
-    class SongEntry 
-    {
-        private:
-            uint16_t uid;
-        public:
-            SongEntry(const std::string& name, uint16_t uid);
-            ~SongEntry();
+private:
+    uint16_t uid;
+public:
+    SongEntry(const std::string& name, uint16_t uid);
+    ~SongEntry();
 
-            std::string name;
-            const std::string& GetName() const { return name; };
-            uint16_t GetUID() const { return uid; };
-    };
-}
+    std::string name;
+    const std::string& GetName() const { return name; };
+    uint16_t GetUID() const { return uid; };
+};

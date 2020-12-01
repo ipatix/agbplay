@@ -6,7 +6,6 @@
 #include "ColorDef.h"
 #include "Xcept.h"
 
-using namespace agbplay;
 using namespace std;
 
 static const vector<string> bannerText = {

@@ -3,7 +3,6 @@
 #include "Ringbuffer.h"
 
 using namespace std;
-using namespace agbplay;
 
 /*
  * public Ringbuffer

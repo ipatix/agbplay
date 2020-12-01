@@ -10,8 +10,6 @@
 #define SONG_FINISH_TIME 1000
 
 using namespace std;
-using namespace agbplay;
-
 
 /*
  * public EnginePars

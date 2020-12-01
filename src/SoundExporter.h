@@ -10,23 +10,20 @@
 #include "GameConfig.h"
 #include "ConsoleGUI.h"
 
-namespace agbplay
+class SoundExporter
 {
-    class SoundExporter
-    {
-        public:
-            SoundExporter(ConsoleGUI& _con, SoundData& _sd, bool _benchmarkOnly, bool seperate);
-            ~SoundExporter();
+public:
+    SoundExporter(ConsoleGUI& _con, SoundData& _sd, bool _benchmarkOnly, bool seperate);
+    ~SoundExporter();
 
-            void Export(const std::string& outputDir, std::vector<SongEntry>& entries, std::vector<bool>& ticked);
-        private:
-            size_t exportSong(const std::string& fileName, uint16_t uid);
+    void Export(const std::string& outputDir, std::vector<SongEntry>& entries, std::vector<bool>& ticked);
+private:
+    size_t exportSong(const std::string& fileName, uint16_t uid);
 
-            ConsoleGUI& con;
-            SoundData& sd;
-            std::mutex uilock;
+    ConsoleGUI& con;
+    SoundData& sd;
+    std::mutex uilock;
 
-            bool benchmarkOnly;
-            bool seperate; // seperate tracks to multiple files
-    };
-}
+    bool benchmarkOnly;
+    bool seperate; // seperate tracks to multiple files
+};

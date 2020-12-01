@@ -6,8 +6,6 @@
 #include "CursesWin.h"
 #include "Xcept.h"
 
-using namespace agbplay;
-
 CursesWin::CursesWin(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) {
     if ((winPtr = newwin((int)height, (int)width, (int)yPos, (int)xPos)) == nullptr) {
         throw Xcept("Error while creating curses window [newwin]");

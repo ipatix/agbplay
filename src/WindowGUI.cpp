@@ -18,7 +18,6 @@
 
 #define KEY_TAB 9
 
-using namespace agbplay;
 using namespace std;
 
 WindowGUI::WindowGUI(SoundData& rsdata)

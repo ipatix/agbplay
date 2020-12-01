@@ -7,7 +7,6 @@
 #include <vector>
 #include <algorithm>
 
-using namespace agbplay;
 using namespace std;
 
 /*

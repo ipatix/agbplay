@@ -11,7 +11,6 @@
 #include "ConfigManager.h"
 
 using namespace std;
-using namespace agbplay;
 
 #define MAX_LOOPS 1
 

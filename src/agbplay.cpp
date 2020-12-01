@@ -12,8 +12,6 @@
 #include "ConfigManager.h"
 #include "OS.h"
 
-using namespace agbplay;
-
 static void usage();
 static void help();
 

@@ -60,60 +60,57 @@
 
 #include <memory>
 
-namespace agbplay 
+class WindowGUI 
 {
-    class WindowGUI 
-    {
-        public:
-            WindowGUI(SoundData& rsdata);
-            ~WindowGUI();
+public:
+    WindowGUI(SoundData& rsdata);
+    ~WindowGUI();
 
-            // main GUI handler
-            bool Handle();
-        private:
-            // sub window control
-            void resizeWindows();
-            // color definitions
-            void initColors();
-            // hotkey methods
-            void cycleFocus();
-            void scrollLeft();
-            void scrollRight();
-            void scrollDown();
-            void scrollUp();
-            void pageDown();
-            void pageUp();
-            void enter();
-            void add();
-            void del();
-            void mute();
-            void solo();
-            void tutti();
-            void rename();
+    // main GUI handler
+    bool Handle();
+private:
+    // sub window control
+    void resizeWindows();
+    // color definitions
+    void initColors();
+    // hotkey methods
+    void cycleFocus();
+    void scrollLeft();
+    void scrollRight();
+    void scrollDown();
+    void scrollUp();
+    void pageDown();
+    void pageUp();
+    void enter();
+    void add();
+    void del();
+    void mute();
+    void solo();
+    void tutti();
+    void rename();
 
-            void updateWindowSize();
+    void updateWindowSize();
 
-            // console GUI element
-            std::unique_ptr<ConsoleGUI> conUI;
-            std::unique_ptr<HotkeybarGUI> hotUI;
-            std::unique_ptr<SonglistGUI> songUI;
-            std::unique_ptr<PlaylistGUI> playUI;
-            std::unique_ptr<TitlebarGUI> titleUI;
-            std::unique_ptr<RomviewGUI> romUI;
-            std::unique_ptr<TrackviewGUI> trackUI;
-            std::unique_ptr<VUMeterGUI> meterUI;
+    // console GUI element
+    std::unique_ptr<ConsoleGUI> conUI;
+    std::unique_ptr<HotkeybarGUI> hotUI;
+    std::unique_ptr<SonglistGUI> songUI;
+    std::unique_ptr<PlaylistGUI> playUI;
+    std::unique_ptr<TitlebarGUI> titleUI;
+    std::unique_ptr<RomviewGUI> romUI;
+    std::unique_ptr<TrackviewGUI> trackUI;
+    std::unique_ptr<VUMeterGUI> meterUI;
 
-            // resource
-            SoundData& sdata;
-            std::unique_ptr<PlayerInterface> mplay;
+    // resource
+    SoundData& sdata;
+    std::unique_ptr<PlayerInterface> mplay;
 
-            // ncurses windows
-            WINDOW *containerWin;
+    // ncurses windows
+    WINDOW *containerWin;
 
-            int width, height;
-            bool play;
-            enum {
-                PLAYLIST, SONGLIST, TRACKS_PLAYLIST, TRACKS_SONGLIST, SETTINGS
-            } cursorl;
-    }; // end WindowGUI
-} // end namespace agbplay
+    int width, height;
+    bool play;
+    enum {
+        PLAYLIST, SONGLIST, TRACKS_PLAYLIST, TRACKS_SONGLIST, SETTINGS
+    } cursorl;
+};

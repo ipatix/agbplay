@@ -5,7 +5,6 @@
 #include "Debug.h"
 #include "Util.h"
 
-using namespace agbplay;
 using namespace std;
 
 /*

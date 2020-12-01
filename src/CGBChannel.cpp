@@ -9,7 +9,6 @@
 #include "Constants.h"
 
 using namespace std;
-using namespace agbplay;
 
 /*
  * public CGBChannel

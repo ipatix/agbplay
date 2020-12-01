@@ -8,7 +8,6 @@
 #include "Xcept.h"
 #include "Debug.h"
 
-using namespace agbplay;
 using namespace std;
 
 /*

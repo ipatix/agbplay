@@ -1,8 +1,6 @@
 #include "Types.h"
 
-using namespace agbplay;
-
-ReverbType agbplay::str2rev(const std::string& str)
+ReverbType str2rev(const std::string& str)
 {
     if (str == "gs1")
         return ReverbType::GS1;
@@ -17,7 +15,7 @@ ReverbType agbplay::str2rev(const std::string& str)
     return ReverbType::NORMAL;
 }
 
-std::string agbplay::rev2str(ReverbType t)
+std::string rev2str(ReverbType t)
 {
     if (t == ReverbType::GS1)
         return "gs1";
@@ -32,7 +30,7 @@ std::string agbplay::rev2str(ReverbType t)
     return "normal";
 }
 
-ResamplerType agbplay::str2res(const std::string& str)
+ResamplerType str2res(const std::string& str)
 {
     if (str == "nearest")
         return ResamplerType::NEAREST;
@@ -45,7 +43,7 @@ ResamplerType agbplay::str2res(const std::string& str)
     return ResamplerType::LINEAR;
 }
 
-std::string agbplay::res2str(ResamplerType t)
+std::string res2str(ResamplerType t)
 {
     if (t == ResamplerType::NEAREST)
         return "nearest";

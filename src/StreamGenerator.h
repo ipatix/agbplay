@@ -7,49 +7,46 @@
 #include "SoundData.h"
 #include "SoundMixer.h"
 
-namespace agbplay
+struct EnginePars
 {
-    struct EnginePars
-    {
-        EnginePars(uint8_t vol, uint8_t rev, uint8_t freq);
-        EnginePars();
+    EnginePars(uint8_t vol, uint8_t rev, uint8_t freq);
+    EnginePars();
 
-        uint8_t vol;
-        uint8_t rev;
-        uint8_t freq;
-    };
+    uint8_t vol;
+    uint8_t rev;
+    uint8_t freq;
+};
 
-    class StreamGenerator
-    {
-        public:
-            StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype);
-            ~StreamGenerator();
+class StreamGenerator
+{
+public:
+    StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype);
+    ~StreamGenerator();
 
-            size_t GetBufferUnitCount();
-            size_t GetActiveChannelCount();
-            uint32_t GetRenderSampleRate();
-            std::vector<std::vector<float>>& ProcessAndGetAudio();
-            bool HasStreamEnded();
-            Sequence& GetWorkingSequence();
-            void SetSpeedFactor(float speedFactor);
+    size_t GetBufferUnitCount();
+    size_t GetActiveChannelCount();
+    uint32_t GetRenderSampleRate();
+    std::vector<std::vector<float>>& ProcessAndGetAudio();
+    bool HasStreamEnded();
+    Sequence& GetWorkingSequence();
+    void SetSpeedFactor(float speedFactor);
 
-            static const std::map<uint8_t, int8_t> delayLut;
-            static const std::map<uint8_t, int8_t> noteLut;
+    static const std::map<uint8_t, int8_t> delayLut;
+    static const std::map<uint8_t, int8_t> noteLut;
 
-        private:
-            Sequence& seq;
-            SoundBank sbnk;
-            EnginePars ep;
-            SoundMixer sm;
+private:
+    Sequence& seq;
+    SoundBank sbnk;
+    EnginePars ep;
+    SoundMixer sm;
 
-            static const std::vector<uint32_t> freqLut;
+    static const std::vector<uint32_t> freqLut;
 
-            bool isEnding;
-            uint8_t maxLoops;
-            float speedFactor;
+    bool isEnding;
+    uint8_t maxLoops;
+    float speedFactor;
 
-            void processSequenceFrame();
-            void processSequenceTick();
-            void playNote(Sequence::Track& trk, Note note, uint8_t owner);
-    };
-}
+    void processSequenceFrame();
+    void processSequenceTick();
+    void playNote(Sequence::Track& trk, Note note, uint8_t owner);
+};

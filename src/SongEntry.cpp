@@ -1,7 +1,6 @@
 #include "SongEntry.h"
 
 using namespace std;
-using namespace agbplay;
 
 /*
  * SongEntry

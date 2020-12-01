@@ -1,7 +1,5 @@
 #include "CGBPatterns.h"
 
-using namespace agbplay;
-
 // square wave LUT
 
 const float CGBPatterns::pat_sq12[] = {

@@ -7,7 +7,6 @@
 #include "Xcept.h"
 
 using namespace std;
-using namespace agbplay;
 
 const vector<const char *> TrackviewGUI::noteNames = {
     "C-2", "C#-2", "D-2", "D#-2", "E-2", "F-2", "F#-2", "G-2", "G#-2", "A-2", "A#-2", "B-2",

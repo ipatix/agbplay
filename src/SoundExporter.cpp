@@ -11,7 +11,6 @@
 #include "Debug.h"
 #include "ConfigManager.h"
 
-using namespace agbplay;
 using namespace std;
 
 /*

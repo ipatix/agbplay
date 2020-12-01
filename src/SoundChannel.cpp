@@ -9,8 +9,6 @@
 #include "Xcept.h"
 #include "ConfigManager.h"
 
-using namespace agbplay;
-
 /*
  * public SoundChannel
  */

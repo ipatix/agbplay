@@ -4,7 +4,6 @@
 #include "Debug.h"
 #include "Rom.h"
 
-using namespace agbplay;
 using namespace std;
 
 /*

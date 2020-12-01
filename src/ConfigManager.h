@@ -6,22 +6,19 @@
 
 #include "GameConfig.h"
 
-namespace agbplay
+class ConfigManager
 {
-    class ConfigManager
-    {
-        public:
-            ~ConfigManager();
+public:
+    ~ConfigManager();
 
-            static ConfigManager& Instance();
+    static ConfigManager& Instance();
 
-            GameConfig& GetCfg();
-            void SetGameCode(const std::string& gameCode);
-            void Save();
-        private:
-            ConfigManager();
-            std::vector<GameConfig> configs;
-            std::filesystem::path configPath;
-            GameConfig *curCfg = nullptr;
-    };
-}
+    GameConfig& GetCfg();
+    void SetGameCode(const std::string& gameCode);
+    void Save();
+private:
+    ConfigManager();
+    std::vector<GameConfig> configs;
+    std::filesystem::path configPath;
+    GameConfig *curCfg = nullptr;
+};

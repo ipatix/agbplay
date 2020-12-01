@@ -19,17 +19,17 @@ using namespace agbplay;
  * public PlayerInterface
  */
 
-PlayerInterface::PlayerInterface(Rom& _rom, TrackviewGUI *trackUI, long initSongPos) 
-    : rom(_rom), seq(initSongPos, ConfigManager::Instance().GetCfg().GetTrackLimit(), _rom), 
-    rBuf(N_CHANNELS * STREAM_BUF_SIZE), masterLoudness(10.f), mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit())
+PlayerInterface::PlayerInterface(TrackviewGUI *trackUI, long initSongPos)
+    : rBuf(N_CHANNELS * STREAM_BUF_SIZE), masterLoudness(10.f), mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit())
 {
+    seq = std::make_unique<Sequence>(initSongPos, ConfigManager::Instance().GetCfg().GetTrackLimit());
     this->trackUI = trackUI;
     playerState = State::THREAD_DELETED;
     speedFactor = 64;
 
     GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
-    sg = new StreamGenerator(seq, 
-            EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), 
+    sg = new StreamGenerator(*seq,
+            EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()),
             MAX_LOOPS, float(speedFactor) / 64.0f, 
             gameCfg.GetRevType());
     setupLoudnessCalcs();
@@ -101,15 +101,15 @@ void PlayerInterface::LoadSong(long songPos)
     bool play = playerState == State::PLAYING;
     Stop();
     GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
-    seq = Sequence(songPos, gameCfg.GetTrackLimit(), rom);
+    seq = std::make_unique<Sequence>(songPos, gameCfg.GetTrackLimit());
     setupLoudnessCalcs();
-    float vols[seq.tracks.size() * N_CHANNELS];
-    for (size_t i = 0; i < seq.tracks.size() * N_CHANNELS; i++)
+    float vols[seq->tracks.size() * N_CHANNELS];
+    for (size_t i = 0; i < seq->tracks.size() * N_CHANNELS; i++)
         vols[i] = 0.0f;
 
-    trackUI->SetState(seq, vols, 0, 0);
+    trackUI->SetState(*seq, vols, 0, 0);
     delete sg;
-    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), 
+    sg = new StreamGenerator(*seq, EnginePars(gameCfg.GetPCMVol(),
                 gameCfg.GetEngineRev(), 
                 gameCfg.GetEngineFreq()), 
             MAX_LOOPS, float(speedFactor) / 64.0f, 
@@ -200,7 +200,7 @@ void PlayerInterface::Stop()
             delete playerThread;
             playerState = State::THREAD_DELETED;
             delete sg;
-            sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), MAX_LOOPS, float(speedFactor) / 64.0f, gameCfg.GetRevType());
+            sg = new StreamGenerator(*seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), MAX_LOOPS, float(speedFactor) / 64.0f, gameCfg.GetRevType());
             break;            
         case State::THREAD_DELETED:
             // ignore this
@@ -285,7 +285,7 @@ void PlayerInterface::threadWorker()
             switch (playerState) {
                 case State::RESTART:
                     delete sg;
-                    sg = new StreamGenerator(seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), MAX_LOOPS, float(speedFactor) / 64.0f, gameCfg.GetRevType());
+                    sg = new StreamGenerator(*seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), MAX_LOOPS, float(speedFactor) / 64.0f, gameCfg.GetRevType());
                     playerState = State::PLAYING;
                     [[fallthrough]];
                 case State::PLAYING:
@@ -348,6 +348,6 @@ int PlayerInterface::audioCallback(const void *inputBuffer, void *outputBuffer, 
 void PlayerInterface::setupLoudnessCalcs()
 {
     trackLoudness.clear();
-    for (size_t i = 0; i < seq.tracks.size(); i++)
+    for (size_t i = 0; i < seq->tracks.size(); i++)
         trackLoudness.emplace_back(5.0f);
 }

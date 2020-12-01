@@ -11,7 +11,7 @@ using namespace std;
 namespace agbplay {
     class RomviewGUI : public CursesWin {
         public:
-            RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, Rom& rrom, SoundData& rsdata);
+            RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, SoundData& rsdata);
             ~RomviewGUI();
 
             void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;

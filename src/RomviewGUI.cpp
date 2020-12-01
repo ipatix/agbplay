@@ -2,6 +2,7 @@
 #include "ColorDef.h"
 #include "Util.h"
 #include "Debug.h"
+#include "Rom.h"
 
 using namespace agbplay;
 using namespace std;
@@ -10,12 +11,11 @@ using namespace std;
  * public
  */
 
-RomviewGUI::RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, Rom& rrom, SoundData& rsdata) 
+RomviewGUI::RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, SoundData& rsdata)
     : CursesWin(height, width, yPos, xPos) 
 {
-    rrom.Seek(0xA0); // seek to game title;
-    gameName = rrom.ReadString(12);
-    gameCode = rrom.ReadString(4);
+    gameName = Rom::Instance().ReadString(0xA0, 12);
+    gameCode = Rom::Instance().ReadString(0xAC, 4);
     songTable = rsdata.sTable->GetSongTablePos();
     numSongs = rsdata.sTable->GetNumSongs();
     update();

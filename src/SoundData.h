@@ -3,18 +3,18 @@
 #include <vector>
 #include <bitset>
 
-#include "Rom.h"
 #include "Types.h"
 #include "Constants.h"
 
 namespace agbplay 
 {
-    enum class InstrType : int { PCM, PCM_FIXED, SQ1, SQ2, WAVE, NOISE, INVALID };
+    enum class InstrType { PCM, PCM_FIXED, SQ1, SQ2, WAVE, NOISE, INVALID };
     class SoundBank
     {
         public:
-            SoundBank(Rom& rom, long bankPos);
-            ~SoundBank();
+            SoundBank(size_t bankPos);
+            SoundBank(const SoundBank&) = delete;
+            SoundBank& operator=(const SoundBank&) = delete;
 
             InstrType GetInstrType(uint8_t instrNum, uint8_t midiKey);
             uint8_t GetMidiKey(uint8_t instrNum, uint8_t midiKey);
@@ -24,16 +24,8 @@ namespace agbplay
             SampleInfo GetSampInfo(uint8_t instrNum, uint8_t midiKey);
             ADSR GetADSR(uint8_t instrNum, uint8_t midiKey);
         private:
-            struct Instrument {
-                uint8_t type;
-                uint8_t midiKey;
-                uint8_t hardwareLength; // unsupported
-                union { uint8_t pan; uint8_t sweep; } field_3;
-                union { uint8_t dutyCycle; agbptr_t wavePtr; agbptr_t samplePtr; agbptr_t subTable; } field_4;
-                union { agbptr_t instrMap; ADSR env; } field_8;
-            };
-            Rom rom;
-            long bankPos;
+            size_t instrPos(uint8_t instrNum, uint8_t midiKey);
+            size_t bankPos;
     };
 
     enum class MODT : int { PITCH = 0, VOL, PAN };
@@ -41,21 +33,21 @@ namespace agbplay
     class Sequence 
     {
         public:
-            Sequence(long songHeader, uint8_t trackLimit, Rom& rom);
-            ~Sequence();
+            Sequence(size_t songHeaderPos, uint8_t trackLimit);
+            Sequence(const Sequence&) = delete;
+            Sequence& operator=(const Sequence&) = delete;
 
             struct Track 
             {
-                Track(long pos);
-                ~Track();
+                Track(size_t pos);
                 int16_t GetPitch();
                 uint8_t GetVol();
                 int8_t GetPan();
                 std::bitset<NUM_NOTES> activeNotes;
 
-                long pos;
-                long returnPos;
-                long patBegin;
+                size_t pos;
+                size_t returnPos;
+                size_t patBegin;
                 MODT modt;
                 LEvent lastEvent;
                 int16_t pitch;
@@ -77,41 +69,35 @@ namespace agbplay
             // processing variables
             int32_t bpmStack;
             uint16_t bpm;
-            Rom& GetRom();
-            long GetSndBnk();
+            size_t GetSoundBankPos();
             uint8_t GetReverb();
         private:
-            Rom rom;
-            long songHeader;
-            long soundBank;
-            uint8_t blocks;
-            uint8_t prio;
-            uint8_t reverb;
+            size_t songHeaderPos;
     }; // end Sequence
 
     class SongTable 
     {
         public:
-            SongTable(Rom& rrom, long songTable);
-            ~SongTable();
+            SongTable(size_t songTablePos);
+            SongTable(const SongTable&) = delete;
+            SongTable& operator=(const SongTable&) = delete;
 
-            long GetSongTablePos();
-            long GetPosOfSong(uint16_t uid);
+            size_t GetSongTablePos();
+            size_t GetPosOfSong(uint16_t uid);
             unsigned short GetNumSongs();
         private:
-            long locateSongTable();
-            bool validateTableEntry(long pos);
-            bool validateSong(agbptr_t checkPtr);
+            size_t locateSongTable();
+            bool validateTableEntry(size_t pos);
+            bool validateSong(size_t songPos);
             unsigned short determineNumSongs();
 
-            Rom& rom;
-            long songTable;
+            size_t songTablePos;
             unsigned short numSongs;
     };
 
     struct SoundData 
     {
-        SoundData(Rom& rrom);
+        SoundData();
         ~SoundData();
 
         SongTable *sTable;

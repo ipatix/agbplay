@@ -3,9 +3,9 @@
 #include <cstdint>
 #include <vector>
 #include <thread>
+#include <memory>
 #include <portaudio.h>
 
-#include "Rom.h"
 #include "TrackviewGUI.h"
 #include "DisplayContainer.h"
 #include "StreamGenerator.h"
@@ -19,7 +19,7 @@ namespace agbplay
     class PlayerInterface 
     {
         public:
-            PlayerInterface(Rom& rom, TrackviewGUI *trackUI, long initSongPos);
+            PlayerInterface(TrackviewGUI *trackUI, long initSongPos);
             ~PlayerInterface();
             
             void LoadSong(long songPos);
@@ -47,8 +47,7 @@ namespace agbplay
             PaStream *audioStream;
             uint32_t speedFactor; // 64 = normal
             volatile enum class State : int { RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED } playerState;
-            Rom& rom;
-            Sequence seq;
+            std::unique_ptr<Sequence> seq;
             StreamGenerator *sg;
             TrackviewGUI *trackUI;
             Ringbuffer rBuf;

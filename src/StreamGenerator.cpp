@@ -4,6 +4,7 @@
 #include "Xcept.h"
 #include "Util.h"
 #include "Debug.h"
+#include "Rom.h"
 
 #define SONG_FADE_OUT_TIME 10000
 #define SONG_FINISH_TIME 1000
@@ -56,7 +57,7 @@ const map<uint8_t, int8_t> StreamGenerator::noteLut = {
 };
 
 StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype) 
-: seq(seq), sbnk(seq.GetRom(), seq.GetSndBnk()), 
+: seq(seq), sbnk(seq.GetSoundBankPos()),
     sm(STREAM_SAMPLERATE, freqLut[clip<uint8_t>(0, uint8_t(ep.freq-1), 11)], 
             (ep.rev >= 0x80) ? ep.rev & 0x7F : seq.GetReverb() & 0x7F,
             float(ep.vol + 1) / 16.0f,
@@ -123,7 +124,7 @@ void StreamGenerator::processSequenceFrame()
 
 void StreamGenerator::processSequenceTick()
 {
-    Rom& reader = seq.GetRom();
+    Rom& rom = Rom::Instance();
     // process all tracks
     bool isSongRunning = false;
     int ntrk = -1;
@@ -152,7 +153,7 @@ void StreamGenerator::processSequenceTick()
         bool updatePV = false;
         if (--cTrk.delay <= 0) {
             while (cTrk.isRunning) {
-                uint8_t cmd = reader[cTrk.pos++];
+                uint8_t cmd = rom.ReadU8(cTrk.pos++);
                 // check if a previous command should be repeated
                 if (cmd <= 0x7F) {
                     switch (cTrk.lastEvent) {
@@ -187,7 +188,7 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case LEvent::XCMD: 
                             {
-                                uint8_t arg = reader[cTrk.pos++];
+                                uint8_t arg = rom.ReadU8(cTrk.pos++);
                                 if (cmd == 0x8) {
                                     cTrk.echoVol = arg;
                                 } else if (cmd == 0x9) {
@@ -199,14 +200,14 @@ void StreamGenerator::processSequenceTick()
                             {
                                 uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(cmd));
                                 // if velocity parameter provided
-                                if (reader[cTrk.pos] < 128) {
+                                if (rom.ReadU8(cTrk.pos) < 128) {
                                     // if gate parameter provided
-                                    if (reader[cTrk.pos+1] < 128) {
-                                        uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
-                                        int8_t len = int8_t(cTrk.lastNoteLen + reader[cTrk.pos++]);
+                                    if (rom.ReadU8(cTrk.pos+1) < 128) {
+                                        uint8_t vel = cTrk.lastNoteVel = rom.ReadU8(cTrk.pos++);
+                                        int8_t len = static_cast<int8_t>(cTrk.lastNoteLen + rom.ReadU8(cTrk.pos++));
                                         playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
                                     } else {
-                                        uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
+                                        uint8_t vel = cTrk.lastNoteVel = rom.ReadU8(cTrk.pos++);
                                         int8_t len = cTrk.lastNoteLen;
                                         playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
                                     }
@@ -219,8 +220,8 @@ void StreamGenerator::processSequenceTick()
                             {
                                 uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(cmd));
                                 // if velocity parameter provided
-                                if (reader[cTrk.pos] < 128) {
-                                    uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
+                                if (rom.ReadU8(cTrk.pos) < 128) {
+                                    uint8_t vel = cTrk.lastNoteVel = rom.ReadU8(cTrk.pos++);
                                     playNote(cTrk, Note(key, vel, NOTE_TIE), uint8_t(ntrk));
                                 } else {
                                     playNote(cTrk, Note(key, cTrk.lastNoteVel, NOTE_TIE), uint8_t(ntrk));
@@ -259,7 +260,7 @@ void StreamGenerator::processSequenceTick()
                                     sm.FadeOut(SONG_FADE_OUT_TIME);
                                 }
                             }
-                            cTrk.pos = reader.AGBPtrToPos(*(uint32_t *)&reader[cTrk.pos]);
+                            cTrk.pos = rom.ReadAgbPtrToPos(cTrk.pos);
                             break;
                         case 0xB3:
                             // PATT, call sub
@@ -268,7 +269,7 @@ void StreamGenerator::processSequenceTick()
 
                             cTrk.returnPos = cTrk.pos + 4;
                             cTrk.reptCount = 1;
-                            cTrk.pos = cTrk.patBegin = reader.AGBPtrToPos(*(uint32_t *)&reader[cTrk.pos]);
+                            cTrk.pos = cTrk.patBegin = rom.ReadAgbPtrToPos(cTrk.pos);
                             break;
                         case 0xB4:
                             // PEND, end of sub
@@ -285,9 +286,9 @@ void StreamGenerator::processSequenceTick()
                             if (cTrk.reptCount > 0)
                                 throw Xcept("Nested track calls are not allowed: 0x%7X", cTrk.pos);
 
-                            cTrk.reptCount = reader[cTrk.pos++];
+                            cTrk.reptCount = rom.ReadU8(cTrk.pos++);
                             cTrk.returnPos = cTrk.pos + 4;
-                            cTrk.pos = reader.AGBPtrToPos(*(uint32_t *)&reader[cTrk.pos]);
+                            cTrk.pos = rom.ReadAgbPtrToPos(cTrk.pos);
                             break;
                         case 0xB9:
                             // MEMACC, not useful, get's ignored
@@ -295,64 +296,64 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case 0xBA:
                             // PRIO, TODO actually do something with the prio
-                            cTrk.prio = reader[cTrk.pos++];
+                            cTrk.prio = rom.ReadU8(cTrk.pos++);
                             break;
                         case 0xBB:
                             // TEMPO
-                            seq.bpm = uint16_t(reader[cTrk.pos++] * 2);
+                            seq.bpm = static_cast<uint16_t>(rom.ReadU8(cTrk.pos++) * 2);
                             break;
                         case 0xBC:
                             // KEYSH, transpose
-                            cTrk.keyShift = int8_t(reader[cTrk.pos++]);
+                            cTrk.keyShift = rom.ReadS8(cTrk.pos++);
                             break;
                         case 0xBD:
                             // VOICE
                             cTrk.lastEvent = LEvent::VOICE;
-                            cTrk.prog = reader[cTrk.pos++];
+                            cTrk.prog = rom.ReadU8(cTrk.pos++);
                             break;
                         case 0xBE:
                             // VOL
                             cTrk.lastEvent = LEvent::VOL;
-                            cTrk.vol = reader[cTrk.pos++];
+                            cTrk.vol = rom.ReadU8(cTrk.pos++);
                             updatePV = true;
                             break;
                         case 0xBF:
                             // PAN
                             cTrk.lastEvent = LEvent::PAN;
-                            cTrk.pan = int8_t(reader[cTrk.pos++] - 0x40);
+                            cTrk.pan = static_cast<int8_t>(rom.ReadS8(cTrk.pos++) - 0x40);
                             updatePV = true;
                             break;
                         case 0xC0:
                             // BEND
                             cTrk.lastEvent = LEvent::BEND;
-                            cTrk.bend = int8_t(reader[cTrk.pos++] - 0x40);
+                            cTrk.bend = static_cast<int8_t>(rom.ReadS8(cTrk.pos++) - 0x40);
                             updatePV = true;
                             // update pitch
                             break;
                         case 0xC1:
                             // BENDR
                             cTrk.lastEvent = LEvent::BENDR;
-                            cTrk.bendr = reader[cTrk.pos++];
+                            cTrk.bendr = rom.ReadU8(cTrk.pos++);
                             updatePV = true;
                             // update pitch
                             break;
                         case 0xC2:
                             // LFOS
-                            cTrk.lfos = reader[cTrk.pos++];
+                            cTrk.lfos = rom.ReadU8(cTrk.pos++);
                             break;
                         case 0xC3:
                             // LFODL
-                            cTrk.lfodlCount = cTrk.lfodl = reader[cTrk.pos++];
+                            cTrk.lfodlCount = cTrk.lfodl = rom.ReadU8(cTrk.pos++);
                             break;
                         case 0xC4:
                             // MOD
                             cTrk.lastEvent = LEvent::MOD;
-                            cTrk.mod = reader[cTrk.pos++];
+                            cTrk.mod = rom.ReadU8(cTrk.pos++);
                             updatePV = true;
                             break;
                         case 0xC5:
                             // MODT
-                            switch (reader[cTrk.pos++]) {
+                            switch (rom.ReadU8(cTrk.pos++)) {
                                 case 0: cTrk.modt = MODT::PITCH; break;
                                 case 1: cTrk.modt = MODT::VOL; break;
                                 case 2: cTrk.modt = MODT::PAN; break;
@@ -362,15 +363,15 @@ void StreamGenerator::processSequenceTick()
                         case 0xC8:
                             // TUNE
                             cTrk.lastEvent = LEvent::TUNE;
-                            cTrk.tune = int8_t(reader[cTrk.pos++] - 0x40);
+                            cTrk.tune = static_cast<int8_t>(rom.ReadS8(cTrk.pos++) - 0x40);
                             updatePV = true;
                             break;
                         case 0xCD:
                             // XCMD
                             {
                                 cTrk.lastEvent = LEvent::XCMD;
-                                uint8_t type = reader[cTrk.pos++];
-                                uint8_t arg = reader[cTrk.pos++];
+                                uint8_t type = rom.ReadU8(cTrk.pos++);
+                                uint8_t arg = rom.ReadU8(cTrk.pos++);
                                 if (type == 0x8) {
                                     cTrk.echoVol = arg;
                                 } else if (type == 0x9) {
@@ -382,7 +383,7 @@ void StreamGenerator::processSequenceTick()
                             // EOT
                             {
                                 cTrk.lastEvent = LEvent::EOT;
-                                uint8_t next = reader[cTrk.pos];
+                                uint8_t next = rom.ReadU8(cTrk.pos);
                                 if (next < 128) {
                                     sm.StopChannel(uint8_t(ntrk), uint8_t(cTrk.keyShift + int(next)));
                                     cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(next));
@@ -396,16 +397,18 @@ void StreamGenerator::processSequenceTick()
                             // TIE
                             // cmd = note length
                             cTrk.lastEvent = LEvent::TIE;
-                            if (reader[cTrk.pos] < 128) {
+                            if (rom.ReadU8(cTrk.pos) < 128) {
                                 // new midi key
-                                if (reader[cTrk.pos+1] < 128) {
+                                if (rom.ReadU8(cTrk.pos+1) < 128) {
                                     // new velocity
-                                    uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(reader[cTrk.pos++]));
-                                    uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
+                                    uint8_t key = cTrk.lastNoteKey = static_cast<uint8_t>(
+                                            (cTrk.keyShift + rom.ReadU8(cTrk.pos++)) % 128);
+                                    uint8_t vel = cTrk.lastNoteVel = rom.ReadU8(cTrk.pos++);
                                     playNote(cTrk, Note(key, vel, NOTE_TIE), uint8_t(ntrk));
                                 } else {
                                     // repeat velocity
-                                    uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(reader[cTrk.pos++]));
+                                    uint8_t key = cTrk.lastNoteKey = static_cast<uint8_t>(
+                                            (cTrk.keyShift + rom.ReadU8(cTrk.pos++)) % 128);
                                     playNote(cTrk, Note(key, cTrk.lastNoteVel, NOTE_TIE), uint8_t(ntrk));
                                 }
                             } else {
@@ -421,25 +424,28 @@ void StreamGenerator::processSequenceTick()
                     cTrk.lastEvent = LEvent::NOTE;
                     int8_t len = cTrk.lastNoteLen = noteLut.at(cmd);
                     // is midi key parameter provided?
-                    if (reader[cTrk.pos] < 128) {
+                    if (rom.ReadU8(cTrk.pos) < 128) {
                         // is note volocity parameter provided?
-                        if (reader[cTrk.pos+1] < 128) {
+                        if (rom.ReadU8(cTrk.pos+1) < 128) {
                             // is gate time parameter provided?
-                            if (reader[cTrk.pos+2] < 128) {
+                            if (rom.ReadU8(cTrk.pos+2) < 128) {
                                 // add gate time
-                                uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(reader[cTrk.pos++]));
-                                uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
-                                len = int8_t(len + reader[cTrk.pos++]);
+                                uint8_t key = cTrk.lastNoteKey = static_cast<uint8_t>(
+                                        (cTrk.keyShift + rom.ReadU8(cTrk.pos++)) % 128);
+                                uint8_t vel = cTrk.lastNoteVel = rom.ReadU8(cTrk.pos++);
+                                len = static_cast<int8_t>(len + rom.ReadU8(cTrk.pos++));
                                 playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
                             } else {
                                 // no gate time
-                                uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(reader[cTrk.pos++]));
-                                uint8_t vel = cTrk.lastNoteVel = reader[cTrk.pos++];
+                                uint8_t key = cTrk.lastNoteKey = static_cast<uint8_t>(
+                                        (cTrk.keyShift + rom.ReadU8(cTrk.pos++)) % 128);
+                                uint8_t vel = cTrk.lastNoteVel = rom.ReadU8(cTrk.pos++);
                                 playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
                             }
                         } else {
                             // repeast note velocity
-                            uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(reader[cTrk.pos++]));
+                            uint8_t key = cTrk.lastNoteKey = static_cast<uint8_t>(
+                                    (cTrk.keyShift + rom.ReadU8(cTrk.pos++)) % 128);
                             playNote(cTrk, Note(key, cTrk.lastNoteVel, len), uint8_t(ntrk));
                         }
                     } else {

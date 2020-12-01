@@ -21,8 +21,8 @@
 using namespace agbplay;
 using namespace std;
 
-WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata) 
-    : rom(rrom), sdata(rsdata)
+WindowGUI::WindowGUI(SoundData& rsdata)
+    : sdata(rsdata)
 {
     // init ncurses stuff
     this->containerWin = initscr();
@@ -81,7 +81,7 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata)
             ROMVIEW_WIDTH(height, width),
             ROMVIEW_YPOS(height, width),
             ROMVIEW_XPOS(height, width),
-            rom, sdata);
+            sdata);
 
     trackUI = make_unique<TrackviewGUI>(
             TRACKVIEW_HEIGHT(height, width),
@@ -95,8 +95,11 @@ WindowGUI::WindowGUI(Rom& rrom, SoundData& rsdata)
             VUMETER_YPOS(height, width),
             VUMETER_XPOS(height, width));
 
-    rom.Seek(sdata.sTable->GetSongTablePos());
-    mplay = make_unique<PlayerInterface>(rom, trackUI.get(), rom.ReadAGBPtrToPos());
+    Rom& rom = Rom::Instance();
+    mplay = make_unique<PlayerInterface>(
+            trackUI.get(),
+            rom.ReadAgbPtrToPos(sdata.sTable->GetSongTablePos())
+            );
     mplay->LoadSong(sdata.sTable->GetPosOfSong(0));
     trackUI->SetTitle(songUI->GetSong().GetName());
 }
@@ -192,21 +195,21 @@ bool WindowGUI::Handle()
             case 'e':
                 mplay->Stop();
                 {
-                    SoundExporter se(*conUI, sdata, rom, false, true);
+                    SoundExporter se(*conUI, sdata, false, true);
                     se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
             case 'r':
                 mplay->Stop();
                 {
-                    SoundExporter se(*conUI, sdata, rom, false, false);
+                    SoundExporter se(*conUI, sdata, false, false);
                     se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
             case 'b':
                 mplay->Stop();
                 {
-                    SoundExporter se(*conUI, sdata, rom, true, false);
+                    SoundExporter se(*conUI, sdata, true, false);
                     se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;

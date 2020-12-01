@@ -1,193 +1,55 @@
 #include <string>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 
-#include "AgbTypes.h"
 #include "Rom.h"
 #include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
 
-using namespace agbplay;
-using namespace std;
+std::unique_ptr<Rom> Rom::global_instance;
 
 /*
  * public
  */
 
-Rom::Rom(FileContainer& fc)
+Rom::Rom(const std::filesystem::path& filePath)
 {
-    data = &fc.data;
+    loadFile(filePath);
     verify();
-    pos = 0;
 }
 
-Rom::~Rom() 
+void Rom::CreateInstance(const std::filesystem::path& filePath)
 {
+    global_instance = std::make_unique<Rom>(filePath);
 }
 
-void Rom::Seek(long pos) 
+std::string Rom::ReadString(size_t pos, size_t limit) const
 {
-    checkBounds(pos, sizeof(char));
-    this->pos = pos;
-}
-
-void Rom::SeekAGBPtr(agbptr_t ptr) 
-{
-    long pos = ptr - AGB_MAP_ROM;
-    checkBounds(pos, sizeof(char));
-    this->pos = pos;
-}
-
-void Rom::RelSeek(int space)
-{
-    checkBounds(pos + space, sizeof(char));
-    pos += space;
-    return;
-}
-
-agbptr_t Rom::PosToAGBPtr(long pos) 
-{
-    checkBounds(pos, sizeof(char));
-    return (agbptr_t)(pos + AGB_MAP_ROM);
-}
-
-long Rom::AGBPtrToPos(agbptr_t ptr) 
-{
-    long result = (long)ptr - AGB_MAP_ROM;
+    std::string result;
+    for (size_t i = 0; i < limit; i++) {
+        char c = static_cast<char>(data.at(pos + i));
+        if (c == '\0')
+            break;
+        result += c;
+    }
     return result;
 }
 
-int8_t Rom::ReadInt8() 
+std::string Rom::GetROMCode() const
 {
-    checkBounds(pos, sizeof(int8_t));
-    int8_t result = *(int8_t *)&(*data)[(size_t)pos];
-    pos += sizeof(int8_t);
-    return result;
-}
-
-uint8_t Rom::ReadUInt8() 
-{
-    checkBounds(pos, sizeof(int8_t));
-    uint8_t result = *(uint8_t *)&(*data)[(size_t)pos];
-    pos += sizeof(uint8_t);
-    return result;
-}
-
-int8_t Rom::PeekInt8(int offset)
-{
-    return *(int8_t *)&(*data)[size_t(pos + offset)];
-}
-
-uint8_t Rom::PeekUInt8(int offset)
-{
-    return *(uint8_t *)&(*data)[size_t(pos + offset)];
-}
-
-int16_t Rom::ReadInt16() 
-{
-    checkBounds(pos, sizeof(int16_t));
-    int16_t result = *(int16_t *)&(*data)[(size_t)pos];
-    pos += sizeof(int16_t);
-    return result;
-}
-
-uint16_t Rom::ReadUInt16() 
-{
-    
-    checkBounds(pos, sizeof(uint16_t));
-    uint16_t result = *(uint16_t *)&(*data)[(size_t)pos];
-    pos += sizeof(uint16_t);
-    return result;
-}
-
-int32_t Rom::ReadInt32() 
-{
-    checkBounds(pos, sizeof(int32_t));
-    int32_t result = *(int32_t *)&(*data)[(size_t)pos];
-    pos += sizeof(int32_t);
-    return result;
-}
-
-uint32_t Rom::ReadUInt32() 
-{
-    checkBounds(pos, sizeof(uint32_t));
-    uint32_t result = *(uint32_t *)&(*data)[(size_t)pos];
-    pos += sizeof(uint32_t);
-    return result;
-}
-
-long Rom::ReadAGBPtrToPos() 
-{
-    return AGBPtrToPos(ReadUInt32());
-}
-
-string Rom::ReadString(size_t limit) 
-{
-    if (limit > 2048)
-        throw Xcept("Unable to read a string THAT long");
-    string result = string((const char *)&(*data)[(size_t)pos], limit);
-    pos += limit;
-    return result;
-}
-
-void Rom::ReadData(void *dest, size_t bytes)
-{
-    checkBounds(pos, bytes);
-    void *src = (void *)&(*data)[(size_t)pos];
-    memcpy(dest, src, bytes);
-    pos += (long)bytes;
-}
-
-uint8_t& Rom::operator[](const long oPos)
-{
-    checkBounds(oPos, sizeof(uint8_t));
-    return (*data)[(size_t)oPos];
-}
-
-void *Rom::GetPtr() 
-{
-    checkBounds(pos, sizeof(char));
-    return &(*data)[(size_t)pos];
-}
-
-long Rom::GetPos()
-{
-    return pos;
-}
-
-size_t Rom::Size() 
-{
-    return data->size();
-}
-
-bool Rom::ValidPointer(agbptr_t ptr) 
-{
-    long rec = (long)ptr - AGB_MAP_ROM;
-    if (rec < 0 || rec + 4 >= (long)data->size())
-        return false;
-    return true;
-}
-
-string Rom::GetROMCode()
-{
-    Seek(0xAC);
-    return ReadString(4);
+    return ReadString(0xAC, 4);
 }
 
 /*
  * private
  */
 
-void Rom::checkBounds(long pos, size_t typesz) {
-    if (pos < 0 || ((size_t)pos + typesz) > data->size())
-        throw Xcept("Rom Reader position out of range: %7X", pos);
-}
-
 void Rom::verify() 
 {
     // check ROM size
-    if (data->size() > AGB_ROM_SIZE || data->size() < 0x200)
+    if (data.size() > AGB_ROM_SIZE || data.size() < 0x200)
         throw Xcept("Illegal ROM size");
     
     // Logo data
@@ -207,17 +69,44 @@ void Rom::verify()
 
     // check logo
     for (size_t i = 0; i < sizeof(imageBytes); i++) {
-        if (imageBytes[i] != (*data)[i + 0x4])
+        if (imageBytes[i] != data.at(i + 0x4))
             throw Xcept("ROM verification: Bad Nintendo Logo");
     }
 
     // check checksum
-    uint8_t checksum = (*data)[0xBD];
+    uint8_t checksum = data.at(0xBD);
     int check = 0;
     for (size_t i = 0xA0; i < 0xBD; i++) {
-        check -= (*data)[i];
+        check -= data.at(i);
     }
     check = (check - 0x19) & 0xFF;
     if (check != checksum)
         throw Xcept("ROM verification: Bad Header Checksum: %02X - expected %02X", (int)checksum, (int)check);
+}
+
+void Rom::loadFile(const std::filesystem::path& filePath)
+{
+    std::ifstream is(filePath, std::ios_base::binary);
+    if (!is.is_open()) {
+        throw Xcept("Error while opening ROM: %s", strerror(errno));
+    }
+    is.seekg(0, std::ios_base::end);
+    std::ifstream::pos_type size = is.tellg();
+    if (size == -1) {
+        throw Xcept("Error while seeking in input file");
+    }
+    if (size > AGB_ROM_SIZE) {
+        throw Xcept("Input ROM exceeds 32 MiB file limit");
+    }
+    is.seekg(0, std::ios_base::beg);
+    data.resize(static_cast<size_t>(size));
+
+    // copy file to memory
+    is.read(reinterpret_cast<char *>(data.data()), size);
+    if (is.bad())
+        throw Xcept("read bad");
+    if (is.fail()) {
+        throw Xcept("read fail");
+    }
+    is.close();
 }

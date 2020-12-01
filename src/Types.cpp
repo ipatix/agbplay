@@ -114,7 +114,7 @@ Note::Note()
  * public SampleInfo
  */
 
-SampleInfo::SampleInfo(int8_t *samplePtr, float midCfreq, bool loopEnabled, uint32_t loopPos, uint32_t endPos)
+SampleInfo::SampleInfo(const int8_t *samplePtr, float midCfreq, bool loopEnabled, uint32_t loopPos, uint32_t endPos)
 {
     this->samplePtr = samplePtr;
     this->midCfreq = midCfreq;

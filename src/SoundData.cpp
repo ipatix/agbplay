@@ -8,6 +8,7 @@
 #include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
+#include "Rom.h"
 
 using namespace agbplay;
 using namespace std;
@@ -16,63 +17,49 @@ using namespace std;
  * public SoundBank
  */
 
-SoundBank::SoundBank(Rom& rom, long bankPos) : rom(rom)
+SoundBank::SoundBank(size_t bankPos)
 {
     this->bankPos = bankPos;
 }
 
-SoundBank::~SoundBank()
-{
-}
-
 InstrType SoundBank::GetInstrType(uint8_t instrNum, uint8_t midiKey)
 {
-    auto instr = (Instrument *)&rom[bankPos + instrNum * 12];
-    auto lookup = [](uint8_t key) {
-        switch (key) {
-        case 0x0:
-            return InstrType::PCM;
-        case 0x1:
-            return InstrType::SQ1;
-        case 0x2:
-            return InstrType::SQ2;
-        case 0x3:
-            return InstrType::WAVE;
-        case 0x4:
-            return InstrType::NOISE;
-        case 0x8:
-            return InstrType::PCM_FIXED;
-        case 0x9:
-            return InstrType::SQ1;
-        case 0xA:
-            return InstrType::SQ2;
-        case 0xB:
-            return InstrType::WAVE;
-        case 0xC:
-            return InstrType::NOISE;
-        default:
-            return InstrType::INVALID;
-        }
-    };
+    Rom& rom = Rom::Instance();
+    size_t pos = instrPos(instrNum, midiKey);
 
-    if (instr->type == 0x40) {
-        uint8_t mappedInstr = rom[rom.AGBPtrToPos(instr->field_8.instrMap) + midiKey];
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + mappedInstr * 12];
-        return lookup(subInstr->type);
-    } else if (instr->type == 0x80) {
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + midiKey * 12];
-        return lookup(subInstr->type);
-    } else {
-        return lookup(instr->type);
+    switch (rom.ReadU8(pos + 0x0)) {
+    case 0x0:
+        return InstrType::PCM;
+    case 0x1:
+        return InstrType::SQ1;
+    case 0x2:
+        return InstrType::SQ2;
+    case 0x3:
+        return InstrType::WAVE;
+    case 0x4:
+        return InstrType::NOISE;
+    case 0x8:
+        return InstrType::PCM_FIXED;
+    case 0x9:
+        return InstrType::SQ1;
+    case 0xA:
+        return InstrType::SQ2;
+    case 0xB:
+        return InstrType::WAVE;
+    case 0xC:
+        return InstrType::NOISE;
+    default:
+        return InstrType::INVALID;
     }
 }
 
 uint8_t SoundBank::GetMidiKey(uint8_t instrNum, uint8_t midiKey)
 {
-    auto instr = (Instrument *)&rom[bankPos + instrNum * 12];
-    if (instr->type == 0x80) {
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + midiKey * 12];
-        return subInstr->midiKey;
+    Rom& rom = Rom::Instance();
+
+    if (rom.ReadU8(bankPos + instrNum * 12 + 0)) {
+        size_t subBankPos = rom.ReadAgbPtrToPos(bankPos + instrNum * 12 + 0x4);
+        return rom.ReadU8(subBankPos + midiKey * 12 + 1);
     } else {
         return midiKey;
     }
@@ -80,181 +67,111 @@ uint8_t SoundBank::GetMidiKey(uint8_t instrNum, uint8_t midiKey)
 
 uint8_t SoundBank::GetPan(uint8_t instrNum, uint8_t midiKey)
 {
-    auto instr = (Instrument *)&rom[bankPos + instrNum * 12];
-    if (instr->type == 0x40) {
-        uint8_t mappedInstr = rom[rom.AGBPtrToPos(instr->field_8.instrMap) + midiKey];
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + mappedInstr * 12];
-        assert(subInstr->type == 0x0 || subInstr->type == 0x8);
-        return subInstr->field_3.pan;
-    } else if (instr->type == 0x80) {
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + midiKey * 12];
-        assert(subInstr->type == 0x0 || subInstr->type == 0x8);
-        return subInstr->field_3.pan;
-    } else {
-        assert(instr->type == 0x0 || instr->type == 0x8);
-        return instr->field_3.pan;
-    }
+    size_t pos = instrPos(instrNum, midiKey);
+    InstrType t = GetInstrType(instrNum, midiKey);
+    if (t != InstrType::PCM && t != InstrType::PCM_FIXED)
+        throw Xcept("SoundBank Error: Invalid use of pan at non PCM instrument: [%08X]", pos);
+
+    return Rom::Instance().ReadU8(pos + 3);
 }
 
 uint8_t SoundBank::GetSweep(uint8_t instrNum, uint8_t midiKey)
 {
-    auto instr = (Instrument *)&rom[bankPos + instrNum * 12];
-    if (instr->type == 0x40) {
-        uint8_t mappedInstr = rom[rom.AGBPtrToPos(instr->field_8.instrMap) + midiKey];
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + mappedInstr * 12];
-        assert(subInstr->type == 0x1 || subInstr->type == 0x9);
-        return subInstr->field_3.sweep;
-    } else if (instr->type == 0x80) {
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + midiKey * 12];
-        assert(subInstr->type == 0x1 || subInstr->type == 0x9);
-        return subInstr->field_3.sweep;
-    } else {
-        assert(instr->type == 0x1 || instr->type == 0x9);
-        return instr->field_3.sweep;
-    }
+    size_t pos = instrPos(instrNum, midiKey);
+    InstrType t = GetInstrType(instrNum, midiKey);
+    if (t != InstrType::SQ1)
+        throw Xcept("SoundBank Error: Invalid use of sweep at non SQ1 instrument: [%08X]", pos);
+
+    return Rom::Instance().ReadU8(pos + 3);
 }
 
 CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
 {
+    Rom& rom = Rom::Instance();
     CGBDef def;
-    auto instr = (Instrument *)&rom[bankPos + instrNum * 12];
-    if (instr->type == 0x40) {
-        uint8_t mappedInstr = rom[rom.AGBPtrToPos(instr->field_8.instrMap) + midiKey];
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + mappedInstr * 12];
-        if (subInstr->type == 0x1 || subInstr->type == 0x9 || subInstr->type == 0x2 || subInstr->type == 0xA) {
-            switch (subInstr->field_4.dutyCycle) {
+
+    size_t pos = instrPos(instrNum, midiKey);
+    InstrType t = GetInstrType(instrNum, midiKey);
+
+    if (t == InstrType::SQ1 || t == InstrType::SQ2) {
+        uint32_t dutyCycle = rom.ReadU32(pos + 4);
+        switch (dutyCycle) {
             case 0: def.wd = WaveDuty::D12; break;
             case 1: def.wd = WaveDuty::D25; break;
             case 2: def.wd = WaveDuty::D50; break;
             case 3: def.wd = WaveDuty::D75; break;
             default:
-                    throw Xcept("Invalid Square Wave duty cycle at 0x%07X", rom.GetPos());
-            }
-        } else if (subInstr->type == 0x3 || subInstr->type == 0xB) {
-            def.wavePtr = &rom[rom.AGBPtrToPos(subInstr->field_4.wavePtr)];
-        } else if (subInstr->type == 0x4 || subInstr->type == 0xC) {
-            switch (subInstr->field_4.dutyCycle) {
-            case 0: def.np = NoisePatt::FINE; break;
-            case 1: def.np = NoisePatt::ROUGH; break;
-            default:
-                    throw Xcept("Invalid Noise Pattern at 0x%07X", rom.GetPos());
-            }
-        } else {
-            throw Xcept("Illegal Instrument at 0x%07X", rom.GetPos());
+                throw Xcept("SoundBank Error: Invalid square wave duty cycle at [%08X+4]=%08X", pos, dutyCycle);
         }
-    } else if (instr->type == 0x80) {
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + midiKey * 12];
-        if (subInstr->type == 0x1 || subInstr->type == 0x9 || subInstr->type == 0x2 || subInstr->type == 0xA) {
-            switch (subInstr->field_4.dutyCycle) {
-            case 0: def.wd = WaveDuty::D12; break;
-            case 1: def.wd = WaveDuty::D25; break;
-            case 2: def.wd = WaveDuty::D50; break;
-            case 3: def.wd = WaveDuty::D75; break;
-            default:
-                    throw Xcept("Invalid Square Wave duty cycle at 0x%07X", rom.GetPos());
-            }
-        } else if (subInstr->type == 0x3 || subInstr->type == 0xB) {
-            def.wavePtr = &rom[rom.AGBPtrToPos(subInstr->field_4.wavePtr)];
-        } else if (subInstr->type == 0x4 || subInstr->type == 0xC) {
-            switch (subInstr->field_4.dutyCycle) {
-            case 0: def.np = NoisePatt::FINE; break;
-            case 1: def.np = NoisePatt::ROUGH; break;
-            default:
-                    throw Xcept("Invalid Noise Pattern at 0x%07X", rom.GetPos());
-            }
-        } else {
-            throw Xcept("Illegal Instrument at 0x%07X", rom.GetPos());
+    } else if (t == InstrType::WAVE) {
+        def.wavePtr = static_cast<const uint8_t *>(rom.GetPtr(rom.ReadAgbPtrToPos(pos + 4)));
+    } else if (t == InstrType::NOISE) {
+        uint32_t noisePatt = rom.ReadU32(pos + 4);
+        switch (noisePatt) {
+        case 0: def.np = NoisePatt::FINE; break;
+        case 1: def.np = NoisePatt::ROUGH; break;
+        default:
+            throw Xcept("SoundBank Error: Invalid noise pattern at [%08X+4]=%08X", pos, noisePatt);
         }
     } else {
-        if (instr->type == 0x1 || instr->type == 0x9 || instr->type == 0x2 || instr->type == 0xA) {
-            switch (instr->field_4.dutyCycle) {
-            case 0: def.wd = WaveDuty::D12; break;
-            case 1: def.wd = WaveDuty::D25; break;
-            case 2: def.wd = WaveDuty::D50; break;
-            case 3: def.wd = WaveDuty::D75; break;
-            default:
-                    throw Xcept("Invalid Square Wave duty cycle at 0x%07X", rom.GetPos());
-            }
-        } else if (instr->type == 0x3 || instr->type == 0xB) {
-            def.wavePtr = &rom[rom.AGBPtrToPos(instr->field_4.wavePtr)];
-        } else if (instr->type == 0x4 || instr->type == 0xC) {
-            switch (instr->field_4.dutyCycle) {
-            case 0: def.np = NoisePatt::FINE; break;
-            case 1: def.np = NoisePatt::ROUGH; break;
-            default:
-                    throw Xcept("Invalid Noise Pattern at 0x%07X", rom.GetPos());
-            }
-        } else {
-            throw Xcept("Illegal Instrument at 0x%07X", rom.GetPos());
-        }
+        throw Xcept("SoundBank Error: Cannot get CGB definition of instrument: [%08X]", pos);
     }
+
     return def;
 }
 
 SampleInfo SoundBank::GetSampInfo(uint8_t instrNum, uint8_t midiKey)
 {
-    int8_t *samplePtr;
-    float midCfreq;
-    uint32_t loopPos;
-    uint32_t endPos;
-    bool loopEnabled;
+    Rom& rom = Rom::Instance();
 
-    rom.Seek(bankPos + instrNum * 12);
-    auto instr = (Instrument *)rom.GetPtr();
-    long sampHeaderPos;
-    if (instr->type == 0x40) {
-        uint8_t mappedInstr = rom[rom.AGBPtrToPos(instr->field_8.instrMap) + midiKey];
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + mappedInstr * 12];
-        assert(subInstr->type == 0x0 || subInstr->type == 0x8);
-        sampHeaderPos = rom.AGBPtrToPos(subInstr->field_4.samplePtr);
-    } else if (instr->type == 0x80) {
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + midiKey * 12];
-        assert(subInstr->type == 0x0 || subInstr->type == 0x8);
-        sampHeaderPos = rom.AGBPtrToPos(subInstr->field_4.samplePtr);
-    } else {
-        assert(instr->type == 0x0 || instr->type == 0x8);
-        sampHeaderPos = rom.AGBPtrToPos(instr->field_4.samplePtr);
-    }
-    if (*(uint32_t *)&rom[sampHeaderPos + 0x0] == 0x40000000)
-        loopEnabled = true;
-    else if (rom[sampHeaderPos + 0x0] == 0x0)
-        loopEnabled = false;
-    else
-        throw Xcept("Invalid sample mode 0x%08X at 0x%07X", *(uint32_t *)&rom[sampHeaderPos + 0x0], sampHeaderPos);
-    midCfreq = float(*(uint32_t *)&rom[sampHeaderPos + 0x4]) / 1024.0f;
-    loopPos = *(uint32_t *)&rom[sampHeaderPos + 0x8];
-    endPos = *(uint32_t *)&rom[sampHeaderPos + 0xC];
-    samplePtr = (int8_t *)&rom[sampHeaderPos + 0x10];
+    size_t pos = instrPos(instrNum, midiKey);
+    InstrType t = GetInstrType(instrNum, midiKey);
+    if (t != InstrType::PCM && t != InstrType::PCM_FIXED)
+        throw Xcept("SoundBank Error: Cannot get sample info of non PCM instrument: [%08X]", pos);
+
+    size_t samplePos = rom.ReadAgbPtrToPos(pos + 4);
+
+    bool loopEnabled = rom.ReadU8(samplePos + 3) & 0x40;
+    if (rom.ReadU8(samplePos) != 0)
+        throw Xcept("Sample Error: Unknown/unsupported sample mode: [%08X]=%02X", samplePos, rom.ReadU8(samplePos));
+
+    float midCfreq = static_cast<float>(rom.ReadU32(samplePos + 4)) / 1024.0f;
+    uint32_t loopPos = rom.ReadU32(samplePos + 8);
+    uint32_t endPos = rom.ReadU32(samplePos + 12);
+    const int8_t *samplePtr = static_cast<const int8_t *>(rom.GetPtr(samplePos + 16));
     return SampleInfo(samplePtr, midCfreq, loopEnabled, loopPos, endPos);
 }
 
 ADSR SoundBank::GetADSR(uint8_t instrNum, uint8_t midiKey)
 {
-    auto instr = (Instrument *)&rom[bankPos + instrNum * 12];
-    if (instr->type == 0x40) {
-        uint8_t mappedInstr = rom[rom.AGBPtrToPos(instr->field_8.instrMap) + midiKey];
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + mappedInstr * 12];
-        assert(subInstr->type == 0x0 || subInstr->type == 0x1 || 
-                subInstr->type == 0x2 || subInstr->type == 0x3 ||
-                subInstr->type == 0x4 || subInstr->type == 0x8 ||
-                subInstr->type == 0x9 || subInstr->type == 0xA ||
-                subInstr->type == 0xB || subInstr->type == 0xC);
-        return subInstr->field_8.env;
-    } else if (instr->type == 0x80) {
-        auto subInstr = (Instrument *)&rom[rom.AGBPtrToPos(instr->field_4.subTable) + midiKey * 12];
-        assert(subInstr->type == 0x0 || subInstr->type == 0x1 || 
-                subInstr->type == 0x2 || subInstr->type == 0x3 ||
-                subInstr->type == 0x4 || subInstr->type == 0x8 ||
-                subInstr->type == 0x9 || subInstr->type == 0xA ||
-                subInstr->type == 0xB || subInstr->type == 0xC);
-        return subInstr->field_8.env;
+    Rom& rom = Rom::Instance();
+
+    size_t pos = instrPos(instrNum, midiKey);
+    InstrType t = GetInstrType(instrNum, midiKey);
+    if (t == InstrType::INVALID)
+        throw Xcept("SoundBank Error: Cannot get ADSR for unknown instrument type: [%08X]", pos);
+
+    ADSR adsr;
+    adsr.att = rom.ReadU8(pos + 8);
+    adsr.dec = rom.ReadU8(pos + 9);
+    adsr.sus = rom.ReadU8(pos + 10);
+    adsr.rel = rom.ReadU8(pos + 11);
+    return adsr;
+}
+
+size_t SoundBank::instrPos(uint8_t instrNum, uint8_t midiKey) {
+    Rom& rom = Rom::Instance();
+    uint8_t type = rom.ReadU8(bankPos + instrNum * 12 + 0x0);
+
+    if (type == 0x80) {
+        size_t subBankPos = rom.ReadAgbPtrToPos(bankPos + instrNum * 12 + 0x4);
+        return subBankPos + midiKey * 12;
+    } else if (type == 0x40) {
+        size_t subBankPos = rom.ReadAgbPtrToPos(bankPos + instrNum * 12 + 0x4);
+        size_t keyMapPos = rom.ReadAgbPtrToPos(bankPos + instrNum * 12 + 0x8);
+        return subBankPos + rom.ReadU8(keyMapPos + midiKey) * 12;
     } else {
-        assert(instr->type == 0x0 || instr->type == 0x1 || 
-                instr->type == 0x2 || instr->type == 0x3 ||
-                instr->type == 0x4 || instr->type == 0x8 ||
-                instr->type == 0x9 || instr->type == 0xA ||
-                instr->type == 0xB || instr->type == 0xC);
-        return instr->field_8.env;
+        return bankPos + instrNum * 12;
     }
 }
 
@@ -262,49 +179,31 @@ ADSR SoundBank::GetADSR(uint8_t instrNum, uint8_t midiKey)
  * public Sequence
  */
 
-Sequence::Sequence(long songHeader, uint8_t trackLimit, Rom& rom) : rom(rom)
+Sequence::Sequence(size_t songHeaderPos, uint8_t trackLimit)
+    : songHeaderPos(songHeaderPos)
 {
+    Rom& rom = Rom::Instance();
+
     // read song header
-    this->songHeader = songHeader;
-    rom.Seek(songHeader);
-    uint8_t nTracks = min<uint8_t>(rom.ReadUInt8(), trackLimit);
-    blocks = rom.ReadUInt8();
-    prio = rom.ReadUInt8();
-    reverb = rom.ReadUInt8();
+    size_t nTracks = std::min<uint8_t>(rom.ReadU8(songHeaderPos + 0), trackLimit);
 
-    // voicegroup
-    soundBank = rom.AGBPtrToPos(rom.ReadUInt32());
-
-    // read track pointer
-    tracks.clear();
-    for (uint8_t i = 0; i < nTracks; i++) 
-    {
-        rom.Seek(songHeader + 8 + 4 * i);
-        tracks.push_back(Track(rom.ReadAGBPtrToPos()));
-    }
+    // read track pointers
+    for (size_t i = 0; i < nTracks; i++)
+        tracks.emplace_back(rom.ReadAgbPtrToPos(songHeaderPos + 8 + 4 * i));
 
     // reset runtime variables
     bpmStack = 0;
     bpm = 150;
 }
 
-Sequence::~Sequence() 
+size_t Sequence::GetSoundBankPos()
 {
-}
-
-Rom& Sequence::GetRom()
-{
-    return rom;
-}
-
-long Sequence::GetSndBnk()
-{
-    return soundBank;
+    return Rom::Instance().ReadAgbPtrToPos(songHeaderPos + 4);
 }
 
 uint8_t Sequence::GetReverb()
 {
-    return reverb;
+    return Rom::Instance().ReadU8(songHeaderPos + 3);
 }
 
 /*
@@ -312,7 +211,7 @@ uint8_t Sequence::GetReverb()
  * Track
  */
 
-Sequence::Track::Track(long pos) 
+Sequence::Track::Track(size_t pos)
 {
     // TODO corrently init all values
     this->pos = pos;
@@ -333,10 +232,6 @@ Sequence::Track::Track(long pos)
     muted = false;
     isRunning = true;
     pitch = 0;
-}
-
-Sequence::Track::~Track() 
-{
 }
 
 const vector<int16_t> Sequence::triLut = {
@@ -381,26 +276,21 @@ int8_t Sequence::Track::GetPan()
  * SongTable
  */
 
-SongTable::SongTable(Rom& rrom, long songTable) : rom(rrom) 
+SongTable::SongTable(size_t songTablePos)
+    : songTablePos(songTablePos)
 {
-    if (songTable == UNKNOWN_TABLE) {
-        this->songTable = locateSongTable();
-    } else {
-        this->songTable = songTable;
+    if (this->songTablePos == UNKNOWN_TABLE) {
+        this->songTablePos = locateSongTable();
     }
     numSongs = determineNumSongs();
 }
 
-SongTable::~SongTable() {
+size_t SongTable::GetSongTablePos() {
+    return songTablePos;
 }
 
-long SongTable::GetSongTablePos() {
-    return songTable;
-}
-
-long SongTable::GetPosOfSong(uint16_t uid) {
-    rom.Seek(songTable + uid * 8);
-    return rom.ReadAGBPtrToPos();
+size_t SongTable::GetPosOfSong(uint16_t uid) {
+    return Rom::Instance().ReadAgbPtrToPos(songTablePos + uid * 8);
 }
 
 unsigned short SongTable::GetNumSongs() {
@@ -411,12 +301,14 @@ unsigned short SongTable::GetNumSongs() {
  * private
  */
 
-long SongTable::locateSongTable() 
+size_t SongTable::locateSongTable() 
 {
-    for (long i = 0x200; i < (long)rom.Size(); i += 4) {
+    Rom& rom = Rom::Instance();
+
+    for (size_t i = 0x200; i < rom.Size(); i += 4) {
         bool validEntries = true;
-        long location = i;
-        long j = 0;
+        size_t location = i;
+        size_t j = 0;
         for (j = 0; j < MIN_SONG_NUM; j++) {
             if (!validateTableEntry(i + j * 8)) {
                 i += j * 8;
@@ -426,9 +318,8 @@ long SongTable::locateSongTable()
         }
         if (validEntries) {
             // before returning, check if reference to song table exists
-            rom.Seek(0x200);
-            for (long k = 0x200; k < (long)rom.Size() - 3; k += 4) { // -3 due to possible alignment issues
-                long value = (long)rom.ReadUInt32() - 0x8000000;
+            for (size_t k = 0x200; k < rom.Size() - 3; k += 4) { // -3 due to possible alignment issues
+                size_t value = rom.ReadU32(k) - AGB_MAP_ROM;
                 if (value == location)
                     return location;
             }
@@ -438,67 +329,50 @@ long SongTable::locateSongTable()
     throw Xcept("Unable to find songtable");
 }
 
-bool SongTable::validateTableEntry(long pos) 
+bool SongTable::validateTableEntry(size_t pos)
 {
+    Rom& rom = Rom::Instance();
+
     // check if the pointer is actually valid
-    /*long debug_pos = 0x6C5BDC;
-      if (pos == debug_pos) {
-      _print_debug("Checking...");
-      }*/
-    rom.Seek(pos);
-
-    agbptr_t songPtr = rom.ReadUInt32();
-
-
+    uint32_t songPtr = rom.ReadU32(pos);
     if (!rom.ValidPointer(songPtr))
         return false;
 
-    /*
-       if (pos == debug_pos) {
-       _print_debug("Passed pointer test");
-       }*/
     // check if the song groups are set appropriately
-    rom.Seek(pos + 4);
-
-    uint8_t g1 = rom.ReadUInt8();
-    uint8_t z1 = rom.ReadUInt8();
-    uint8_t g2 = rom.ReadUInt8();
-    uint8_t z2 = rom.ReadUInt8();
+    uint8_t g1 = rom.ReadU8(pos + 4);
+    uint8_t z1 = rom.ReadU8(pos + 5);
+    uint8_t g2 = rom.ReadU8(pos + 6);
+    uint8_t z2 = rom.ReadU8(pos + 7);
 
     if (z1 != 0 || z2 != 0 || g1 != g2)
         return false;
 
-    /*if (pos == debug_pos) {
-      _print_debug("Passed song group and zero check");
-      }*/
     // now check if the pointer points to a valid song
-    if (!validateSong(songPtr))
+    if (!validateSong(rom.ReadAgbPtrToPos(pos)))
         return false;
-    /*if (pos == debug_pos)
-      _print_debug("Passed actual song test");*/
     return true;
 }
 
-bool SongTable::validateSong(agbptr_t ptr) 
+bool SongTable::validateSong(size_t songPos)
 {
-    rom.SeekAGBPtr(ptr);
-    uint8_t nTracks = rom.ReadUInt8();
-    uint8_t nBlocks = rom.ReadUInt8(); // these could be anything
-    uint8_t prio = rom.ReadUInt8();
-    uint8_t rev = rom.ReadUInt8();
+    Rom& rom = Rom::Instance();
+
+    uint8_t nTracks = rom.ReadU8(songPos + 0);
+    uint8_t nBlocks = rom.ReadU8(songPos + 1);  // these could be anything
+    uint8_t prio = rom.ReadU8(songPos + 2);
+    uint8_t rev = rom.ReadU8(songPos + 3);
 
     if ((nTracks | nBlocks | prio | rev) == 0)
         return true;
 
     // verify voicegroup pointer
-    agbptr_t voicePtr = rom.ReadUInt32();
+    uint32_t voicePtr = rom.ReadU32(songPos + 4);
     if (!rom.ValidPointer(voicePtr))
         return false;
 
     // verify track pointers
     for (uint32_t i = 0; i < nTracks; i++) {
-        rom.SeekAGBPtr(ptr + 8 + (i * 4));
-        agbptr_t trackPtr = rom.ReadUInt32();
+        uint32_t trackPtr = rom.ReadU32(songPos + 8 + (i * 4));
         if (!rom.ValidPointer(trackPtr))
             return false;
     }
@@ -508,7 +382,7 @@ bool SongTable::validateSong(agbptr_t ptr)
 
 unsigned short SongTable::determineNumSongs() 
 {
-    long pos = songTable;
+    size_t pos = songTablePos;
     unsigned short count = 0;
     while (true) {
         if (!validateTableEntry(pos))
@@ -524,9 +398,9 @@ unsigned short SongTable::determineNumSongs()
  * SoundData
  */
 
-SoundData::SoundData(Rom& rrom) 
+SoundData::SoundData()
 {
-    sTable = new SongTable(rrom, UNKNOWN_TABLE);
+    sTable = new SongTable(UNKNOWN_TABLE);
 }
 
 SoundData::~SoundData() 

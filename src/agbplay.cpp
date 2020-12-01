@@ -5,7 +5,6 @@
 #include <portaudio.h>
 #include <clocale>
 
-#include "Rom.h"
 #include "SoundData.h"
 #include "Debug.h"
 #include "WindowGUI.h"
@@ -58,15 +57,14 @@ int main(int argc, char *argv[])
         if (Pa_Initialize() != paNoError)
             throw Xcept("Couldn't init portaudio");
         cout << "Loading ROM..." << endl;
-        FileContainer fc(argv[1]);
-        cout << "Loaded ROM successfully" << endl;
-        Rom rom(fc);
+
+        Rom::CreateInstance(argv[1]);
         cout << "Created ROM object" << endl;
-        ConfigManager::Instance().SetGameCode(rom.GetROMCode());
+        ConfigManager::Instance().SetGameCode(Rom::Instance().GetROMCode());
         cout << "Loaded Config" << endl;
-        SoundData sdata(rom);
+        SoundData sdata;
         cout << "Analyzed Sound Data" << endl;
-        WindowGUI wgui(rom, sdata);
+        WindowGUI wgui(sdata);
 
         chrono::nanoseconds frameTime(1000000000 / 60);
 

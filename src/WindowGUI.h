@@ -47,7 +47,6 @@
 
 #define CONTROL(x) (x & 0x1F)
 
-#include "Rom.h"
 #include "ConsoleGUI.h"
 #include "HotkeybarGUI.h"
 #include "SonglistGUI.h"
@@ -66,7 +65,7 @@ namespace agbplay
     class WindowGUI 
     {
         public:
-            WindowGUI(Rom& rrom, SoundData& rsdata);
+            WindowGUI(SoundData& rsdata);
             ~WindowGUI();
 
             // main GUI handler
@@ -105,7 +104,6 @@ namespace agbplay
             std::unique_ptr<VUMeterGUI> meterUI;
 
             // resource
-            Rom& rom;
             SoundData& sdata;
             std::unique_ptr<PlayerInterface> mplay;
 

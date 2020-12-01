@@ -15,7 +15,7 @@ namespace agbplay
     class SoundExporter
     {
         public:
-            SoundExporter(ConsoleGUI& _con, SoundData& _sd, Rom& _rom, bool _benchmarkOnly, bool seperate);
+            SoundExporter(ConsoleGUI& _con, SoundData& _sd, bool _benchmarkOnly, bool seperate);
             ~SoundExporter();
 
             void Export(const std::string& outputDir, std::vector<SongEntry>& entries, std::vector<bool>& ticked);
@@ -24,7 +24,6 @@ namespace agbplay
 
             ConsoleGUI& con;
             SoundData& sd;
-            Rom& rom;
             std::mutex uilock;
 
             bool benchmarkOnly;

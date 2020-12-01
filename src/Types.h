@@ -22,7 +22,7 @@ namespace agbplay
 
     union CGBDef
     {
-        uint8_t *wavePtr;
+        const uint8_t *wavePtr;
         WaveDuty wd;
         NoisePatt np;
     };
@@ -67,9 +67,9 @@ namespace agbplay
 
     struct SampleInfo
     {
-        SampleInfo(int8_t *samplePtr, float midCfreq, bool loopEnabled, uint32_t loopPos, uint32_t endPos);
+        SampleInfo(const int8_t *samplePtr, float midCfreq, bool loopEnabled, uint32_t loopPos, uint32_t endPos);
         SampleInfo();
-        int8_t *samplePtr;
+        const int8_t *samplePtr;
         float midCfreq;
         uint32_t loopPos;
         uint32_t endPos;

@@ -37,7 +37,7 @@ namespace agbplay
             static const std::map<uint8_t, int8_t> noteLut;
 
         private:
-            Sequence seq;
+            Sequence& seq;
             SoundBank sbnk;
             EnginePars ep;
             SoundMixer sm;

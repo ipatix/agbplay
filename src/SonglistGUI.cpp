@@ -7,8 +7,6 @@
 #include <vector>
 #include <algorithm>
 
-using namespace std;
-
 /*
  * -- public --
  */
@@ -17,7 +15,7 @@ SonglistGUI::SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_
     : CursesWin(height, width, yPos, xPos) 
 {
     checkDimensions(height, width);
-    this->songlist = new vector<SongEntry>;
+    this->songlist = new std::vector<SongEntry>;
     this->viewPos = 0;
     this->cursorPos = 0;
     this->cursorVisible = false;

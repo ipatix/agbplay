@@ -8,8 +8,6 @@
 #include "Debug.h"
 #include "ConfigManager.h"
 
-using namespace std;
-
 /*
  * public
  */
@@ -69,7 +67,7 @@ SongEntry& PlaylistGUI::GetSong()
     return cfg.GetGameEntries().at(cursorPos);
 }
 
-vector<bool>& PlaylistGUI::GetTicked()
+std::vector<bool>& PlaylistGUI::GetTicked()
 {
     return ticked;
 }
@@ -126,7 +124,7 @@ void PlaylistGUI::update()
 {
     //UIMutex.lock();
     GameConfig& cfg = ConfigManager::Instance().GetCfg();
-    string bar = "Playlist:";
+    std::string bar = "Playlist:";
     bar.resize(contentWidth, ' ');
     wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::WINDOW_FRAME)) | A_REVERSE);
     mvwprintw(winPtr, 0, 0, bar.c_str());
@@ -141,7 +139,7 @@ void PlaylistGUI::update()
         }
         else 
             wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::LIST_ENTRY)));
-        string songText;
+        std::string songText;
         if (entry < cfg.GetGameEntries().size()) {
             songText = (ticked.at(entry)) ? "[x] " : "[ ] ";
             songText.append(cfg.GetGameEntries()[entry].name);
@@ -186,7 +184,7 @@ void PlaylistGUI::swapEntry(uint32_t a, uint32_t b)
     size_t s = cfg.GetGameEntries().size();
     if (a >= s || b >= s)
         return;
-    swap(cfg.GetGameEntries()[a], cfg.GetGameEntries()[b]);
-    swap(ticked[a], ticked[b]);
+    std::swap(cfg.GetGameEntries()[a], cfg.GetGameEntries()[b]);
+    std::swap(ticked[a], ticked[b]);
     update();
 }

@@ -6,9 +6,7 @@
 #include "Debug.h"
 #include "Xcept.h"
 
-using namespace std;
-
-const vector<const char *> TrackviewGUI::noteNames = {
+const std::vector<const char *> TrackviewGUI::noteNames = {
     "C-2", "C#-2", "D-2", "D#-2", "E-2", "F-2", "F#-2", "G-2", "G#-2", "A-2", "A#-2", "B-2",
     "C-1", "C#-1", "D-1", "D#-1", "E-1", "F-1", "F#-1", "G-1", "G#-1", "A-1", "A#-1", "B-1",
     "C0", "C#0", "D0", "D#0", "E0", "F0", "F#0", "G0", "G#0", "A0", "A#0", "B0",
@@ -70,7 +68,7 @@ void TrackviewGUI::SetState(const Sequence& seq, const float *vols, int activeCh
         disp.data[i].pitch = seq.tracks[i].pitch;
         disp.data[i].envL = uint8_t(clip<uint32_t>(0, uint32_t(vols[i*N_CHANNELS  ] * 768.f), 255));
         disp.data[i].envR = uint8_t(clip<uint32_t>(0, uint32_t(vols[i*N_CHANNELS+1] * 768.f), 255));
-        disp.data[i].delay = max((int8_t)0, seq.tracks[i].delay);
+        disp.data[i].delay = std::max((int8_t)0, seq.tracks[i].delay);
         disp.data[i].activeNotes = seq.tracks[i].activeNotes;
     }
     update();

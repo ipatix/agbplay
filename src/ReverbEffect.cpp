@@ -5,8 +5,6 @@
 #include "Debug.h"
 #include "Util.h"
 
-using namespace std;
-
 /*
  * public ReverbEffect
  */
@@ -46,7 +44,7 @@ size_t ReverbEffect::getBlocksPerBuffer() const
 size_t ReverbEffect::processInternal(float *buffer, size_t nBlocks)
 {
     assert(nBlocks > 0);
-    vector<float>& rbuf = reverbBuffer;
+    std::vector<float>& rbuf = reverbBuffer;
     size_t count = std::min(std::min(getBlocksPerBuffer() - bufferPos2, getBlocksPerBuffer() - bufferPos), nBlocks);
     bool reset = false, reset2 = false;
     if (getBlocksPerBuffer() - bufferPos == count) {
@@ -91,7 +89,7 @@ size_t ReverbGS1::getBlocksPerGsBuffer() const
 
 size_t ReverbGS1::processInternal(float *buffer, size_t nBlocks)
 {
-    vector<float>& rbuf = reverbBuffer;
+    std::vector<float>& rbuf = reverbBuffer;
     const size_t bPerBuf = getBlocksPerBuffer();
     const size_t bPerGsBuf = getBlocksPerGsBuffer();
     size_t count = std::min(std::min(bPerBuf - bufferPos, bPerGsBuf - bufferPos2), nBlocks);
@@ -154,7 +152,7 @@ ReverbGS2::~ReverbGS2()
 size_t ReverbGS2::processInternal(float *buffer, size_t nBlocks)
 {
     assert(nBlocks > 0);
-    vector<float>& rbuf = reverbBuffer;
+    std::vector<float>& rbuf = reverbBuffer;
     size_t count = std::min(
             std::min(getBlocksPerBuffer() - bufferPos2, getBlocksPerBuffer() - bufferPos), 
             std::min(nBlocks, gs2Buffer.size() / N_CHANNELS - gs2Pos)
@@ -219,7 +217,7 @@ ReverbTest::~ReverbTest()
 size_t ReverbTest::processInternal(float *buffer, size_t nBlocks)
 {
     assert(nBlocks > 0);
-    vector<float>& rbuf = reverbBuffer;
+    std::vector<float>& rbuf = reverbBuffer;
     size_t count = std::min(std::min(getBlocksPerBuffer() - bufferPos, getBlocksPerBuffer() - bufferPos2), nBlocks);
     bool reset = false, reset2 = false;
     if (getBlocksPerBuffer() - bufferPos2 == count) {

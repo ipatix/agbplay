@@ -5,8 +5,6 @@
 #include "Constants.h"
 #include "Util.h"
 
-using namespace std;
-
 LoudnessCalculator::LoudnessCalculator(const float lowpassFreq)
 {
     float rc = 1.0f / (lowpassFreq * 2.0f * float(M_PI));

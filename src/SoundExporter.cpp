@@ -11,8 +11,6 @@
 #include "Debug.h"
 #include "ConfigManager.h"
 
-using namespace std;
-
 /*
  * public SoundExporter
  */
@@ -28,11 +26,11 @@ SoundExporter::~SoundExporter()
 {
 }
 
-void SoundExporter::Export(const string& outputDir, vector<SongEntry>& entries, vector<bool>& ticked)
+void SoundExporter::Export(const std::string& outputDir, std::vector<SongEntry>& entries, std::vector<bool>& ticked)
 {
     if (entries.size() != ticked.size())
         throw Xcept("SoundExporter: input vectors do not match");
-    vector<SongEntry> tEnts;
+    std::vector<SongEntry> tEnts;
     for (size_t i = 0; i < entries.size(); i++) {
         if (!ticked[i])
             continue;
@@ -40,23 +38,23 @@ void SoundExporter::Export(const string& outputDir, vector<SongEntry>& entries, 
     }
 
 
-    filesystem::path dir(outputDir);
-    if (filesystem::exists(dir)) {
-        if (!filesystem::is_directory(dir)) {
+    std::filesystem::path dir(outputDir);
+    if (std::filesystem::exists(dir)) {
+        if (!std::filesystem::is_directory(dir)) {
             throw Xcept("Output directory exists but isn't a dir");
         }
     }
-    else if (!filesystem::create_directory(dir)) {
+    else if (!std::filesystem::create_directory(dir)) {
         throw Xcept("Creating output directory failed");
     }
 
     size_t totalBlocksRendered = 0;
 
-    auto startTime = chrono::high_resolution_clock::now();
+    auto startTime = std::chrono::high_resolution_clock::now();
 
     for (size_t i = 0; i < tEnts.size(); i++)
     {
-        string fname = tEnts[i].name;
+        std::string fname = tEnts[i].name;
         boost::replace_all(fname, "/", "_");
         print_debug("%3d %% - Rendering to file: \"%s\"", (i + 1) * 100 / tEnts.size(), fname.c_str());
         char fileName[512];
@@ -65,14 +63,14 @@ void SoundExporter::Export(const string& outputDir, vector<SongEntry>& entries, 
         totalBlocksRendered += rblocks;
     }
 
-    auto endTime = chrono::high_resolution_clock::now();
+    auto endTime = std::chrono::high_resolution_clock::now();
 
-    if (chrono::duration_cast<chrono::seconds>(endTime - startTime).count() == 0) {
+    if (std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count() == 0) {
         print_debug("Successfully wrote %zu files", tEnts.size());
     } else {
         print_debug("Successfully wrote %d files at %d blocks per second",
                     tEnts.size(), 
-                    int(totalBlocksRendered / (size_t)chrono::duration_cast<chrono::seconds>(endTime - startTime).count()));
+                    int(totalBlocksRendered / (size_t)std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count()));
     }
 }
 
@@ -80,7 +78,7 @@ void SoundExporter::Export(const string& outputDir, vector<SongEntry>& entries, 
  * private SoundExporter
  */
 
-size_t SoundExporter::exportSong(const string& fileName, uint16_t uid)
+size_t SoundExporter::exportSong(const std::string& fileName, uint16_t uid)
 {
     // setup our generators
     GameConfig& cfg = ConfigManager::Instance().GetCfg();
@@ -94,8 +92,8 @@ size_t SoundExporter::exportSong(const string& fileName, uint16_t uid)
     {
         if (seperate)
         {
-            vector<SNDFILE *> ofiles(nTracks, nullptr);
-            vector<SF_INFO> oinfos(nTracks);
+            std::vector<SNDFILE *> ofiles(nTracks, nullptr);
+            std::vector<SF_INFO> oinfos(nTracks);
 
             for (size_t i = 0; i < nTracks; i++)
             {
@@ -112,7 +110,7 @@ size_t SoundExporter::exportSong(const string& fileName, uint16_t uid)
 
             while (true)
             {
-                vector<vector<float>>& rbuffers = sg.ProcessAndGetAudio();
+                std::vector<std::vector<float>>& rbuffers = sg.ProcessAndGetAudio();
                 if (sg.HasStreamEnded())
                     break;
 
@@ -151,11 +149,11 @@ size_t SoundExporter::exportSong(const string& fileName, uint16_t uid)
                 return 0;
             }
             // do rendering and write
-            vector<float> renderedData(nBlocks * N_CHANNELS);
+            std::vector<float> renderedData(nBlocks * N_CHANNELS);
 
             while (true) 
             {
-                vector<vector<float>>& rbuffers = sg.ProcessAndGetAudio();
+                std::vector<std::vector<float>>& rbuffers = sg.ProcessAndGetAudio();
                 if (sg.HasStreamEnded())
                     break;
                 // mix streams to one master
@@ -163,7 +161,7 @@ size_t SoundExporter::exportSong(const string& fileName, uint16_t uid)
                 // clear mixing buffer
                 fill(renderedData.begin(), renderedData.end(), 0.0f);
                 // mix all tracks to buffer
-                for (vector<float>& b : rbuffers)
+                for (std::vector<float>& b : rbuffers)
                 {
                     assert(b.size() == renderedData.size());
                     for (size_t i = 0; i < b.size(); i++)

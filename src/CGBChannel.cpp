@@ -8,8 +8,6 @@
 #include "Util.h"
 #include "Constants.h"
 
-using namespace std;
-
 /*
  * public CGBChannel
  */

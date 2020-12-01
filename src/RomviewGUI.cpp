@@ -4,8 +4,6 @@
 #include "Debug.h"
 #include "Rom.h"
 
-using namespace std;
-
 /*
  * public
  */

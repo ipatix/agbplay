@@ -2,8 +2,6 @@
 
 #include "Ringbuffer.h"
 
-using namespace std;
-
 /*
  * public Ringbuffer
  */
@@ -23,7 +21,7 @@ Ringbuffer::~Ringbuffer()
 
 void Ringbuffer::Put(float *inData, size_t nElements)
 {
-    unique_lock<mutex> lock(countLock);
+    std::unique_lock<std::mutex> lock(countLock);
     while (freeCount < nElements){
         sig.wait(lock);
     }
@@ -38,10 +36,10 @@ void Ringbuffer::Take(float *outData, size_t nElements)
 {
     if (dataCount < nElements) {
         // underrun
-        fill(outData, outData + nElements, 0.0f);
+        std::fill(outData, outData + nElements, 0.0f);
     } else {
         // output
-        unique_lock<mutex> lock(countLock);
+        std::unique_lock<std::mutex> lock(countLock);
         while (nElements > 0) {
             size_t count = take(outData, nElements);
             outData += count;
@@ -53,8 +51,8 @@ void Ringbuffer::Take(float *outData, size_t nElements)
 
 void Ringbuffer::Clear()
 {
-    unique_lock<mutex> lock(countLock);
-    fill(bufData.begin(), bufData.end(), 0.0f);
+    std::unique_lock<std::mutex> lock(countLock);
+    std::fill(bufData.begin(), bufData.end(), 0.0f);
 }
 
 /*
@@ -73,7 +71,7 @@ size_t Ringbuffer::put(float *inData, size_t nElements)
         count = nElements;
         newfree = freePos + count;
     }
-    copy(inData, inData + count, &bufData[freePos]);
+    std::copy(inData, inData + count, &bufData[freePos]);
     freePos = newfree;
     freeCount -= count;
     dataCount += count;
@@ -92,7 +90,7 @@ size_t Ringbuffer::take(float *outData, size_t nElements)
         count = nElements;
         newdata = dataPos + count;
     }
-    copy(&bufData[dataPos], &bufData[dataPos] + count, outData);
+    std::copy(&bufData[dataPos], &bufData[dataPos] + count, outData);
     dataPos = newdata;
     freeCount += count;
     dataCount -= count;

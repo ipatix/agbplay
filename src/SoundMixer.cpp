@@ -8,8 +8,6 @@
 #include "Util.h"
 #include "ConfigManager.h"
 
-using namespace std;
-
 /*
  * public SoundMixer
  */
@@ -126,7 +124,7 @@ void SoundMixer::SetTrackPV(uint8_t owner, uint8_t vol, int8_t pan, int16_t pitc
     }
 }
 
-int SoundMixer::TickTrackNotes(uint8_t owner, bitset<NUM_NOTES>& activeNotes)
+int SoundMixer::TickTrackNotes(uint8_t owner, std::bitset<NUM_NOTES>& activeNotes)
 {
     activeBackBuffer.reset();
     int active = 0;
@@ -256,7 +254,7 @@ void SoundMixer::purgeChannels()
 
 void SoundMixer::clearBuffers()
 {
-    for (vector<float>& b : soundBuffers)
+    for (std::vector<float>& b : soundBuffers)
     {
         fill(b.begin(), b.end(), 0.0f);
     }
@@ -322,7 +320,7 @@ void SoundMixer::renderToBuffers()
         noise.Process(soundBuffers[noise.GetOwner()].data(), samplesPerBuffer, margs);
     }
 
-    for (vector<float>& b : soundBuffers)
+    for (std::vector<float>& b : soundBuffers)
     {
         float masterStep = (masterTo - masterFrom) * margs.nBlocksReciprocal;
         float masterLevel = masterFrom;

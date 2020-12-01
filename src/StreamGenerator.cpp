@@ -9,8 +9,6 @@
 #define SONG_FADE_OUT_TIME 10000
 #define SONG_FINISH_TIME 1000
 
-using namespace std;
-
 /*
  * public EnginePars
  */
@@ -30,13 +28,13 @@ EnginePars::EnginePars()
  * public StreamGenerator
  */
 
-const vector<uint32_t> StreamGenerator::freqLut = {
+const std::vector<uint32_t> StreamGenerator::freqLut = {
     5734, 7884, 10512, 13379,
     15768, 18157, 21024, 26758,
     31536, 36314, 40137, 42048
 };
 
-const map<uint8_t, int8_t> StreamGenerator::delayLut = {
+const std::map<uint8_t, int8_t> StreamGenerator::delayLut = {
     {0x81,1 }, {0x82,2 }, {0x83,3 }, {0x84,4 }, {0x85,5 }, {0x86,6 }, {0x87,7 }, {0x88,8 },
     {0x89,9 }, {0x8A,10}, {0x8B,11}, {0x8C,12}, {0x8D,13}, {0x8E,14}, {0x8F,15}, {0x90,16},
     {0x91,17}, {0x92,18}, {0x93,19}, {0x94,20}, {0x95,21}, {0x96,22}, {0x97,23}, {0x98,24},
@@ -45,7 +43,7 @@ const map<uint8_t, int8_t> StreamGenerator::delayLut = {
     {0xA9,76}, {0xAA,78}, {0xAB,80}, {0xAC,84}, {0xAD,88}, {0xAE,90}, {0xAF,92}, {0xB0,96}
 };
 
-const map<uint8_t, int8_t> StreamGenerator::noteLut = {
+const std::map<uint8_t, int8_t> StreamGenerator::noteLut = {
     {0xD0,1 }, {0xD1,2 }, {0xD2,3 }, {0xD3,4 }, {0xD4,5 }, {0xD5,6 }, {0xD6,7 }, {0xD7,8 },
     {0xD8,9 }, {0xD9,10}, {0xDA,11}, {0xDB,12}, {0xDC,13}, {0xDD,14}, {0xDE,15}, {0xDF,16},
     {0xE0,17}, {0xE1,18}, {0xE2,19}, {0xE3,20}, {0xE4,21}, {0xE5,22}, {0xE6,23}, {0xE7,24},
@@ -86,7 +84,7 @@ uint32_t StreamGenerator::GetRenderSampleRate()
     return sm.GetRenderSampleRate();
 }
 
-vector<vector<float>>& StreamGenerator::ProcessAndGetAudio()
+std::vector<std::vector<float>>& StreamGenerator::ProcessAndGetAudio()
 {
     processSequenceFrame();
     return sm.ProcessAndGetAudio();

@@ -8,8 +8,6 @@
 #include "Xcept.h"
 #include "Debug.h"
 
-using namespace std;
-
 /*
  * public VUMeterGUI
  */

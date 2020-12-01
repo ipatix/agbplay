@@ -19,8 +19,6 @@
 #include "Debug.h"
 #include "OS.h"
 
-using namespace std;
-
 ConfigManager::ConfigManager()
 {
     configPath = OS::GetLocalConfigDirectory() / "agbplay.json";
@@ -31,7 +29,7 @@ ConfigManager::ConfigManager()
      * try reading it from /etc/agbplay/agbplay.json.
      * If this isn't found either, use an empty config file. */
     Json::Value root;
-    if (ifstream configFile; configFile.open(configPath), configFile.is_open()) {
+    if (std::ifstream configFile; configFile.open(configPath), configFile.is_open()) {
         print_debug("User local configuration found!");
         configFile >> root;
     } else if (configFile.open(globalConfigPath); configFile.is_open()) {
@@ -142,7 +140,7 @@ void ConfigManager::Save()
     root["playlists"] = playlists;
 
     std::filesystem::create_directories(configPath.parent_path());
-    ofstream jsonFile(configPath);
+    std::ofstream jsonFile(configPath);
     if (!jsonFile.is_open())
         throw Xcept("Error while writing agbplay.json: %s", strerror(errno));
 

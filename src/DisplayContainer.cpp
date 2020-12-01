@@ -1,7 +1,5 @@
 #include "DisplayContainer.h"
 
-using namespace std;
-
 /*
  * public DisplayData
  */
@@ -44,4 +42,3 @@ DisplayContainer::~DisplayContainer()
 {
     // empty
 }
-

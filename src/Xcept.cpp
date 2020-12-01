@@ -2,8 +2,6 @@
 
 #include "Xcept.h"
 
-using namespace std;
-
 Xcept::Xcept(const char *format, ...) {
     va_list args;
     va_start(args, format);

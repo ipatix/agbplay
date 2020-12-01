@@ -10,8 +10,6 @@
 #include "Util.h"
 #include "Rom.h"
 
-using namespace std;
-
 /*
  * public SoundBank
  */
@@ -233,7 +231,7 @@ Sequence::Track::Track(size_t pos)
     pitch = 0;
 }
 
-const vector<int16_t> Sequence::triLut = {
+const std::vector<int16_t> Sequence::triLut = {
     0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 132, 144, 156, 168, 180,
     192, 204, 216, 228, 240, 252, 264, 276, 288, 300, 312, 324, 336, 348, 360, 372,
     384, 396, 408, 420, 432, 444, 456, 468, 480, 492, 504, 516, 528, 540, 552, 564,

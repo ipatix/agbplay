@@ -7,8 +7,6 @@
 #include "Xcept.h"
 #include "ColorDef.h"
 
-using namespace std;
-
 /*
  * -- public --
  */
@@ -35,7 +33,7 @@ void ConsoleGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t
 }
 
 void ConsoleGUI::Refresh() {
-    string newText;
+    std::string newText;
     bool modified = false;
     while (msgQueue.pop(newText)) {
         writeToBuffer(newText);
@@ -57,7 +55,7 @@ void ConsoleGUI::update()
         mvwprintw(winPtr, (int)i, 0, ">");
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)) | A_REVERSE);
         mvwprintw(winPtr, (int)i, 1, " ");
-        string txt;
+        std::string txt;
         if (i < textBuffer.size()) {
             txt = textBuffer.at(i);
         } else {
@@ -69,7 +67,7 @@ void ConsoleGUI::update()
     wrefresh(winPtr);
 }
 
-void ConsoleGUI::writeToBuffer(const string& str) 
+void ConsoleGUI::writeToBuffer(const std::string& str) 
 {
     textBuffer.push_back(str);
     if (textBuffer.size() > textHeight) {

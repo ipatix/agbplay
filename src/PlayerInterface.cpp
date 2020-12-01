@@ -10,8 +10,6 @@
 #include "Util.h"
 #include "ConfigManager.h"
 
-using namespace std;
-
 #define MAX_LOOPS 1
 
 /*
@@ -181,7 +179,7 @@ void PlayerInterface::Stop()
         case State::RESTART:
             // wait until player has initialized and quit then
             while (playerState != State::PLAYING) {
-                this_thread::sleep_for(chrono::milliseconds(5));
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));
             }
             Stop();
             break;
@@ -276,8 +274,8 @@ void PlayerInterface::threadWorker()
 {
     GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
     size_t nBlocks = sg->GetBufferUnitCount();
-    vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
-    vector<float> audio(nBlocks * N_CHANNELS, 0.0f);
+    std::vector<float> silence(nBlocks * N_CHANNELS, 0.0f);
+    std::vector<float> audio(nBlocks * N_CHANNELS, 0.0f);
     try {
         // FIXME seems to still have an issue with a race condition and default case occuring
         while (playerState != State::SHUTDOWN) {
@@ -292,7 +290,7 @@ void PlayerInterface::threadWorker()
                         // clear high level mixing buffer
                         fill(audio.begin(), audio.end(), 0.0f);
                         // render audio buffers for tracks
-                        vector<vector<float>>& raudio = sg->ProcessAndGetAudio();
+                        std::vector<std::vector<float>>& raudio = sg->ProcessAndGetAudio();
                         for (size_t i = 0; i < raudio.size(); i++) {
                             assert(raudio[i].size() == audio.size());
 
@@ -322,7 +320,7 @@ void PlayerInterface::threadWorker()
                     throw Xcept("Internal PlayerInterface error: %d", (int)playerState);
             }
         }
-    } catch (exception& e) {
+    } catch (std::exception& e) {
         print_debug("FATAL ERROR on streaming thread: %s", e.what());
     }
     masterLoudness.Reset();

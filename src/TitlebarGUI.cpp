@@ -6,9 +6,7 @@
 #include "ColorDef.h"
 #include "Xcept.h"
 
-using namespace std;
-
-static const vector<string> bannerText = {
+static const std::vector<std::string> bannerText = {
     "           _         _           ",
     " __ _ __ _| |__ _ __| |__ _ _  _ ",
     "/ _` / _` | '_ \\ '_ \\ / _` | || |",

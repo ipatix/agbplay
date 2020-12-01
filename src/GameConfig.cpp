@@ -1,13 +1,11 @@
 #include "GameConfig.h"
 #include "Util.h"
 
-using namespace std;
-
 /*
  * public GameConfig
  */
 
-GameConfig::GameConfig(const string& gameCode)
+GameConfig::GameConfig(const std::string& gameCode)
 {
     gameCodes.push_back(gameCode);
     revType = ReverbType::NORMAL;
@@ -20,7 +18,7 @@ GameConfig::GameConfig(const string& gameCode)
     revBufSize = 1584;
 }
 
-GameConfig::GameConfig(const vector<string>& gameCodes)
+GameConfig::GameConfig(const std::vector<std::string>& gameCodes)
 {
     this->gameCodes = gameCodes;
     revType = ReverbType::NORMAL;
@@ -122,7 +120,7 @@ void GameConfig::SetRevBufSize(uint16_t revBufSize)
     this->revBufSize = revBufSize;
 }
 
-vector<SongEntry>& GameConfig::GetGameEntries()
+std::vector<SongEntry>& GameConfig::GetGameEntries()
 {
     return gameEntries;
 }

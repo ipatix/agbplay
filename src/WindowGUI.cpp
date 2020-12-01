@@ -18,8 +18,6 @@
 
 #define KEY_TAB 9
 
-using namespace std;
-
 WindowGUI::WindowGUI(SoundData& rsdata)
     : sdata(rsdata)
 {
@@ -37,19 +35,19 @@ WindowGUI::WindowGUI(SoundData& rsdata)
     this->cursorl = SONGLIST;
 
     // create subwindows
-    conUI = make_unique<ConsoleGUI>(
+    conUI = std::make_unique<ConsoleGUI>(
             CONSOLE_HEIGHT(height, width),
             CONSOLE_WIDTH(height, width),
             CONSOLE_YPOS(height, width),
             CONSOLE_XPOS(height, width));
 
-    hotUI = make_unique<HotkeybarGUI>(
+    hotUI = std::make_unique<HotkeybarGUI>(
             HOTKEYBAR_HEIGHT(height, width),
             HOTKEYBAR_WIDTH(height, width),
             HOTKEYBAR_YPOS(height, width),
             HOTKEYBAR_XPOS(height, width));
 
-    songUI = make_unique<SonglistGUI>(
+    songUI = std::make_unique<SonglistGUI>(
             SONGLIST_HEIGHT(height, width),
             SONGLIST_WIDTH(height, width),
             SONGLIST_YPOS(height, width),
@@ -57,45 +55,45 @@ WindowGUI::WindowGUI(SoundData& rsdata)
 
     // add songs to table
     for (uint16_t i = 0; i < sdata.sTable->GetNumSongs(); i++) {
-        ostringstream txt;
-        txt << setw(4) << setfill('0') << i;
+        std::ostringstream txt;
+        txt << std::setw(4) << std::setfill('0') << i;
         songUI->AddSong(SongEntry(txt.str(), i));
     }
     songUI->Enter();
 
-    playUI = make_unique<PlaylistGUI>(
+    playUI = std::make_unique<PlaylistGUI>(
             PLAYLIST_HEIGHT(height, width),
             PLAYLIST_WIDTH(height, width),
             PLAYLIST_YPOS(height, width),
             PLAYLIST_XPOS(height, width));
 
-    titleUI = make_unique<TitlebarGUI>(
+    titleUI = std::make_unique<TitlebarGUI>(
             TITLEBAR_HEIGHT(height, width),
             TITLEBAR_WIDTH(height, width),
             TITLEBAR_YPOS(height, width),
             TITLEBAR_XPOS(height, width));
 
-    romUI = make_unique<RomviewGUI>(
+    romUI = std::make_unique<RomviewGUI>(
             ROMVIEW_HEIGHT(height, width),
             ROMVIEW_WIDTH(height, width),
             ROMVIEW_YPOS(height, width),
             ROMVIEW_XPOS(height, width),
             sdata);
 
-    trackUI = make_unique<TrackviewGUI>(
+    trackUI = std::make_unique<TrackviewGUI>(
             TRACKVIEW_HEIGHT(height, width),
             TRACKVIEW_WIDTH(height, width),
             TRACKVIEW_YPOS(height, width),
             TRACKVIEW_XPOS(height, width));
 
-    meterUI = make_unique<VUMeterGUI>(
+    meterUI = std::make_unique<VUMeterGUI>(
             VUMETER_HEIGHT(height, width),
             VUMETER_WIDTH(height, width),
             VUMETER_YPOS(height, width),
             VUMETER_XPOS(height, width));
 
     Rom& rom = Rom::Instance();
-    mplay = make_unique<PlayerInterface>(
+    mplay = std::make_unique<PlayerInterface>(
             trackUI.get(),
             rom.ReadAgbPtrToPos(sdata.sTable->GetSongTablePos())
             );
@@ -627,10 +625,10 @@ void WindowGUI::rename()
     wattrset(renWin, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)) | A_REVERSE);
     mvwhline(renWin, 0, 0, ' ', renWidth);
     // pls no unicode in title or size() below requires fix
-    string title = "New Name";
-    string line = " \u250c";
-    string leftBar = "";
-    string rightBar = "";
+    std::string title = "New Name";
+    std::string line = " \u250c";
+    std::string leftBar = "";
+    std::string rightBar = "";
     for (int i = 0; i < (renWidth - (int)title.size())/2 - 3; i++) 
     {
         leftBar.append("\u2500");
@@ -671,7 +669,7 @@ void WindowGUI::rename()
     if (mvwgetnstr(renWin, 2, 3, inputBuf, sizeof(inputBuf) - 1) != ERR) {
         if (strlen(inputBuf) > 0) {
             // only change the name if it's not blank
-            ent->name = string(inputBuf, strlen(inputBuf));
+            ent->name = std::string(inputBuf, strlen(inputBuf));
         }
     }
     noecho();

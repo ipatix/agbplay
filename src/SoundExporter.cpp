@@ -15,8 +15,8 @@
  * public SoundExporter
  */
 
-SoundExporter::SoundExporter(SoundData& _sd, bool _benchmarkOnly, bool seperate)
-: sd(_sd), benchmarkOnly(_benchmarkOnly), seperate(seperate)
+SoundExporter::SoundExporter(SoundData& sd, bool benchmarkOnly, bool seperate)
+: sd(sd), benchmarkOnly(benchmarkOnly), seperate(seperate)
 {
 }
 

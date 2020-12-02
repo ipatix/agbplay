@@ -13,7 +13,7 @@
 class SoundExporter
 {
 public:
-    SoundExporter(SoundData& _sd, bool _benchmarkOnly, bool seperate);
+    SoundExporter(SoundData& sd, bool benchmarkOnly, bool seperate);
     SoundExporter(const SoundExporter&) = delete;
     SoundExporter& operator=(const SoundExporter&) = delete;
 

@@ -11,6 +11,29 @@
 #include "Rom.h"
 
 /*
+ * local stuff
+ */
+
+static const std::vector<int16_t> modulationLut = {
+    0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 132, 144, 156, 168, 180,
+    192, 204, 216, 228, 240, 252, 264, 276, 288, 300, 312, 324, 336, 348, 360, 372,
+    384, 396, 408, 420, 432, 444, 456, 468, 480, 492, 504, 516, 528, 540, 552, 564,
+    576, 588, 600, 612, 624, 636, 648, 660, 672, 684, 696, 708, 720, 732, 744, 756,
+    768, 756, 744, 732, 720, 708, 696, 684, 672, 660, 648, 636, 624, 612, 600, 588,
+    576, 564, 552, 540, 528, 516, 504, 492, 480, 468, 456, 444, 432, 420, 408, 396,
+    384, 372, 360, 348, 336, 324, 312, 300, 288, 276, 264, 252, 240, 228, 216, 204,
+    192, 180, 168, 156, 144, 132, 120, 108, 96, 84, 72, 60, 48, 36, 24, 12,
+    0, -12, -24, -36, -48, -60, -72, -84, -96, -108, -120, -132, -144, -156, -168, -180,
+    -192, -204, -216, -228, -240, -252, -264, -276, -288, -300, -312, -324, -336, -348, -360, -372,
+    -384, -396, -408, -420, -432, -444, -456, -468, -480, -492, -504, -516, -528, -540, -552, -564,
+    -576, -588, -600, -612, -624, -636, -648, -660, -672, -684, -696, -708, -720, -732, -744, -756,
+    -768, -756, -744, -732, -720, -708, -696, -684, -672, -660, -648, -636, -624, -612, -600, -588,
+    -576, -564, -552, -540, -528, -516, -504, -492, -480, -468, -456, -444, -432, -420, -408, -396,
+    -384, -372, -360, -348, -336, -324, -312, -300, -288, -276, -264, -252, -240, -228, -216, -204,
+    -192, -180, -168, -156, -144, -132, -120, -108, -96, -84, -72, -60, -48, -36, -24, -12
+};
+
+/*
  * public SoundBank
  */
 
@@ -177,25 +200,43 @@ size_t SoundBank::instrPos(uint8_t instrNum, uint8_t midiKey) {
  * public Sequence
  */
 
-Sequence::Sequence(size_t songHeaderPos, uint8_t trackLimit)
-    : songHeaderPos(songHeaderPos)
+Sequence::Sequence(uint8_t trackLimit)
+    : trackLimit(trackLimit)
+{
+    Init(0);
+}
+
+void Sequence::Init(size_t songHeaderPos)
 {
     Rom& rom = Rom::Instance();
 
-    // read song header
-    size_t nTracks = std::min<uint8_t>(rom.ReadU8(songHeaderPos + 0), trackLimit);
+    this->songHeaderPos = songHeaderPos;
 
-    // read track pointers
-    for (size_t i = 0; i < nTracks; i++)
-        tracks.emplace_back(rom.ReadAgbPtrToPos(songHeaderPos + 8 + 4 * i));
+    tracks.clear();
+    if (songHeaderPos != 0) {
+        // read song header
+        size_t nTracks = std::min<uint8_t>(rom.ReadU8(songHeaderPos + 0), trackLimit);
+
+        // read track pointers
+        for (size_t i = 0; i < nTracks; i++)
+            tracks.emplace_back(rom.ReadAgbPtrToPos(songHeaderPos + 8 + 4 * i));
+    }
 
     // reset runtime variables
     bpmStack = 0;
     bpm = 150;
 }
 
+void Sequence::Reset()
+{
+    Init(songHeaderPos);
+}
+
 size_t Sequence::GetSoundBankPos()
 {
+    if (songHeaderPos == 0)
+        return 0;
+
     Rom& rom = Rom::Instance();
     /* Sometimes songs have 0 tracks and will not have a valid
      * sound bank pointer. Return a dummy result instead since
@@ -208,6 +249,9 @@ size_t Sequence::GetSoundBankPos()
 
 uint8_t Sequence::GetReverb()
 {
+    if (songHeaderPos == 0)
+        return 0;
+
     return Rom::Instance().ReadU8(songHeaderPos + 3);
 }
 
@@ -216,63 +260,26 @@ uint8_t Sequence::GetReverb()
  * Track
  */
 
-Sequence::Track::Track(size_t pos)
+Track::Track(size_t pos)
+    : pos(pos)
 {
-    // TODO corrently init all values
-    this->pos = pos;
-    activeNotes.reset();
-    patBegin = returnPos = 0;
-    modt = MODT::PITCH;
-    lastEvent = LEvent::NONE;
-    lastNoteKey = 60;
-    lastNoteVel = 127;
-    lastNoteLen = 96;
-    prog = PROG_UNDEFINED;
-    vol = 100;
-    lfos = 22;
-    delay = mod = reptCount = lfodl = 
-        lfodlCount = lfoPhase = echoVol = echoLen = 0;
-    bendr = 2;
-    pan = bend = tune = keyShift = 0;
-    muted = false;
-    isRunning = true;
-    pitch = 0;
 }
 
-const std::vector<int16_t> Sequence::triLut = {
-    0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120, 132, 144, 156, 168, 180,
-    192, 204, 216, 228, 240, 252, 264, 276, 288, 300, 312, 324, 336, 348, 360, 372,
-    384, 396, 408, 420, 432, 444, 456, 468, 480, 492, 504, 516, 528, 540, 552, 564,
-    576, 588, 600, 612, 624, 636, 648, 660, 672, 684, 696, 708, 720, 732, 744, 756,
-    768, 756, 744, 732, 720, 708, 696, 684, 672, 660, 648, 636, 624, 612, 600, 588,
-    576, 564, 552, 540, 528, 516, 504, 492, 480, 468, 456, 444, 432, 420, 408, 396,
-    384, 372, 360, 348, 336, 324, 312, 300, 288, 276, 264, 252, 240, 228, 216, 204,
-    192, 180, 168, 156, 144, 132, 120, 108, 96, 84, 72, 60, 48, 36, 24, 12,
-    0, -12, -24, -36, -48, -60, -72, -84, -96, -108, -120, -132, -144, -156, -168, -180,
-    -192, -204, -216, -228, -240, -252, -264, -276, -288, -300, -312, -324, -336, -348, -360, -372,
-    -384, -396, -408, -420, -432, -444, -456, -468, -480, -492, -504, -516, -528, -540, -552, -564,
-    -576, -588, -600, -612, -624, -636, -648, -660, -672, -684, -696, -708, -720, -732, -744, -756,
-    -768, -756, -744, -732, -720, -708, -696, -684, -672, -660, -648, -636, -624, -612, -600, -588,
-    -576, -564, -552, -540, -528, -516, -504, -492, -480, -468, -456, -444, -432, -420, -408, -396,
-    -384, -372, -360, -348, -336, -324, -312, -300, -288, -276, -264, -252, -240, -228, -216, -204,
-    -192, -180, -168, -156, -144, -132, -120, -108, -96, -84, -72, -60, -48, -36, -24, -12
-};
-
-int16_t Sequence::Track::GetPitch()
+int16_t Track::GetPitch()
 {
-    int m = (modt == MODT::PITCH) ? (triLut[lfoPhase] * mod) >> 8 : 0;
+    int m = (modt == MODT::PITCH) ? (modulationLut[lfoPhase] * mod) >> 8 : 0;
     return int16_t(bend * bendr + tune + m);
 }
 
-uint8_t Sequence::Track::GetVol()
+uint8_t Track::GetVol()
 {
-    int m = (modt == MODT::VOL) ? (triLut[lfoPhase] * mod * 3 * vol) >> 19 : 0;
+    int m = (modt == MODT::VOL) ? (modulationLut[lfoPhase] * mod * 3 * vol) >> 19 : 0;
     return uint8_t(std::clamp(vol + m, 0, 127));
 }
 
-int8_t Sequence::Track::GetPan()
+int8_t Track::GetPan()
 {
-    int m = (modt == MODT::PAN) ? (triLut[lfoPhase] * mod * 3) >> 12 : 0;
+    int m = (modt == MODT::PAN) ? (modulationLut[lfoPhase] * mod * 3) >> 12 : 0;
     return int8_t(std::clamp(pan + m, -64, 63));
 }
 

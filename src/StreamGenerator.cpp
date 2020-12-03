@@ -115,7 +115,7 @@ void StreamGenerator::processSequenceTick()
     // process all tracks
     bool isSongRunning = false;
     int ntrk = -1;
-    for (Sequence::Track& cTrk : seq.tracks) {
+    for (Track& cTrk : seq.tracks) {
         ntrk += 1;
         if (!cTrk.isRunning)
             continue;
@@ -457,7 +457,7 @@ void StreamGenerator::processSequenceTick()
     }
 } // end processSequenceTick
 
-void StreamGenerator::playNote(Sequence::Track& trk, Note note, uint8_t owner)
+void StreamGenerator::playNote(Track& trk, Note note, uint8_t owner)
 {
     if (trk.prog > 127)
         return;

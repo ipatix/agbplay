@@ -22,7 +22,8 @@ PlayerInterface::PlayerInterface(TrackviewGUI& trackUI, size_t initSongPos)
     masterLoudness(10.f),
     mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit())
 {
-    seq = std::make_unique<Sequence>(initSongPos, ConfigManager::Instance().GetCfg().GetTrackLimit());
+    seq = std::make_unique<Sequence>(ConfigManager::Instance().GetCfg().GetTrackLimit());
+    seq->Init(initSongPos);
     playerState = State::THREAD_DELETED;
     speedFactor = 64;
 
@@ -99,7 +100,8 @@ void PlayerInterface::LoadSong(size_t songPos)
     bool play = playerState == State::PLAYING;
     Stop();
     GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
-    seq = std::make_unique<Sequence>(songPos, gameCfg.GetTrackLimit());
+    seq = std::make_unique<Sequence>(gameCfg.GetTrackLimit());
+    seq->Init(songPos);
     setupLoudnessCalcs();
     float vols[seq->tracks.size() * N_CHANNELS];
     for (size_t i = 0; i < seq->tracks.size() * N_CHANNELS; i++)
@@ -281,6 +283,7 @@ void PlayerInterface::threadWorker()
         while (playerState != State::SHUTDOWN) {
             switch (playerState) {
                 case State::RESTART:
+                    seq->Reset();
                     sg = std::make_unique<StreamGenerator>(*seq, EnginePars(gameCfg.GetPCMVol(), gameCfg.GetEngineRev(), gameCfg.GetEngineFreq()), MAX_LOOPS, float(speedFactor) / 64.0f, gameCfg.GetRevType());
                     playerState = State::PLAYING;
                     [[fallthrough]];

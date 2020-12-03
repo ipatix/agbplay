@@ -48,5 +48,5 @@ private:
 
     void processSequenceFrame();
     void processSequenceTick();
-    void playNote(Sequence::Track& trk, Note note, uint8_t owner);
+    void playNote(Track& trk, Note note, uint8_t owner);
 };

@@ -17,7 +17,6 @@ PlaylistGUI::PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_
 {
     // init
     ticked.resize(ConfigManager::Instance().GetCfg().GetGameEntries().size(), true);
-    this->gameCode = gameCode;
     dragging = false;
     update();
 }

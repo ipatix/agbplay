@@ -27,6 +27,5 @@ private:
     void scrollUpNoUpdate() override;
 
     std::vector<bool> ticked;
-    std::string gameCode;
     bool dragging;
 };

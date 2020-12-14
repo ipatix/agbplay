@@ -22,8 +22,8 @@ private:
     std::vector<float> bufData;
     std::mutex countLock;
     std::condition_variable sig;
-    size_t freePos;
-    size_t dataPos;
+    size_t freePos = 0;
+    size_t dataPos = 0;
     size_t freeCount;
-    size_t dataCount;
+    size_t dataCount = 0;
 };

@@ -7,12 +7,8 @@
  */
 
 Ringbuffer::Ringbuffer(size_t elementCount)
-    : bufData(elementCount)
+    : bufData(elementCount), freeCount(elementCount)
 {
-    freePos = 0;
-    dataPos = 0;
-    freeCount = elementCount;
-    dataCount = 0;
 }
 
 void Ringbuffer::Put(float *inData, size_t nElements)
@@ -49,6 +45,10 @@ void Ringbuffer::Clear()
 {
     std::unique_lock<std::mutex> lock(countLock);
     std::fill(bufData.begin(), bufData.end(), 0.0f);
+    freePos = 0;
+    dataPos = 0;
+    freeCount = bufData.size();
+    dataCount = 0;
 }
 
 /*

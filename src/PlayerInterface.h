@@ -47,7 +47,7 @@ private:
     PaStream *audioStream;
     uint32_t speedFactor; // 64 = normal
     volatile enum class State : int { RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED } playerState;
-    std::unique_ptr<Sequence> seq;
+    Sequence seq;
     std::unique_ptr<StreamGenerator> sg;
     TrackviewGUI& trackUI;
     Ringbuffer rBuf;

@@ -12,7 +12,7 @@ bool Debug::open(const char *file) {
     if (!file)
         return true;
 
-    debug_file = fopen("_DEBUG.txt", "w");
+    debug_file = fopen(file, "w");
     if (debug_file == nullptr) {
         perror("fopen");
         return false;

@@ -116,12 +116,12 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
     if (t == InstrType::SQ1 || t == InstrType::SQ2) {
         uint32_t dutyCycle = rom.ReadU32(pos + 4);
         switch (dutyCycle) {
-            case 0: def.wd = WaveDuty::D12; break;
-            case 1: def.wd = WaveDuty::D25; break;
-            case 2: def.wd = WaveDuty::D50; break;
-            case 3: def.wd = WaveDuty::D75; break;
-            default:
-                throw Xcept("SoundBank Error: Invalid square wave duty cycle at [%08X+4]=%08X", pos, dutyCycle);
+        case 0: def.wd = WaveDuty::D12; break;
+        case 1: def.wd = WaveDuty::D25; break;
+        case 2: def.wd = WaveDuty::D50; break;
+        case 3: def.wd = WaveDuty::D75; break;
+        default:
+            throw Xcept("SoundBank Error: Invalid square wave duty cycle at [%08X+4]=%08X", pos, dutyCycle);
         }
     } else if (t == InstrType::WAVE) {
         def.wavePtr = static_cast<const uint8_t *>(rom.GetPtr(rom.ReadAgbPtrToPos(pos + 4)));

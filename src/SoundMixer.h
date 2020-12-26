@@ -11,64 +11,43 @@
 #include "CGBChannel.h"
 #include "Constants.h"
 
-#define NOTE_ALL 0xFE
-#define NOTE_TIE -1
 // AGB has 60 FPS based processing
 #define AGB_FPS 60
-// stereo, so 2 channels
-#define N_CHANNELS 2
-// enable pan snap for CGB
-#define CGB_PAN_SNAP
-#define MASTER_VOL 1.0f
+
+struct PlayerContext;
 
 class SoundMixer
 {
 public:
-    SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype, uint8_t ntracks);
+    SoundMixer(PlayerContext& ctx, uint32_t sampleRate, float masterVolume);
     SoundMixer(const SoundMixer&) = delete;
     SoundMixer& operator=(const SoundMixer&) = delete;
 
-    void NewSoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
-    void NewCGBNote(uint8_t owner, CGBDef def, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, CGBType type);
-    void SetTrackPV(uint8_t owner, uint8_t vol, int8_t pan, int16_t pitch);
-    int TickTrackNotes(uint8_t owner, std::bitset<NUM_NOTES>& activeNotes);
-    void StopChannel(uint8_t owner, uint8_t key);
-    std::vector<std::vector<float>>& ProcessAndGetAudio();
-    size_t GetActiveChannelCount();
-    size_t GetBufferUnitCount();
-    uint32_t GetRenderSampleRate();
-    void FadeOut(float millis);
-    void FadeIn(float millis);
-    bool IsFadeDone();
+    void Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVolume, ReverbType rtype, uint8_t numTracks);
+
+    void Process(std::vector<std::vector<sample>>& outputBuffers);
+    size_t GetSamplesPerBuffer() const;
+    uint32_t GetSampleRate() const;
+    void ResetFade();
+    void StartFadeOut(float millis);
+    void StartFadeIn(float millis);
+    bool IsFadeDone() const;
 
 private:
-    void purgeChannels();
-    void clearBuffers();
-    void renderToBuffers();
-
-    std::bitset<NUM_NOTES> activeBackBuffer;
-
-    // channel management
-    std::list<SoundChannel> sndChannels;
-    SquareChannel sq1;
-    SquareChannel sq2;
-    WaveChannel wave;
-    NoiseChannel noise;
+    PlayerContext& ctx;
 
     std::vector<std::unique_ptr<ReverbEffect>> revdsps;
-    std::vector<std::vector<float>> soundBuffers;
     uint32_t sampleRate;
-    uint32_t fixedModeRate;
-    size_t samplesPerBuffer;
-    float sampleRateReciprocal;
+    uint32_t fixedModeRate = 13379;
+    size_t samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
 
     // volume control related stuff
 
     float masterVolume;
-    float pcmMasterVolume;
-    float fadePos;
-    float fadeStepPerMicroframe;
-    size_t fadeMicroframesLeft;
+    float pcmMasterVolume = masterVolume;
+    float fadePos = 1.0f;
+    float fadeStepPerMicroframe = 0.0f;
+    size_t fadeMicroframesLeft = 0;
 
-    uint8_t ntracks;
+    uint8_t numTracks = 0;
 };

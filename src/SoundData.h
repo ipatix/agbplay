@@ -10,9 +10,11 @@ enum class InstrType { PCM, PCM_FIXED, SQ1, SQ2, WAVE, NOISE, INVALID };
 class SoundBank
 {
 public:
-    SoundBank(size_t bankPos);
+    SoundBank() = default;
     SoundBank(const SoundBank&) = delete;
     SoundBank& operator=(const SoundBank&) = delete;
+
+    void Init(size_t bankPos);
 
     InstrType GetInstrType(uint8_t instrNum, uint8_t midiKey);
     uint8_t GetMidiKey(uint8_t instrNum, uint8_t midiKey);
@@ -23,7 +25,7 @@ public:
     ADSR GetADSR(uint8_t instrNum, uint8_t midiKey);
 private:
     size_t instrPos(uint8_t instrNum, uint8_t midiKey);
-    size_t bankPos;
+    size_t bankPos = 0;
 };
 
 enum class MODT : int { PITCH = 0, VOL, PAN };
@@ -75,7 +77,8 @@ public:
     int32_t bpmStack;
     uint16_t bpm;
     size_t GetSoundBankPos();
-    uint8_t GetReverb();
+    uint8_t GetReverb() const;
+    size_t GetSongHeaderPos() const;
 private:
     size_t songHeaderPos;
     uint8_t trackLimit;
@@ -84,7 +87,7 @@ private:
 class SongTable 
 {
 public:
-    SongTable(size_t songTablePos);
+    SongTable(size_t songTablePos = UNKNOWN_TABLE);
     SongTable(const SongTable&) = delete;
     SongTable& operator=(const SongTable&) = delete;
 
@@ -99,13 +102,4 @@ private:
 
     size_t songTablePos;
     size_t numSongs;
-};
-
-struct SoundData 
-{
-    SoundData();
-    SoundData(const SoundData&) = delete;
-    SoundData& operator=(const SoundData&) = delete;
-
-    SongTable sTable;
 };

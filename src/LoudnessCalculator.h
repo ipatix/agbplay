@@ -2,6 +2,8 @@
 
 #include <cstddef>
 
+#include "Types.h"
+
 class LoudnessCalculator
 {
 public:
@@ -10,7 +12,7 @@ public:
     LoudnessCalculator(LoudnessCalculator&&) = default;
     LoudnessCalculator& operator=(const LoudnessCalculator&) = delete;
 
-    void CalcLoudness(const float *audio, const size_t nBlocks);
+    void CalcLoudness(const sample *audio, size_t numSamples);
     void GetLoudness(float& lVol, float& rVol);
     void Reset();
 private:

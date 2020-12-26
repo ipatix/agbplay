@@ -63,7 +63,7 @@
 class WindowGUI 
 {
 public:
-    WindowGUI(SoundData& rsdata);
+    WindowGUI(SongTable& songTable);
     WindowGUI(const WindowGUI&) = delete;
     WindowGUI& operator=(const WindowGUI&) = delete;
     ~WindowGUI();
@@ -104,7 +104,7 @@ private:
     std::unique_ptr<VUMeterGUI> meterUI;
 
     // resource
-    SoundData& sdata;
+    SongTable& songTable;
     std::unique_ptr<PlayerInterface> mplay;
 
     // ncurses windows

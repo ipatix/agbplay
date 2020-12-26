@@ -10,18 +10,19 @@ LoudnessCalculator::LoudnessCalculator(const float lowpassFreq)
 {
 }
 
-void LoudnessCalculator::CalcLoudness(const float *audio, size_t nBlocks)
+void LoudnessCalculator::CalcLoudness(const sample *audio, size_t numSamples)
 {
     do {
-        float l = *audio++;
-        float r = *audio++;
-        assert(!isnan(l) && !isnan(r));
-        assert(!isinf(l) && !isinf(r));
+        float l = audio->left;
+        float r = audio->right;
+        audio++;
+        assert(!std::isnan(l) && !std::isnan(r));
+        assert(!std::isinf(l) && !std::isinf(r));
         l *= l;
         r *= r;
         avgVolLeftSq = avgVolLeftSq + lpAlpha * (l - avgVolLeftSq);
         avgVolRightSq = avgVolRightSq + lpAlpha * (r - avgVolRightSq);
-    } while (--nBlocks > 0);
+    } while (--numSamples > 0);
 
     static const float sqrt_2 = sqrtf(2.0f);
 

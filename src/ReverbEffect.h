@@ -7,20 +7,19 @@
 #include "Types.h"
 
 #define AGB_FPS 60
-#define N_CHANNELS 2
 
 class ReverbEffect
 {
 public:
     ReverbEffect(uint8_t intesity, size_t streamRate, uint8_t numAgbBuffers);
     virtual ~ReverbEffect();
-    void ProcessData(float *buffer, size_t nBlocks);
+    void ProcessData(sample *buffer, size_t numSamples);
 protected:
-    virtual size_t processInternal(float *buffer, size_t nBlocks);
+    virtual size_t processInternal(sample *buffer, size_t numSamples);
     size_t getBlocksPerBuffer() const;
     float intensity;
     //size_t streamRate;
-    std::vector<float> reverbBuffer;
+    std::vector<sample> reverbBuffer;
     size_t bufferPos;
     size_t bufferPos2;
 };
@@ -31,9 +30,9 @@ public:
     ReverbGS1(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers);
     ~ReverbGS1() override;
 protected:
-    size_t processInternal(float *buffer, size_t nBlocks) override;
+    size_t processInternal(sample *buffer, size_t numSamples) override;
     size_t getBlocksPerGsBuffer() const;
-    std::vector<float> gsBuffer;
+    std::vector<sample> gsBuffer;
 };
 
 class ReverbGS2 : public ReverbEffect
@@ -43,8 +42,8 @@ public:
             float rPrimFac, float rSecFac);
     ~ReverbGS2() override;
 protected:
-    size_t processInternal(float *buffer, size_t nBlocks) override;
-    std::vector<float> gs2Buffer;
+    size_t processInternal(sample *buffer, size_t numSamples) override;
+    std::vector<sample> gs2Buffer;
     size_t gs2Pos;
     float rPrimFac, rSecFac;
 };
@@ -55,5 +54,5 @@ public:
     ReverbTest(uint8_t intesity, size_t streamRate, uint8_t numAgbBuffers);
     ~ReverbTest() override;
 protected:
-    size_t processInternal(float *buffer, size_t nBlocks) override;
+    size_t processInternal(sample *buffer, size_t numSamples) override;
 };

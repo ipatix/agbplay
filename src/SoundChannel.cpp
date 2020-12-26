@@ -14,15 +14,9 @@
  */
 
 SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed)
+    : env(env), note(note), sInfo(sInfo), fixed(fixed), owner(owner)
 {
-    this->owner = owner;
-    this->note = note;
-    this->env = env;
-    this->sInfo = sInfo;
-    this->eState = EnvState::INIT;
-    this->envInterStep = 0;
     SetVol(vol, pan);
-    this->fixed = fixed;
 
     GameConfig& cfg = ConfigManager::Instance().GetCfg();
     ResamplerType t = fixed ? cfg.GetResTypeFixed() : cfg.GetResType();
@@ -41,10 +35,7 @@ SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note,
         break;
     }
 
-    this->interPos = 0.0f;
     SetPitch(pitch);
-    // if instant attack is ative directly max out the envelope to not cut off initial sound
-    this->pos = 0;
 
     // Golden Sun's synth instruments are marked by having a length of zero and a loop of zero
     if (sInfo.loopEnabled == true && sInfo.loopPos == 0 && sInfo.endPos == 0) {
@@ -67,15 +58,15 @@ SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note,
     this->shiftMPTcompressed = 0x38;
 }
 
-void SoundChannel::Process(float *buffer, size_t nblocks, const MixingArgs& args)
+void SoundChannel::Process(sample *buffer, size_t numSamples, const MixingArgs& args)
 {
     stepEnvelope();
     if (GetState() == EnvState::DEAD)
         return;
-    if (nblocks == 0)
+    if (numSamples == 0)
         return;
 
-    float nBlocksReciprocal = 1.f / float(nblocks);
+    float samplesPerBufferInv = 1.0f / float(numSamples);
 
     ChnVol vol = getVol();
     vol.fromVolLeft *= args.vol;
@@ -84,33 +75,33 @@ void SoundChannel::Process(float *buffer, size_t nblocks, const MixingArgs& args
     vol.toVolRight *= args.vol;
 
     ProcArgs cargs;
-    cargs.lVolStep = (vol.toVolLeft - vol.fromVolLeft) * nBlocksReciprocal;
-    cargs.rVolStep = (vol.toVolRight - vol.fromVolRight) * nBlocksReciprocal;
+    cargs.lVolStep = (vol.toVolLeft - vol.fromVolLeft) * samplesPerBufferInv;
+    cargs.rVolStep = (vol.toVolRight - vol.fromVolRight) * samplesPerBufferInv;
     cargs.lVol = vol.fromVolLeft;
     cargs.rVol = vol.fromVolRight;
 
     if (fixed && !isGS)
-        cargs.interStep = float(args.fixedModeRate) * args.sampleRateReciprocal;
+        cargs.interStep = float(args.fixedModeRate) * args.sampleRateInv;
     else 
-        cargs.interStep = freq * args.sampleRateReciprocal;
+        cargs.interStep = freq * args.sampleRateInv;
 
     if (isGS) {
         cargs.interStep /= 64.f; // different scale for GS
         // switch by GS type
         if (sInfo.samplePtr[1] == 0) {
-            processModPulse(buffer, nblocks, cargs, nBlocksReciprocal);
+            processModPulse(buffer, numSamples, cargs, samplesPerBufferInv);
         } else if (sInfo.samplePtr[1] == 1) {
-            processSaw(buffer, nblocks, cargs);
+            processSaw(buffer, numSamples, cargs);
         } else {
-            processTri(buffer, nblocks, cargs);
+            processTri(buffer, numSamples, cargs);
         }
     } else {
-        processNormal(buffer, nblocks, cargs);
+        processNormal(buffer, numSamples, cargs);
     }
     updateVolFade();
 }
 
-uint8_t SoundChannel::GetOwner()
+uint8_t SoundChannel::GetOwner() const
 {
     return owner;
 }
@@ -136,12 +127,12 @@ ChnVol SoundChannel::getVol()
             float(rightVol) * finalToEnv * (1.0f / 65536.0f));
 }
 
-uint8_t SoundChannel::GetMidiKey()
+uint8_t SoundChannel::GetMidiKey() const
 {
     return note.originalKey;
 }
 
-int8_t SoundChannel::GetNoteLength()
+int8_t SoundChannel::GetNoteLength() const
 {
     return note.length;
 }
@@ -182,17 +173,12 @@ bool SoundChannel::TickNote()
     }
 }
 
-EnvState SoundChannel::GetState()
+EnvState SoundChannel::GetState() const
 {
     return eState;
 }
 
-SampleInfo& SoundChannel::GetInfo()
-{
-    return sInfo;
-}
-
-uint8_t SoundChannel::GetInterStep()
+uint8_t SoundChannel::GetInterStep() const
 {
     return envInterStep;
 }
@@ -278,32 +264,33 @@ void SoundChannel::updateVolFade()
  * private SoundChannel
  */
 
-void SoundChannel::processNormal(float *buffer, size_t nblocks, ProcArgs& cargs) {
-    if (nblocks == 0)
+void SoundChannel::processNormal(sample *buffer, size_t numSamples, ProcArgs& cargs) {
+    if (numSamples == 0)
         return;
-    float outBuffer[nblocks];
+    float outBuffer[numSamples];
 
     bool running;
     if (this->isMPTcompressed) {
-        running = rs->Process(outBuffer, nblocks, cargs.interStep, sampleFetchCallbackMPTDecomp, this);
+        running = rs->Process(outBuffer, numSamples, cargs.interStep, sampleFetchCallbackMPTDecomp, this);
     } else {
-        running = rs->Process(outBuffer, nblocks, cargs.interStep, sampleFetchCallback, this);
+        running = rs->Process(outBuffer, numSamples, cargs.interStep, sampleFetchCallback, this);
     }
 
     size_t i = 0;
     do {
         float samp = outBuffer[i++];
 
-        *buffer++ += samp * cargs.lVol;
-        *buffer++ += samp * cargs.rVol;
+        buffer->left  += samp * cargs.lVol;
+        buffer->right += samp * cargs.rVol;
+        buffer++;
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
-    } while (--nblocks > 0);
+    } while (--numSamples > 0);
     if (!running)
         Kill();
 }
 
-void SoundChannel::processModPulse(float *buffer, size_t nblocks, ProcArgs& cargs, float nBlocksReciprocal)
+void SoundChannel::processModPulse(sample *buffer, size_t numSamples, ProcArgs& cargs, float nBlocksReciprocal)
 {
 #define DUTY_BASE 2
 #define DUTY_STEP 3
@@ -342,8 +329,9 @@ void SoundChannel::processModPulse(float *buffer, size_t nblocks, ProcArgs& carg
         // correct dc offset
         baseSamp += 0.5f - fThreshold;
         fThreshold += threshStep;
-        *buffer++ += baseSamp * cargs.lVol;
-        *buffer++ += baseSamp * cargs.rVol;
+        buffer->left  += baseSamp * cargs.lVol;
+        buffer->right += baseSamp * cargs.rVol;
+        buffer++;
 
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
@@ -351,10 +339,10 @@ void SoundChannel::processModPulse(float *buffer, size_t nblocks, ProcArgs& carg
         interPos += cargs.interStep;
         // this below might glitch for too high frequencies, which usually shouldn't be used anyway
         if (interPos >= 1.0f) interPos -= 1.0f;
-    } while (--nblocks > 0);
+    } while (--numSamples > 0);
 }
 
-void SoundChannel::processSaw(float *buffer, size_t nblocks, ProcArgs& cargs)
+void SoundChannel::processSaw(sample *buffer, size_t numSamples, ProcArgs& cargs)
 {
     const uint32_t fix = 0x70;
 
@@ -373,15 +361,16 @@ void SoundChannel::processSaw(float *buffer, size_t nblocks, ProcArgs& cargs)
 
         float baseSamp = float((int32_t)pos) / 256.0f;
 
-        *buffer++ += baseSamp * cargs.lVol;
-        *buffer++ += baseSamp * cargs.rVol;
+        buffer->left  += baseSamp * cargs.lVol;
+        buffer->right += baseSamp * cargs.rVol;
+        buffer++;
 
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
-    } while (--nblocks > 0);
+    } while (--numSamples > 0);
 }
 
-void SoundChannel::processTri(float *buffer, size_t nblocks, ProcArgs& cargs)
+void SoundChannel::processTri(sample *buffer, size_t numSamples, ProcArgs& cargs)
 {
     do {
         interPos += cargs.interStep;
@@ -393,12 +382,13 @@ void SoundChannel::processTri(float *buffer, size_t nblocks, ProcArgs& cargs)
             baseSamp = 3.0f - (4.0f * interPos);
         }
 
-        *buffer++ += baseSamp * cargs.lVol;
-        *buffer++ += baseSamp * cargs.rVol;
+        buffer->left  += baseSamp * cargs.lVol;
+        buffer->right += baseSamp * cargs.rVol;
+        buffer++;
 
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
-    } while (--nblocks > 0);
+    } while (--numSamples > 0);
 }
 
 bool SoundChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)

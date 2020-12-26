@@ -29,8 +29,8 @@ struct MixingArgs
 {
     float vol;
     uint32_t fixedModeRate;
-    float sampleRateReciprocal;
-    float nBlocksReciprocal;
+    float sampleRateInv;
+    float samplesPerBufferInv;
 };
 
 struct ChnVol
@@ -72,4 +72,18 @@ struct SampleInfo
     uint32_t loopPos;
     uint32_t endPos;
     bool loopEnabled;
+};
+
+struct EnginePars
+{
+    EnginePars(uint8_t vol, uint8_t rev, uint8_t freq);
+
+    uint8_t vol;
+    uint8_t rev;
+    uint8_t freq;
+};
+
+struct sample {
+    float left;
+    float right;
 };

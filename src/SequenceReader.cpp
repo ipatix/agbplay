@@ -1,36 +1,28 @@
 #include <cmath>
 
-#include "StreamGenerator.h"
+#include "SequenceReader.h"
 #include "Xcept.h"
 #include "Util.h"
 #include "Debug.h"
 #include "Rom.h"
+#include "PlayerContext.h"
 
 #define SONG_FADE_OUT_TIME 10000
 #define SONG_FINISH_TIME 1000
+#define NOTE_TIE -1
+#define NOTE_ALL 0xFE
 
 /*
- * public EnginePars
+ * SequenceReader data
  */
 
-EnginePars::EnginePars(uint8_t vol, uint8_t rev, uint8_t freq)
-{
-    this->vol = vol;
-    this->rev = rev;
-    this->freq = freq;
-}
-
-/*
- * public StreamGenerator
- */
-
-const std::vector<uint32_t> StreamGenerator::freqLut = {
+const std::vector<uint32_t> SequenceReader::freqLut = {
     5734, 7884, 10512, 13379,
     15768, 18157, 21024, 26758,
     31536, 36314, 40137, 42048
 };
 
-const std::map<uint8_t, int8_t> StreamGenerator::delayLut = {
+const std::map<uint8_t, int8_t> SequenceReader::delayLut = {
     {0x81,1 }, {0x82,2 }, {0x83,3 }, {0x84,4 }, {0x85,5 }, {0x86,6 }, {0x87,7 }, {0x88,8 },
     {0x89,9 }, {0x8A,10}, {0x8B,11}, {0x8C,12}, {0x8D,13}, {0x8E,14}, {0x8F,15}, {0x90,16},
     {0x91,17}, {0x92,18}, {0x93,19}, {0x94,20}, {0x95,21}, {0x96,22}, {0x97,23}, {0x98,24},
@@ -39,7 +31,7 @@ const std::map<uint8_t, int8_t> StreamGenerator::delayLut = {
     {0xA9,76}, {0xAA,78}, {0xAB,80}, {0xAC,84}, {0xAD,88}, {0xAE,90}, {0xAF,92}, {0xB0,96}
 };
 
-const std::map<uint8_t, int8_t> StreamGenerator::noteLut = {
+const std::map<uint8_t, int8_t> SequenceReader::noteLut = {
     {0xD0,1 }, {0xD1,2 }, {0xD2,3 }, {0xD3,4 }, {0xD4,5 }, {0xD5,6 }, {0xD6,7 }, {0xD7,8 },
     {0xD8,9 }, {0xD9,10}, {0xDA,11}, {0xDB,12}, {0xDC,13}, {0xDD,14}, {0xDE,15}, {0xDF,16},
     {0xE0,17}, {0xE1,18}, {0xE2,19}, {0xE3,20}, {0xE4,21}, {0xE5,22}, {0xE6,23}, {0xE7,24},
@@ -48,74 +40,50 @@ const std::map<uint8_t, int8_t> StreamGenerator::noteLut = {
     {0xF8,76}, {0xF9,78}, {0xFA,80}, {0xFB,84}, {0xFC,88}, {0xFD,90}, {0xFE,92}, {0xFF,96}
 };
 
-StreamGenerator::StreamGenerator(Sequence& seq, EnginePars ep, uint8_t maxLoops, float speedFactor, ReverbType rtype) 
-: seq(seq), sbnk(seq.GetSoundBankPos()), ep(ep),
-    sm(STREAM_SAMPLERATE, freqLut[std::clamp<uint8_t>(uint8_t(ep.freq-1), 0, 11)], 
-            (ep.rev >= 0x80) ? ep.rev & 0x7F : seq.GetReverb() & 0x7F,
-            float(ep.vol + 1) / 16.0f,
-            rtype, (uint8_t)seq.tracks.size())
+/*
+ * public SequenceReader
+ */
+
+SequenceReader::SequenceReader(PlayerContext& ctx, uint8_t maxLoops) 
+    : ctx(ctx), maxLoops(maxLoops)
 {
-    this->maxLoops = maxLoops;
-    this->speedFactor = speedFactor;
-    this->isEnding = false;
 }
 
-size_t StreamGenerator::GetBufferUnitCount()
+void SequenceReader::Process()
 {
-    return sm.GetBufferUnitCount();
+    ctx.seq.bpmStack += uint32_t(float(ctx.seq.bpm) * speedFactor);
+    while (ctx.seq.bpmStack >= BPM_PER_FRAME * INTERFRAMES) {
+        processSequenceTick();
+        ctx.seq.bpmStack -= BPM_PER_FRAME * INTERFRAMES;
+    }
 }
 
-size_t StreamGenerator::GetActiveChannelCount()
+bool SequenceReader::EndReached() const
 {
-    return sm.GetActiveChannelCount();
+    return endReached;
 }
 
-uint32_t StreamGenerator::GetRenderSampleRate()
+void SequenceReader::Restart()
 {
-    return sm.GetRenderSampleRate();
+    endReached = false;
 }
 
-std::vector<std::vector<float>>& StreamGenerator::ProcessAndGetAudio()
-{
-    processSequenceFrame();
-    return sm.ProcessAndGetAudio();
-}
-
-bool StreamGenerator::HasStreamEnded()
-{
-    return isEnding && sm.IsFadeDone();
-}
-
-Sequence& StreamGenerator::GetWorkingSequence()
-{
-    return seq;
-}
-
-void StreamGenerator::SetSpeedFactor(float speedFactor)
+void SequenceReader::SetSpeedFactor(float speedFactor)
 {
     this->speedFactor = speedFactor;
 }
 
 /*
- * private StreamGenerator
+ * private SequenceReader
  */
 
-void StreamGenerator::processSequenceFrame()
-{
-    seq.bpmStack += uint32_t(float(seq.bpm) * speedFactor);
-    while (seq.bpmStack >= BPM_PER_FRAME * INTERFRAMES) {
-        processSequenceTick();
-        seq.bpmStack -= BPM_PER_FRAME * INTERFRAMES;
-    }
-}
-
-void StreamGenerator::processSequenceTick()
+void SequenceReader::processSequenceTick()
 {
     Rom& rom = Rom::Instance();
     // process all tracks
     bool isSongRunning = false;
     int ntrk = -1;
-    for (Track& cTrk : seq.tracks) {
+    for (Track& cTrk : ctx.seq.tracks) {
         ntrk += 1;
         if (!cTrk.isRunning)
             continue;
@@ -126,7 +94,7 @@ void StreamGenerator::processSequenceTick()
             cTrk.lfoPhase = uint8_t(cTrk.lfoPhase + cTrk.lfos);
         else
             cTrk.lfoPhase = 0; // if mod is 0, set phase to 0 too
-        if (sm.TickTrackNotes(uint8_t(ntrk), cTrk.activeNotes) > 0) {
+        if (tickTrackNotes(uint8_t(ntrk), cTrk.activeNotes) > 0) {
             if (cTrk.lfodlCount > 0) {
                 cTrk.lfodlCount--;
                 cTrk.lfoPhase = 0;
@@ -218,7 +186,7 @@ void StreamGenerator::processSequenceTick()
                         case LEvent::EOT:
                             {
                                 uint8_t key = cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(cmd));
-                                sm.StopChannel(uint8_t(ntrk), key);
+                                stopNote(key, uint8_t(ntrk));
                                 cTrk.lastNoteKey = key;
                             }
                             break;
@@ -237,14 +205,14 @@ void StreamGenerator::processSequenceTick()
                         case 0xB1:
                             // FINE, end of track
                             cTrk.isRunning = false;
-                            sm.StopChannel(uint8_t(ntrk), NOTE_ALL);
+                            stopNote(NOTE_ALL, uint8_t(ntrk));
                             break;
                         case 0xB2:
                             // GOTO
                             if (ntrk == 0) {
                                 if (maxLoops-- <= 0) {
-                                    isEnding = true;
-                                    sm.FadeOut(SONG_FADE_OUT_TIME);
+                                    endReached = true;
+                                    ctx.mixer.StartFadeOut(SONG_FADE_OUT_TIME);
                                 }
                             }
                             cTrk.pos = rom.ReadAgbPtrToPos(cTrk.pos);
@@ -287,7 +255,7 @@ void StreamGenerator::processSequenceTick()
                             break;
                         case 0xBB:
                             // TEMPO
-                            seq.bpm = static_cast<uint16_t>(rom.ReadU8(cTrk.pos++) * 2);
+                            ctx.seq.bpm = static_cast<uint16_t>(rom.ReadU8(cTrk.pos++) * 2);
                             break;
                         case 0xBC:
                             // KEYSH, transpose
@@ -372,11 +340,11 @@ void StreamGenerator::processSequenceTick()
                                 cTrk.lastEvent = LEvent::EOT;
                                 uint8_t next = rom.ReadU8(cTrk.pos);
                                 if (next < 128) {
-                                    sm.StopChannel(uint8_t(ntrk), uint8_t(cTrk.keyShift + int(next)));
+                                    stopNote(uint8_t(cTrk.keyShift + int(next)), uint8_t(ntrk));
                                     cTrk.lastNoteKey = uint8_t(cTrk.keyShift + int(next));
                                     cTrk.pos++;
                                 } else {
-                                    sm.StopChannel(uint8_t(ntrk), cTrk.lastNoteKey);
+                                    stopNote(cTrk.lastNoteKey, uint8_t(ntrk));
                                 }
                             }
                             break;
@@ -443,7 +411,7 @@ void StreamGenerator::processSequenceTick()
             } // end of processing loop
         } // end of single tick processing handler
         if (updatePV || cTrk.mod > 0) {
-            sm.SetTrackPV(uint8_t(ntrk), 
+            setTrackPV(uint8_t(ntrk), 
                     cTrk.GetVol(),
                     cTrk.GetPan(),
                     cTrk.pitch = cTrk.GetPitch());
@@ -451,27 +419,27 @@ void StreamGenerator::processSequenceTick()
             cTrk.pitch = cTrk.GetPitch();
         }
     } // end of track iteration
-    if (!isSongRunning && !isEnding) {
-        sm.FadeOut(SONG_FINISH_TIME);
-        isEnding = true;
+    if (!isSongRunning && !endReached) {
+        ctx.mixer.StartFadeOut(SONG_FINISH_TIME);
+        endReached = true;
     }
 } // end processSequenceTick
 
-void StreamGenerator::playNote(Track& trk, Note note, uint8_t owner)
+void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
 {
     if (trk.prog > 127)
         return;
 
     uint8_t oldKey = note.midiKey;
-    note.midiKey = sbnk.GetMidiKey(trk.prog, oldKey);
-    switch (sbnk.GetInstrType(trk.prog, oldKey)) {
+    note.midiKey = ctx.bnk.GetMidiKey(trk.prog, oldKey);
+    switch (ctx.bnk.GetInstrType(trk.prog, oldKey)) {
         case InstrType::PCM:
             {
-                uint8_t pan = sbnk.GetPan(trk.prog, oldKey);
-                sm.NewSoundChannel(
+                uint8_t pan = ctx.bnk.GetPan(trk.prog, oldKey);
+                ctx.sndChannels.emplace_back(
                         owner,
-                        sbnk.GetSampInfo(trk.prog, oldKey),
-                        sbnk.GetADSR(trk.prog, oldKey),
+                        ctx.bnk.GetSampInfo(trk.prog, oldKey),
+                        ctx.bnk.GetADSR(trk.prog, oldKey),
                         note,
                         trk.GetVol(),
                         (pan & 0x80) ? int8_t(int(pan) - 0xC0) : trk.GetPan(),
@@ -481,11 +449,11 @@ void StreamGenerator::playNote(Track& trk, Note note, uint8_t owner)
             break;
         case InstrType::PCM_FIXED:
             {
-                uint8_t pan = sbnk.GetPan(trk.prog, oldKey);
-                sm.NewSoundChannel(
+                uint8_t pan = ctx.bnk.GetPan(trk.prog, oldKey);
+                ctx.sndChannels.emplace_back(
                         owner,
-                        sbnk.GetSampInfo(trk.prog, oldKey),
-                        sbnk.GetADSR(trk.prog, oldKey),
+                        ctx.bnk.GetSampInfo(trk.prog, oldKey),
+                        ctx.bnk.GetADSR(trk.prog, oldKey),
                         note,
                         trk.GetVol(),
                         (pan & 0x80) ? int8_t(int(pan) - 0xC0) : trk.GetPan(),
@@ -494,50 +462,111 @@ void StreamGenerator::playNote(Track& trk, Note note, uint8_t owner)
             }
             break;
         case InstrType::SQ1:
-            sm.NewCGBNote(
+            // TODO Does pan of drum tables really only affect PCM channels?
+            ctx.sq1Channels.emplace_back(
                     owner, 
-                    sbnk.GetCGBDef(trk.prog, oldKey),
-                    sbnk.GetADSR(trk.prog, oldKey),
+                    ctx.bnk.GetCGBDef(trk.prog, oldKey).wd,
+                    ctx.bnk.GetADSR(trk.prog, oldKey),
                     note, 
                     trk.GetVol(), 
                     trk.GetPan(), 
-                    trk.GetPitch(), 
-                    CGBType::SQ1);
+                    trk.GetPitch());
             break;
         case InstrType::SQ2:
-            sm.NewCGBNote(
+            ctx.sq2Channels.emplace_back(
                     owner, 
-                    sbnk.GetCGBDef(trk.prog, oldKey),
-                    sbnk.GetADSR(trk.prog, oldKey),
+                    ctx.bnk.GetCGBDef(trk.prog, oldKey).wd,
+                    ctx.bnk.GetADSR(trk.prog, oldKey),
                     note, 
                     trk.GetVol(), 
                     trk.GetPan(), 
-                    trk.GetPitch(), 
-                    CGBType::SQ2);
+                    trk.GetPitch());
             break;
         case InstrType::WAVE:
-            sm.NewCGBNote(
+            ctx.waveChannels.emplace_back(
                     owner, 
-                    sbnk.GetCGBDef(trk.prog, oldKey),
-                    sbnk.GetADSR(trk.prog, oldKey),
+                    ctx.bnk.GetCGBDef(trk.prog, oldKey).wavePtr,
+                    ctx.bnk.GetADSR(trk.prog, oldKey),
                     note,
                     trk.GetVol(),
                     trk.GetPan(),
-                    trk.GetPitch(),
-                    CGBType::WAVE);
+                    trk.GetPitch());
             break;
         case InstrType::NOISE:
-            sm.NewCGBNote(
+            ctx.noiseChannels.emplace_back(
                     owner, 
-                    sbnk.GetCGBDef(trk.prog, oldKey),
-                    sbnk.GetADSR(trk.prog, oldKey),
+                    ctx.bnk.GetCGBDef(trk.prog, oldKey).np,
+                    ctx.bnk.GetADSR(trk.prog, oldKey),
                     note, 
                     trk.GetVol(),
                     trk.GetPan(),
-                    trk.GetPitch(), 
-                    CGBType::NOISE);
+                    trk.GetPitch());
             break;
         case InstrType::INVALID:
             return;
     }
+}
+
+void SequenceReader::stopNote(uint8_t key, uint8_t owner)
+{
+    auto stopNotes = [&](auto& channels) {
+        for (auto& chn : channels) {
+            if (chn.GetOwner() == owner && (
+                        key == NOTE_ALL || (
+                            chn.GetMidiKey() == key &&
+                            chn.GetNoteLength() == NOTE_TIE))) {
+                chn.Release();
+            }
+        }
+    };
+
+    stopNotes(ctx.sndChannels);
+    stopNotes(ctx.sq1Channels);
+    stopNotes(ctx.sq2Channels);
+    stopNotes(ctx.waveChannels);
+    stopNotes(ctx.noiseChannels);
+}
+
+int SequenceReader::tickTrackNotes(uint8_t owner, std::bitset<NUM_NOTES>& activeNotes)
+{
+    std::bitset<128> backBuffer;
+    int active = 0;
+
+    auto tickFunc = [&](auto& channels) {
+        for (auto& chn : channels) {
+            if (chn.GetOwner() == owner) {
+                if (chn.TickNote()) {
+                    active++;
+                    backBuffer[chn.GetMidiKey() % 128] = true;
+                }
+            }
+        }
+    };
+
+    tickFunc(ctx.sndChannels);
+    tickFunc(ctx.sq1Channels);
+    tickFunc(ctx.sq2Channels);
+    tickFunc(ctx.waveChannels);
+    tickFunc(ctx.noiseChannels);
+
+    activeNotes = backBuffer;
+    return active;
+}
+
+void SequenceReader::setTrackPV(uint8_t owner, uint8_t vol, int8_t pan, int16_t pitch)
+{
+    auto setFunc = [&](auto& channels) {
+        for (auto& chn : channels) {
+            if (chn.GetOwner() == owner) {
+                chn.SetVol(vol, pan);
+                chn.SetPitch(pitch);
+            }
+        }
+    };
+
+    setFunc(ctx.sndChannels);
+    setFunc(ctx.sq1Channels);
+    setFunc(ctx.sq2Channels);
+    setFunc(ctx.waveChannels);
+    setFunc(ctx.noiseChannels);
 }

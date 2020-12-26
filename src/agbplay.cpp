@@ -41,9 +41,9 @@ int main(int argc, char *argv[])
         std::cout << "Created ROM object" << std::endl;
         ConfigManager::Instance().SetGameCode(Rom::Instance().GetROMCode());
         std::cout << "Loaded Config" << std::endl;
-        SoundData sdata;
+        SongTable songTable;
         std::cout << "Analyzed Sound Data" << std::endl;
-        WindowGUI wgui(sdata);
+        WindowGUI wgui(songTable);
 
         std::chrono::nanoseconds frameTime(1000000000 / 60);
 

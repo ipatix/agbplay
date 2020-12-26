@@ -7,7 +7,6 @@
 
 #define BPM_PER_FRAME 150
 
-#define N_CHANNELS 2
 #define STREAM_SAMPLERATE 48000
 
 #define __STRM_BPSM ((STREAM_SAMPLERATE / 24) - 1)

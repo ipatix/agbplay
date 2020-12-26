@@ -7,253 +7,120 @@
 #include "Debug.h"
 #include "Util.h"
 #include "ConfigManager.h"
+#include "PlayerContext.h"
 
 /*
  * public SoundMixer
  */
 
-SoundMixer::SoundMixer(uint32_t sampleRate, uint32_t fixedModeRate, uint8_t reverb, float mvl, ReverbType rtype, uint8_t ntracks)
-    : sq1(), sq2(), wave(), noise()
+SoundMixer::SoundMixer(PlayerContext& ctx, uint32_t sampleRate, float masterVolume)
+    : ctx(ctx), sampleRate(sampleRate), masterVolume(masterVolume)
 {
+}
+
+void SoundMixer::Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVolume, ReverbType rtype, uint8_t numTracks)
+{
+    this->fixedModeRate = fixedModeRate;
+    this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
+    this->numTracks = numTracks;
+    this->pcmMasterVolume = pcmMasterVolume;
+
     GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
-    samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
-    for (size_t i = 0; i < ntracks; i++)
+
+    revdsps.resize(numTracks);
+    for (size_t i = 0; i < numTracks; i++)
     {
         switch (rtype) {
-            case ReverbType::NORMAL:
-                revdsps.emplace_back(new ReverbEffect(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
-                break;
-            case ReverbType::NONE:
-                revdsps.emplace_back(new ReverbEffect(0, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
-                break;
-            case ReverbType::GS1:
-                revdsps.emplace_back(new ReverbGS1(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
-                break;
-            case ReverbType::GS2:
-                revdsps.emplace_back(new ReverbGS2(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
-                        0.4140625f, -0.0625f));
-                break;
-                // Mario Power Tennis uses same coefficients as Mario Golf Advance Tour
-            case ReverbType::MGAT:
-                revdsps.emplace_back(new ReverbGS2(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
-                        0.25f, -0.046875f));
-                break;
-            case ReverbType::TEST:
-                revdsps.emplace_back(new ReverbTest(reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS))));
-                break;
-            default:
-                throw Xcept("Invalid Reverb Effect");
-        }
-        soundBuffers.emplace_back(N_CHANNELS * samplesPerBuffer);
-        fill(soundBuffers[i].begin(), soundBuffers[i].end(), 0.0f);
-    }
-    activeBackBuffer.reset();
-    this->sampleRate = sampleRate;
-    this->fixedModeRate = fixedModeRate;
-    sampleRateReciprocal = 1.0f / float(sampleRate);
-    masterVolume = MASTER_VOL;
-    pcmMasterVolume = MASTER_VOL * mvl;
-    fadeMicroframesLeft = 0;
-    fadePos = 1.0f;
-    fadeStepPerMicroframe = 0.0f;
-    this->ntracks = ntracks;
-}
-
-void SoundMixer::NewSoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed)
-{
-    sndChannels.emplace_back(owner, sInfo, env, note, vol, pan, pitch, fixed);
-}
-
-void SoundMixer::NewCGBNote(uint8_t owner, CGBDef def, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, CGBType type)
-{
-    CGBChannel *nChn = &sq1;
-    switch (type) {
-        case CGBType::SQ1:
-            nChn = &sq1; 
+        case ReverbType::NORMAL:
+            revdsps[i] = std::make_unique<ReverbEffect>(
+                    reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)));
             break;
-        case CGBType::SQ2: 
-            nChn = &sq2; 
+        case ReverbType::NONE:
+            revdsps[i] = std::make_unique<ReverbEffect>(
+                    0, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)));
             break;
-        case CGBType::WAVE: 
-            nChn = &wave; 
+        case ReverbType::GS1:
+            revdsps[i] = std::make_unique<ReverbGS1>(
+                    reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)));
             break;
-        case CGBType::NOISE: 
-            nChn = &noise; 
+        case ReverbType::GS2:
+            revdsps[i] = std::make_unique<ReverbGS2>(
+                    reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
+                    0.4140625f, -0.0625f);
             break;
-        default: throw Xcept("FATAL ERROR");
-    }
-    if (nChn->GetState() < EnvState::REL && nChn->GetOwner() < owner)
-        return;
-    nChn->Init(owner, def, note, env);
-    nChn->SetVol(vol, pan);
-    nChn->SetPitch(pitch);
-}
-
-void SoundMixer::SetTrackPV(uint8_t owner, uint8_t vol, int8_t pan, int16_t pitch)
-{
-    for (SoundChannel& sc : sndChannels) {
-        if (sc.GetOwner() == owner) {
-            sc.SetVol(vol, pan);
-            sc.SetPitch(pitch);
+            // Mario Power Tennis uses same coefficients as Mario Golf Advance Tour
+        case ReverbType::MGAT:
+            revdsps[i] = std::make_unique<ReverbGS2>(
+                    reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
+                    0.25f, -0.046875f);
+            break;
+        case ReverbType::TEST:
+            revdsps[i] = std::make_unique<ReverbTest>(
+                    reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)));
+            break;
+        default:
+            throw Xcept("Invalid Reverb Effect");
         }
     }
-    if (sq1.GetOwner() == owner) {
-        sq1.SetVol(vol, pan);
-        sq1.SetPitch(pitch);
-    }
-    if (sq2.GetOwner() == owner) {
-        sq2.SetVol(vol, pan);
-        sq2.SetPitch(pitch);
-    }
-    if (wave.GetOwner() == owner) {
-        wave.SetVol(vol, pan);
-        wave.SetPitch(pitch);
-    }
-    if (noise.GetOwner() == owner) {
-        noise.SetVol(vol, pan);
-        noise.SetPitch(pitch);
-    }
 }
 
-int SoundMixer::TickTrackNotes(uint8_t owner, std::bitset<NUM_NOTES>& activeNotes)
+void SoundMixer::Process(std::vector<std::vector<sample>>& outputBuffers)
 {
-    activeBackBuffer.reset();
-    int active = 0;
-    for (SoundChannel& chn : sndChannels) 
-    {
-        if (chn.GetOwner() == owner) {
-            if (chn.TickNote()) {
-                active++;
-                activeBackBuffer[chn.GetMidiKey() & 0x7F] = true;
-            }
-        }
+    /* 1. match number of output buffers to the number of tracks we have */
+    if (outputBuffers.size() != numTracks) {
+        outputBuffers.resize(numTracks, std::vector<sample>(samplesPerBuffer));
     }
-    if (sq1.GetOwner() == owner && sq1.TickNote()) {
-        active++;
-        activeBackBuffer[sq1.GetMidiKey() & 0x7F] = true;
+
+    /* 2. clear the mixing buffer before processing channels */
+    for (auto& outputBuffer : outputBuffers) {
+        assert(outputBuffer.size() == samplesPerBuffer);
+        std::fill(outputBuffer.begin(), outputBuffer.end(), sample{0.0f, 0.0f});
     }
-    if (sq2.GetOwner() == owner && sq2.TickNote()) {
-        active++;
-        activeBackBuffer[sq2.GetMidiKey() & 0x7F] = true;
+
+    /* 3. prepare arguments for mixing */
+    MixingArgs margs;
+    margs.vol = pcmMasterVolume;
+    margs.fixedModeRate = fixedModeRate;
+    margs.sampleRateInv = 1.0f / static_cast<float>(sampleRate);
+    margs.samplesPerBufferInv= 1.0f / static_cast<float>(samplesPerBuffer);
+
+    /* 4. mix channels which are affected by reverb (PCM only) */
+    for (auto& chn : ctx.sndChannels) {
+        assert(chn.GetOwner() < numTracks);
+        chn.Process(outputBuffers[chn.GetOwner()].data(), samplesPerBuffer, margs);
     }
-    if (wave.GetOwner() == owner && wave.TickNote()) {
-        active++;
-        activeBackBuffer[wave.GetMidiKey() & 0x7F] = true;
+
+    /* 5. apply reverb */
+    assert(revdsps.size() == numTracks);
+    for (size_t i = 0; i < outputBuffers.size(); i++)
+        revdsps[i]->ProcessData(outputBuffers[i].data(), samplesPerBuffer);
+
+    /* 6. mix channels which are not affected by reverb (CGB) */
+    for (auto& chn : ctx.sq1Channels) {
+        assert(chn.GetOwner() < numTracks);
+        chn.Process(outputBuffers[chn.GetOwner()].data(), samplesPerBuffer, margs);
     }
-    if (noise.GetOwner() == owner && noise.TickNote()) {
-        active++;
-        activeBackBuffer[noise.GetMidiKey() & 0x7F] = true;
+    for (auto& chn : ctx.sq2Channels) {
+        assert(chn.GetOwner() < numTracks);
+        chn.Process(outputBuffers[chn.GetOwner()].data(), samplesPerBuffer, margs);
     }
-    // hopefully assignment goes well
-    // otherwise we'll probably need to copy bit by bit
-    activeNotes = activeBackBuffer;
-    return active;
-}
-
-void SoundMixer::StopChannel(uint8_t owner, uint8_t key)
-{
-    for (SoundChannel& chn : sndChannels) 
-    {
-        if (chn.GetOwner() == owner && (
-                    key == NOTE_ALL || (
-                        chn.GetMidiKey() == key &&
-                        chn.GetNoteLength() == NOTE_TIE))) {
-            chn.Release();
-            //return;
-        }
+    for (auto& chn : ctx.waveChannels) {
+        assert(chn.GetOwner() < numTracks);
+        chn.Process(outputBuffers[chn.GetOwner()].data(), samplesPerBuffer, margs);
     }
-    if (sq1.GetOwner() == owner && (
-                key == NOTE_ALL || (
-                    sq1.GetMidiKey() == key && 
-                    sq1.GetNoteLength() == NOTE_TIE))) {
-        sq1.Release();
-        //return;
+    for (auto& chn : ctx.noiseChannels) {
+        assert(chn.GetOwner() < numTracks);
+        chn.Process(outputBuffers[chn.GetOwner()].data(), samplesPerBuffer, margs);
     }
-    if (sq2.GetOwner() == owner && (
-                key == NOTE_ALL || (
-                    sq2.GetMidiKey() == key &&
-                    sq2.GetNoteLength() == NOTE_TIE))) {
-        sq2.Release();
-        //return;
-    }
-    if (wave.GetOwner() == owner && (
-                key == NOTE_ALL || (
-                    wave.GetMidiKey() == key &&
-                    wave.GetNoteLength() == NOTE_TIE))) {
-        wave.Release();
-        //return;
-    }
-    if (noise.GetOwner() == owner && (
-                key == NOTE_ALL || (
-                    noise.GetMidiKey() == key &&
-                    noise.GetNoteLength() == NOTE_TIE))) {
-        noise.Release();
-        //return;
-    }
-}
 
-std::vector<std::vector<float>>& SoundMixer::ProcessAndGetAudio()
-{
-    clearBuffers();
-    renderToBuffers();
-    purgeChannels();
-    return soundBuffers;
-}
+    /* 7. clean up all stopped channels */
+    ctx.sndChannels.remove_if([](const auto& chn) { return chn.GetState() == EnvState::DEAD; });
+    ctx.sq1Channels.remove_if([](const auto& chn) { return chn.GetState() == EnvState::DEAD; });
+    ctx.sq2Channels.remove_if([](const auto& chn) { return chn.GetState() == EnvState::DEAD; });
+    ctx.waveChannels.remove_if([](const auto& chn) { return chn.GetState() == EnvState::DEAD; });
+    ctx.noiseChannels.remove_if([](const auto& chn) { return chn.GetState() == EnvState::DEAD; });
 
-size_t SoundMixer::GetActiveChannelCount()
-{
-    return sndChannels.size();
-}
-
-size_t SoundMixer::GetBufferUnitCount()
-{
-    return samplesPerBuffer;
-}
-
-uint32_t SoundMixer::GetRenderSampleRate()
-{
-    return sampleRate;
-}
-
-void SoundMixer::FadeOut(float millis)
-{
-    fadePos = 1.0f;
-    fadeMicroframesLeft = size_t(millis / 1000.0f * float(AGB_FPS * INTERFRAMES));
-    fadeStepPerMicroframe = -1.0f / float(fadeMicroframesLeft);
-}
-
-void SoundMixer::FadeIn(float millis)
-{
-    fadePos = 0.0f;
-    fadeMicroframesLeft = size_t(millis / 1000.0f * float(AGB_FPS * INTERFRAMES));
-    fadeStepPerMicroframe = 1.0f / float(fadeMicroframesLeft);
-}
-
-bool SoundMixer::IsFadeDone()
-{
-    return fadeMicroframesLeft == 0;
-}
-
-/*
- * private SoundMixer
- */
-
-void SoundMixer::purgeChannels()
-{
-    sndChannels.remove_if([](SoundChannel& chn) { return chn.GetState() == EnvState::DEAD; });
-}
-
-void SoundMixer::clearBuffers()
-{
-    for (std::vector<float>& b : soundBuffers)
-    {
-        fill(b.begin(), b.end(), 0.0f);
-    }
-}
-
-void SoundMixer::renderToBuffers()
-{
-    // master volume calculation
+    /* 8. apply fadeout if active */
     float masterFrom = masterVolume;
     float masterTo = masterVolume;
     if (fadeMicroframesLeft > 0) {
@@ -271,56 +138,50 @@ void SoundMixer::renderToBuffers()
         fadeMicroframesLeft--;
     }
 
-    MixingArgs margs;
-    margs.vol = pcmMasterVolume;
-    margs.fixedModeRate = fixedModeRate;
-    margs.sampleRateReciprocal = sampleRateReciprocal;
-    margs.nBlocksReciprocal = 1.0f / float(samplesPerBuffer);
-
-    // process all digital channels
-    for (SoundChannel& chn : sndChannels)
-    {
-        assert(chn.GetOwner() < soundBuffers.size());
-        chn.Process(soundBuffers[chn.GetOwner()].data(), samplesPerBuffer, margs);
-    }
-
-    // apply PCM reverb
-
-    assert(revdsps.size() == soundBuffers.size());
-    for (size_t i = 0; i < soundBuffers.size(); i++)
-    {
-        revdsps[i]->ProcessData(soundBuffers[i].data(), samplesPerBuffer);
-    }
-
-    // process all CGB channels
-
-    if (sq1.GetOwner() != INVALID_OWNER) {
-        assert(sq1.GetOwner() <= soundBuffers.size());
-        sq1.Process(soundBuffers[sq1.GetOwner()].data(), samplesPerBuffer, margs);
-    }
-    if (sq2.GetOwner() != INVALID_OWNER) {
-        assert(sq2.GetOwner() <= soundBuffers.size());
-        sq2.Process(soundBuffers[sq2.GetOwner()].data(), samplesPerBuffer, margs);
-    }
-    if (wave.GetOwner() != INVALID_OWNER) {
-        assert(wave.GetOwner() <= soundBuffers.size());
-        wave.Process(soundBuffers[wave.GetOwner()].data(), samplesPerBuffer, margs);
-    }
-    if (noise.GetOwner() != INVALID_OWNER) {
-        assert(noise.GetOwner() <= soundBuffers.size());
-        noise.Process(soundBuffers[noise.GetOwner()].data(), samplesPerBuffer, margs);
-    }
-
-    for (std::vector<float>& b : soundBuffers)
-    {
-        float masterStep = (masterTo - masterFrom) * margs.nBlocksReciprocal;
+    for (auto& outputBuffer : outputBuffers) {
+        float masterStep = (masterTo - masterFrom) * margs.samplesPerBufferInv;
         float masterLevel = masterFrom;
         for (size_t i = 0; i < samplesPerBuffer; i++)
         {
-            b[i * N_CHANNELS] *= masterLevel;
-            b[i * N_CHANNELS + 1] *= masterLevel;
+            outputBuffer[i].left *= masterLevel;
+            outputBuffer[i].right *= masterLevel;
 
             masterLevel +=  masterStep;
         }
     }
+}
+
+size_t SoundMixer::GetSamplesPerBuffer() const
+{
+    return samplesPerBuffer;
+}
+
+uint32_t SoundMixer::GetSampleRate() const
+{
+    return sampleRate;
+}
+
+void SoundMixer::ResetFade()
+{
+    fadePos = 0.0f;
+    fadeMicroframesLeft = 0;
+}
+
+void SoundMixer::StartFadeOut(float millis)
+{
+    fadePos = 1.0f;
+    fadeMicroframesLeft = size_t(millis / 1000.0f * float(AGB_FPS * INTERFRAMES));
+    fadeStepPerMicroframe = -1.0f / float(fadeMicroframesLeft);
+}
+
+void SoundMixer::StartFadeIn(float millis)
+{
+    fadePos = 0.0f;
+    fadeMicroframesLeft = size_t(millis / 1000.0f * float(AGB_FPS * INTERFRAMES));
+    fadeStepPerMicroframe = 1.0f / float(fadeMicroframesLeft);
+}
+
+bool SoundMixer::IsFadeDone() const
+{
+    return fadeMicroframesLeft == 0;
 }

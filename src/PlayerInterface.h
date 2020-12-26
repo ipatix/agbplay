@@ -8,11 +8,11 @@
 
 #include "TrackviewGUI.h"
 #include "DisplayContainer.h"
-#include "StreamGenerator.h"
 #include "Constants.h"
 #include "GameConfig.h"
 #include "Ringbuffer.h"
 #include "LoudnessCalculator.h"
+#include "PlayerContext.h"
 
 class PlayerInterface 
 {
@@ -34,25 +34,30 @@ public:
     void Mute(size_t index, bool mute);
     size_t GetMaxTracks() { return mutedTracks.size(); }
     void GetMasterVolLevels(float& left, float& right);
+
 private:
+    void initContext();
     void threadWorker();
     static int audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,
             const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags,
             void *userData);
 
     void setupLoudnessCalcs();
+    void portaudioOpen();
+    void portaudioClose();
 
     static const std::vector<PaHostApiTypeId> hostApiPriority;
 
     PaStream *audioStream;
-    uint32_t speedFactor; // 64 = normal
-    volatile enum class State : int { RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED } playerState;
-    Sequence seq;
-    std::unique_ptr<StreamGenerator> sg;
+    uint32_t speedFactor = 64;
+    volatile enum class State : int {
+        RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED
+    } playerState = State::THREAD_DELETED;
+    std::unique_ptr<PlayerContext> ctx;
     TrackviewGUI& trackUI;
-    Ringbuffer rBuf;
+    Ringbuffer rBuf{STREAM_BUF_SIZE};
 
-    LoudnessCalculator masterLoudness;
+    LoudnessCalculator masterLoudness{10.0f};
     std::vector<LoudnessCalculator> trackLoudness;
     std::vector<bool> mutedTracks;
 

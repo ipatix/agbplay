@@ -37,7 +37,7 @@ static const std::vector<int16_t> modulationLut = {
  * public SoundBank
  */
 
-SoundBank::SoundBank(size_t bankPos)
+void SoundBank::Init(size_t bankPos)
 {
     this->bankPos = bankPos;
 }
@@ -247,12 +247,17 @@ size_t Sequence::GetSoundBankPos()
     return rom.ReadAgbPtrToPos(songHeaderPos + 4);
 }
 
-uint8_t Sequence::GetReverb()
+uint8_t Sequence::GetReverb() const
 {
     if (songHeaderPos == 0)
         return 0;
 
     return Rom::Instance().ReadU8(songHeaderPos + 3);
+}
+
+size_t Sequence::GetSongHeaderPos() const
+{
+    return songHeaderPos;
 }
 
 /*
@@ -403,14 +408,4 @@ size_t SongTable::determineNumSongs()
         pos += 8;
     }
     return count;
-}
-
-/*
- * public
- * SoundData
- */
-
-SoundData::SoundData()
-    : sTable(UNKNOWN_TABLE)
-{
 }

@@ -5,6 +5,8 @@
 #include <vector>
 #include <cstddef>
 
+#include "Types.h"
+
 class Ringbuffer
 {
 public:
@@ -12,14 +14,14 @@ public:
     Ringbuffer(const Ringbuffer&) = delete;
     Ringbuffer& operator=(const Ringbuffer&) = delete;
 
-    void Put(float *inData, size_t nElements);
-    void Take(float *outData, size_t nElements);
+    void Put(sample *inData, size_t nElements);
+    void Take(sample *outData, size_t nElements);
     void Clear();
 private:
-    size_t put(float *inData, size_t nElements);
-    size_t take(float *outData, size_t nElements);
+    size_t putChunk(sample *inData, size_t nElements);
+    size_t takeChunk(sample *outData, size_t nElements);
 
-    std::vector<float> bufData;
+    std::vector<sample> bufData;
     std::mutex countLock;
     std::condition_variable sig;
     size_t freePos = 0;

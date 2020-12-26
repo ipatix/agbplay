@@ -18,8 +18,8 @@
 
 #define KEY_TAB 9
 
-WindowGUI::WindowGUI(SoundData& rsdata)
-    : sdata(rsdata)
+WindowGUI::WindowGUI(SongTable& songTable)
+    : songTable(songTable)
 {
     // init ncurses stuff
     this->containerWin = initscr();
@@ -54,7 +54,7 @@ WindowGUI::WindowGUI(SoundData& rsdata)
             SONGLIST_XPOS(height, width), true);
 
     // add songs to table
-    for (uint16_t i = 0; i < sdata.sTable.GetNumSongs(); i++) {
+    for (uint16_t i = 0; i < songTable.GetNumSongs(); i++) {
         std::ostringstream txt;
         txt << std::setw(4) << std::setfill('0') << i;
         songUI->AddSong(SongEntry(txt.str(), i));
@@ -78,7 +78,7 @@ WindowGUI::WindowGUI(SoundData& rsdata)
             ROMVIEW_WIDTH(height, width),
             ROMVIEW_YPOS(height, width),
             ROMVIEW_XPOS(height, width),
-            sdata);
+            songTable);
 
     trackUI = std::make_unique<TrackviewGUI>(
             TRACKVIEW_HEIGHT(height, width),
@@ -95,9 +95,9 @@ WindowGUI::WindowGUI(SoundData& rsdata)
     Rom& rom = Rom::Instance();
     mplay = std::make_unique<PlayerInterface>(
             *trackUI,
-            rom.ReadAgbPtrToPos(sdata.sTable.GetSongTablePos())
+            rom.ReadAgbPtrToPos(songTable.GetSongTablePos())
             );
-    mplay->LoadSong(sdata.sTable.GetPosOfSong(0));
+    mplay->LoadSong(songTable.GetPosOfSong(0));
     trackUI->SetTitle(songUI->GetSong().GetName());
 }
 
@@ -192,21 +192,21 @@ bool WindowGUI::Handle()
             case 'e':
                 mplay->Stop();
                 {
-                    SoundExporter se(sdata, false, true);
+                    SoundExporter se(songTable, false, true);
                     se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
             case 'r':
                 mplay->Stop();
                 {
-                    SoundExporter se(sdata, false, false);
+                    SoundExporter se(songTable, false, false);
                     se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
             case 'b':
                 mplay->Stop();
                 {
-                    SoundExporter se(sdata, true, false);
+                    SoundExporter se(songTable, true, false);
                     se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
@@ -352,7 +352,7 @@ void WindowGUI::cycleFocus()
             cursorl = PLAYLIST;
             playUI->Enter();
             try {
-                mplay->LoadSong(sdata.sTable.GetPosOfSong(playUI->GetSong().GetUID()));
+                mplay->LoadSong(songTable.GetPosOfSong(playUI->GetSong().GetUID()));
                 trackUI->SetTitle(playUI->GetSong().GetName());
             } catch (const std::out_of_range& e) { }
             break;
@@ -361,7 +361,7 @@ void WindowGUI::cycleFocus()
             cursorl = SONGLIST;
             songUI->Enter();
             try {
-                mplay->LoadSong(sdata.sTable.GetPosOfSong(songUI->GetSong().GetUID()));
+                mplay->LoadSong(songTable.GetPosOfSong(songUI->GetSong().GetUID()));
                 trackUI->SetTitle(songUI->GetSong().GetName());
             } catch (const std::out_of_range& e) { }
             break;
@@ -411,7 +411,7 @@ void WindowGUI::scrollDown()
         case SONGLIST:
             songUI->ScrollDown();
             try {
-                mplay->LoadSong(sdata.sTable.GetPosOfSong(songUI->GetSong().GetUID()));
+                mplay->LoadSong(songTable.GetPosOfSong(songUI->GetSong().GetUID()));
                 trackUI->SetTitle(songUI->GetSong().GetName());
             } catch (const std::out_of_range& e) { }
             break;
@@ -419,7 +419,7 @@ void WindowGUI::scrollDown()
             playUI->ScrollDown();
             if (!playUI->IsDragging()) {
                 try {
-                    mplay->LoadSong(sdata.sTable.GetPosOfSong(playUI->GetSong().GetUID()));
+                    mplay->LoadSong(songTable.GetPosOfSong(playUI->GetSong().GetUID()));
                     trackUI->SetTitle(playUI->GetSong().GetName());
                 } catch (const std::out_of_range& e) { }
             }
@@ -439,7 +439,7 @@ void WindowGUI::scrollUp()
         case SONGLIST:
             songUI->ScrollUp();
             try {
-                mplay->LoadSong(sdata.sTable.GetPosOfSong(songUI->GetSong().GetUID()));
+                mplay->LoadSong(songTable.GetPosOfSong(songUI->GetSong().GetUID()));
                 trackUI->SetTitle(songUI->GetSong().GetName());
             } catch (const std::out_of_range& e) { }
             break;
@@ -447,7 +447,7 @@ void WindowGUI::scrollUp()
             playUI->ScrollUp();
             if (!playUI->IsDragging()) {
                 try {
-                    mplay->LoadSong(sdata.sTable.GetPosOfSong(playUI->GetSong().GetUID()));
+                    mplay->LoadSong(songTable.GetPosOfSong(playUI->GetSong().GetUID()));
                     trackUI->SetTitle(playUI->GetSong().GetName());
                 } catch (const std::out_of_range& e) { }
             }
@@ -467,7 +467,7 @@ void WindowGUI::pageDown()
         case SONGLIST:
             songUI->PageDown();
             try {
-                mplay->LoadSong(sdata.sTable.GetPosOfSong(songUI->GetSong().GetUID()));
+                mplay->LoadSong(songTable.GetPosOfSong(songUI->GetSong().GetUID()));
                 trackUI->SetTitle(songUI->GetSong().GetName());
             } catch (const std::out_of_range& e) { }
             break;
@@ -475,7 +475,7 @@ void WindowGUI::pageDown()
             playUI->PageDown();
             if (!playUI->IsDragging()) {
                 try {
-                    mplay->LoadSong(sdata.sTable.GetPosOfSong(playUI->GetSong().GetUID()));
+                    mplay->LoadSong(songTable.GetPosOfSong(playUI->GetSong().GetUID()));
                     trackUI->SetTitle(playUI->GetSong().GetName());
                 } catch (const std::out_of_range& e) { }
             }
@@ -495,7 +495,7 @@ void WindowGUI::pageUp()
         case SONGLIST:
             songUI->PageUp();
             try {
-                mplay->LoadSong(sdata.sTable.GetPosOfSong(songUI->GetSong().GetUID()));
+                mplay->LoadSong(songTable.GetPosOfSong(songUI->GetSong().GetUID()));
                 trackUI->SetTitle(songUI->GetSong().GetName());
             } catch (const std::out_of_range& e) { }
             break;
@@ -503,7 +503,7 @@ void WindowGUI::pageUp()
             playUI->PageUp();
             if (!playUI->IsDragging()) {
                 try {
-                    mplay->LoadSong(sdata.sTable.GetPosOfSong(playUI->GetSong().GetUID()));
+                    mplay->LoadSong(songTable.GetPosOfSong(playUI->GetSong().GetUID()));
                     trackUI->SetTitle(playUI->GetSong().GetName());
                 } catch (const std::out_of_range& e) { }
             }
@@ -546,7 +546,7 @@ void WindowGUI::del()
         return;
     playUI->RemoveSong();
     try {
-        mplay->LoadSong(sdata.sTable.GetPosOfSong(playUI->GetSong().GetUID()));
+        mplay->LoadSong(songTable.GetPosOfSong(playUI->GetSong().GetUID()));
         trackUI->SetTitle(playUI->GetSong().GetName());
     } catch (const std::out_of_range& e) { }
 }

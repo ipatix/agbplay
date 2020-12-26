@@ -11,29 +11,29 @@ Ringbuffer::Ringbuffer(size_t elementCount)
 {
 }
 
-void Ringbuffer::Put(float *inData, size_t nElements)
+void Ringbuffer::Put(sample *inData, size_t nElements)
 {
     std::unique_lock<std::mutex> lock(countLock);
     while (freeCount < nElements){
         sig.wait(lock);
     }
     while (nElements > 0) {
-        size_t count = put(inData, nElements);
+        size_t count = putChunk(inData, nElements);
         inData += count;
         nElements -= count;
     }
 }
 
-void Ringbuffer::Take(float *outData, size_t nElements)
+void Ringbuffer::Take(sample *outData, size_t nElements)
 {
     if (dataCount < nElements) {
         // underrun
-        std::fill(outData, outData + nElements, 0.0f);
+        std::fill(outData, outData + nElements, sample{0.0f, 0.0f});
     } else {
         // output
         std::unique_lock<std::mutex> lock(countLock);
         while (nElements > 0) {
-            size_t count = take(outData, nElements);
+            size_t count = takeChunk(outData, nElements);
             outData += count;
             nElements -= count;
         }
@@ -44,7 +44,7 @@ void Ringbuffer::Take(float *outData, size_t nElements)
 void Ringbuffer::Clear()
 {
     std::unique_lock<std::mutex> lock(countLock);
-    std::fill(bufData.begin(), bufData.end(), 0.0f);
+    std::fill(bufData.begin(), bufData.end(), sample{0.0f, 0.0f});
     freePos = 0;
     dataPos = 0;
     freeCount = bufData.size();
@@ -55,7 +55,7 @@ void Ringbuffer::Clear()
  * private Ringbuffer
  */
 
-size_t Ringbuffer::put(float *inData, size_t nElements)
+size_t Ringbuffer::putChunk(sample *inData, size_t nElements)
 {
     bool wrap = nElements >= bufData.size() - freePos;
     size_t count;
@@ -74,7 +74,7 @@ size_t Ringbuffer::put(float *inData, size_t nElements)
     return count;
 }
 
-size_t Ringbuffer::take(float *outData, size_t nElements)
+size_t Ringbuffer::takeChunk(sample *outData, size_t nElements)
 {
     bool wrap = nElements >= bufData.size() - dataPos;
     size_t count;

@@ -15,22 +15,22 @@ public:
     GameConfig(GameConfig&&) = default;
     GameConfig& operator=(const GameConfig&) = delete;
 
-    const std::vector<std::string>& GetGameCodes();
-    ReverbType GetRevType();
+    const std::vector<std::string>& GetGameCodes() const;
+    ReverbType GetRevType() const;
     void SetRevType(ReverbType revType);
-    ResamplerType GetResTypeFixed();
+    ResamplerType GetResTypeFixed() const;
     void SetResTypeFixed(ResamplerType resType);
-    ResamplerType GetResType();
+    ResamplerType GetResType() const;
     void SetResType(ResamplerType resType);
-    uint8_t GetPCMVol();
+    uint8_t GetPCMVol() const;
     void SetPCMVol(uint8_t pcmVol);
-    uint8_t GetEngineFreq();
+    uint8_t GetEngineFreq() const;
     void SetEngineFreq(uint8_t engineFreq);
-    uint8_t GetEngineRev();
+    uint8_t GetEngineRev() const;
     void SetEngineRev(uint8_t engineRev);
-    uint8_t GetTrackLimit();
+    uint8_t GetTrackLimit() const;
     void SetTrackLimit(uint8_t trackLimit);
-    uint16_t GetRevBufSize();
+    uint16_t GetRevBufSize() const;
     void SetRevBufSize(uint16_t revBufSize);
 
     std::vector<SongEntry>& GetGameEntries();

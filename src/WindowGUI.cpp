@@ -194,21 +194,21 @@ bool WindowGUI::Handle()
                 mplay->Stop();
                 {
                     SoundExporter se(songTable, false, true);
-                    se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
+                    se.Export(ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
             case 'r':
                 mplay->Stop();
                 {
                     SoundExporter se(songTable, false, false);
-                    se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
+                    se.Export(ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
             case 'b':
                 mplay->Stop();
                 {
                     SoundExporter se(songTable, true, false);
-                    se.Export("wav", ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
+                    se.Export(ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
                 }
                 break;
             case 'm':

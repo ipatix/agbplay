@@ -21,7 +21,7 @@ SoundExporter::SoundExporter(SongTable& songTable, bool benchmarkOnly, bool sepe
 {
 }
 
-void SoundExporter::Export(const std::string& outputDir, std::vector<SongEntry>& entries, std::vector<bool>& ticked)
+void SoundExporter::Export(std::vector<SongEntry>& entries, std::vector<bool>& ticked)
 {
     if (entries.size() != ticked.size())
         throw Xcept("SoundExporter: input vectors do not match");
@@ -33,13 +33,13 @@ void SoundExporter::Export(const std::string& outputDir, std::vector<SongEntry>&
     }
 
 
-    std::filesystem::path dir(outputDir);
+    std::filesystem::path dir = ConfigManager::Instance().GetWavOutputDir();
     if (std::filesystem::exists(dir)) {
         if (!std::filesystem::is_directory(dir)) {
             throw Xcept("Output directory exists but isn't a dir");
         }
     }
-    else if (!std::filesystem::create_directory(dir)) {
+    else if (!std::filesystem::create_directories(dir)) {
         throw Xcept("Creating output directory failed");
     }
 
@@ -53,7 +53,7 @@ void SoundExporter::Export(const std::string& outputDir, std::vector<SongEntry>&
         boost::replace_all(fname, "/", "_");
         Debug::print("%3d %% - Rendering to file: \"%s\"", (i + 1) * 100 / tEnts.size(), fname.c_str());
         char fileName[512];
-        snprintf(fileName, sizeof(fileName), "%s/%03zu - %s", outputDir.c_str(), i + 1, fname.c_str());
+        snprintf(fileName, sizeof(fileName), "%s/%03zu - %s", dir.c_str(), i + 1, fname.c_str());
         size_t rblocks = exportSong(fileName, tEnts[i].GetUID());
         totalBlocksRendered += rblocks;
     }
@@ -73,7 +73,7 @@ void SoundExporter::Export(const std::string& outputDir, std::vector<SongEntry>&
  * private SoundExporter
  */
 
-size_t SoundExporter::exportSong(const std::string& fileName, uint16_t uid)
+size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t uid)
 {
     // setup our generators
     GameConfig& cfg = ConfigManager::Instance().GetCfg();
@@ -147,7 +147,7 @@ size_t SoundExporter::exportSong(const std::string& fileName, uint16_t uid)
             oinfo.samplerate = STREAM_SAMPLERATE;
             oinfo.channels = 2; // sterep
             oinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
-            SNDFILE *ofile = sf_open((fileName + ".wav").c_str(), SFM_WRITE, &oinfo);
+            SNDFILE *ofile = sf_open((fileName.string() + ".wav").c_str(), SFM_WRITE, &oinfo);
             if (ofile == NULL) {
                 Debug::print("Error: %s", sf_strerror(NULL));
                 return 0;

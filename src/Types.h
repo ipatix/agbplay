@@ -12,11 +12,14 @@ enum class WaveDuty : int { D12 = 0, D25, D50, D75 };
 enum class NoisePatt : int { FINE = 0, ROUGH };
 enum class ReverbType { NORMAL, GS1, GS2, MGAT, TEST, NONE };
 enum class ResamplerType { NEAREST, LINEAR, SINC, BLEP };
+enum class CGBPolyphony { MONO_STRICT, MONO_SMOOTH, POLY };
 
 ReverbType str2rev(const std::string& str);
 std::string rev2str(ReverbType t);
 ResamplerType str2res(const std::string& str);
 std::string res2str(ResamplerType t);
+CGBPolyphony str2cgbPoly(const std::string& str);
+std::string cgbPoly2str(CGBPolyphony t);
 
 union CGBDef
 {

@@ -38,11 +38,12 @@ int main(int argc, char *argv[])
         std::cout << "Loading ROM..." << std::endl;
 
         Rom::CreateInstance(argv[1]);
-        std::cout << "Created ROM object" << std::endl;
+        std::cout << "Loading Config..." << std::endl;
+        ConfigManager::Instance().Load();
         ConfigManager::Instance().SetGameCode(Rom::Instance().GetROMCode());
-        std::cout << "Loaded Config" << std::endl;
+        std::cout << "Reading Songtable" << std::endl;
         SongTable songTable;
-        std::cout << "Analyzed Sound Data" << std::endl;
+        std::cout << "Initialization complete!" << std::endl;
         WindowGUI wgui(songTable);
 
         std::chrono::nanoseconds frameTime(1000000000 / 60);

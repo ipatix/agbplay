@@ -11,6 +11,19 @@
 #include <windows.h>
 #include <shlobj.h>
 
+const std::filesystem::path OS::GetMusicDirectory()
+{
+    PWSTR folderPath = NULL;
+    HRESULT result = SHGetKnownFolderPath(FOLDERID_Music, KF_FLAG_DEFAULT, NULL, &folderPath);
+
+    if (result != S_OK)
+        throw Xcept("SHGetKnownFolderPath: Failed to retrieve AppData folder");
+
+    std::filesystem::path retval(folderPath);
+    CoTaskMemFree(folderPath);
+    return retval;
+}
+
 const std::filesystem::path OS::GetLocalConfigDirectory()
 {
     PWSTR folderPath = NULL;
@@ -44,6 +57,16 @@ const std::filesystem::path OS::GetGlobalConfigDirectory()
 #include <pwd.h>
 #include <string.h>
 
+const std::filesystem::path OS::GetMusicDirectory()
+{
+    passwd *pw = getpwuid(getuid());
+    if (!pw)
+        throw Xcept("getpwuid failed: %s", strerror(errno));
+
+    std::filesystem::path retval(pw->pw_dir);
+    return retval / "Music";
+}
+
 const std::filesystem::path OS::GetLocalConfigDirectory()
 {
     passwd *pw = getpwuid(getuid());
@@ -51,8 +74,7 @@ const std::filesystem::path OS::GetLocalConfigDirectory()
         throw Xcept("getpwuid failed: %s", strerror(errno));
 
     std::filesystem::path retval(pw->pw_dir);
-    retval /= ".config";
-    return retval;
+    return retval / ".config";
 }
 
 const std::filesystem::path OS::GetGlobalConfigDirectory()

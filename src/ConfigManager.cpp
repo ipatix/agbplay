@@ -19,59 +19,6 @@
 #include "Debug.h"
 #include "OS.h"
 
-ConfigManager::ConfigManager()
-{
-    configPath = OS::GetLocalConfigDirectory() / "agbplay.json";
-    const auto globalConfigPath = OS::GetGlobalConfigDirectory() / "agbplay.json";
-
-    /* Parse things from config file.
-     * If the config file in home directory is not found,
-     * try reading it from /etc/agbplay/agbplay.json.
-     * If this isn't found either, use an empty config file. */
-    Json::Value root;
-    if (std::ifstream configFile; configFile.open(configPath), configFile.is_open()) {
-        Debug::print("User local configuration found!");
-        configFile >> root;
-    } else if (configFile.open(globalConfigPath); configFile.is_open()) {
-        Debug::print("Global configuration found!");
-        configFile >> root;
-    } else {
-        Debug::print("No configuration file found. Creating new configuration.");
-        root["id"] = "agbplay";
-        root["playlists"] = Json::Value();  // null value
-    }
-
-
-    if (root["id"].asString() != "agbplay")
-        throw Xcept("Bad JSON ID: %s", root["id"].asString().c_str());
-
-    for (Json::Value playlist : root["playlists"]) {
-        // parse games
-        std::vector<std::string> games;
-        for (Json::Value game : playlist["games"])
-            games.emplace_back(game.asString());
-        configs.emplace_back(games);
-
-        // parse other parameters
-        configs.back().SetPCMVol(uint8_t(std::clamp<int>(playlist.get("pcm-master-volume", 15).asInt(), 0, 15)));
-        configs.back().SetEngineFreq(uint8_t(std::clamp<int>(playlist.get("pcm-samplerate", 4).asInt(), 0, 15)));
-        configs.back().SetEngineRev(uint8_t(std::clamp<int>(playlist.get("pcm-reverb-level", 0).asInt(), 0, 255)));
-        configs.back().SetRevBufSize(uint16_t(playlist.get("pcm-reverb-buffer-len", 1536).asUInt()));
-        configs.back().SetRevType(str2rev(playlist.get("pcm-reverb-type", "normal").asString()));
-        configs.back().SetResType(str2res(playlist.get("pcm-resampling-algo", "linear").asString()));
-        configs.back().SetResTypeFixed(str2res(playlist.get("pcm-fixed-rate-resampling-algo", "linear").asString()));
-        configs.back().SetTrackLimit(uint8_t(std::clamp<int>(playlist.get("song-track-limit", 16).asInt(), 0, 16)));
-
-        for (Json::Value song : playlist["songs"]) {
-            configs.back().GetGameEntries().emplace_back(
-                    song.get("name", "?").asString(),
-                    static_cast<uint16_t>(song.get("index", "0").asUInt()));
-        }
-    }
-
-    curCfg = nullptr;
-}
-
 ConfigManager& ConfigManager::Instance()
 {
     static ConfigManager cm;
@@ -98,6 +45,66 @@ void ConfigManager::SetGameCode(const std::string& gameCode)
     }
     configs.emplace_back(gameCode);
     curCfg = &configs.back();
+}
+
+void ConfigManager::Load()
+{
+    configPath = OS::GetLocalConfigDirectory() / "agbplay.json";
+    const auto globalConfigPath = OS::GetGlobalConfigDirectory() / "agbplay.json";
+
+    /* Parse things from config file.
+     * If the config file in home directory is not found,
+     * try reading it from /etc/agbplay/agbplay.json.
+     * If this isn't found either, use an empty config file. */
+    Json::Value root;
+    if (std::ifstream configFile; configFile.open(configPath), configFile.is_open()) {
+        Debug::print("User local configuration found!");
+        configFile >> root;
+    } else if (configFile.open(globalConfigPath); configFile.is_open()) {
+        Debug::print("Global configuration found!");
+        configFile >> root;
+    } else {
+        Debug::print("No configuration file found. Creating new configuration.");
+        root["id"] = "agbplay";
+        root["playlists"] = Json::Value();  // null value
+    }
+
+    if (root["id"].asString() != "agbplay")
+        throw Xcept("Bad JSON ID: %s", root["id"].asString().c_str());
+
+    // output directory used for saving rendered sogs
+    if (root.isMember("wav-output-dir")) {
+        confWavOutputDir = root["wav-output-dir"].asString();
+    } else {
+        confWavOutputDir = OS::GetMusicDirectory() / "agbplay";
+    }
+
+    // CGB channel polyphony configuration
+    confCgbPolyphony = str2cgbPoly(root.get("cgb-polyphony", "mono-smooth").asString());
+
+    for (Json::Value playlist : root["playlists"]) {
+        // parse games
+        std::vector<std::string> games;
+        for (Json::Value game : playlist["games"])
+            games.emplace_back(game.asString());
+        configs.emplace_back(games);
+
+        // parse other parameters
+        configs.back().SetPCMVol(uint8_t(std::clamp<int>(playlist.get("pcm-master-volume", 15).asInt(), 0, 15)));
+        configs.back().SetEngineFreq(uint8_t(std::clamp<int>(playlist.get("pcm-samplerate", 4).asInt(), 0, 15)));
+        configs.back().SetEngineRev(uint8_t(std::clamp<int>(playlist.get("pcm-reverb-level", 0).asInt(), 0, 255)));
+        configs.back().SetRevBufSize(uint16_t(playlist.get("pcm-reverb-buffer-len", 1536).asUInt()));
+        configs.back().SetRevType(str2rev(playlist.get("pcm-reverb-type", "normal").asString()));
+        configs.back().SetResType(str2res(playlist.get("pcm-resampling-algo", "linear").asString()));
+        configs.back().SetResTypeFixed(str2res(playlist.get("pcm-fixed-rate-resampling-algo", "linear").asString()));
+        configs.back().SetTrackLimit(uint8_t(std::clamp<int>(playlist.get("song-track-limit", 16).asInt(), 0, 16)));
+
+        for (Json::Value song : playlist["songs"]) {
+            configs.back().GetGameEntries().emplace_back(
+                    song.get("name", "?").asString(),
+                    static_cast<uint16_t>(song.get("index", "0").asUInt()));
+        }
+    }
 }
 
 void ConfigManager::Save()
@@ -133,6 +140,8 @@ void ConfigManager::Save()
 
     Json::Value root;
     root["id"] = "agbplay";
+    root["wav-output-dir"] = confWavOutputDir.string();
+    root["cgb-polyphony"] = cgbPoly2str(confCgbPolyphony);
     root["playlists"] = playlists;
 
     std::filesystem::create_directories(configPath.parent_path());
@@ -148,4 +157,14 @@ void ConfigManager::Save()
     jsonFile << std::endl;
 
     Debug::print("Configuration/Playlist saved!");
+}
+
+const std::filesystem::path& ConfigManager::GetWavOutputDir()
+{
+    return confWavOutputDir;
+}
+
+CGBPolyphony ConfigManager::GetCgbPolyphony()
+{
+    return confCgbPolyphony;
 }

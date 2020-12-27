@@ -56,6 +56,27 @@ std::string res2str(ResamplerType t)
     return "linear";
 }
 
+CGBPolyphony str2cgbPoly(const std::string& str)
+{
+    if (str == "mono-strict")
+        return CGBPolyphony::MONO_STRICT;
+    else if (str == "mono-smooth")
+        return CGBPolyphony::MONO_SMOOTH;
+    else if (str == "poly")
+        return CGBPolyphony::POLY;
+    return CGBPolyphony::MONO_STRICT;
+}
+
+std::string cgbPoly2str(CGBPolyphony t) {
+    if (t == CGBPolyphony::MONO_STRICT)
+        return "mono-strict";
+    else if (t == CGBPolyphony::MONO_SMOOTH)
+        return "mono-smooth";
+    else if (t == CGBPolyphony::POLY)
+        return "poly";
+    return "mono-strict";
+}
+
 /*
  * ChnVol
  */

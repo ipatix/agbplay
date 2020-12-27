@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include <mutex>
+#include <filesystem>
 
 #include "SongEntry.h"
 #include "GameConfig.h"
@@ -17,9 +18,9 @@ public:
     SoundExporter(const SoundExporter&) = delete;
     SoundExporter& operator=(const SoundExporter&) = delete;
 
-    void Export(const std::string& outputDir, std::vector<SongEntry>& entries, std::vector<bool>& ticked);
+    void Export(std::vector<SongEntry>& entries, std::vector<bool>& ticked);
 private:
-    size_t exportSong(const std::string& fileName, uint16_t uid);
+    size_t exportSong(const std::filesystem::path& fileName, uint16_t uid);
 
     SongTable& songTable;
     std::mutex uilock;

@@ -11,7 +11,7 @@ public:
     void AddSong(SongEntry) override;
     void RemoveSong() override;
     void ClearSongs() override;
-    SongEntry& GetSong() override;
+    SongEntry *GetSong() override;
     std::vector<bool>& GetTicked();
     void Leave() override;
     void Tick();

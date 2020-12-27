@@ -102,10 +102,11 @@ void SonglistGUI::RemoveSong()
     update();
 }
 
-SongEntry& SonglistGUI::GetSong() 
+SongEntry *SonglistGUI::GetSong()
 {
-    // will throw exception of out of bounds
-    return songlist.at(cursorPos);
+    if (cursorPos >= songlist.size())
+        return nullptr;
+    return &songlist[cursorPos];
 }
 
 /*

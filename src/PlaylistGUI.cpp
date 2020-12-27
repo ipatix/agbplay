@@ -60,10 +60,12 @@ void PlaylistGUI::ClearSongs()
     update();
 }
 
-SongEntry& PlaylistGUI::GetSong()
+SongEntry *PlaylistGUI::GetSong()
 {
     GameConfig& cfg = ConfigManager::Instance().GetCfg();
-    return cfg.GetGameEntries().at(cursorPos);
+    if (this->cursorPos >= cfg.GetGameEntries().size())
+        return nullptr;
+    return &cfg.GetGameEntries()[cursorPos];
 }
 
 std::vector<bool>& PlaylistGUI::GetTicked()

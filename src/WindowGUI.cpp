@@ -98,7 +98,7 @@ WindowGUI::WindowGUI(SongTable& songTable)
             rom.ReadAgbPtrToPos(songTable.GetSongTablePos())
             );
     mplay->LoadSong(songTable.GetPosOfSong(0));
-    trackUI->SetTitle(songUI->GetSong().GetName());
+    trackUI->SetTitle(songUI->GetSong()->GetName());
 }
 
 WindowGUI::~WindowGUI() 
@@ -185,7 +185,8 @@ bool WindowGUI::Handle()
             case 'n':
                 playUI->Leave();
                 rename();
-                trackUI->SetTitle(playUI->GetSong().GetName());
+                if (SongEntry *entry = playUI->GetSong(); entry != nullptr)
+                    trackUI->SetTitle(entry->GetName());
                 trackUI->ForceUpdate();
                 playUI->Enter();
                 break;
@@ -351,19 +352,19 @@ void WindowGUI::cycleFocus()
             songUI->Leave();
             cursorl = PLAYLIST;
             playUI->Enter();
-            try {
-                mplay->LoadSong(songTable.GetPosOfSong(playUI->GetSong().GetUID()));
-                trackUI->SetTitle(playUI->GetSong().GetName());
-            } catch (const std::out_of_range& e) { }
+            if (SongEntry *entry = playUI->GetSong(); entry != nullptr) {
+                mplay->LoadSong(songTable.GetPosOfSong(entry->GetUID()));
+                trackUI->SetTitle(entry->GetName());
+            }
             break;
         case PLAYLIST:
             playUI->Leave();
             cursorl = SONGLIST;
             songUI->Enter();
-            try {
-                mplay->LoadSong(songTable.GetPosOfSong(songUI->GetSong().GetUID()));
-                trackUI->SetTitle(songUI->GetSong().GetName());
-            } catch (const std::out_of_range& e) { }
+            if (SongEntry *entry = songUI->GetSong(); entry != nullptr) {
+                mplay->LoadSong(songTable.GetPosOfSong(entry->GetUID()));
+                trackUI->SetTitle(entry->GetName());
+            }
             break;
         default:
             break;
@@ -410,18 +411,18 @@ void WindowGUI::scrollDown()
     switch (cursorl) {
         case SONGLIST:
             songUI->ScrollDown();
-            try {
-                mplay->LoadSong(songTable.GetPosOfSong(songUI->GetSong().GetUID()));
-                trackUI->SetTitle(songUI->GetSong().GetName());
-            } catch (const std::out_of_range& e) { }
+            if (SongEntry *entry = songUI->GetSong(); entry != nullptr) {
+                mplay->LoadSong(songTable.GetPosOfSong(entry->GetUID()));
+                trackUI->SetTitle(entry->GetName());
+            }
             break;
         case PLAYLIST:
             playUI->ScrollDown();
             if (!playUI->IsDragging()) {
-                try {
-                    mplay->LoadSong(songTable.GetPosOfSong(playUI->GetSong().GetUID()));
-                    trackUI->SetTitle(playUI->GetSong().GetName());
-                } catch (const std::out_of_range& e) { }
+                if (SongEntry *entry = playUI->GetSong(); entry != nullptr) {
+                    mplay->LoadSong(songTable.GetPosOfSong(entry->GetUID()));
+                    trackUI->SetTitle(entry->GetName());
+                }
             }
             break;
         case TRACKS_SONGLIST:
@@ -438,18 +439,18 @@ void WindowGUI::scrollUp()
     switch (cursorl) {
         case SONGLIST:
             songUI->ScrollUp();
-            try {
-                mplay->LoadSong(songTable.GetPosOfSong(songUI->GetSong().GetUID()));
-                trackUI->SetTitle(songUI->GetSong().GetName());
-            } catch (const std::out_of_range& e) { }
+            if (SongEntry *entry = songUI->GetSong(); entry != nullptr) {
+                mplay->LoadSong(songTable.GetPosOfSong(entry->GetUID()));
+                trackUI->SetTitle(entry->GetName());
+            }
             break;
         case PLAYLIST:
             playUI->ScrollUp();
-            if (!playUI->IsDragging()) {
-                try {
-                    mplay->LoadSong(songTable.GetPosOfSong(playUI->GetSong().GetUID()));
-                    trackUI->SetTitle(playUI->GetSong().GetName());
-                } catch (const std::out_of_range& e) { }
+            if (playUI->IsDragging())
+                break;
+            if (SongEntry *entry = playUI->GetSong(); entry != nullptr) {
+                mplay->LoadSong(songTable.GetPosOfSong(entry->GetUID()));
+                trackUI->SetTitle(entry->GetName());
             }
             break;
         case TRACKS_SONGLIST:
@@ -466,18 +467,18 @@ void WindowGUI::pageDown()
     switch (cursorl) {
         case SONGLIST:
             songUI->PageDown();
-            try {
-                mplay->LoadSong(songTable.GetPosOfSong(songUI->GetSong().GetUID()));
-                trackUI->SetTitle(songUI->GetSong().GetName());
-            } catch (const std::out_of_range& e) { }
+            if (SongEntry *entry = songUI->GetSong(); entry != nullptr) {
+                mplay->LoadSong(songTable.GetPosOfSong(entry->GetUID()));
+                trackUI->SetTitle(entry->GetName());
+            }
             break;
         case PLAYLIST:
             playUI->PageDown();
-            if (!playUI->IsDragging()) {
-                try {
-                    mplay->LoadSong(songTable.GetPosOfSong(playUI->GetSong().GetUID()));
-                    trackUI->SetTitle(playUI->GetSong().GetName());
-                } catch (const std::out_of_range& e) { }
+            if (playUI->IsDragging())
+                break;
+            if (SongEntry *entry = playUI->GetSong(); entry != nullptr) {
+                mplay->LoadSong(songTable.GetPosOfSong(entry->GetUID()));
+                trackUI->SetTitle(entry->GetName());
             }
             break;
         case TRACKS_SONGLIST:
@@ -494,18 +495,18 @@ void WindowGUI::pageUp()
     switch (cursorl) {
         case SONGLIST:
             songUI->PageUp();
-            try {
-                mplay->LoadSong(songTable.GetPosOfSong(songUI->GetSong().GetUID()));
-                trackUI->SetTitle(songUI->GetSong().GetName());
-            } catch (const std::out_of_range& e) { }
+            if (SongEntry *entry = songUI->GetSong(); entry != nullptr) {
+                mplay->LoadSong(songTable.GetPosOfSong(entry->GetUID()));
+                trackUI->SetTitle(entry->GetName());
+            }
             break;
         case PLAYLIST:
             playUI->PageUp();
-            if (!playUI->IsDragging()) {
-                try {
-                    mplay->LoadSong(songTable.GetPosOfSong(playUI->GetSong().GetUID()));
-                    trackUI->SetTitle(playUI->GetSong().GetName());
-                } catch (const std::out_of_range& e) { }
+            if (playUI->IsDragging())
+                break;
+            if (SongEntry *entry = playUI->GetSong(); entry != nullptr) {
+                mplay->LoadSong(songTable.GetPosOfSong(entry->GetUID()));
+                trackUI->SetTitle(entry->GetName());
             }
             break;
         case TRACKS_SONGLIST:
@@ -535,9 +536,9 @@ void WindowGUI::add()
     if (cursorl != SONGLIST) 
         return;
 
-    try {
-        playUI->AddSong(songUI->GetSong());
-    } catch (const std::out_of_range& e) { }
+    SongEntry *entry = songUI->GetSong();
+    if (entry != nullptr)
+            playUI->AddSong(*entry);
 }
 
 void WindowGUI::del() 
@@ -545,10 +546,10 @@ void WindowGUI::del()
     if (cursorl != PLAYLIST) 
         return;
     playUI->RemoveSong();
-    try {
-        mplay->LoadSong(songTable.GetPosOfSong(playUI->GetSong().GetUID()));
-        trackUI->SetTitle(playUI->GetSong().GetName());
-    } catch (const std::out_of_range& e) { }
+    if (SongEntry *entry = playUI->GetSong(); entry != nullptr) {
+        mplay->LoadSong(songTable.GetPosOfSong(entry->GetUID()));
+        trackUI->SetTitle(entry->GetName());
+    }
 }
 
 void WindowGUI::mute()
@@ -609,12 +610,10 @@ void WindowGUI::rename()
     if (cursorl != PLAYLIST) 
         return;
 
-    SongEntry *ent;
-    try {
-        ent = &playUI->GetSong();
-    } catch (const std::out_of_range& e) {
+    SongEntry *ent = playUI->GetSong();
+    if (ent == nullptr)
         return;
-    }
+
     const int renHeight = 5;
     const int renWidth = 60;
     WINDOW *renWin = newwin(renHeight, renWidth, (height / 2) - (renHeight / 2), (width / 2) - (renWidth / 2));

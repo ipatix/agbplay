@@ -16,7 +16,7 @@ public:
     virtual void AddSong(SongEntry song);
     virtual void RemoveSong();
     virtual void ClearSongs();
-    virtual SongEntry& GetSong();
+    virtual SongEntry *GetSong();
     void Enter();
     virtual void Leave();
     void ScrollDown();

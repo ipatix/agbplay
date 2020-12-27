@@ -56,6 +56,8 @@ Take a look at this sample scheme:
 ```
 {
     "id" : "agbplay",
+    "cgb-polyphony" : "mono-strict",
+    "wave-output-dir" : "/home/misterx/Music/agbplay",
     "playlists" : 
     [
         {
@@ -95,11 +97,14 @@ Take a look at this sample scheme:
             ...
         }
     ]
+}
 ```
 
-The root element in the JSON only has two properties: `id` and `playlists`.
-`id` is a fixed string always set to `"agbplay"`. `playlists` is the array what
-contains the playlist data for the games.
+The root element in the JSON has the following properties:
+- `id` is a fixed string and should always be set to `agbplay`.
+- `playlists` contains the array of the actual tagged songs. See below for details.
+- `wave-output-dir` specifies the directory which is used for exporting songs from agbplay.
+- `cgb-polyphony` specifies whether CGB sounds should be allowed to be polyphonic. Valid values are `mono-strict`, `mono-smooth`, `poly`.
 
 Each playlist entry in the array contains the following properties:
 

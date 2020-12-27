@@ -6,6 +6,7 @@
 #include "Debug.h"
 #include "Rom.h"
 #include "PlayerContext.h"
+#include "ConfigManager.h"
 
 #define SONG_FADE_OUT_TIME 10000
 #define SONG_FINISH_TIME 1000
@@ -430,6 +431,17 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
     if (trk.prog > 127)
         return;
 
+    CGBPolyphony cgbPolyphony = ConfigManager::Instance().GetCgbPolyphony();
+
+    auto cgbPolyphonySuppressFunc = [&](auto& channels) {
+        if (cgbPolyphony == CGBPolyphony::MONO_STRICT) {
+            channels.clear();
+        } else if (cgbPolyphony == CGBPolyphony::MONO_SMOOTH) {
+            for (auto& chn : channels)
+                chn.Release(true);
+        }
+    };
+
     uint8_t oldKey = note.midiKey;
     note.midiKey = ctx.bnk.GetMidiKey(trk.prog, oldKey);
     switch (ctx.bnk.GetInstrType(trk.prog, oldKey)) {
@@ -463,6 +475,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
             break;
         case InstrType::SQ1:
             // TODO Does pan of drum tables really only affect PCM channels?
+            cgbPolyphonySuppressFunc(ctx.sq1Channels);
             ctx.sq1Channels.emplace_back(
                     owner, 
                     ctx.bnk.GetCGBDef(trk.prog, oldKey).wd,
@@ -473,6 +486,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
                     trk.GetPitch());
             break;
         case InstrType::SQ2:
+            cgbPolyphonySuppressFunc(ctx.sq2Channels);
             ctx.sq2Channels.emplace_back(
                     owner, 
                     ctx.bnk.GetCGBDef(trk.prog, oldKey).wd,
@@ -483,6 +497,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
                     trk.GetPitch());
             break;
         case InstrType::WAVE:
+            cgbPolyphonySuppressFunc(ctx.waveChannels);
             ctx.waveChannels.emplace_back(
                     owner, 
                     ctx.bnk.GetCGBDef(trk.prog, oldKey).wavePtr,
@@ -493,6 +508,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
                     trk.GetPitch());
             break;
         case InstrType::NOISE:
+            cgbPolyphonySuppressFunc(ctx.noiseChannels);
             ctx.noiseChannels.emplace_back(
                     owner, 
                     ctx.bnk.GetCGBDef(trk.prog, oldKey).np,

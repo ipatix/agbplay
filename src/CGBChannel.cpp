@@ -90,9 +90,12 @@ int8_t CGBChannel::GetNoteLength() const
     return note.length;
 }
 
-void CGBChannel::Release()
+void CGBChannel::Release(bool fastRelease)
 {
     if (eState < EnvState::REL) {
+        if (fastRelease)
+            env.rel = std::min<uint8_t>(env.rel, 1);
+
         if (env.rel == 0) {
             envLevel = 0;
             eState = EnvState::DEAD;

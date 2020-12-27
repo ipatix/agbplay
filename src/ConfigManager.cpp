@@ -80,7 +80,7 @@ void ConfigManager::Load()
     }
 
     // CGB channel polyphony configuration
-    confCgbPolyphony = str2cgbPoly(root.get("cgb-polyphony", "mono-smooth").asString());
+    confCgbPolyphony = str2cgbPoly(root.get("cgb-polyphony", "mono-strict").asString());
 
     for (Json::Value playlist : root["playlists"]) {
         // parse games

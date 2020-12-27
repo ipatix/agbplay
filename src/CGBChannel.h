@@ -24,7 +24,7 @@ public:
     void SetVol(uint8_t vol, int8_t pan);
     uint8_t GetMidiKey() const;
     int8_t GetNoteLength() const;
-    void Release();
+    void Release(bool fastRelease = false);
     virtual void SetPitch(int16_t pitch) = 0;
     bool TickNote(); // returns true if note remains active
     EnvState GetState() const;

@@ -1,6 +1,8 @@
 #include "GameConfig.h"
 #include "Util.h"
 
+#include <algorithm>
+
 /*
  * public GameConfig
  */

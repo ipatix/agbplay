@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <cmath>
+#include <cassert>
 
 #include "PlayerInterface.h"
 #include "Xcept.h"

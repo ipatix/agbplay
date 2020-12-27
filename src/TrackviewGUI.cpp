@@ -1,4 +1,6 @@
 #include <cstring>
+#include <algorithm>
+#include <cassert>
 
 #include "Util.h"
 #include "TrackviewGUI.h"

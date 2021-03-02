@@ -251,6 +251,8 @@ void SoundChannel::stepEnvelope()
         break;
     case EnvState::DEAD:
         break;
+    default:
+        throw Xcept("SoundChannel: Invalid envelope state: %d", (int)eState);
     }
 }
 

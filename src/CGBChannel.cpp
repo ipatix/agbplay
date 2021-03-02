@@ -62,6 +62,7 @@ ChnVol CGBChannel::getVol()
         case EnvState::SUS:
             stepDiv = 1;
             break;
+        case EnvState::CGB_FAST_REL:
         case EnvState::REL:
         case EnvState::DIE:
             stepDiv = env.rel;
@@ -92,10 +93,17 @@ int8_t CGBChannel::GetNoteLength() const
 
 void CGBChannel::Release(bool fastRelease)
 {
-    if (eState < EnvState::REL) {
-        if (fastRelease)
-            env.rel = std::max<uint8_t>(env.rel, 1);
-
+    if (fastRelease && eState < EnvState::CGB_FAST_REL) {
+        if (env.rel == 0) {
+            envLevel = 0;
+            eState = EnvState::DEAD;
+        } else if (envLevel == 0 && fromEnvLevel == 0) {
+            eState = EnvState::DEAD;
+        } else {
+            Debug::print("fastRelease=true envLevel=%d fromEnvLevel=%d eState=%d", (int)envLevel, (int)fromEnvLevel, (int)eState);
+            nextState = EnvState::CGB_FAST_REL;
+        }
+    } else if (eState < EnvState::REL) {
         if (env.rel == 0) {
             envLevel = 0;
             eState = EnvState::DEAD;
@@ -179,6 +187,10 @@ void CGBChannel::stepEnvelope()
                     eState = EnvState::REL;
                     goto Lrel;
                 }
+                if (nextState == EnvState::CGB_FAST_REL) {
+                    eState = EnvState::CGB_FAST_REL;
+                    goto Lfast_rel;
+                }
                 fromEnvLevel = envLevel;
                 envInterStep = 0;
                 if (++envLevel >= envPeak) {
@@ -206,6 +218,10 @@ void CGBChannel::stepEnvelope()
                     eState = EnvState::REL;
                     goto Lrel;
                 }
+                if (nextState == EnvState::CGB_FAST_REL) {
+                    eState = EnvState::CGB_FAST_REL;
+                    goto Lfast_rel;
+                }
 Ldec:
                 fromEnvLevel = envLevel;
                 envInterStep = 0;
@@ -223,9 +239,9 @@ Ldec:
                     eState = EnvState::REL;
                     goto Lrel;
                 }
-                if (nextState == EnvState::REL) {
-                    eState = EnvState::REL;
-                    goto Lrel;
+                if (nextState == EnvState::CGB_FAST_REL) {
+                    eState = EnvState::CGB_FAST_REL;
+                    goto Lfast_rel;
                 }
 Lsus:
                 fromEnvLevel = envLevel;
@@ -236,6 +252,10 @@ Lsus:
             if (++envInterStep >= INTERFRAMES * env.rel) {
                 if (nextState == EnvState::DIE) {
                     goto Ldie;
+                }
+                if (nextState == EnvState::CGB_FAST_REL) {
+                    eState = EnvState::CGB_FAST_REL;
+                    goto Lfast_rel;
                 }
 Lrel:
                 if (env.rel == 0) {
@@ -251,6 +271,27 @@ Lrel:
                     } else {
                         envLevel--;
                     }
+                }
+            }
+            break;
+        case EnvState::CGB_FAST_REL:
+            if (++envInterStep >= INTERFRAMES * env.rel) {
+                Debug::print("executing fast release A");
+                if (nextState == EnvState::DIE) {
+                    goto Ldie;
+                }
+                Debug::print("executing fast release B");
+Lfast_rel:
+                Debug::print("executing fast release C");
+                if (env.rel == 0) {
+                    fromEnvLevel = 0;
+                    envLevel = 0;
+                    eState = EnvState::DEAD;
+                } else {
+                    fromEnvLevel = envLevel;
+                    envInterStep = 0;
+                    envLevel = 0;
+                    nextState = EnvState::DIE;
                 }
             }
             break;

@@ -100,7 +100,6 @@ void CGBChannel::Release(bool fastRelease)
         } else if (envLevel == 0 && fromEnvLevel == 0) {
             eState = EnvState::DEAD;
         } else {
-            Debug::print("fastRelease=true envLevel=%d fromEnvLevel=%d eState=%d", (int)envLevel, (int)fromEnvLevel, (int)eState);
             nextState = EnvState::CGB_FAST_REL;
         }
     } else if (eState < EnvState::REL) {
@@ -276,13 +275,10 @@ Lrel:
             break;
         case EnvState::CGB_FAST_REL:
             if (++envInterStep >= INTERFRAMES * env.rel) {
-                Debug::print("executing fast release A");
                 if (nextState == EnvState::DIE) {
                     goto Ldie;
                 }
-                Debug::print("executing fast release B");
 Lfast_rel:
-                Debug::print("executing fast release C");
                 if (env.rel == 0) {
                     fromEnvLevel = 0;
                     envLevel = 0;

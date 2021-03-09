@@ -1416,12 +1416,12 @@
 					"name" : "Sky Tower Summit"
 				},
 				{
-					"index" : 26,
-					"name" : "Sky Tower End"
-				},
-				{
 					"index" : 32,
 					"name" : "The Last Battle"
+				},
+				{
+					"index" : 26,
+					"name" : "Sky Tower End"
 				},
 				{
 					"index" : 37,

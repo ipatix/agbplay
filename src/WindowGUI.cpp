@@ -191,25 +191,16 @@ bool WindowGUI::Handle()
                 playUI->Enter();
                 break;
             case 'e':
-                mplay->Stop();
-                {
-                    SoundExporter se(songTable, false, true);
-                    se.Export(ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
-                }
+                if (exportReady())
+                    exportLaunch(false, true);
                 break;
             case 'r':
-                mplay->Stop();
-                {
-                    SoundExporter se(songTable, false, false);
-                    se.Export(ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
-                }
+                if (exportReady())
+                    exportLaunch(false, false);
                 break;
             case 'b':
-                mplay->Stop();
-                {
-                    SoundExporter se(songTable, true, false);
-                    se.Export(ConfigManager::Instance().GetCfg().GetGameEntries(), playUI->GetTicked());
-                }
+                if (exportReady())
+                    exportLaunch(true, false);
                 break;
             case 'm':
                 mute();
@@ -227,6 +218,10 @@ bool WindowGUI::Handle()
             case 4: // EOT
             case 'q':
             case 27: // Escape Key
+                // don't allow closing if an export is still running
+                if (!exportReady())
+                    break;
+
                 Debug::print("Exiting...");
                 ConfigManager::Instance().Save();
                 mplay->Stop();
@@ -683,4 +678,46 @@ void WindowGUI::updateWindowSize()
     getmaxyx(stdscr, height, width);
     width = std::clamp(width, WINDOW_MIN_WIDTH, WINDOW_MAX_WIDTH);
     height = std::clamp(height, WINDOW_MIN_HEIGHT, WINDOW_MAX_HEIGHT);
+}
+
+void WindowGUI::exportLaunch(bool benchmarkOnly, bool separate)
+{
+    const auto& cfgEntries = ConfigManager::Instance().GetCfg().GetGameEntries();
+    const auto& ticked = playUI->GetTicked();
+    assert(cfgEntries.size() == ticked.size());
+
+    // we have to pass a copy of the song list to the other thread so that
+    // the list doesn't get destroyed on the fly
+    std::vector<SongEntry> entries;
+    for (size_t i = 0; i < cfgEntries.size(); i++) {
+        if (ticked[i])
+            entries.emplace_back(cfgEntries[i]);
+    }
+
+    exportBusy.store(true);
+
+    exportThread = std::make_unique<std::thread>([&](std::vector<SongEntry> tEntries, bool tBenchmarkOnly, bool tSeparate) {
+            SoundExporter se(songTable, tBenchmarkOnly, tSeparate);
+            se.Export(tEntries);
+            exportBusy.store(false);
+        },
+        entries,
+        benchmarkOnly,
+        separate
+    );
+}
+
+bool WindowGUI::exportReady()
+{
+    if (exportBusy.load()) {
+        Debug::print("Please wait until the current export is finished");
+        return false;
+    }
+
+    if (exportThread) {
+        exportThread->join();
+        exportThread.reset();
+    }
+
+    return true;
 }

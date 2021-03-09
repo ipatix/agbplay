@@ -21,18 +21,8 @@ SoundExporter::SoundExporter(SongTable& songTable, bool benchmarkOnly, bool sepe
 {
 }
 
-void SoundExporter::Export(std::vector<SongEntry>& entries, std::vector<bool>& ticked)
+void SoundExporter::Export(const std::vector<SongEntry>& entries)
 {
-    if (entries.size() != ticked.size())
-        throw Xcept("SoundExporter: input vectors do not match");
-    std::vector<SongEntry> tEnts;
-    for (size_t i = 0; i < entries.size(); i++) {
-        if (!ticked[i])
-            continue;
-        tEnts.push_back(entries[i]);
-    }
-
-
     std::filesystem::path dir = ConfigManager::Instance().GetWavOutputDir();
     if (std::filesystem::exists(dir)) {
         if (!std::filesystem::is_directory(dir)) {
@@ -47,25 +37,24 @@ void SoundExporter::Export(std::vector<SongEntry>& entries, std::vector<bool>& t
 
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    for (size_t i = 0; i < tEnts.size(); i++)
+    for (size_t i = 0; i < entries.size(); i++)
     {
-        std::string fname = tEnts[i].name;
+        std::string fname = entries[i].name;
         boost::replace_all(fname, "/", "_");
-        Debug::print("%3d %% - Rendering to file: \"%s\"", (i + 1) * 100 / tEnts.size(), fname.c_str());
+        Debug::print("%3d %% - Rendering to file: \"%s\"", (i + 1) * 100 / entries.size(), fname.c_str());
         char fileName[512];
         snprintf(fileName, sizeof(fileName), "%s/%03zu - %s", dir.c_str(), i + 1, fname.c_str());
-        size_t rblocks = exportSong(fileName, tEnts[i].GetUID());
+        size_t rblocks = exportSong(fileName, entries[i].GetUID());
         totalBlocksRendered += rblocks;
     }
 
     auto endTime = std::chrono::high_resolution_clock::now();
 
     if (std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count() == 0) {
-        Debug::print("Successfully wrote %zu files", tEnts.size());
+        Debug::print("Successfully wrote %zu files", entries.size());
     } else {
-        Debug::print("Successfully wrote %d files at %d blocks per second",
-                    tEnts.size(), 
-                    int(totalBlocksRendered / (size_t)std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count()));
+        size_t blocksPerSecond = totalBlocksRendered / (size_t)std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count();
+        Debug::print("Successfully wrote %zu files at %zu blocks per second", entries.size(), blocksPerSecond);
     }
 }
 

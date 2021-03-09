@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-#include <mutex>
 #include <filesystem>
 
 #include "SongEntry.h"
@@ -18,12 +17,11 @@ public:
     SoundExporter(const SoundExporter&) = delete;
     SoundExporter& operator=(const SoundExporter&) = delete;
 
-    void Export(std::vector<SongEntry>& entries, std::vector<bool>& ticked);
+    void Export(const std::vector<SongEntry>& entries);
 private:
     size_t exportSong(const std::filesystem::path& fileName, uint16_t uid);
 
     SongTable& songTable;
-    std::mutex uilock;
 
     bool benchmarkOnly;
     bool seperate; // seperate tracks to multiple files

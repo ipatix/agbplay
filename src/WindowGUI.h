@@ -93,6 +93,9 @@ private:
 
     void updateWindowSize();
 
+    void exportLaunch(bool benchmarkOnly, bool separate);
+    bool exportReady();
+
     // console GUI element
     std::unique_ptr<ConsoleGUI> conUI;
     std::unique_ptr<HotkeybarGUI> hotUI;
@@ -106,6 +109,8 @@ private:
     // resource
     SongTable& songTable;
     std::unique_ptr<PlayerInterface> mplay;
+    std::unique_ptr<std::thread> exportThread;
+    std::atomic<bool> exportBusy = false;
 
     // ncurses windows
     WINDOW *containerWin;

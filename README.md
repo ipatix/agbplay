@@ -40,13 +40,15 @@ C++.
 - Add missing key explanation for controls
 - Change to an audio library that doesn't print ANYTHING messages on stdout
 
-### Dependencies (Debian / Arch)
+### Dependencies
 
-- `libboost-all-dev` / `boost`
-- `portaudio19-dev` / `portaudio`
-- `libncursesw5-dev` / `ncurses5-compat-libs` <sup>AUR</sup>
-- `libsndfile1-dev` / `libsndfile`
-- `libjsoncpp-dev` / `jsoncpp`
+Debian | Arch | Cygwin
+--- | --- | ---
+`libboost-all-dev` | `boost` | `libboost-devel`
+`portaudio19-dev` | `portaudio` | `libportaudio-devel`
+`libncursesw5-dev` | `ncurses5-compat-libs` <sup>AUR</sup> | `libncurses-devel`
+`libsndfile1-dev` | `libsndfile` | `libsndfile-devel`
+`libjsoncpp-dev` | `jsoncpp` | `libjsoncpp-devel`
 
 ### Configuration JSON
 Since 21.10.2020, agbplay uses a standard JSON format for storing playlists and

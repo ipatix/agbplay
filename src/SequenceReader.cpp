@@ -8,8 +8,6 @@
 #include "PlayerContext.h"
 #include "ConfigManager.h"
 
-#define SONG_FADE_OUT_TIME 10000
-#define SONG_FINISH_TIME 1000
 #define NOTE_TIE -1
 #define NOTE_ALL 0xFE
 

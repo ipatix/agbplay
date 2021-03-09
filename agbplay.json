@@ -1,4 +1,5 @@
 {
+	"cgb-polyphony" : "mono-strict",
 	"id" : "agbplay",
 	"playlists" : 
 	[
@@ -1240,7 +1241,7 @@
 			[
 				{
 					"index" : 40,
-					"name" : "Intro Video"
+					"name" : "Opening"
 				},
 				{
 					"index" : 43,
@@ -1252,15 +1253,15 @@
 				},
 				{
 					"index" : 12,
-					"name" : "Personality Test"
+					"name" : "Welcome! To the World of Pokémon!"
 				},
 				{
 					"index" : 101,
-					"name" : "Awakening"
+					"name" : "Meeting with a Partner"
 				},
 				{
 					"index" : 10,
-					"name" : "Trouble"
+					"name" : "It's a Disaster!"
 				},
 				{
 					"index" : 125,
@@ -1268,15 +1269,15 @@
 				},
 				{
 					"index" : 114,
-					"name" : "At the End of the Road"
+					"name" : "In the Depths of the Pit"
 				},
 				{
 					"index" : 103,
-					"name" : "Job Clear"
+					"name" : "A Successful Rescue!"
 				},
 				{
 					"index" : 1,
-					"name" : "Team Base"
+					"name" : "At the Rescue Base"
 				},
 				{
 					"index" : 46,
@@ -1292,47 +1293,27 @@
 				},
 				{
 					"index" : 7,
-					"name" : "Pokemon Square"
+					"name" : "Pokémon Square"
 				},
 				{
-					"index" : 107,
-					"name" : "Friend Area - Field"
-				},
-				{
-					"index" : 105,
-					"name" : "Friend Area - Steppe"
-				},
-				{
-					"index" : 121,
-					"name" : "Friend Area - Forest"
-				},
-				{
-					"index" : 116,
-					"name" : "Friend Area - Wilds"
-				},
-				{
-					"index" : 2,
-					"name" : "Friend Area - Swamp"
-				},
-				{
-					"index" : 16,
-					"name" : "Friend Area - Pond"
+					"index" : 110,
+					"name" : "Makuhita Dojo"
 				},
 				{
 					"index" : 120,
 					"name" : "Mt. Steel"
 				},
 				{
+					"index" : 17,
+					"name" : "Kecleon Shop"
+				},
+				{
+					"index" : 18,
+					"name" : "Everyone, Catch Them!"
+				},
+				{
 					"index" : 11,
-					"name" : "Boss Battle"
-				},
-				{
-					"index" : 112,
-					"name" : "Friend Area - Lab"
-				},
-				{
-					"index" : 110,
-					"name" : "Makuhita Dojo"
+					"name" : "Decisive Battle!"
 				},
 				{
 					"index" : 15,
@@ -1340,7 +1321,7 @@
 				},
 				{
 					"index" : 9,
-					"name" : "Danger"
+					"name" : "Rising Fear"
 				},
 				{
 					"index" : 113,
@@ -1375,16 +1356,16 @@
 					"name" : "Mt. Blaze"
 				},
 				{
-					"index" : 17,
-					"name" : "Kecleon Shop"
-				},
-				{
 					"index" : 33,
 					"name" : "Mt. Blaze Peak"
 				},
 				{
+					"index" : 38,
+					"name" : "Mt. Blaze End"
+				},
+				{
 					"index" : 36,
-					"name" : "Escape through the Snow"
+					"name" : "Through the Land of Ice and Snow"
 				},
 				{
 					"index" : 104,
@@ -1407,12 +1388,12 @@
 					"name" : "Mt. Freeze Peak"
 				},
 				{
-					"index" : 108,
-					"name" : "Magma Cavern"
-				},
-				{
 					"index" : 128,
 					"name" : "Monster House"
+				},
+				{
+					"index" : 108,
+					"name" : "Magma Cavern"
 				},
 				{
 					"index" : 124,
@@ -1420,7 +1401,11 @@
 				},
 				{
 					"index" : 19,
-					"name" : "World Calamity"
+					"name" : "A Giant Star is Approaching!"
+				},
+				{
+					"index" : 29,
+					"name" : "Gengar's Dream Eater"
 				},
 				{
 					"index" : 22,
@@ -1431,24 +1416,32 @@
 					"name" : "Sky Tower Summit"
 				},
 				{
+					"index" : 26,
+					"name" : "Sky Tower End"
+				},
+				{
 					"index" : 32,
-					"name" : "Legendary Boss Battle"
+					"name" : "The Last Battle"
+				},
+				{
+					"index" : 37,
+					"name" : "Gengar's Dark World"
 				},
 				{
 					"index" : 41,
-					"name" : "Aftermath"
+					"name" : "After the Battle"
 				},
 				{
 					"index" : 42,
-					"name" : "Farewell"
+					"name" : "You Will Never Forget"
 				},
 				{
-					"index" : 106,
-					"name" : "Friend Area - Oceanic"
+					"index" : 44,
+					"name" : "Staff Credits"
 				},
 				{
-					"index" : 3,
-					"name" : "Friend Area - Caves"
+					"index" : 45,
+					"name" : "Epilogue"
 				},
 				{
 					"index" : 21,
@@ -1459,20 +1452,92 @@
 					"name" : "Buried Relic"
 				},
 				{
-					"index" : 44,
-					"name" : "Staff Credits"
+					"index" : 107,
+					"name" : "Friend Area - Field"
 				},
 				{
-					"index" : 45,
-					"name" : "Reunion"
+					"index" : 105,
+					"name" : "Friend Area - Steppe"
+				},
+				{
+					"index" : 121,
+					"name" : "Friend Area - Forest"
+				},
+				{
+					"index" : 116,
+					"name" : "Friend Area - Wilds"
+				},
+				{
+					"index" : 2,
+					"name" : "Friend Area - Swamp"
+				},
+				{
+					"index" : 16,
+					"name" : "Friend Area - Pond"
+				},
+				{
+					"index" : 112,
+					"name" : "Friend Area - Lab"
+				},
+				{
+					"index" : 106,
+					"name" : "Friend Area - Oceanic"
+				},
+				{
+					"index" : 3,
+					"name" : "Friend Area - Caves"
+				},
+				{
+					"index" : 28,
+					"name" : "Friend Area - Rainbow Peak"
+				},
+				{
+					"index" : 35,
+					"name" : "Friend Area - Cryptic Cave"
+				},
+				{
+					"index" : 118,
+					"name" : "Friend Area - Southern Island"
+				},
+				{
+					"index" : 122,
+					"name" : "Friend Area - Final Island"
+				},
+				{
+					"index" : 117,
+					"name" : "Friend Area - Legendary Island"
+				},
+				{
+					"index" : 30,
+					"name" : "Friend Area - Deepsea Current"
+				},
+				{
+					"index" : 127,
+					"name" : "Friend Area - Healing Forest"
+				},
+				{
+					"index" : 31,
+					"name" : "Friend Area - Seafloor Cave"
+				},
+				{
+					"index" : 34,
+					"name" : "Friend Area - Volcanic Pit"
+				},
+				{
+					"index" : 27,
+					"name" : "Friend Area - Stratos Outlook"
+				},
+				{
+					"index" : 119,
+					"name" : "Friend Area - Enclosed Island"
 				},
 				{
 					"index" : 100,
-					"name" : "Friend Area - PLACEHOLDER"
+					"name" : "Friend Area - Unused 1"
 				},
 				{
 					"index" : 109,
-					"name" : "Friend Area - Ravaged Field"
+					"name" : "Friend Area - Unused 2"
 				},
 				{
 					"index" : 52,

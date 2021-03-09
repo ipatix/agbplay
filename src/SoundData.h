@@ -78,6 +78,7 @@ public:
     uint16_t bpm;
     size_t GetSoundBankPos();
     uint8_t GetReverb() const;
+    uint8_t GetPriority() const;
     size_t GetSongHeaderPos() const;
 private:
     size_t songHeaderPos;

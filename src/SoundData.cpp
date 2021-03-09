@@ -255,6 +255,14 @@ uint8_t Sequence::GetReverb() const
     return Rom::Instance().ReadU8(songHeaderPos + 3);
 }
 
+uint8_t Sequence::GetPriority() const
+{
+    if (songHeaderPos == 0)
+        return 0;
+
+    return Rom::Instance().ReadU8(songHeaderPos + 2);
+}
+
 size_t Sequence::GetSongHeaderPos() const
 {
     return songHeaderPos;

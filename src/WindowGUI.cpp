@@ -214,6 +214,9 @@ bool WindowGUI::Handle()
             case 'f':
                 ConfigManager::Instance().Save();
                 break;
+            case '!':
+                songInfo();
+                break;
             case EOF:
             case 4: // EOT
             case 'q':
@@ -511,6 +514,34 @@ void WindowGUI::pageUp()
         default:
             break;
     }
+}
+
+void WindowGUI::songInfo()
+{
+    SongEntry *entry;
+
+    if (cursorl == SONGLIST) {
+        entry = songUI->GetSong();
+    } else if (cursorl == PLAYLIST) {
+        entry = playUI->GetSong();
+    } else {
+        return;
+    }
+
+    if (entry == nullptr) {
+        Debug::print("Cannot get song info: No song loaded!");
+        return;
+    }
+
+    SongInfo sinfo = mplay->GetSongInfo();
+
+    Debug::print("Song Info: num=%d header=0x%X voicetable=0x%X reverb=%d priority=%d",
+            static_cast<int>(entry->GetUID()),
+            sinfo.songHeaderPos,
+            sinfo.voiceTablePos,
+            sinfo.reverb,
+            sinfo.priority
+    );
 }
 
 void WindowGUI::enter()

@@ -206,6 +206,16 @@ void PlayerInterface::GetMasterVolLevels(float& left, float& right)
     masterLoudness.GetLoudness(left, right);
 }
 
+SongInfo PlayerInterface::GetSongInfo() const
+{
+    SongInfo result;
+    result.songHeaderPos = ctx->seq.GetSongHeaderPos();
+    result.voiceTablePos = ctx->seq.GetSoundBankPos();
+    result.reverb = ctx->seq.GetReverb();
+    result.priority = ctx->seq.GetPriority();
+    return result;
+}
+
 /*
  * private PlayerInterface
  */

@@ -34,6 +34,7 @@ public:
     void Mute(size_t index, bool mute);
     size_t GetMaxTracks() { return mutedTracks.size(); }
     void GetMasterVolLevels(float& left, float& right);
+    SongInfo GetSongInfo() const;
 
 private:
     void initContext();

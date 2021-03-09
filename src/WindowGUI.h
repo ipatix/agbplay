@@ -83,6 +83,7 @@ private:
     void scrollUp();
     void pageDown();
     void pageUp();
+    void songInfo();
     void enter();
     void add();
     void del();

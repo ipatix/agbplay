@@ -29,6 +29,7 @@ C++.
 - B: Benchmark, run the export program but don't write to file
 - F: Save Playlist: The playlist is also saved when the program is closed
 - Q or Ctrl-D: Exit rrogram
+- !: Show extended song information
 
 ### Current state of things
 - ROMs can be loaded and scanned for the songtable automatically

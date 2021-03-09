@@ -86,6 +86,14 @@ struct EnginePars
     uint8_t freq;
 };
 
+struct SongInfo
+{
+    size_t songHeaderPos;
+    size_t voiceTablePos;
+    uint8_t reverb;
+    uint8_t priority;
+};
+
 struct sample {
     float left;
     float right;

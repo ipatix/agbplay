@@ -1229,7 +1229,7 @@
 		},
 		{
 			"games" : [ "B24P", "B24E" ],
-			"pcm-fixed-rate-resampling-algo" : "linear",
+			"pcm-fixed-rate-resampling-algo" : "blep",
 			"pcm-master-volume" : 14,
 			"pcm-resampling-algo" : "linear",
 			"pcm-reverb-buffer-len" : 1584,

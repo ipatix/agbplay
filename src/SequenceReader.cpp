@@ -442,37 +442,34 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
 
     uint8_t oldKey = note.midiKey;
     note.midiKey = ctx.bnk.GetMidiKey(trk.prog, oldKey);
+    uint8_t pan = ctx.bnk.GetPan(trk.prog, oldKey);
+
     switch (ctx.bnk.GetInstrType(trk.prog, oldKey)) {
         case InstrType::PCM:
-            {
-                uint8_t pan = ctx.bnk.GetPan(trk.prog, oldKey);
-                ctx.sndChannels.emplace_back(
-                        owner,
-                        ctx.bnk.GetSampInfo(trk.prog, oldKey),
-                        ctx.bnk.GetADSR(trk.prog, oldKey),
-                        note,
-                        trk.GetVol(),
-                        (pan & 0x80) ? int8_t(int(pan) - 0xC0) : trk.GetPan(),
-                        trk.GetPitch(),
-                        false);
-            }
+            ctx.sndChannels.emplace_back(
+                    owner,
+                    ctx.bnk.GetSampInfo(trk.prog, oldKey),
+                    ctx.bnk.GetADSR(trk.prog, oldKey),
+                    note,
+                    trk.GetVol(),
+                    trk.GetPan(),
+                    (pan & 0x80) ? int8_t(int(pan) - 0xC0) : 0,
+                    trk.GetPitch(),
+                    false);
             break;
         case InstrType::PCM_FIXED:
-            {
-                uint8_t pan = ctx.bnk.GetPan(trk.prog, oldKey);
-                ctx.sndChannels.emplace_back(
-                        owner,
-                        ctx.bnk.GetSampInfo(trk.prog, oldKey),
-                        ctx.bnk.GetADSR(trk.prog, oldKey),
-                        note,
-                        trk.GetVol(),
-                        (pan & 0x80) ? int8_t(int(pan) - 0xC0) : trk.GetPan(),
-                        trk.GetPitch(),
-                        true);
-            }
+            ctx.sndChannels.emplace_back(
+                    owner,
+                    ctx.bnk.GetSampInfo(trk.prog, oldKey),
+                    ctx.bnk.GetADSR(trk.prog, oldKey),
+                    note,
+                    trk.GetVol(),
+                    trk.GetPan(),
+                    (pan & 0x80) ? int8_t(int(pan) - 0xC0) : 0,
+                    trk.GetPitch(),
+                    true);
             break;
         case InstrType::SQ1:
-            // TODO Does pan of drum tables really only affect PCM channels?
             cgbPolyphonySuppressFunc(ctx.sq1Channels);
             ctx.sq1Channels.emplace_back(
                     owner, 
@@ -481,6 +478,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
                     note, 
                     trk.GetVol(), 
                     trk.GetPan(), 
+                    (pan & 0x80) ? int8_t(int(pan) - 0xC0) : 0,
                     trk.GetPitch());
             break;
         case InstrType::SQ2:
@@ -492,6 +490,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
                     note, 
                     trk.GetVol(), 
                     trk.GetPan(), 
+                    (pan & 0x80) ? int8_t(int(pan) - 0xC0) : 0,
                     trk.GetPitch());
             break;
         case InstrType::WAVE:
@@ -503,6 +502,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
                     note,
                     trk.GetVol(),
                     trk.GetPan(),
+                    (pan & 0x80) ? int8_t(int(pan) - 0xC0) : 0,
                     trk.GetPitch());
             break;
         case InstrType::NOISE:
@@ -514,6 +514,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
                     note, 
                     trk.GetVol(),
                     trk.GetPan(),
+                    (pan & 0x80) ? int8_t(int(pan) - 0xC0) : 0,
                     trk.GetPitch());
             break;
         case InstrType::INVALID:

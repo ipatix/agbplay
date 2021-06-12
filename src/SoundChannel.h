@@ -19,7 +19,7 @@ private:
         float interStep;
     };
 public:
-    SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed);
+    SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch, bool fixed);
     SoundChannel(const SoundChannel&) = delete;
     SoundChannel& operator=(const SoundChannel&) = delete;
 
@@ -58,6 +58,7 @@ private:
     int16_t levelMPTcompressed;
     uint8_t shiftMPTcompressed;
     uint8_t owner;
+    const int8_t instPan;
     uint8_t envInterStep = 0;
     uint8_t leftVol;
     uint8_t rightVol;

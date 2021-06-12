@@ -13,8 +13,8 @@
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel(uint8_t owner, ADSR env, Note note, uint8_t vol, int8_t pan)
-    : env(env), note(note), owner(owner)
+CGBChannel::CGBChannel(uint8_t owner, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan)
+    : env(env), note(note), owner(owner), instPan(instPan)
 {
     this->env.att &= 0x7;
     this->env.dec &= 0x7;
@@ -30,11 +30,13 @@ uint8_t CGBChannel::GetOwner() const
 
 void CGBChannel::SetVol(uint8_t vol, int8_t pan)
 {
+    int combinedPan = std::clamp(pan + instPan, -64, +63);
+
     if (eState < EnvState::REL) {
-        if (pan < -21) {
+        if (combinedPan < -21) {
             // snap left
             this->pan = Pan::LEFT;
-        } else if (pan > 20) {
+        } else if (combinedPan > 20) {
             // snap right
             this->pan = Pan::RIGHT;
         } else {
@@ -310,8 +312,8 @@ void CGBChannel::updateVolFade()
  * public SquareChannel
  */
 
-SquareChannel::SquareChannel(uint8_t owner, WaveDuty wd, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch)
-    : CGBChannel(owner, env, note, vol, pan)
+SquareChannel::SquareChannel(uint8_t owner, WaveDuty wd, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch)
+    : CGBChannel(owner, env, note, vol, pan, instPan)
 {
     SetPitch(pitch);
 
@@ -392,8 +394,8 @@ uint8_t WaveChannel::volLut[] = {
     0, 0, 4, 4, 4, 4, 8, 8, 8, 8, 12, 12, 12, 12, 16, 16
 };
 
-WaveChannel::WaveChannel(uint8_t owner, const uint8_t *wavePtr, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch)
-    : CGBChannel(owner, env, note, vol, pan)
+WaveChannel::WaveChannel(uint8_t owner, const uint8_t *wavePtr, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch)
+    : CGBChannel(owner, env, note, vol, pan, instPan)
 {
     SetPitch(pitch);
 
@@ -474,8 +476,8 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
  * public NoiseChannel
  */
 
-NoiseChannel::NoiseChannel(uint8_t owner, NoisePatt np, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch)
-    : CGBChannel(owner, env, note, vol, pan)
+NoiseChannel::NoiseChannel(uint8_t owner, NoisePatt np, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch)
+    : CGBChannel(owner, env, note, vol, pan, instPan)
 {
     SetPitch(pitch);
     this->rs = std::make_unique<NearestResampler>();

@@ -13,8 +13,8 @@
  * public SoundChannel
  */
 
-SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int16_t pitch, bool fixed)
-    : env(env), note(note), sInfo(sInfo), fixed(fixed), owner(owner)
+SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch, bool fixed)
+    : env(env), note(note), sInfo(sInfo), fixed(fixed), owner(owner), instPan(instPan)
 {
     SetVol(vol, pan);
 
@@ -109,8 +109,9 @@ uint8_t SoundChannel::GetOwner() const
 void SoundChannel::SetVol(uint8_t vol, int8_t pan)
 {
     if (eState < EnvState::REL) {
-        this->leftVol = uint8_t(note.velocity * vol * (-pan + 64) / 8192);
-        this->rightVol = uint8_t(note.velocity * vol * (pan + 64) / 8192);
+        int combinedPan = std::clamp(pan + instPan, -64, +63);
+        this->leftVol = uint8_t(note.velocity * vol * (-combinedPan + 64) / 8192);
+        this->rightVol = uint8_t(note.velocity * vol * (combinedPan + 64) / 8192);
     }
 }
 

@@ -88,9 +88,6 @@ uint8_t SoundBank::GetMidiKey(uint8_t instrNum, uint8_t midiKey)
 uint8_t SoundBank::GetPan(uint8_t instrNum, uint8_t midiKey)
 {
     size_t pos = instrPos(instrNum, midiKey);
-    InstrType t = GetInstrType(instrNum, midiKey);
-    if (t != InstrType::PCM && t != InstrType::PCM_FIXED)
-        throw Xcept("SoundBank Error: Invalid use of pan at non PCM instrument: [%08X]", pos);
 
     return Rom::Instance().ReadU8(pos + 3);
 }

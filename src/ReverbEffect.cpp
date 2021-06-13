@@ -172,7 +172,7 @@ size_t ReverbGS2::processInternal(sample *buffer, size_t numSamples)
     size_t c = count;
     do {
         float mixL = buffer->left  + gs2Buffer[gs2Pos].left;
-        float mixR = buffer->right + gs2Buffer[gs2Pos].left;
+        float mixR = buffer->right + gs2Buffer[gs2Pos].right;
 
         float lA = rbuf[bufferPos].left;
         float rA = rbuf[bufferPos].right;

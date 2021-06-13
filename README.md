@@ -176,6 +176,8 @@ for drums). They sypport the following values:
   some brightness into your drums (i.e. fixed frequency sounds) since this is
   the way hardware does it (except `blep` will clean up the higher frequencies
   which `nearest` doesn't).
+- `blamp` = Slow! Same as blep but creates bandlimited triangular pulses instead
+  of rectangular ones. Use this as high quality alternative to `linear`.
 
 #### Importing tags from GSF files
 

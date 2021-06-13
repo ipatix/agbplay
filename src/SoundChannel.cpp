@@ -33,6 +33,9 @@ SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note,
     case ResamplerType::BLEP:
         this->rs = std::make_unique<BlepResampler>();
         break;
+    case ResamplerType::BLAMP:
+        this->rs = std::make_unique<BlampResampler>();
+        break;
     }
 
     SetPitch(pitch);

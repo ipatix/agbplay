@@ -364,3 +364,106 @@ float BlepResampler::fast_Si(float t)
     float retval = Si_lut[left_index] + fraction * (Si_lut[right_index] - Si_lut[left_index]);
     return copysignf(retval, signed_t);
 }
+
+BlampResampler::BlampResampler()
+{
+    Reset();
+}
+
+BlampResampler::~BlampResampler()
+{
+}
+
+void BlampResampler::Reset()
+{
+    fetchBuffer.clear();
+    fetchBuffer.resize(SINC_WINDOW_SIZE, 0.0f);
+    phase = 0.0f;
+}
+
+bool BlampResampler::Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
+{
+    if (numBlocks == 0)
+        return true;
+
+    size_t samplesRequired = static_cast<size_t>(
+            phase + phaseInc * static_cast<float>(numBlocks));
+    // be sure and fetch one more sample in case of odd rounding errors
+    samplesRequired += 1;
+    // fetch a few more for complete windowed sinc interpolation
+    samplesRequired += SINC_WINDOW_SIZE * 2;
+    bool result = cbPtr(fetchBuffer, samplesRequired, cbdata);
+
+    float sincStep = SINC_FILT_THRESH / phaseInc;
+    int i = 0;
+    do {
+        float sampleSum = 0.0f;
+        float kernelSum = 0.0f;
+        for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi++) {
+            float TiIndexLeft = (float(wi) - phase - 1.0f) * sincStep;
+            float TiIndexMiddle = (float(wi) - phase) * sincStep;
+            float TiIndexRight = (float(wi) - phase + 1.0f) * sincStep;
+            float sl = fast_Ti(TiIndexLeft);
+            float sm = fast_Ti(TiIndexMiddle);
+            float sr = fast_Ti(TiIndexRight);
+            float kernel = sr - 2.0f * sm + sl;
+            sampleSum += kernel * fetchBuffer[i + wi + SINC_WINDOW_SIZE - 1];
+            kernelSum += kernel;
+        }
+        phase += phaseInc;
+        int istep = static_cast<int>(phase);
+        phase -= static_cast<float>(istep);
+        i += istep;
+
+        *outData++ = sampleSum / kernelSum;
+    } while (--numBlocks > 0);
+    // remove first i elements from the fetch buffer since they are no longer needed
+    fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + i);
+
+    return result;
+}
+
+// I call "Ti" the integral of Si function. I don't know its proper name
+static const std::vector<float> Ti_lut = []() {
+    std::vector<float> l(LUT_SIZE+2);
+    double acc = 0.0;
+    double step_per_index = double(SINC_WINDOW_SIZE) / double(LUT_SIZE);
+    double integration_inc = step_per_index / double(INTEGRAL_RESOLUTION);
+    double index = 0.0;
+    double prev_value = 1.0;
+
+    for (size_t i = 0; i < LUT_SIZE+1; i++) {
+        const double t = double(i) * step_per_index;
+        const double convergence_value = t * 0.5;
+        const double function_value = t * acc + cos(M_PI * t) / (M_PI * M_PI);
+        const double interpolation_t = 0.5 - 0.5 * cos(double(i) * M_PI / double(LUT_SIZE));
+        const double interpolated_value = function_value + interpolation_t * (convergence_value - function_value);
+        l[i] = static_cast<float>(interpolated_value);
+
+        for (size_t j = 0; j < INTEGRAL_RESOLUTION; j++) {
+            index += integration_inc;
+            double new_value = boost::math::sinc_pi(M_PI * index);
+            acc += (new_value + prev_value) * integration_inc * 0.5;
+            prev_value = new_value;
+        }
+    }
+    l[LUT_SIZE+1] = static_cast<float>(((LUT_SIZE+1) * step_per_index) * 0.5);
+    l.shrink_to_fit();
+    return l;
+}();
+
+float BlampResampler::fast_Ti(float t)
+{
+    t = fabs(t);
+    float ct = t;
+    ct = std::min(ct, float(SINC_WINDOW_SIZE));
+    ct *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));
+    uint32_t left_index = static_cast<uint32_t>(ct);
+    float fraction = ct - static_cast<float>(left_index);
+    uint32_t right_index = left_index + 1;
+    float retval = Ti_lut[left_index] + fraction * (Ti_lut[right_index] - Ti_lut[left_index]);
+    if (t > float(SINC_WINDOW_SIZE))
+        return t * 0.5f;
+    else
+        return retval;
+}

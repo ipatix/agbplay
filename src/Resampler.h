@@ -68,3 +68,13 @@ public:
 private:
     static float fast_Si(float t);
 };
+
+class BlampResampler : public Resampler {
+public:
+    BlampResampler();
+    ~BlampResampler() override;
+    bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+    void Reset() override;
+private:
+    static float fast_Ti(float t);
+};

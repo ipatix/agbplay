@@ -40,6 +40,8 @@ ResamplerType str2res(const std::string& str)
         return ResamplerType::SINC;
     else if (str == "blep")
         return ResamplerType::BLEP;
+    else if (str == "blamp")
+        return ResamplerType::BLAMP;
     return ResamplerType::LINEAR;
 }
 
@@ -53,6 +55,8 @@ std::string res2str(ResamplerType t)
         return "sinc";
     else if (t == ResamplerType::BLEP)
         return "blep";
+    else if (t == ResamplerType::BLAMP)
+        return "blamp";
     return "linear";
 }
 

@@ -11,7 +11,7 @@ enum class EnvState : int { INIT = 0, ATK, DEC, SUS, REL, CGB_FAST_REL, DIE, DEA
 enum class WaveDuty : int { D12 = 0, D25, D50, D75 };
 enum class NoisePatt : int { FINE = 0, ROUGH };
 enum class ReverbType { NORMAL, GS1, GS2, MGAT, TEST, NONE };
-enum class ResamplerType { NEAREST, LINEAR, SINC, BLEP };
+enum class ResamplerType { NEAREST, LINEAR, SINC, BLEP, BLAMP };
 enum class CGBPolyphony { MONO_STRICT, MONO_SMOOTH, POLY };
 
 ReverbType str2rev(const std::string& str);

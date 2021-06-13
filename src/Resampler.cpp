@@ -198,32 +198,35 @@ bool SincResampler::Process(float *outData, size_t numBlocks, float phaseInc, re
 
 #define LUT_SIZE 1024
 
-static std::vector<float> cos_lut = []() {
+static const std::vector<float> cos_lut = []() {
     std::vector<float> l(LUT_SIZE);
     for (size_t i = 0; i < l.size(); i++) {
         float index = float(i) * float(2.0 * M_PI / double(LUT_SIZE));
         l[i] = cosf(index);
     }
+    l.shrink_to_fit();
     return l;
 }();
 
-static std::vector<float> sinc_lut = []() {
+static const std::vector<float> sinc_lut = []() {
     std::vector<float> l(LUT_SIZE+2);
     for (size_t i = 0; i < LUT_SIZE+1; i++) {
         float index = float(i) * float(SINC_WINDOW_SIZE * M_PI / double(LUT_SIZE));
         l[i] = boost::math::sinc_pi(index);
     }
     l[LUT_SIZE+1] = 0.0f;
+    l.shrink_to_fit();
     return l;
 }();
 
-static std::vector<float> win_lut = []() {
+static const std::vector<float> win_lut = []() {
     std::vector<float> l(LUT_SIZE+2);
     for (size_t i = 0; i < LUT_SIZE+1; i++) {
         float index = float(i) * float(M_PI / double(LUT_SIZE));
         l[i] = 0.5f + (0.5f * cosf(index));
     }
     l[LUT_SIZE+1] = 0.0f;
+    l.shrink_to_fit();
     return l;
 }();
 
@@ -329,7 +332,7 @@ bool BlepResampler::Process(float *outData, size_t numBlocks, float phaseInc, re
 
 #define INTEGRAL_RESOLUTION 256
 
-static std::vector<float> Si_lut = []() {
+static const std::vector<float> Si_lut = []() {
     std::vector<float> l(LUT_SIZE+2);
     double acc = 0.0;
     double step_per_index = double(SINC_WINDOW_SIZE) / double(LUT_SIZE);
@@ -349,6 +352,7 @@ static std::vector<float> Si_lut = []() {
         }
     }
     l[LUT_SIZE+1] = 0.5f;
+    l.shrink_to_fit();
     return l;
 }();
 

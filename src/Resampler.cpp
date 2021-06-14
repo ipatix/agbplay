@@ -123,7 +123,7 @@ bool LinearResampler::Process(float *outData, size_t numBlocks, float phaseInc, 
 //}
 
 #define SINC_WINDOW_SIZE 16
-#define SINC_FILT_THRESH 0.8f
+#define SINC_FILT_THRESH 0.9f
 
 SincResampler::SincResampler()
 {
@@ -196,7 +196,8 @@ bool SincResampler::Process(float *outData, size_t numBlocks, float phaseInc, re
  * fast trigonometric functions
  */
 
-#define LUT_SIZE 1024
+// anything higher than 256 LUT size seems to be indistinguishable
+#define LUT_SIZE 256
 
 static const std::vector<float> cos_lut = []() {
     std::vector<float> l(LUT_SIZE);

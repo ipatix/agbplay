@@ -282,6 +282,8 @@ void PlayerInterface::threadWorker()
                 throw Xcept("Internal PlayerInterface error: %d", (int)playerState);
             }
         }
+        // reset song state after it has finished
+        ctx->InitSong(ctx->seq.GetSongHeaderPos());
     } catch (std::exception& e) {
         Debug::print("FATAL ERROR on streaming thread: %s", e.what());
     }

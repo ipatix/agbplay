@@ -64,6 +64,7 @@ bool SequenceReader::EndReached() const
 
 void SequenceReader::Restart()
 {
+    numLoops = 0;
     endReached = false;
 }
 
@@ -209,7 +210,7 @@ void SequenceReader::processSequenceTick()
                         case 0xB2:
                             // GOTO
                             if (ntrk == 0) {
-                                if (maxLoops-- <= 0) {
+                                if (numLoops++ >= maxLoops && !endReached) {
                                     endReached = true;
                                     ctx.mixer.StartFadeOut(SONG_FADE_OUT_TIME);
                                 }

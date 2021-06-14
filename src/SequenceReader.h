@@ -30,7 +30,8 @@ private:
     PlayerContext& ctx;
 
     bool endReached = false;
-    uint8_t maxLoops;
+    const uint8_t maxLoops;
+    uint8_t numLoops = 0;
     float speedFactor = 1.0f;
 
     void processSequenceTick();

@@ -177,7 +177,7 @@ CGBPolyphony ConfigManager::GetCgbPolyphony()
 
 int8_t ConfigManager::GetMaxLoopsPlaylist()
 {
-    return maxLoopsPlaylist;
+    return maxLoopsPlaylist < -1 ? 0 : maxLoopsPlaylist;
 }
 
 int8_t ConfigManager::GetMaxLoopsExport()

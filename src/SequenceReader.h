@@ -30,7 +30,7 @@ private:
     PlayerContext& ctx;
 
     bool endReached = false;
-    int8_t maxLoops = 1;
+    const int8_t maxLoops = 1;
     uint8_t numLoops = 0;
     float speedFactor = 1.0f;
 

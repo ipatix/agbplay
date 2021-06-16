@@ -1,6 +1,8 @@
 {
 	"cgb-polyphony" : "mono-strict",
 	"id" : "agbplay",
+	"max-loops-export" : 1,
+	"max-loops-playlist" : 1,
 	"playlists" : 
 	[
 		{

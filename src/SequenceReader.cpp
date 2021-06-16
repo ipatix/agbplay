@@ -10,6 +10,7 @@
 
 #define NOTE_TIE -1
 #define NOTE_ALL 0xFE
+#define LOOP_ENDLESS -1
 
 /*
  * SequenceReader data
@@ -43,7 +44,7 @@ const std::map<uint8_t, int8_t> SequenceReader::noteLut = {
  * public SequenceReader
  */
 
-SequenceReader::SequenceReader(PlayerContext& ctx, uint8_t maxLoops) 
+SequenceReader::SequenceReader(PlayerContext& ctx, int8_t maxLoops) 
     : ctx(ctx), maxLoops(maxLoops)
 {
 }
@@ -210,7 +211,7 @@ void SequenceReader::processSequenceTick()
                         case 0xB2:
                             // GOTO
                             if (ntrk == 0) {
-                                if (numLoops++ >= maxLoops && !endReached) {
+                                if (maxLoops != LOOP_ENDLESS && numLoops++ >= maxLoops && !endReached) {
                                     endReached = true;
                                     ctx.mixer.StartFadeOut(SONG_FADE_OUT_TIME);
                                 }

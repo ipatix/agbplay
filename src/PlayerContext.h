@@ -11,7 +11,7 @@
  * to a PlayerContext */
 
 struct PlayerContext {
-    PlayerContext(uint8_t maxLoops, uint8_t maxTracks, EnginePars pars);
+    PlayerContext(int8_t maxLoops, uint8_t maxTracks, EnginePars pars);
     PlayerContext(const PlayerContext&) = delete;
     PlayerContext& operator=(const PlayerContext&) = delete;
 

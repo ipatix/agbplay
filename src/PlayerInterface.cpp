@@ -11,9 +11,6 @@
 #include "Util.h"
 #include "ConfigManager.h"
 
-// TODO replace this with a config option
-#define MAX_LOOPS 1
-
 /*
  * PlayerInterface data
  */
@@ -227,7 +224,7 @@ void PlayerInterface::initContext()
     /* We could make the context a member variable instead of
      * a unique_ptr, but initialization get's a little messy that way */
     ctx = std::make_unique<PlayerContext>(
-            MAX_LOOPS,
+            ConfigManager::Instance().GetMaxLoopsPlaylist(),
             cfg.GetTrackLimit(),
             EnginePars(cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq())
             );

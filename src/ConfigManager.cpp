@@ -81,6 +81,10 @@ void ConfigManager::Load()
 
     // CGB channel polyphony configuration
     confCgbPolyphony = str2cgbPoly(root.get("cgb-polyphony", "mono-strict").asString());
+    
+    // Loop configuration
+    maxLoopsPlaylist = static_cast<int8_t>(root.get("max-loops-playlist", 1).asInt());
+    maxLoopsExport = static_cast<int8_t>(root.get("max-loops-export", 1).asInt());
 
     for (Json::Value playlist : root["playlists"]) {
         // parse games
@@ -143,6 +147,8 @@ void ConfigManager::Save()
     root["wav-output-dir"] = confWavOutputDir.string();
     root["cgb-polyphony"] = cgbPoly2str(confCgbPolyphony);
     root["playlists"] = playlists;
+    root["max-loops-playlist"] = maxLoopsPlaylist;
+    root["max-loops-export"] = maxLoopsExport;
 
     std::filesystem::create_directories(configPath.parent_path());
     std::ofstream jsonFile(configPath);
@@ -167,4 +173,14 @@ const std::filesystem::path& ConfigManager::GetWavOutputDir()
 CGBPolyphony ConfigManager::GetCgbPolyphony()
 {
     return confCgbPolyphony;
+}
+
+int8_t ConfigManager::GetMaxLoopsPlaylist()
+{
+    return maxLoopsPlaylist;
+}
+
+int8_t ConfigManager::GetMaxLoopsExport()
+{
+    return maxLoopsExport < 0 ? 0 : maxLoopsExport;
 }

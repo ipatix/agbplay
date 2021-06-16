@@ -61,6 +61,8 @@ Take a look at this sample scheme:
     "id" : "agbplay",
     "cgb-polyphony" : "mono-strict",
     "wave-output-dir" : "/home/misterx/Music/agbplay",
+    "max-loops-export" : 1,
+    "max-loops-playlist" : 1,
     "playlists" : 
     [
         {
@@ -108,6 +110,8 @@ The root element in the JSON has the following properties:
 - `playlists` contains the array of the actual tagged songs. See below for details.
 - `wave-output-dir` specifies the directory which is used for exporting songs from agbplay.
 - `cgb-polyphony` specifies whether CGB sounds should be allowed to be polyphonic. Valid values are `mono-strict`, `mono-smooth`, `poly`.
+- `max-loops-export` specifies how many times songs should loop before fading out when exporting to a file.
+- `max-loops-playlist` specifies how many times songs should loop before fading out when listening to a song within the program. This value can be set to `-1` to make songs loop endlessly.
 
 Each playlist entry in the array contains the following properties:
 

@@ -131,14 +131,9 @@ ChnVol SoundChannel::getVol()
             float(rightVol) * finalToEnv * (1.0f / 65536.0f));
 }
 
-uint8_t SoundChannel::GetMidiKey() const
+const Note& SoundChannel::GetNote() const
 {
-    return note.originalKey;
-}
-
-int8_t SoundChannel::GetNoteLength() const
-{
-    return note.length;
+    return note;
 }
 
 void SoundChannel::Release()

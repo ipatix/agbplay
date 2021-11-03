@@ -83,14 +83,9 @@ ChnVol CGBChannel::getVol()
             (fromPan == Pan::LEFT) ? 0.0f : finalToEnv * (1.0f / 32.0f));
 }
 
-uint8_t CGBChannel::GetMidiKey() const
+const Note& CGBChannel::GetNote() const
 {
-    return note.originalKey;
-}
-
-int8_t CGBChannel::GetNoteLength() const
-{
-    return note.length;
+    return note;
 }
 
 void CGBChannel::Release(bool fastRelease)

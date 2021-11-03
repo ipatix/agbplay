@@ -26,8 +26,7 @@ public:
     void Process(sample *buffer, size_t numSamples, const MixingArgs& args);
     uint8_t GetTrackIdx() const;
     void SetVol(uint8_t vol, int8_t pan);
-    uint8_t GetMidiKey() const;
-    int8_t GetNoteLength() const;
+    const Note& GetNote() const;
     void Release();
     void Kill();
     void SetPitch(int16_t pitch);

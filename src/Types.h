@@ -58,11 +58,12 @@ struct ADSR
 
 struct Note
 {
-    Note(uint8_t midiKey, uint8_t velocity, int8_t length);
+    Note(uint8_t midiKey, uint8_t velocity, uint8_t priority, int8_t length);
     Note();
     uint8_t midiKey;
     uint8_t originalKey;
     uint8_t velocity;
+    uint8_t priority;
     int8_t length;
 };
 

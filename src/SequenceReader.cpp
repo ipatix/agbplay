@@ -161,14 +161,14 @@ void SequenceReader::processSequenceTick()
                                     if (rom.ReadU8(cTrk.pos+1) < 128) {
                                         uint8_t vel = cTrk.lastNoteVel = rom.ReadU8(cTrk.pos++);
                                         int8_t len = static_cast<int8_t>(cTrk.lastNoteLen + rom.ReadU8(cTrk.pos++));
-                                        playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
+                                        playNote(cTrk, Note(key, vel, cTrk.prio, len), uint8_t(ntrk));
                                     } else {
                                         uint8_t vel = cTrk.lastNoteVel = rom.ReadU8(cTrk.pos++);
                                         int8_t len = cTrk.lastNoteLen;
-                                        playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
+                                        playNote(cTrk, Note(key, vel, cTrk.prio, len), uint8_t(ntrk));
                                     }
                                 } else {
-                                    playNote(cTrk, Note(key, cTrk.lastNoteVel, cTrk.lastNoteLen), uint8_t(ntrk));
+                                    playNote(cTrk, Note(key, cTrk.lastNoteVel, cTrk.prio, cTrk.lastNoteLen), uint8_t(ntrk));
                                 }
                             }
                             break;
@@ -178,9 +178,9 @@ void SequenceReader::processSequenceTick()
                                 // if velocity parameter provided
                                 if (rom.ReadU8(cTrk.pos) < 128) {
                                     uint8_t vel = cTrk.lastNoteVel = rom.ReadU8(cTrk.pos++);
-                                    playNote(cTrk, Note(key, vel, NOTE_TIE), uint8_t(ntrk));
+                                    playNote(cTrk, Note(key, vel, cTrk.prio, NOTE_TIE), uint8_t(ntrk));
                                 } else {
-                                    playNote(cTrk, Note(key, cTrk.lastNoteVel, NOTE_TIE), uint8_t(ntrk));
+                                    playNote(cTrk, Note(key, cTrk.lastNoteVel, cTrk.prio, NOTE_TIE), uint8_t(ntrk));
                                 }
                             }
                             break;
@@ -360,16 +360,16 @@ void SequenceReader::processSequenceTick()
                                     uint8_t key = cTrk.lastNoteKey = static_cast<uint8_t>(
                                             (cTrk.keyShift + rom.ReadU8(cTrk.pos++)) % 128);
                                     uint8_t vel = cTrk.lastNoteVel = rom.ReadU8(cTrk.pos++);
-                                    playNote(cTrk, Note(key, vel, NOTE_TIE), uint8_t(ntrk));
+                                    playNote(cTrk, Note(key, vel, cTrk.prio, NOTE_TIE), uint8_t(ntrk));
                                 } else {
                                     // repeat velocity
                                     uint8_t key = cTrk.lastNoteKey = static_cast<uint8_t>(
                                             (cTrk.keyShift + rom.ReadU8(cTrk.pos++)) % 128);
-                                    playNote(cTrk, Note(key, cTrk.lastNoteVel, NOTE_TIE), uint8_t(ntrk));
+                                    playNote(cTrk, Note(key, cTrk.lastNoteVel, cTrk.prio, NOTE_TIE), uint8_t(ntrk));
                                 }
                             } else {
                                 // repeat midi key
-                                playNote(cTrk, Note(cTrk.lastNoteKey, cTrk.lastNoteVel, NOTE_TIE), uint8_t(ntrk));
+                                playNote(cTrk, Note(cTrk.lastNoteKey, cTrk.lastNoteVel, cTrk.prio, NOTE_TIE), uint8_t(ntrk));
                             }
                             break;
                         default:
@@ -390,23 +390,23 @@ void SequenceReader::processSequenceTick()
                                         (cTrk.keyShift + rom.ReadU8(cTrk.pos++)) % 128);
                                 uint8_t vel = cTrk.lastNoteVel = rom.ReadU8(cTrk.pos++);
                                 len = static_cast<int8_t>(len + rom.ReadU8(cTrk.pos++));
-                                playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
+                                playNote(cTrk, Note(key, vel, cTrk.prio, len), uint8_t(ntrk));
                             } else {
                                 // no gate time
                                 uint8_t key = cTrk.lastNoteKey = static_cast<uint8_t>(
                                         (cTrk.keyShift + rom.ReadU8(cTrk.pos++)) % 128);
                                 uint8_t vel = cTrk.lastNoteVel = rom.ReadU8(cTrk.pos++);
-                                playNote(cTrk, Note(key, vel, len), uint8_t(ntrk));
+                                playNote(cTrk, Note(key, vel, cTrk.prio, len), uint8_t(ntrk));
                             }
                         } else {
                             // repeast note velocity
                             uint8_t key = cTrk.lastNoteKey = static_cast<uint8_t>(
                                     (cTrk.keyShift + rom.ReadU8(cTrk.pos++)) % 128);
-                            playNote(cTrk, Note(key, cTrk.lastNoteVel, len), uint8_t(ntrk));
+                            playNote(cTrk, Note(key, cTrk.lastNoteVel, cTrk.prio, len), uint8_t(ntrk));
                         }
                     } else {
                         // repeat midi key
-                        playNote(cTrk, Note(cTrk.lastNoteKey, cTrk.lastNoteVel, len), uint8_t(ntrk));
+                        playNote(cTrk, Note(cTrk.lastNoteKey, cTrk.lastNoteVel, cTrk.prio, len), uint8_t(ntrk));
                     }
                 }
             } // end of processing loop
@@ -531,8 +531,8 @@ void SequenceReader::stopNote(uint8_t key, uint8_t track_idx)
         for (auto& chn : channels) {
             if (chn.GetTrackIdx() == track_idx && (
                         key == NOTE_ALL || (
-                            chn.GetMidiKey() == key &&
-                            chn.GetNoteLength() == NOTE_TIE))) {
+                            chn.GetNote().originalKey == key &&
+                            chn.GetNote().length == NOTE_TIE))) {
                 chn.Release();
             }
         }
@@ -555,7 +555,7 @@ int SequenceReader::tickTrackNotes(uint8_t track_idx, std::bitset<NUM_NOTES>& ac
             if (chn.GetTrackIdx() == track_idx) {
                 if (chn.TickNote()) {
                     active++;
-                    backBuffer[chn.GetMidiKey() % 128] = true;
+                    backBuffer[chn.GetNote().originalKey % 128] = true;
                 }
             }
         }

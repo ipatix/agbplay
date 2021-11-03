@@ -445,6 +445,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
     uint8_t oldKey = note.midiKey;
     note.midiKey = ctx.bnk.GetMidiKey(trk.prog, oldKey);
     uint8_t pan = ctx.bnk.GetPan(trk.prog, oldKey);
+    pan = (pan & 0x80) ? static_cast<int8_t>(pan - 0xC0) : 0;
 
     switch (ctx.bnk.GetInstrType(trk.prog, oldKey)) {
         case InstrType::PCM:
@@ -455,7 +456,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
                     note,
                     trk.GetVol(),
                     trk.GetPan(),
-                    (pan & 0x80) ? int8_t(int(pan) - 0xC0) : 0,
+                    pan,
                     trk.GetPitch(),
                     false);
             break;
@@ -467,7 +468,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
                     note,
                     trk.GetVol(),
                     trk.GetPan(),
-                    (pan & 0x80) ? int8_t(int(pan) - 0xC0) : 0,
+                    pan,
                     trk.GetPitch(),
                     true);
             break;
@@ -480,7 +481,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
                     note, 
                     trk.GetVol(), 
                     trk.GetPan(), 
-                    (pan & 0x80) ? int8_t(int(pan) - 0xC0) : 0,
+                    pan,
                     trk.GetPitch());
             break;
         case InstrType::SQ2:
@@ -492,7 +493,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
                     note, 
                     trk.GetVol(), 
                     trk.GetPan(), 
-                    (pan & 0x80) ? int8_t(int(pan) - 0xC0) : 0,
+                    pan,
                     trk.GetPitch());
             break;
         case InstrType::WAVE:
@@ -504,7 +505,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
                     note,
                     trk.GetVol(),
                     trk.GetPan(),
-                    (pan & 0x80) ? int8_t(int(pan) - 0xC0) : 0,
+                    pan,
                     trk.GetPitch());
             break;
         case InstrType::NOISE:
@@ -516,7 +517,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
                     note, 
                     trk.GetVol(),
                     trk.GetPan(),
-                    (pan & 0x80) ? int8_t(int(pan) - 0xC0) : 0,
+                    pan,
                     trk.GetPitch());
             break;
         case InstrType::INVALID:

@@ -426,7 +426,7 @@ void SequenceReader::processSequenceTick()
     }
 } // end processSequenceTick
 
-void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
+void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
 {
     if (trk.prog > 127)
         return;
@@ -449,7 +449,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
     switch (ctx.bnk.GetInstrType(trk.prog, oldKey)) {
         case InstrType::PCM:
             ctx.sndChannels.emplace_back(
-                    owner,
+                    track_idx,
                     ctx.bnk.GetSampInfo(trk.prog, oldKey),
                     ctx.bnk.GetADSR(trk.prog, oldKey),
                     note,
@@ -461,7 +461,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
             break;
         case InstrType::PCM_FIXED:
             ctx.sndChannels.emplace_back(
-                    owner,
+                    track_idx,
                     ctx.bnk.GetSampInfo(trk.prog, oldKey),
                     ctx.bnk.GetADSR(trk.prog, oldKey),
                     note,
@@ -474,7 +474,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
         case InstrType::SQ1:
             cgbPolyphonySuppressFunc(ctx.sq1Channels);
             ctx.sq1Channels.emplace_back(
-                    owner, 
+                    track_idx, 
                     ctx.bnk.GetCGBDef(trk.prog, oldKey).wd,
                     ctx.bnk.GetADSR(trk.prog, oldKey),
                     note, 
@@ -486,7 +486,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
         case InstrType::SQ2:
             cgbPolyphonySuppressFunc(ctx.sq2Channels);
             ctx.sq2Channels.emplace_back(
-                    owner, 
+                    track_idx, 
                     ctx.bnk.GetCGBDef(trk.prog, oldKey).wd,
                     ctx.bnk.GetADSR(trk.prog, oldKey),
                     note, 
@@ -498,7 +498,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
         case InstrType::WAVE:
             cgbPolyphonySuppressFunc(ctx.waveChannels);
             ctx.waveChannels.emplace_back(
-                    owner, 
+                    track_idx, 
                     ctx.bnk.GetCGBDef(trk.prog, oldKey).wavePtr,
                     ctx.bnk.GetADSR(trk.prog, oldKey),
                     note,
@@ -510,7 +510,7 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
         case InstrType::NOISE:
             cgbPolyphonySuppressFunc(ctx.noiseChannels);
             ctx.noiseChannels.emplace_back(
-                    owner, 
+                    track_idx, 
                     ctx.bnk.GetCGBDef(trk.prog, oldKey).np,
                     ctx.bnk.GetADSR(trk.prog, oldKey),
                     note, 
@@ -524,11 +524,11 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t owner)
     }
 }
 
-void SequenceReader::stopNote(uint8_t key, uint8_t owner)
+void SequenceReader::stopNote(uint8_t key, uint8_t track_idx)
 {
     auto stopNotes = [&](auto& channels) {
         for (auto& chn : channels) {
-            if (chn.GetOwner() == owner && (
+            if (chn.GetTrackIdx() == track_idx && (
                         key == NOTE_ALL || (
                             chn.GetMidiKey() == key &&
                             chn.GetNoteLength() == NOTE_TIE))) {
@@ -544,14 +544,14 @@ void SequenceReader::stopNote(uint8_t key, uint8_t owner)
     stopNotes(ctx.noiseChannels);
 }
 
-int SequenceReader::tickTrackNotes(uint8_t owner, std::bitset<NUM_NOTES>& activeNotes)
+int SequenceReader::tickTrackNotes(uint8_t track_idx, std::bitset<NUM_NOTES>& activeNotes)
 {
     std::bitset<128> backBuffer;
     int active = 0;
 
     auto tickFunc = [&](auto& channels) {
         for (auto& chn : channels) {
-            if (chn.GetOwner() == owner) {
+            if (chn.GetTrackIdx() == track_idx) {
                 if (chn.TickNote()) {
                     active++;
                     backBuffer[chn.GetMidiKey() % 128] = true;
@@ -570,11 +570,11 @@ int SequenceReader::tickTrackNotes(uint8_t owner, std::bitset<NUM_NOTES>& active
     return active;
 }
 
-void SequenceReader::setTrackPV(uint8_t owner, uint8_t vol, int8_t pan, int16_t pitch)
+void SequenceReader::setTrackPV(uint8_t track_idx, uint8_t vol, int8_t pan, int16_t pitch)
 {
     auto setFunc = [&](auto& channels) {
         for (auto& chn : channels) {
-            if (chn.GetOwner() == owner) {
+            if (chn.GetTrackIdx() == track_idx) {
                 chn.SetVol(vol, pan);
                 chn.SetPitch(pitch);
             }

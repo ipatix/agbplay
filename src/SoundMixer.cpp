@@ -86,8 +86,8 @@ void SoundMixer::Process(std::vector<std::vector<sample>>& outputBuffers)
 
     /* 4. mix channels which are affected by reverb (PCM only) */
     for (auto& chn : ctx.sndChannels) {
-        assert(chn.GetOwner() < numTracks);
-        chn.Process(outputBuffers[chn.GetOwner()].data(), samplesPerBuffer, margs);
+        assert(chn.GetTrackIdx() < numTracks);
+        chn.Process(outputBuffers[chn.GetTrackIdx()].data(), samplesPerBuffer, margs);
     }
 
     /* 5. apply reverb */
@@ -97,20 +97,20 @@ void SoundMixer::Process(std::vector<std::vector<sample>>& outputBuffers)
 
     /* 6. mix channels which are not affected by reverb (CGB) */
     for (auto& chn : ctx.sq1Channels) {
-        assert(chn.GetOwner() < numTracks);
-        chn.Process(outputBuffers[chn.GetOwner()].data(), samplesPerBuffer, margs);
+        assert(chn.GetTrackIdx() < numTracks);
+        chn.Process(outputBuffers[chn.GetTrackIdx()].data(), samplesPerBuffer, margs);
     }
     for (auto& chn : ctx.sq2Channels) {
-        assert(chn.GetOwner() < numTracks);
-        chn.Process(outputBuffers[chn.GetOwner()].data(), samplesPerBuffer, margs);
+        assert(chn.GetTrackIdx() < numTracks);
+        chn.Process(outputBuffers[chn.GetTrackIdx()].data(), samplesPerBuffer, margs);
     }
     for (auto& chn : ctx.waveChannels) {
-        assert(chn.GetOwner() < numTracks);
-        chn.Process(outputBuffers[chn.GetOwner()].data(), samplesPerBuffer, margs);
+        assert(chn.GetTrackIdx() < numTracks);
+        chn.Process(outputBuffers[chn.GetTrackIdx()].data(), samplesPerBuffer, margs);
     }
     for (auto& chn : ctx.noiseChannels) {
-        assert(chn.GetOwner() < numTracks);
-        chn.Process(outputBuffers[chn.GetOwner()].data(), samplesPerBuffer, margs);
+        assert(chn.GetTrackIdx() < numTracks);
+        chn.Process(outputBuffers[chn.GetTrackIdx()].data(), samplesPerBuffer, margs);
     }
 
     /* 7. clean up all stopped channels */

@@ -35,8 +35,8 @@ private:
     float speedFactor = 1.0f;
 
     void processSequenceTick();
-    void playNote(Track& trk, Note note, uint8_t owner);
-    void stopNote(uint8_t key, uint8_t owner);
-    int tickTrackNotes(uint8_t owner, std::bitset<NUM_NOTES>& activeNotes);
-    void setTrackPV(uint8_t owner, uint8_t vol, int8_t pan, int16_t pitch);
+    void playNote(Track& trk, Note note, uint8_t track_idx);
+    void stopNote(uint8_t key, uint8_t track_idx);
+    int tickTrackNotes(uint8_t track_idx, std::bitset<NUM_NOTES>& activeNotes);
+    void setTrackPV(uint8_t track_idx, uint8_t vol, int8_t pan, int16_t pitch);
 };

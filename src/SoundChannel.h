@@ -19,12 +19,12 @@ private:
         float interStep;
     };
 public:
-    SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch, bool fixed);
+    SoundChannel(uint8_t track_idx, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch, bool fixed);
     SoundChannel(const SoundChannel&) = delete;
     SoundChannel& operator=(const SoundChannel&) = delete;
 
     void Process(sample *buffer, size_t numSamples, const MixingArgs& args);
-    uint8_t GetOwner() const;
+    uint8_t GetTrackIdx() const;
     void SetVol(uint8_t vol, int8_t pan);
     uint8_t GetMidiKey() const;
     int8_t GetNoteLength() const;
@@ -57,7 +57,7 @@ private:
     bool isMPTcompressed;   // is Mario Power Tennis compressed
     int16_t levelMPTcompressed;
     uint8_t shiftMPTcompressed;
-    uint8_t owner;
+    uint8_t track_idx;
     const int8_t instPan;
     uint8_t envInterStep = 0;
     uint8_t leftVol;

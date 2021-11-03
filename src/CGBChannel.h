@@ -7,20 +7,20 @@
 #include "Types.h"
 #include "Resampler.h"
 
-#define INVALID_OWNER 0xFF
+#define INVALID_TRACK_IDX 0xFF
 
 #define NOISE_SAMPLING_FREQ 65536.0f
 
 class CGBChannel
 {
 public: 
-    CGBChannel(uint8_t owner, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan);
+    CGBChannel(uint8_t track_idx, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan);
     CGBChannel(const CGBChannel&) = delete;
     CGBChannel& operator=(const CGBChannel&) = delete;
     virtual ~CGBChannel() = default;
 
     virtual void Process(sample *buffer, size_t numSamples, MixingArgs& args) = 0;
-    uint8_t GetOwner() const;
+    uint8_t GetTrackIdx() const;
     void SetVol(uint8_t vol, int8_t pan);
     uint8_t GetMidiKey() const;
     int8_t GetNoteLength() const;
@@ -45,7 +45,7 @@ protected:
     uint8_t envLevel = 0;
     uint8_t envPeak = 0;
     uint8_t envSustain = 0;
-    uint8_t owner;
+    uint8_t track_idx;
     const int8_t instPan;
     // these values are always 1 frame behind in order to provide a smooth transition
     Pan fromPan = Pan::CENTER;
@@ -55,7 +55,7 @@ protected:
 class SquareChannel : public CGBChannel
 {
 public:
-    SquareChannel(uint8_t owner, WaveDuty wd, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch);
+    SquareChannel(uint8_t track_idx, WaveDuty wd, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
@@ -68,7 +68,7 @@ private:
 class WaveChannel : public CGBChannel
 {
 public:
-    WaveChannel(uint8_t owner, const uint8_t *wavePtr, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch);
+    WaveChannel(uint8_t track_idx, const uint8_t *wavePtr, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
@@ -81,7 +81,7 @@ private:
 class NoiseChannel : public CGBChannel
 {
 public:
-    NoiseChannel(uint8_t owner, NoisePatt np, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch);
+    NoiseChannel(uint8_t track_idx, NoisePatt np, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;

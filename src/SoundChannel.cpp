@@ -13,8 +13,8 @@
  * public SoundChannel
  */
 
-SoundChannel::SoundChannel(uint8_t owner, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch, bool fixed)
-    : env(env), note(note), sInfo(sInfo), fixed(fixed), owner(owner), instPan(instPan)
+SoundChannel::SoundChannel(uint8_t track_idx, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch, bool fixed)
+    : env(env), note(note), sInfo(sInfo), fixed(fixed), track_idx(track_idx), instPan(instPan)
 {
     SetVol(vol, pan);
 
@@ -104,9 +104,9 @@ void SoundChannel::Process(sample *buffer, size_t numSamples, const MixingArgs& 
     updateVolFade();
 }
 
-uint8_t SoundChannel::GetOwner() const
+uint8_t SoundChannel::GetTrackIdx() const
 {
-    return owner;
+    return track_idx;
 }
 
 void SoundChannel::SetVol(uint8_t vol, int8_t pan)

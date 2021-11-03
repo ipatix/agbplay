@@ -27,6 +27,7 @@ public:
     virtual void SetPitch(int16_t pitch) = 0;
     bool TickNote(); // returns true if note remains active
     EnvState GetState() const;
+    EnvState GetNextState() const;
 protected:
     virtual void stepEnvelope();
     void updateVolFade();

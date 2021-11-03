@@ -138,6 +138,11 @@ EnvState CGBChannel::GetState() const
     return eState;
 }
 
+EnvState CGBChannel::GetNextState() const
+{
+    return nextState;
+}
+
 void CGBChannel::stepEnvelope()
 {
     switch (eState) {

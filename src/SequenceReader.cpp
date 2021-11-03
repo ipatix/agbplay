@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cassert>
 
 #include "SequenceReader.h"
 #include "Xcept.h"
@@ -434,12 +435,35 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
     CGBPolyphony cgbPolyphony = ConfigManager::Instance().GetCgbPolyphony();
 
     auto cgbPolyphonySuppressFunc = [&](auto& channels) {
+        // return 'true' if a note is allowed to play, 'false' if others with higher priority are playing
         if (cgbPolyphony == CGBPolyphony::MONO_STRICT) {
+            // only one tone should play in mono strict mode
+            assert(channels.size() <= 1);
+            if (channels.size() > 0) {
+                const Note& playing_note = channels.front().GetNote();
+                if (playing_note.priority > note.priority)
+                    return false;
+                if (playing_note.priority == note.priority) {
+                    if (channels.front().GetTrackIdx() < track_idx)
+                        return false;
+                }
+            }
             channels.clear();
         } else if (cgbPolyphony == CGBPolyphony::MONO_SMOOTH) {
-            for (auto& chn : channels)
+            for (auto& chn : channels) {
+                if (chn.GetNextState() < EnvState::CGB_FAST_REL) {
+                    const Note& playing_note = chn.GetNote();
+                    if (playing_note.priority > note.priority)
+                        return false;
+                    if (playing_note.priority == note.priority) {
+                        if (chn.GetTrackIdx() < track_idx)
+                            return false;
+                    }
+                }
                 chn.Release(true);
+            }
         }
+        return true;
     };
 
     uint8_t oldKey = note.midiKey;
@@ -473,7 +497,8 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
                     true);
             break;
         case InstrType::SQ1:
-            cgbPolyphonySuppressFunc(ctx.sq1Channels);
+            if (!cgbPolyphonySuppressFunc(ctx.sq1Channels))
+                return;
             ctx.sq1Channels.emplace_back(
                     track_idx, 
                     ctx.bnk.GetCGBDef(trk.prog, oldKey).wd,
@@ -485,7 +510,8 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
                     trk.GetPitch());
             break;
         case InstrType::SQ2:
-            cgbPolyphonySuppressFunc(ctx.sq2Channels);
+            if (!cgbPolyphonySuppressFunc(ctx.sq2Channels))
+                return;
             ctx.sq2Channels.emplace_back(
                     track_idx, 
                     ctx.bnk.GetCGBDef(trk.prog, oldKey).wd,
@@ -497,7 +523,8 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
                     trk.GetPitch());
             break;
         case InstrType::WAVE:
-            cgbPolyphonySuppressFunc(ctx.waveChannels);
+            if (!cgbPolyphonySuppressFunc(ctx.waveChannels))
+                return;
             ctx.waveChannels.emplace_back(
                     track_idx, 
                     ctx.bnk.GetCGBDef(trk.prog, oldKey).wavePtr,
@@ -509,7 +536,8 @@ void SequenceReader::playNote(Track& trk, Note note, uint8_t track_idx)
                     trk.GetPitch());
             break;
         case InstrType::NOISE:
-            cgbPolyphonySuppressFunc(ctx.noiseChannels);
+            if (!cgbPolyphonySuppressFunc(ctx.noiseChannels))
+                return;
             ctx.noiseChannels.emplace_back(
                     track_idx, 
                     ctx.bnk.GetCGBDef(trk.prog, oldKey).np,

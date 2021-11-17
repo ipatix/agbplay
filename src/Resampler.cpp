@@ -123,7 +123,7 @@ bool LinearResampler::Process(float *outData, size_t numBlocks, float phaseInc, 
 //}
 
 #define SINC_WINDOW_SIZE 16
-#define SINC_FILT_THRESH 0.9f
+#define SINC_FILT_THRESH 0.85f
 
 SincResampler::SincResampler()
 {

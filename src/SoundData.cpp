@@ -85,11 +85,20 @@ uint8_t SoundBank::GetMidiKey(uint8_t instrNum, uint8_t midiKey)
     }
 }
 
-uint8_t SoundBank::GetPan(uint8_t instrNum, uint8_t midiKey)
+int8_t SoundBank::GetPan(uint8_t instrNum, uint8_t midiKey)
 {
     size_t pos = instrPos(instrNum, midiKey);
 
-    return Rom::Instance().ReadU8(pos + 3);
+    // not strictly correct, pan should only be set for drum table instruments
+    InstrType t = GetInstrType(instrNum, midiKey);
+    if (t != InstrType::PCM && t != InstrType::PCM_FIXED)
+        return 0;
+
+    uint8_t pan = Rom::Instance().ReadU8(pos + 3);
+    if (pan & 0x80)
+        return static_cast<int8_t>(pan - 0xC0);
+    else
+        return 0;
 }
 
 uint8_t SoundBank::GetSweep(uint8_t instrNum, uint8_t midiKey)
@@ -198,7 +207,7 @@ size_t SoundBank::instrPos(uint8_t instrNum, uint8_t midiKey) {
  */
 
 Sequence::Sequence(uint8_t trackLimit)
-    : trackLimit(trackLimit)
+    : memaccArea(256), trackLimit(trackLimit)
 {
     Init(0);
 }

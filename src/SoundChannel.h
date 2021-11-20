@@ -19,7 +19,7 @@ private:
         float interStep;
     };
 public:
-    SoundChannel(uint8_t track_idx, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch, bool fixed);
+    SoundChannel(SampleInfo sInfo, ADSR env, const Note& note, bool fixed);
     SoundChannel(const SoundChannel&) = delete;
     SoundChannel& operator=(const SoundChannel&) = delete;
 
@@ -46,7 +46,7 @@ private:
     std::unique_ptr<Resampler> rs;
     uint32_t pos = 0;
     float interPos = 0.0f;
-    float freq;
+    float freq = 0.0f;
     ADSR env;
     Note note;
     SampleInfo sInfo;
@@ -56,11 +56,9 @@ private:
     bool isMPTcompressed;   // is Mario Power Tennis compressed
     int16_t levelMPTcompressed;
     uint8_t shiftMPTcompressed;
-    uint8_t track_idx;
-    const int8_t instPan;
     uint8_t envInterStep = 0;
-    uint8_t leftVol;
-    uint8_t rightVol;
+    uint8_t leftVol = 0;
+    uint8_t rightVol = 0;
     uint8_t envLevel;
     // these values are always 1 frame behind in order to provide a smooth transition
     uint8_t fromLeftVol;

@@ -17,7 +17,7 @@ struct DisplayData
     int16_t pitch = 0;              // range -32768 to 32767
     uint8_t envL = 0;               // range 0 to 255
     uint8_t envR = 0;               // range 0 to 255
-    int8_t delay = 0;               // range 0 to 96
+    uint8_t delay = 0;              // range 0 to 96
     std::bitset<NUM_NOTES> activeNotes;
 };
 

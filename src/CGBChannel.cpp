@@ -13,24 +13,23 @@
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel(uint8_t track_idx, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan)
-    : env(env), note(note), track_idx(track_idx), instPan(instPan)
+CGBChannel::CGBChannel(ADSR env, Note note)
+    : env(env), note(note)
 {
     this->env.att &= 0x7;
     this->env.dec &= 0x7;
     this->env.sus &= 0xF;
     this->env.rel &= 0x7;
-    SetVol(vol, pan);
 }
 
 uint8_t CGBChannel::GetTrackIdx() const
 {
-    return track_idx;
+    return note.trackIdx;
 }
 
 void CGBChannel::SetVol(uint8_t vol, int8_t pan)
 {
-    int combinedPan = std::clamp(pan + instPan, -64, +63);
+    int combinedPan = std::clamp(pan + note.rhythmPan, -64, +63);
 
     if (eState < EnvState::REL) {
         if (combinedPan < -21) {
@@ -124,10 +123,8 @@ bool CGBChannel::TickNote()
                 }
                 return false;
             }
-            return true;
-        } else if (note.length == -1) {
-            return true;
-        } else throw Xcept("ShoundChannel::NoteTick shouldn't be able to crash");
+        }
+        return true;
     } else {
         return false;
     }
@@ -312,11 +309,9 @@ void CGBChannel::updateVolFade()
  * public SquareChannel
  */
 
-SquareChannel::SquareChannel(uint8_t track_idx, WaveDuty wd, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch)
-    : CGBChannel(track_idx, env, note, vol, pan, instPan)
+SquareChannel::SquareChannel(WaveDuty wd, ADSR env, Note note)
+    : CGBChannel(env, note)
 {
-    SetPitch(pitch);
-
     static const float *patterns[4] = {
         CGBPatterns::pat_sq12,
         CGBPatterns::pat_sq25,
@@ -330,7 +325,7 @@ SquareChannel::SquareChannel(uint8_t track_idx, WaveDuty wd, ADSR env, Note note
 
 void SquareChannel::SetPitch(int16_t pitch)
 {
-    freq = 3520.0f * powf(2.0f, float(note.midiKey - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
+    freq = 3520.0f * powf(2.0f, float(note.midiKeyPitch - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
 void SquareChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
@@ -394,11 +389,9 @@ uint8_t WaveChannel::volLut[] = {
     0, 0, 4, 4, 4, 4, 8, 8, 8, 8, 12, 12, 12, 12, 16, 16
 };
 
-WaveChannel::WaveChannel(uint8_t track_idx, const uint8_t *wavePtr, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch)
-    : CGBChannel(track_idx, env, note, vol, pan, instPan)
+WaveChannel::WaveChannel(const uint8_t *wavePtr, ADSR env, Note note)
+    : CGBChannel(env, note)
 {
-    SetPitch(pitch);
-
     this->rs = std::make_unique<BlepResampler>();
 
     /* wave samples are unsigned by default, so we'll load them with
@@ -422,7 +415,7 @@ WaveChannel::WaveChannel(uint8_t track_idx, const uint8_t *wavePtr, ADSR env, No
 void WaveChannel::SetPitch(int16_t pitch)
 {
     freq = (440.0f * 16.0f) * 
-        powf(2.0f, float(note.midiKey - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
+        powf(2.0f, float(note.midiKeyPitch - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
 void WaveChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
@@ -476,17 +469,16 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
  * public NoiseChannel
  */
 
-NoiseChannel::NoiseChannel(uint8_t track_idx, NoisePatt np, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch)
-    : CGBChannel(track_idx, env, note, vol, pan, instPan)
+NoiseChannel::NoiseChannel(NoisePatt np, ADSR env, Note note)
+    : CGBChannel(env, note)
 {
-    SetPitch(pitch);
     this->rs = std::make_unique<NearestResampler>();
     this->np = np;
 }
 
 void NoiseChannel::SetPitch(int16_t pitch)
 {
-    float noisefreq = 4096.0f * powf(8.0f, float(note.midiKey - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
+    float noisefreq = 4096.0f * powf(8.0f, float(note.midiKeyPitch - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
     freq = std::clamp(noisefreq, 8.0f, 524288.0f);
 }
 

@@ -119,19 +119,6 @@ ADSR::ADSR()
 }
 
 /*
- * Note
- */
-
-Note::Note(uint8_t midiKey, uint8_t velocity, uint8_t priority, int8_t length)
-    : midiKey(midiKey), originalKey(midiKey), velocity(velocity), priority(priority), length(length)
-{
-}
-
-Note::Note()
-{
-}
-
-/*
  * public SampleInfo
  */
 

@@ -13,11 +13,9 @@
  * public SoundChannel
  */
 
-SoundChannel::SoundChannel(uint8_t track_idx, SampleInfo sInfo, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch, bool fixed)
-    : env(env), note(note), sInfo(sInfo), fixed(fixed), track_idx(track_idx), instPan(instPan)
+SoundChannel::SoundChannel(SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
+    : env(env), note(note), sInfo(sInfo), fixed(fixed) 
 {
-    SetVol(vol, pan);
-
     GameConfig& cfg = ConfigManager::Instance().GetCfg();
     ResamplerType t = fixed ? cfg.GetResTypeFixed() : cfg.GetResType();
     switch (t) {
@@ -37,8 +35,6 @@ SoundChannel::SoundChannel(uint8_t track_idx, SampleInfo sInfo, ADSR env, Note n
         this->rs = std::make_unique<BlampResampler>();
         break;
     }
-
-    SetPitch(pitch);
 
     // Golden Sun's synth instruments are marked by having a length of zero and a loop of zero
     if (sInfo.loopEnabled == true && sInfo.loopPos == 0 && sInfo.endPos == 0) {
@@ -106,13 +102,13 @@ void SoundChannel::Process(sample *buffer, size_t numSamples, const MixingArgs& 
 
 uint8_t SoundChannel::GetTrackIdx() const
 {
-    return track_idx;
+    return note.trackIdx;
 }
 
 void SoundChannel::SetVol(uint8_t vol, int8_t pan)
 {
     if (eState < EnvState::REL) {
-        int combinedPan = std::clamp(pan + instPan, -64, +63);
+        int combinedPan = std::clamp(pan + note.rhythmPan, -64, +63);
         this->leftVol = uint8_t(note.velocity * vol * (-combinedPan + 64) / 8192);
         this->rightVol = uint8_t(note.velocity * vol * (combinedPan + 64) / 8192);
     }
@@ -151,7 +147,7 @@ void SoundChannel::Kill()
 
 void SoundChannel::SetPitch(int16_t pitch)
 {
-    freq = sInfo.midCfreq * powf(2.0f, float(note.midiKey - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
+    freq = sInfo.midCfreq * powf(2.0f, float(note.midiKeyPitch - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
 bool SoundChannel::TickNote()
@@ -163,10 +159,8 @@ bool SoundChannel::TickNote()
                 eState = EnvState::REL;
                 return false;
             }
-            return true;
-        } else if (note.length == -1) {
-            return true;
-        } else throw Xcept("Illegal Note countdown: %d", (int)note.length);
+        }
+        return true;
     } else {
         return false;
     }

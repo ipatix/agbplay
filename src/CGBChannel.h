@@ -14,7 +14,7 @@
 class CGBChannel
 {
 public: 
-    CGBChannel(uint8_t track_idx, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan);
+    CGBChannel(ADSR env, Note note);
     CGBChannel(const CGBChannel&) = delete;
     CGBChannel& operator=(const CGBChannel&) = delete;
     virtual ~CGBChannel() = default;
@@ -45,8 +45,6 @@ protected:
     uint8_t envLevel = 0;
     uint8_t envPeak = 0;
     uint8_t envSustain = 0;
-    uint8_t track_idx;
-    const int8_t instPan;
     // these values are always 1 frame behind in order to provide a smooth transition
     Pan fromPan = Pan::CENTER;
     uint8_t fromEnvLevel = 0;
@@ -55,7 +53,7 @@ protected:
 class SquareChannel : public CGBChannel
 {
 public:
-    SquareChannel(uint8_t track_idx, WaveDuty wd, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch);
+    SquareChannel(WaveDuty wd, ADSR env, Note note);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
@@ -68,7 +66,7 @@ private:
 class WaveChannel : public CGBChannel
 {
 public:
-    WaveChannel(uint8_t track_idx, const uint8_t *wavePtr, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch);
+    WaveChannel(const uint8_t *wavePtr, ADSR env, Note note);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
@@ -81,7 +79,7 @@ private:
 class NoiseChannel : public CGBChannel
 {
 public:
-    NoiseChannel(uint8_t track_idx, NoisePatt np, ADSR env, Note note, uint8_t vol, int8_t pan, int8_t instPan, int16_t pitch);
+    NoiseChannel(NoisePatt np, ADSR env, Note note);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;

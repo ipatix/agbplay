@@ -32,7 +32,6 @@ public:
     void SetPitch(int16_t pitch);
     bool TickNote(); // returns true if note remains active
     EnvState GetState() const;
-    uint8_t GetInterStep() const;
 private:
     void stepEnvelope();
     void updateVolFade();
@@ -50,18 +49,19 @@ private:
     ADSR env;
     Note note;
     SampleInfo sInfo;
-    EnvState eState = EnvState::INIT;
+    EnvState envelopeState = EnvState::INIT;
     bool fixed;
     bool isGS;              // is Golden Sun synth
     bool isMPTcompressed;   // is Mario Power Tennis compressed
     int16_t levelMPTcompressed;
     uint8_t shiftMPTcompressed;
     uint8_t envInterStep = 0;
-    uint8_t leftVol = 0;
-    uint8_t rightVol = 0;
-    uint8_t envLevel;
-    // these values are always 1 frame behind in order to provide a smooth transition
-    uint8_t fromLeftVol;
-    uint8_t fromRightVol;
-    uint8_t fromEnvLevel;
+
+    /* all of these values have pairs of new and old value to allow smooth fades */
+    uint8_t envLevelCur;
+    uint8_t envLevelPrev;
+    uint8_t leftVolCur = 0;
+    uint8_t leftVolPrev;
+    uint8_t rightVolCur = 0;
+    uint8_t rightVolPrev;
 };

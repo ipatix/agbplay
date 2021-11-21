@@ -107,7 +107,7 @@ uint8_t SoundChannel::GetTrackIdx() const
 
 void SoundChannel::SetVol(uint8_t vol, int8_t pan)
 {
-    if (envelopeState < EnvState::REL) {
+    if (envState < EnvState::REL) {
         int combinedPan = std::clamp(pan + note.rhythmPan, -64, +63);
         this->leftVolCur = uint8_t(note.velocity * vol * (-combinedPan + 64) / 8192);
         this->rightVolCur = uint8_t(note.velocity * vol * (combinedPan + 64) / 8192);
@@ -136,14 +136,14 @@ const Note& SoundChannel::GetNote() const
 
 void SoundChannel::Release()
 {
-    if (envelopeState < EnvState::REL) {
-        envelopeState = EnvState::REL;
+    if (envState < EnvState::REL) {
+        envState = EnvState::REL;
     }
 }
 
 void SoundChannel::Kill()
 {
-    envelopeState = EnvState::DEAD;
+    envState = EnvState::DEAD;
     envInterStep = 0;
 }
 
@@ -154,11 +154,11 @@ void SoundChannel::SetPitch(int16_t pitch)
 
 bool SoundChannel::TickNote()
 {
-    if (envelopeState < EnvState::REL) {
+    if (envState < EnvState::REL) {
         if (note.length > 0) {
             note.length--;
             if (note.length == 0) {
-                envelopeState = EnvState::REL;
+                envState = EnvState::REL;
                 return false;
             }
         }
@@ -170,7 +170,7 @@ bool SoundChannel::TickNote()
 
 EnvState SoundChannel::GetState() const
 {
-    return envelopeState;
+    return envState;
 }
 
 void SoundChannel::stepEnvelope()
@@ -188,7 +188,7 @@ void SoundChannel::stepEnvelope()
     //        envLevelPrev = 0x0;
     //}
 
-    switch (envelopeState) {
+    switch (envState) {
     case EnvState::INIT:
         leftVolPrev = leftVolCur;
         rightVolPrev = rightVolCur;
@@ -199,7 +199,7 @@ void SoundChannel::stepEnvelope()
         }
         envLevelCur = env.att;
         envInterStep = 0;
-        envelopeState = EnvState::ATK;
+        envState = EnvState::ATK;
         break;
     case EnvState::ATK:
         if (++envInterStep >= INTERFRAMES) {
@@ -207,7 +207,7 @@ void SoundChannel::stepEnvelope()
             envInterStep = 0;
             int newLevel = envLevelCur + env.att;
             if (newLevel >= 0xFF) {
-                envelopeState = EnvState::DEC;
+                envState = EnvState::DEC;
                 envLevelCur = 0xFF;
             } else {
                 envLevelCur = uint8_t(newLevel);
@@ -220,7 +220,7 @@ void SoundChannel::stepEnvelope()
             envInterStep = 0;
             int newLevel = (envLevelCur * env.dec) >> 8;
             if (newLevel <= env.sus) {
-                envelopeState = EnvState::SUS;
+                envState = EnvState::SUS;
                 envLevelCur = env.sus;
             } else {
                 envLevelCur = uint8_t(newLevel);
@@ -239,7 +239,7 @@ void SoundChannel::stepEnvelope()
             envInterStep = 0;
             int newLevel = (envLevelCur * env.rel) >> 8;
             if (newLevel <= 0) {
-                envelopeState = EnvState::DIE;
+                envState = EnvState::DIE;
                 envLevelCur = 0;
             } else {
                 envLevelCur = uint8_t(newLevel);
@@ -249,13 +249,13 @@ void SoundChannel::stepEnvelope()
     case EnvState::DIE:
         if (++envInterStep >= INTERFRAMES) {
             envLevelPrev = envLevelCur;
-            envelopeState = EnvState::DEAD;
+            envState = EnvState::DEAD;
         }
         break;
     case EnvState::DEAD:
         break;
     default:
-        throw Xcept("SoundChannel: Invalid envelope state: %d", (int)envelopeState);
+        throw Xcept("SoundChannel: Invalid envelope state: %d", (int)envState);
     }
 }
 

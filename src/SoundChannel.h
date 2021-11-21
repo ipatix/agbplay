@@ -49,15 +49,15 @@ private:
     ADSR env;
     Note note;
     SampleInfo sInfo;
-    EnvState envelopeState = EnvState::INIT;
     bool fixed;
     bool isGS;              // is Golden Sun synth
     bool isMPTcompressed;   // is Mario Power Tennis compressed
     int16_t levelMPTcompressed;
     uint8_t shiftMPTcompressed;
-    uint8_t envInterStep = 0;
 
     /* all of these values have pairs of new and old value to allow smooth fades */
+    EnvState envState = EnvState::INIT;
+    uint8_t envInterStep = 0;
     uint8_t envLevelCur;
     uint8_t envLevelPrev;
     uint8_t leftVolCur = 0;

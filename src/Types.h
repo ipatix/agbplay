@@ -36,10 +36,8 @@ struct MixingArgs
     float samplesPerBufferInv;
 };
 
-struct ChnVol
+struct VolumeFade
 {
-    ChnVol(float fromVolLeft, float fromVolRight, float toVolLeft, float toVolRight);
-    ChnVol();
     float fromVolLeft;
     float fromVolRight;
     float toVolLeft;

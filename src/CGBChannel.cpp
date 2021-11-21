@@ -49,7 +49,7 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
     }
 }
 
-ChnVol CGBChannel::getVol()
+VolumeFade CGBChannel::getVol()
 {
     float envBase = float(fromEnvLevel);
     uint32_t stepDiv;
@@ -75,11 +75,13 @@ ChnVol CGBChannel::getVol()
     float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES * stepDiv);
     float finalFromEnv = envBase + envDelta * float(envInterStep);
     float finalToEnv = envBase + envDelta * float(envInterStep + 1);
-    return ChnVol(
-            (fromPan == Pan::RIGHT) ? 0.0f : finalFromEnv * (1.0f / 32.0f),
-            (fromPan == Pan::LEFT) ? 0.0f : finalFromEnv * (1.0f / 32.0f),
-            (fromPan == Pan::RIGHT) ? 0.0f : finalToEnv * (1.0f / 32.0f),
-            (fromPan == Pan::LEFT) ? 0.0f : finalToEnv * (1.0f / 32.0f));
+
+    VolumeFade retval;
+    retval.fromVolLeft = (fromPan == Pan::RIGHT) ? 0.0f : finalFromEnv * (1.0f / 32.0f);
+    retval.fromVolRight = (fromPan == Pan::LEFT) ? 0.0f : finalFromEnv * (1.0f / 32.0f);
+    retval.toVolLeft = (pan == Pan::RIGHT) ? 0.0f : finalToEnv * (1.0f / 32.0f);
+    retval.toVolRight = (pan == Pan::LEFT) ? 0.0f : finalToEnv * (1.0f / 32.0f);
+    return retval;
 }
 
 const Note& CGBChannel::GetNote() const
@@ -336,7 +338,7 @@ void SquareChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     if (numSamples == 0)
         return;
 
-    ChnVol vol = getVol();
+    VolumeFade vol = getVol();
     assert(pat);
     float lVolStep = (vol.toVolLeft - vol.fromVolLeft) * args.samplesPerBufferInv;
     float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.samplesPerBufferInv;
@@ -425,7 +427,7 @@ void WaveChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
         return;
     if (numSamples == 0)
         return;
-    ChnVol vol = getVol();
+    VolumeFade vol = getVol();
     float lVolStep = (vol.toVolLeft - vol.fromVolLeft) * args.samplesPerBufferInv;
     float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.samplesPerBufferInv;
     float lVol = vol.fromVolLeft;
@@ -488,7 +490,7 @@ void NoiseChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     if (eState == EnvState::DEAD)
         return;
 
-    ChnVol vol = getVol();
+    VolumeFade vol = getVol();
     float lVolStep = (vol.toVolLeft - vol.fromVolLeft) * args.samplesPerBufferInv;
     float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.samplesPerBufferInv;
     float lVol = vol.fromVolLeft;

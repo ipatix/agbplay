@@ -36,7 +36,7 @@ public:
 private:
     void stepEnvelope();
     void updateVolFade();
-    ChnVol getVol();
+    VolumeFade getVol();
     void processNormal(sample *buffer, size_t numSamples, ProcArgs& cargs);
     void processModPulse(sample *buffer, size_t numSamples, ProcArgs& cargs, float nBlocksReciprocal);
     void processSaw(sample *buffer, size_t numSamples, ProcArgs& cargs);

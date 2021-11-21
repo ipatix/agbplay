@@ -82,23 +82,6 @@ std::string cgbPoly2str(CGBPolyphony t) {
 }
 
 /*
- * ChnVol
- */
-
-ChnVol::ChnVol(float fromVolLeft, float fromVolRight, 
-        float toVolLeft, float toVolRight)
-{
-    this->fromVolLeft = fromVolLeft;
-    this->fromVolRight = fromVolRight;
-    this->toVolLeft = toVolLeft;
-    this->toVolRight = toVolRight;
-}
-
-ChnVol::ChnVol()
-{
-}
-
-/*
  * ADSR
  */
 

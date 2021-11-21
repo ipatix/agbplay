@@ -31,7 +31,7 @@ public:
 protected:
     virtual void stepEnvelope();
     void updateVolFade();
-    ChnVol getVol();
+    VolumeFade getVol();
     enum class Pan { LEFT, CENTER, RIGHT };
     uint32_t pos = 0;
     float freq = 0.0f;

@@ -67,7 +67,7 @@ void SoundChannel::Process(sample *buffer, size_t numSamples, const MixingArgs& 
 
     float samplesPerBufferInv = 1.0f / float(numSamples);
 
-    ChnVol vol = getVol();
+    VolumeFade vol = getVol();
     vol.fromVolLeft *= args.vol;
     vol.fromVolRight *= args.vol;
     vol.toVolLeft *= args.vol;
@@ -114,17 +114,19 @@ void SoundChannel::SetVol(uint8_t vol, int8_t pan)
     }
 }
 
-ChnVol SoundChannel::getVol()
+VolumeFade SoundChannel::getVol()
 {
     float envBase = float(fromEnvLevel);
     float envDelta = (float(envLevel) - envBase) / float(INTERFRAMES);
     float finalFromEnv = envBase + envDelta * float(envInterStep);
     float finalToEnv = envBase + envDelta * float(envInterStep + 1);
-    return ChnVol(
-            float(fromLeftVol) * finalFromEnv * (1.0f / 65536.0f),
-            float(fromRightVol) * finalFromEnv * (1.0f / 65536.0f),
-            float(leftVol) * finalToEnv * (1.0f / 65536.0f),
-            float(rightVol) * finalToEnv * (1.0f / 65536.0f));
+
+    VolumeFade retval;
+    retval.fromVolLeft = float(fromLeftVol) * finalFromEnv * (1.0f / 65536.0f);
+    retval.fromVolRight = float(fromRightVol) * finalFromEnv * (1.0f / 65536.0f);
+    retval.toVolLeft = float(leftVol) * finalToEnv * (1.0f / 65536.0f);
+    retval.toVolRight = float(rightVol) * finalToEnv * (1.0f / 65536.0f);
+    return retval;
 }
 
 const Note& SoundChannel::GetNote() const

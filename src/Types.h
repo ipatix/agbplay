@@ -7,7 +7,7 @@
 #define INTERFRAMES 4
 
 enum class CGBType : int { SQ1 = 0, SQ2, WAVE, NOISE };
-enum class EnvState : int { INIT = 0, ATK, DEC, SUS, REL, CGB_FAST_REL, DIE, DEAD };
+enum class EnvState : int { INIT = 0, ATK, DEC, SUS, REL, PSEUDO_ECHO, CGB_FAST_REL, DIE, DEAD };
 enum class WaveDuty : int { D12 = 0, D25, D50, D75 };
 enum class NoisePatt : int { FINE = 0, ROUGH };
 enum class ReverbType { NORMAL, GS1, GS2, MGAT, TEST, NONE };

@@ -107,7 +107,7 @@ uint8_t SoundChannel::GetTrackIdx() const
 
 void SoundChannel::SetVol(uint8_t vol, int8_t pan)
 {
-    if (envState < EnvState::REL) {
+    if (!stop) {
         int combinedPan = std::clamp(pan + note.rhythmPan, -64, +63);
         this->leftVolCur = uint8_t(note.velocity * vol * (-combinedPan + 64) / 8192);
         this->rightVolCur = uint8_t(note.velocity * vol * (combinedPan + 64) / 8192);
@@ -136,9 +136,7 @@ const Note& SoundChannel::GetNote() const
 
 void SoundChannel::Release()
 {
-    if (envState < EnvState::REL) {
-        envState = EnvState::REL;
-    }
+    stop = true;
 }
 
 void SoundChannel::Kill()
@@ -154,11 +152,11 @@ void SoundChannel::SetPitch(int16_t pitch)
 
 bool SoundChannel::TickNote()
 {
-    if (envState < EnvState::REL) {
+    if (!stop) {
         if (note.length > 0) {
             note.length--;
             if (note.length == 0) {
-                envState = EnvState::REL;
+                stop = true;
                 return false;
             }
         }
@@ -175,87 +173,74 @@ EnvState SoundChannel::GetState() const
 
 void SoundChannel::stepEnvelope()
 {
-    //if (envelopeState == EnvState::INIT) {
-    //    leftVolPrev = leftVolCur;
-    //    rightVolPrev = rightVolCur;
+    if (envState == EnvState::INIT) {
+        /* it's important to initialize the volume ramp here because in the constructor
+         * the initial volume is not yet known (i.e. 0) */
+        updateVolFade();
 
-    //    /* Because we are smoothly fading all our amplitude changes, we avoid the case
-    //     * where the fastest attack value will still cause a 16.6ms ramp instead of being
-    //     * instant maximum amplitude. */
-    //    if (env.att = 0xFF)
-    //        envLevelPrev = 0xFF;
-    //    else
-    //        envLevelPrev = 0x0;
-    //}
-
-    switch (envState) {
-    case EnvState::INIT:
-        leftVolPrev = leftVolCur;
-        rightVolPrev = rightVolCur;
-        if (env.att == 0xFF) {
+        /* Because we are smoothly fading all our amplitude changes, we avoid the case
+         * where the fastest attack value will still cause a 16.6ms ramp instead of being
+         * instant maximum amplitude. */
+        if (env.att == 0xFF)
             envLevelPrev = 0xFF;
-        } else {
+        else
             envLevelPrev = 0x0;
-        }
-        envLevelCur = env.att;
+
+        envLevelCur = 0;
         envInterStep = 0;
         envState = EnvState::ATK;
-        break;
-    case EnvState::ATK:
-        if (++envInterStep >= INTERFRAMES) {
-            envLevelPrev = envLevelCur;
-            envInterStep = 0;
-            int newLevel = envLevelCur + env.att;
-            if (newLevel >= 0xFF) {
-                envState = EnvState::DEC;
-                envLevelCur = 0xFF;
-            } else {
-                envLevelCur = uint8_t(newLevel);
-            }
+    } else {
+        /* On GBA, envelopes update every frame but because we do a multiple of updates per frame
+         * (to increase timing accuracy of Note ONs), only every so many sub-frames we actually update
+         * the envelope state. */
+        if (++envInterStep < INTERFRAMES)
+            return;
+        envLevelPrev = envLevelCur;
+        envInterStep = 0;
+    }
+
+    if (envState == EnvState::PSEUDO_ECHO) {
+        assert(note.pseudoEchoLen != 0);
+        if (--note.pseudoEchoLen == 0) {
+            envState = EnvState::DIE;
+            envLevelCur = 0;
         }
-        break;
-    case EnvState::DEC:
-        if (++envInterStep >= INTERFRAMES) {
-            envLevelPrev = envLevelCur;
-            envInterStep = 0;
-            int newLevel = (envLevelCur * env.dec) >> 8;
-            if (newLevel <= env.sus) {
-                envState = EnvState::SUS;
-                envLevelCur = env.sus;
-            } else {
-                envLevelCur = uint8_t(newLevel);
-            }
-        }
-        break;
-    case EnvState::SUS:
-        if (++envInterStep >= INTERFRAMES) {
-            envLevelPrev = envLevelCur;
-            envInterStep = 0;
-        }
-        break;
-    case EnvState::REL:
-        if (++envInterStep >= INTERFRAMES) {
-            envLevelPrev = envLevelCur;
-            envInterStep = 0;
-            int newLevel = (envLevelCur * env.rel) >> 8;
-            if (newLevel <= 0) {
-                envState = EnvState::DIE;
-                envLevelCur = 0;
-            } else {
-                envLevelCur = uint8_t(newLevel);
-            }
-        }
-        break;
-    case EnvState::DIE:
-        if (++envInterStep >= INTERFRAMES) {
-            envLevelPrev = envLevelCur;
+    } else if (stop) {
+        if (envState == EnvState::DIE) {
+            /* This is really just a transitional state that is supposed to be the last GBA frame
+             * of fadeout. Because we smoothly ramp out envelopes, out envelopes are actually one
+             * frame longer than on hardware- As soon as this state is reached the channel is disabled */
             envState = EnvState::DEAD;
+        } else {
+            envLevelCur = static_cast<uint8_t>((envLevelCur * env.rel) >> 8);
+            if (envLevelCur <= note.pseudoEchoVol) {
+release:
+                if (note.pseudoEchoVol == 0) {
+                    envState = EnvState::DIE;
+                } else {
+                    envState = EnvState::PSEUDO_ECHO;
+                    envLevelCur = note.pseudoEchoVol;
+                }
+            }
         }
-        break;
-    case EnvState::DEAD:
-        break;
-    default:
-        throw Xcept("SoundChannel: Invalid envelope state: %d", (int)envState);
+    } else {
+        if (envState == EnvState::DEC) {
+            envLevelCur = static_cast<uint8_t>((envLevelCur * env.dec) >> 8);
+            if (envLevelCur <= env.sus) {
+                envLevelCur = env.sus;
+                if (envLevelCur == 0)
+                    goto release;
+                envState = EnvState::SUS;
+            }
+        } else if (envState == EnvState::ATK) {
+            uint32_t newLevel = envLevelCur + env.att;
+            if (newLevel >= 0xFF) {
+                envLevelCur = 0xFF;
+                envState = EnvState::DEC;
+            } else {
+                envLevelCur = static_cast<uint8_t>(newLevel);
+            }
+        }
     }
 }
 

@@ -49,6 +49,7 @@ private:
     ADSR env;
     Note note;
     SampleInfo sInfo;
+    bool stop = false;
     bool fixed;
     bool isGS;              // is Golden Sun synth
     bool isMPTcompressed;   // is Mario Power Tennis compressed

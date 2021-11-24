@@ -215,7 +215,7 @@ void SoundChannel::stepEnvelope()
             envLevelCur = static_cast<uint8_t>((envLevelCur * env.rel) >> 8);
             if (envLevelCur <= note.pseudoEchoVol) {
 release:
-                if (note.pseudoEchoVol == 0) {
+                if (note.pseudoEchoVol == 0 || note.pseudoEchoLen == 0) {
                     envState = EnvState::DIE;
                 } else {
                     envState = EnvState::PSEUDO_ECHO;

@@ -114,7 +114,7 @@ void SoundChannel::SetVol(uint8_t vol, int8_t pan)
     }
 }
 
-VolumeFade SoundChannel::getVol()
+VolumeFade SoundChannel::getVol() const
 {
     float envBase = float(envLevelPrev);
     float envDelta = (float(envLevelCur) - envBase) / float(INTERFRAMES);

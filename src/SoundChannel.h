@@ -35,13 +35,14 @@ public:
 private:
     void stepEnvelope();
     void updateVolFade();
-    VolumeFade getVol();
+    VolumeFade getVol() const;
     void processNormal(sample *buffer, size_t numSamples, ProcArgs& cargs);
     void processModPulse(sample *buffer, size_t numSamples, ProcArgs& cargs, float nBlocksReciprocal);
     void processSaw(sample *buffer, size_t numSamples, ProcArgs& cargs);
     void processTri(sample *buffer, size_t numSamples, ProcArgs& cargs);
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
     static bool sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequires, void *cbdata);
+
     std::unique_ptr<Resampler> rs;
     uint32_t pos = 0;
     float interPos = 0.0f;

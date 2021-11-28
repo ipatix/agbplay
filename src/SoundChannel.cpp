@@ -174,6 +174,10 @@ EnvState SoundChannel::GetState() const
 void SoundChannel::stepEnvelope()
 {
     if (envState == EnvState::INIT) {
+        if (stop) {
+            envState = EnvState::DEAD;
+            return;
+        }
         /* it's important to initialize the volume ramp here because in the constructor
          * the initial volume is not yet known (i.e. 0) */
         updateVolFade();
@@ -213,10 +217,14 @@ void SoundChannel::stepEnvelope()
             envState = EnvState::DEAD;
         } else {
             envLevelCur = static_cast<uint8_t>((envLevelCur * env.rel) >> 8);
+            /* ORIGINAL "BUG":
+             * Even when pseudo echo has no length, the following condition will kick in and may cause
+             * an earlier then intended note release */
             if (envLevelCur <= note.pseudoEchoVol) {
 release:
                 if (note.pseudoEchoVol == 0 || note.pseudoEchoLen == 0) {
                     envState = EnvState::DIE;
+                    envLevelCur = 0;
                 } else {
                     envState = EnvState::PSEUDO_ECHO;
                     envLevelCur = note.pseudoEchoVol;

@@ -39,7 +39,6 @@ static const std::vector<int16_t> modulationLut = {
 
 void SoundBank::Init(size_t bankPos)
 {
-    this->tickCount = 0;
     this->bankPos = bankPos;
 }
 
@@ -232,6 +231,7 @@ void Sequence::Init(size_t songHeaderPos)
     // reset runtime variables
     bpmStack = 0;
     bpm = 150;
+    tickCount = 0;
 }
 
 void Sequence::Reset()

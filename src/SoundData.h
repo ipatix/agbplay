@@ -79,6 +79,7 @@ public:
     std::vector<uint8_t> memaccArea;
 
     // processing variables
+    uint32_t tickCount = 0;
     int32_t bpmStack;
     uint16_t bpm;
     size_t GetSoundBankPos();

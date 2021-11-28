@@ -39,6 +39,7 @@ static const std::vector<int16_t> modulationLut = {
 
 void SoundBank::Init(size_t bankPos)
 {
+    this->tickCount = 0;
     this->bankPos = bankPos;
 }
 

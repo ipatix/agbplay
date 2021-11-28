@@ -158,6 +158,8 @@ void SequenceReader::processSequenceTick()
         ctx.mixer.StartFadeOut(SONG_FINISH_TIME);
         endReached = true;
     }
+
+    ctx.seq.tickCount++;
 }
 
 int SequenceReader::tickTrackNotes(uint8_t track_idx, std::bitset<NUM_NOTES>& activeNotes)

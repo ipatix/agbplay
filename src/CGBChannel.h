@@ -27,10 +27,11 @@ public:
     virtual void SetPitch(int16_t pitch) = 0;
     bool TickNote(); // returns true if note remains active
     EnvState GetState() const;
-    EnvState GetNextState() const;
+    bool IsFastReleasing() const;
 protected:
     virtual void stepEnvelope();
     void updateVolFade();
+    void applyVol();
     VolumeFade getVol() const;
 
     std::unique_ptr<Resampler> rs;
@@ -40,15 +41,20 @@ protected:
     ADSR env;
     Note note;
     bool stop = false;
+    bool fastRelease = false;
+    uint8_t vol = 0;
+    int8_t pan = 0;
 
     /* all of these values have pairs of new and old value to allow smooth fades */
     EnvState envState = EnvState::INIT;
-    EnvState envStateNext;
     uint8_t envInterStep = 0;
     uint8_t envLevelCur = 0;
     uint8_t envLevelPrev = 0;
     uint8_t envPeak = 0;
     uint8_t envSustain = 0;
+    uint8_t envFrameCount = 0;
+    uint8_t envGradientFrame = 0;
+    float envGradient = 0.0f;
     Pan panCur = Pan::CENTER;
     Pan panPrev = Pan::CENTER;
 };

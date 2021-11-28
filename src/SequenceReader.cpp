@@ -260,7 +260,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             channels.clear();
         } else if (cgbPolyphony == CGBPolyphony::MONO_SMOOTH) {
             for (auto& chn : channels) {
-                if (chn.GetNextState() < EnvState::CGB_FAST_REL) {
+                if (chn.GetState() < EnvState::PSEUDO_ECHO && !chn.IsFastReleasing()) {
                     const Note& playing_note = chn.GetNote();
                     if (playing_note.priority > note.priority)
                         return false;

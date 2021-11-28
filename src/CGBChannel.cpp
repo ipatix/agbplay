@@ -29,52 +29,20 @@ uint8_t CGBChannel::GetTrackIdx() const
 
 void CGBChannel::SetVol(uint8_t vol, int8_t pan)
 {
-    int combinedPan = std::clamp(pan + note.rhythmPan, -64, +63);
+    if (stop)
+        return;
 
-    if (envState < EnvState::REL) {
-        if (combinedPan < -21) {
-            // snap left
-            this->panCur = Pan::LEFT;
-        } else if (combinedPan > 20) {
-            // snap right
-            this->panCur = Pan::RIGHT;
-        } else {
-            // snap mid
-            this->panCur = Pan::CENTER;
-        }
-        envPeak = std::clamp<uint8_t>(uint8_t((note.velocity * vol) >> 10), 0, 15);
-        envSustain = std::clamp<uint8_t>(uint8_t((envPeak * env.sus + 15) >> 4), 0, 15);
-        if (envState == EnvState::SUS)
-            envLevelCur = envSustain;
-    }
+    /* CGB volume and pan aren't applied immediately due to the nature of being heavily
+     * intertwined with the envelope handling. So save them and actually update them during envelope handling */
+    this->vol = vol;
+    this->pan = pan;
 }
 
 VolumeFade CGBChannel::getVol() const
 {
-    float envBase = float(envLevelPrev);
-    uint32_t stepDiv;
-    switch (envState) {
-        case EnvState::ATK:
-            stepDiv = env.att;
-            break;
-        case EnvState::DEC:
-            stepDiv = env.dec;
-            break;
-        case EnvState::SUS:
-            stepDiv = 1;
-            break;
-        case EnvState::CGB_FAST_REL:
-        case EnvState::REL:
-        case EnvState::DIE:
-            stepDiv = env.rel;
-            break;
-        default:
-            throw Xcept("Getting volume of invalid state: %d", (int)envState);
-    }
-    assert(stepDiv);
-    float envDelta = (float(envLevelCur) - envBase) / float(INTERFRAMES * stepDiv);
-    float finalFromEnv = envBase + envDelta * float(envInterStep);
-    float finalToEnv = envBase + envDelta * float(envInterStep + 1);
+    float envBase = static_cast<float>(envLevelPrev);
+    float finalFromEnv = envBase + envGradient * static_cast<float>(envGradientFrame * INTERFRAMES + envInterStep);
+    float finalToEnv = finalFromEnv + envGradient;
 
     VolumeFade retval;
     retval.fromVolLeft = (panPrev == Pan::RIGHT) ? 0.0f : finalFromEnv * (1.0f / 32.0f);
@@ -91,25 +59,8 @@ const Note& CGBChannel::GetNote() const
 
 void CGBChannel::Release(bool fastRelease)
 {
-    if (fastRelease && envState < EnvState::CGB_FAST_REL) {
-        if (env.rel == 0) {
-            envLevelCur = 0;
-            envState = EnvState::DEAD;
-        } else if (envLevelCur == 0 && envLevelPrev == 0) {
-            envState = EnvState::DEAD;
-        } else {
-            envStateNext = EnvState::CGB_FAST_REL;
-        }
-    } else if (envState < EnvState::REL) {
-        if (env.rel == 0) {
-            envLevelCur = 0;
-            envState = EnvState::DEAD;
-        } else if (envLevelCur == 0 && envLevelPrev == 0) {
-            envState = EnvState::DEAD;
-        } else {
-            envStateNext = EnvState::REL;
-        }
-    }
+    this->stop = true;
+    this->fastRelease = fastRelease;
 }
 
 bool CGBChannel::TickNote()
@@ -118,11 +69,8 @@ bool CGBChannel::TickNote()
         if (note.length > 0) {
             note.length--;
             if (note.length == 0) {
-                if (envLevelCur == 0) {
-                    envState = EnvState::DEAD;
-                } else {
-                    envState = EnvState::REL;
-                }
+                /* Notes that stop on their own never release fast */
+                Release(false);
                 return false;
             }
         }
@@ -137,174 +85,180 @@ EnvState CGBChannel::GetState() const
     return envState;
 }
 
-EnvState CGBChannel::GetNextState() const
+bool CGBChannel::IsFastReleasing() const
 {
-    return envStateNext;
+    return fastRelease;
 }
 
 void CGBChannel::stepEnvelope()
 {
-    switch (envState) {
-        case EnvState::INIT:
-            envStateNext = EnvState::ATK;
-            panPrev = panCur;
-            envInterStep = 0;
-            if ((env.att | env.dec) == 0 || (envSustain == 0 && envPeak == 0)) {
-                envState = EnvState::SUS;
-                envLevelPrev = envSustain;
-                envLevelCur = envSustain;
-                return;
-            } else if (env.att == 0 && env.sus < 0xF) {
-                envState = EnvState::DEC;
-                envLevelPrev = envPeak;
-                envLevelCur = uint8_t(std::clamp(envPeak - 1, 0, 15));
-                if (envLevelCur < envSustain) envLevelCur = envSustain;
-                return;
-            } else if (env.att == 0) {
-                envState = EnvState::SUS;
-                envLevelPrev = envSustain;
-                envLevelCur = envSustain;
-                return;
-            } else {
-                envState = EnvState::ATK;
-                envLevelPrev = 0x0;
-                envLevelCur = 0x1;
-                return;
-            }
-            break;
-        case EnvState::ATK:
-            assert(env.att);
-            if (++envInterStep >= INTERFRAMES * env.att) {
-                if (envStateNext == EnvState::DEC) {
-                    envState = EnvState::DEC;
-                    goto Ldec;
-                }
-                if (envStateNext == EnvState::SUS) {
-                    envState = EnvState::SUS;
-                    goto Lsus;
-                }
-                if (envStateNext == EnvState::REL) {
-                    envState = EnvState::REL;
-                    goto Lrel;
-                }
-                if (envStateNext == EnvState::CGB_FAST_REL) {
-                    envState = EnvState::CGB_FAST_REL;
-                    goto Lfast_rel;
-                }
-                envLevelPrev = envLevelCur;
-                envInterStep = 0;
-                if (++envLevelCur >= envPeak) {
-                    if (env.dec == 0) {
-                        //envLevelCur = envSustain;
-                        envStateNext = EnvState::SUS;
-                    } else if (envPeak == envSustain) {
-                        envStateNext = EnvState::SUS;
-                        envLevelCur = envPeak;
-                    } else {
-                        envLevelCur = envPeak;
-                        envStateNext = EnvState::DEC;
-                    }
-                }
-            }
-            break;
-        case EnvState::DEC:
-            assert(env.dec);
-            if (++envInterStep >= INTERFRAMES * env.dec) {
-                if (envStateNext == EnvState::SUS) {
-                    envState = EnvState::SUS;
-                    goto Lsus;
-                }
-                if (envStateNext == EnvState::REL) {
-                    envState = EnvState::REL;
-                    goto Lrel;
-                }
-                if (envStateNext == EnvState::CGB_FAST_REL) {
-                    envState = EnvState::CGB_FAST_REL;
-                    goto Lfast_rel;
-                }
-Ldec:
-                envLevelPrev = envLevelCur;
-                envInterStep = 0;
-                if (int(envLevelCur - 1) <= int(envSustain)) {
-                    envLevelCur = envSustain;
-                    envStateNext = EnvState::SUS;
-                } else {
-                    envLevelCur = uint8_t(std::clamp(envLevelCur - 1, 0, 15));
-                }
-            }
-            break;
-        case EnvState::SUS:
-            if (++envInterStep >= INTERFRAMES) {
-                if (envStateNext == EnvState::REL) {
-                    envState = EnvState::REL;
-                    goto Lrel;
-                }
-                if (envStateNext == EnvState::CGB_FAST_REL) {
-                    envState = EnvState::CGB_FAST_REL;
-                    goto Lfast_rel;
-                }
-Lsus:
-                envLevelPrev = envLevelCur;
-                envInterStep = 0;
-            }
-            break;
-        case EnvState::REL:
-            if (++envInterStep >= INTERFRAMES * env.rel) {
-                if (envStateNext == EnvState::DIE) {
-                    goto Ldie;
-                }
-                if (envStateNext == EnvState::CGB_FAST_REL) {
-                    envState = EnvState::CGB_FAST_REL;
-                    goto Lfast_rel;
-                }
-Lrel:
-                if (env.rel == 0) {
-                    envLevelPrev = 0;
-                    envLevelCur = 0;
-                    envState = EnvState::DEAD;
-                } else {
-                    envLevelPrev = envLevelCur;
-                    envInterStep = 0;
-                    if (envLevelCur - 1 <= 0) {
-                        envStateNext = EnvState::DIE;
-                        envLevelCur = 0;
-                    } else {
-                        envLevelCur--;
-                    }
-                }
-            }
-            break;
-        case EnvState::CGB_FAST_REL:
-            if (++envInterStep >= INTERFRAMES * env.rel) {
-                if (envStateNext == EnvState::DIE) {
-                    goto Ldie;
-                }
-Lfast_rel:
-                if (env.rel == 0) {
-                    envLevelPrev = 0;
-                    envLevelCur = 0;
-                    envState = EnvState::DEAD;
-                } else {
-                    envLevelPrev = envLevelCur;
-                    envInterStep = 0;
-                    envLevelCur = 0;
-                    envStateNext = EnvState::DIE;
-                }
-            }
-            break;
-        case EnvState::DIE:
-Ldie:
+    if (envState == EnvState::INIT) {
+        if (stop) {
             envState = EnvState::DEAD;
-            break;
-        default:
-            break;
+            return;
+        }
+
+        applyVol();
+        updateVolFade();
+
+        envLevelCur = 0;
+        envInterStep = 0;
+        envState = EnvState::ATK;
+
+        if (env.att > 0) {
+            envLevelPrev = 0;
+        } else if (env.dec > 0) {
+            envLevelPrev = envPeak;
+            envLevelCur = envPeak;
+            if (envPeak > 0)
+                envState = EnvState::DEC;
+            else
+                envState = EnvState::SUS;
+        } else {
+            envLevelPrev = envSustain;
+            envLevelCur = envSustain;
+            envState = EnvState::SUS;
+        }
+    } else {
+        if (++envInterStep < INTERFRAMES)
+            return;
+        envInterStep = 0;
+
+        assert(envFrameCount > 0);
+        envFrameCount--;
+        envGradientFrame++;
     }
+
+    if (envState == EnvState::PSEUDO_ECHO) {
+        assert(note.pseudoEchoLen != 0);
+        if (--note.pseudoEchoLen == 0) {
+            envState = EnvState::DIE;
+            envLevelCur = 0;
+        }
+        envFrameCount = 1;
+        envGradient = 0.0f;
+    } else if (stop && envState < EnvState::REL) {
+        if (fastRelease) {
+            /* fast release is mostly inteded as hack in agbplay for quickly supressing notes
+             * but still giving them a little time to fade out */
+            goto fast_release;
+        } else {
+            envState = EnvState::REL;
+            envFrameCount = env.rel;
+            if (envLevelCur == 0 || envFrameCount == 0)
+                goto pseudo_echo_start;
+            envGradientFrame = 0;
+            envLevelPrev = envLevelCur;
+            goto release;
+        }
+    } else if (envFrameCount == 0) {
+        applyVol();
+
+        envGradientFrame = 0;
+        envLevelPrev = envLevelCur;
+
+        if (envState == EnvState::REL && fastRelease) {
+fast_release:
+            /* This case should only occur if a note was release normally but
+             * then changes to fast release later. */
+            envState = EnvState::DIE;
+            envFrameCount = 1;
+            envGradientFrame = 0;
+            envLevelPrev = envLevelCur;
+            envLevelCur = 0;
+        } else if (envState == EnvState::REL) {
+release:
+            assert(envLevelCur > 0);
+            envLevelCur--;
+            assert((int8_t)envLevelCur >= 0);
+
+            if (envLevelCur == 0) {
+pseudo_echo_start:
+                envLevelCur = static_cast<uint8_t>(((envPeak * note.pseudoEchoVol) + 0xFF) >> 8);
+                if (envLevelCur != 0 && note.pseudoEchoLen != 0) {
+                    envState = EnvState::PSEUDO_ECHO;
+                    envFrameCount = 1;
+                    envLevelPrev = envLevelCur;
+                } else {
+                    if (env.rel == 0) {
+                        envState = EnvState::DEAD;
+                        return;
+                    } else {
+                        envState = EnvState::DIE;
+                        envLevelCur = 0;
+                        envFrameCount = env.rel;
+                    }
+                }
+            } else {
+                envFrameCount = env.rel;
+                assert(env.rel != 0);
+            }
+        } else if (envState == EnvState::SUS) {
+            envLevelCur = envSustain;
+            envFrameCount = 1;
+        } else if (envState == EnvState::DEC) {
+            envLevelCur--;
+            assert((int8_t)envLevelCur >= 0);
+
+            if (envLevelCur <= envSustain) {
+                if (env.sus == 0) {
+                    goto pseudo_echo_start;
+                } else {
+                    envState = EnvState::SUS;
+                    envLevelCur = envSustain;
+                }
+            }
+            envFrameCount = env.dec;
+            assert(env.dec != 0);
+        } else if (envState == EnvState::ATK) {
+            envLevelCur++;
+
+            if (envLevelCur >= envPeak) {
+                envState = EnvState::DEC;
+                envFrameCount = env.dec;
+                if (envPeak == 0 || envFrameCount == 0) {
+                    envState = EnvState::SUS;
+                } else {
+                    envLevelCur = envPeak;
+                }
+            }
+            envFrameCount = env.att;
+            assert(env.att != 0);
+        } else if (envState == EnvState::DIE) {
+            envState = EnvState::DEAD;
+            return;
+        }
+
+        assert(envFrameCount != 0);
+        envGradient = static_cast<float>(envLevelCur - envLevelPrev) / static_cast<float>(envFrameCount * INTERFRAMES);
+    }
+
+    //Debug::print("envState=%d envLevelCur=%d envLevelPrev=%d envFrameCount=%d envGradientFrame=%d envGradient=%f",
+    //        (int)envState, (int)envLevelCur, (int)envLevelPrev, (int)envFrameCount, (int)envGradientFrame, envGradient);
 }
 
 
 void CGBChannel::updateVolFade()
 {
     panPrev = panCur;
+}
+
+void CGBChannel::applyVol()
+{
+    int combinedPan = std::clamp(pan + note.rhythmPan, -64, +63);
+
+    if (combinedPan < -21)
+        this->panCur = Pan::LEFT;
+    else if (combinedPan > 20)
+        this->panCur = Pan::RIGHT;
+    else
+        this->panCur = Pan::CENTER;
+
+    envPeak = std::clamp<uint8_t>(uint8_t((note.velocity * vol) >> 10), 0, 15);
+    envSustain = std::clamp<uint8_t>(uint8_t((envPeak * env.sus + 15) >> 4), 0, 15);
+    // TODO is this if below right???
+    if (envState == EnvState::SUS)
+        envLevelCur = envSustain;
 }
 
 /*

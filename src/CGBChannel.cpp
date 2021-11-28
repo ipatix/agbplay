@@ -85,6 +85,11 @@ EnvState CGBChannel::GetState() const
     return envState;
 }
 
+bool CGBChannel::IsReleasing() const
+{
+    return stop;
+}
+
 bool CGBChannel::IsFastReleasing() const
 {
     return fastRelease;

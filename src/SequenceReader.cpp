@@ -253,7 +253,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             if (channels.size() > 0) {
                 const Note& playing_note = channels.front().GetNote();
 
-                if (channels.front().GetState() < EnvState::REL) {
+                if (!channels.front().IsReleasing()) {
                     if (playing_note.priority > note.priority)
                         return false;
                     if (playing_note.priority == note.priority) {

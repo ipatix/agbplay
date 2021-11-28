@@ -252,11 +252,14 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             assert(channels.size() <= 1);
             if (channels.size() > 0) {
                 const Note& playing_note = channels.front().GetNote();
-                if (playing_note.priority > note.priority)
-                    return false;
-                if (playing_note.priority == note.priority) {
-                    if (channels.front().GetTrackIdx() < trackIdx)
+
+                if (channels.front().GetState() < EnvState::REL) {
+                    if (playing_note.priority > note.priority)
                         return false;
+                    if (playing_note.priority == note.priority) {
+                        if (channels.front().GetTrackIdx() < trackIdx)
+                            return false;
+                    }
                 }
             }
             channels.clear();

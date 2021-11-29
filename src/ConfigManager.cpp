@@ -103,7 +103,7 @@ void ConfigManager::Load()
         configs.back().SetResTypeFixed(str2res(playlist.get("pcm-fixed-rate-resampling-algo", "linear").asString()));
         configs.back().SetTrackLimit(uint8_t(std::clamp<int>(playlist.get("song-track-limit", 16).asInt(), 0, 16)));
         configs.back().SetAccurateCh3Volume(playlist.get("accurate-ch3-volume", false).asBool());
-        configs.back().SetAccurateCh3Quantization(playlist.get("accurate-ch3-volume", false).asBool());
+        configs.back().SetAccurateCh3Quantization(playlist.get("accurate-ch3-quantization", false).asBool());
 
         for (Json::Value song : playlist["songs"]) {
             configs.back().GetGameEntries().emplace_back(

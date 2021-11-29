@@ -439,17 +439,66 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
     fetchBuffer.resize(samplesRequired);
 
     GameConfig& cfg = ConfigManager::Instance().GetCfg();
-    bool accurateQuant = cfg.GetAccurateCh3Quantization();
 
-    do {
-        uint32_t pos = (_this->pos++) % 32;
-        uint8_t nibble;
-        if (pos % 2 == 0)
-            nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] >> 4u);
-        else
-            nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] & 0xF);
-        fetchBuffer[i++] = nibble * (1.0f / 16.0f) + _this->dcCorrection;
-    } while (--samplesToFetch > 0);
+    if (cfg.GetAccurateCh3Quantization()) {
+        /* WARNING; VERY UGLY AND HACKY */
+        VolumeFade fade = _this->getVol();
+        const float fromVol = std::max(fade.fromVolLeft, fade.fromVolRight);
+        const float toVol = std::max(fade.toVolLeft, fade.toVolRight);
+        /* I'm not entirely certain whether the hardware uses arithmetic shifts or logic shifts (with bias).
+         * Using logic shifts for now, hopefully works good enough... */
+        auto mapFunc = [](float x, float& compensationScale, uint32_t& shiftA, uint32_t& shiftB) {
+            if (x < 6.0f / 32.0f) {
+                shiftA = 2;
+                shiftB = 4;
+                compensationScale = 4.0f;
+            } else if (x < 10.0f / 32.0f) {
+                shiftA = 1;
+                shiftB = 4;
+                compensationScale = 2.0f;
+            } else if (x < 14.0f / 32.0f) {
+                shiftA = 1;
+                shiftB = 2;
+                compensationScale = 4.0f / 3.0f;
+            } else {
+                shiftA = 0;
+                shiftB = 4;
+                compensationScale = 1.0f;
+            }
+        };
+        uint32_t shiftAFrom, shiftATo, shiftBFrom, shiftBTo;
+        float compensationScaleFrom, compensationScaleTo;
+        mapFunc(fromVol, compensationScaleFrom, shiftAFrom, shiftBFrom);
+        mapFunc(toVol, compensationScaleTo, shiftATo, shiftBTo);
+
+        float t = 0.0f;
+        float t_inc = 1.0f / static_cast<float>(samplesToFetch);
+        while (samplesToFetch-- > 0) {
+            uint32_t pos = (_this->pos++) % 32;
+            uint8_t nibble;
+            if (pos % 2 == 0)
+                nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] >> 4u);
+            else
+                nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] & 0xF);
+            float sampleFrom = static_cast<float>((nibble >> shiftAFrom) + (nibble >> shiftBFrom)) * compensationScaleFrom;
+            float sampleTo = static_cast<float>((nibble >> shiftATo) + (nibble >> shiftBTo)) * compensationScaleTo;
+            float sample = (sampleFrom + t * (sampleTo - sampleFrom)) * (1.0f / 16.0f) + _this->dcCorrection;
+            t += t_inc;
+            fetchBuffer[i++] = sample;
+        }
+    } else {
+        while (samplesToFetch-- > 0) {
+            uint32_t pos = (_this->pos++) % 32;
+            uint8_t nibble;
+            if (pos % 2 == 0)
+                nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] >> 4u);
+            else
+                nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] & 0xF);
+            float sample = nibble * (1.0f / 16.0f) + _this->dcCorrection;
+            fetchBuffer[i++] = sample;
+        }
+    }
+
     return true;
 }
 

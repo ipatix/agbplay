@@ -83,8 +83,8 @@ public:
 private:
     VolumeFade getVol() const;
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
-    float waveBuffer[32];
-    static uint8_t volLut[16];
+    float dcCorrection;
+    const uint8_t *wavePtr;
 };
 
 class NoiseChannel : public CGBChannel

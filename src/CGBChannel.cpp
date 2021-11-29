@@ -345,14 +345,8 @@ bool SquareChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t 
  * public WaveChannel
  */
 
-/* This LUT is currently unused. It's supposed to be more accurate to the original
- * but on the other hand it just doesn't sound as good as a linear curve */
-uint8_t WaveChannel::volLut[] = {
-    0, 0, 4, 4, 4, 4, 8, 8, 8, 8, 12, 12, 12, 12, 16, 16
-};
-
 WaveChannel::WaveChannel(const uint8_t *wavePtr, ADSR env, Note note)
-    : CGBChannel(env, note)
+    : CGBChannel(env, note), wavePtr(wavePtr)
 {
     this->rs = std::make_unique<BlepResampler>();
 
@@ -361,17 +355,11 @@ WaveChannel::WaveChannel(const uint8_t *wavePtr, ADSR env, Note note)
     float sum = 0.0f;
     for (int i = 0; i < 16; i++) {
         uint8_t twoNibbles = wavePtr[i];
-        float first = static_cast<float>(twoNibbles >> 4) / 16.0f;
-        sum += first;
-        float second = static_cast<float>(twoNibbles & 0xF) / 16.0f;
-        sum += second;
-        this->waveBuffer[i * 2 + 0] = first;
-        this->waveBuffer[i * 2 + 1] = second;
+        sum += static_cast<float>(twoNibbles >> 4) / 16.0f;
+        sum += static_cast<float>(twoNibbles & 0xF) / 16.0f;
     }
 
-    float dcCorrection = sum * (1.0f / 32.0f);
-    for (size_t i = 0; i < 32; i++)
-        this->waveBuffer[i] -= dcCorrection;
+    dcCorrection = -sum * (1.0f / 32.0f);
 }
 
 void WaveChannel::SetPitch(int16_t pitch)
@@ -450,9 +438,17 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
     size_t i = fetchBuffer.size();
     fetchBuffer.resize(samplesRequired);
 
+    GameConfig& cfg = ConfigManager::Instance().GetCfg();
+    bool accurateQuant = cfg.GetAccurateCh3Quantization();
+
     do {
-        fetchBuffer[i++] = _this->waveBuffer[_this->pos++];
-        _this->pos %= 32;
+        uint32_t pos = (_this->pos++) % 32;
+        uint8_t nibble;
+        if (pos % 2 == 0)
+            nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] >> 4u);
+        else
+            nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] & 0xF);
+        fetchBuffer[i++] = nibble * (1.0f / 16.0f) + _this->dcCorrection;
     } while (--samplesToFetch > 0);
     return true;
 }

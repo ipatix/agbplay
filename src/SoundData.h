@@ -42,6 +42,7 @@ struct Track
     int16_t GetPitch();
     uint8_t GetVol();
     int8_t GetPan();
+    void ResetLfoValue();
     std::bitset<NUM_NOTES> activeNotes;
 
     size_t pos;
@@ -55,6 +56,7 @@ struct Track
     uint8_t reptCount = 0;
     uint8_t prog = PROG_UNDEFINED, vol = 100, mod = 0, bendr = 2, priority = 0;
     uint8_t lfos = 22, lfodl = 0, lfodlCount = 0, lfoPhase = 0;
+    int8_t lfoValue = 0;
     uint8_t pseudoEchoVol = 0, pseudoEchoLen = 0;
     uint16_t delay = 0;
     int8_t pan = 0, bend = 0, tune = 0;

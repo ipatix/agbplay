@@ -94,20 +94,7 @@ void SequenceReader::processSequenceTick()
             continue;
 
         isSongRunning = true;
-        
-        if (trk.mod > 0)
-            trk.lfoPhase = uint8_t(trk.lfoPhase + trk.lfos);
-        else
-            trk.lfoPhase = 0; // if mod is 0, set phase to 0 too
-        if (tickTrackNotes(uint8_t(itrk), trk.activeNotes) > 0) {
-            if (trk.lfodlCount > 0) {
-                trk.lfodlCount--;
-                trk.lfoPhase = 0;
-            }
-        } else
-            trk.lfodlCount = trk.lfodl;
-        if ((trk.lfodl == trk.lfodlCount && trk.lfodl != 0) || (trk.lfos == 0))
-            trk.lfoPhase = 0;
+        tickTrackNotes(uint8_t(itrk), trk.activeNotes);
 
         // count down last delay and process
         while (trk.isRunning && trk.delay == 0) {
@@ -142,6 +129,29 @@ void SequenceReader::processSequenceTick()
 
         if (trk.isRunning)
             trk.delay--;
+
+        if (trk.lfos != 0 && trk.mod != 0) {
+            if (trk.lfodlCount == 0) {
+                trk.lfoPhase += trk.lfos;
+                int lfoPoint;
+                if (static_cast<int8_t>(trk.lfoPhase - 64) >= 0)
+                    lfoPoint = 128 - trk.lfoPhase;
+                else
+                    lfoPoint = static_cast<int8_t>(trk.lfoPhase);
+                lfoPoint *= trk.mod;
+                lfoPoint >>= 6;
+
+                if (trk.lfoValue != lfoPoint) {
+                    trk.lfoValue = static_cast<int8_t>(lfoPoint);
+                    if (trk.modt == MODT::PITCH)
+                        trk.updatePitch = true;
+                    else
+                        trk.updateVolume = true;
+                }
+            } else {
+                trk.lfodlCount--;
+            }
+        }
 
         // TODO actually only update one or there other and not always both
         if (trk.updateVolume || trk.updatePitch || trk.mod > 0) {
@@ -229,6 +239,10 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     // don't play invalid instruments
     if (trk.prog > 127)
         return;
+
+    trk.lfodlCount = trk.lfodl;
+    if (trk.lfodl != 0)
+        trk.ResetLfoValue();
 
     // initialize note data
     Note note;
@@ -434,6 +448,8 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
         // LFOS
         // TODO rewrite to match libagbsnd
         trk.lfos = rom.ReadU8(trk.pos++);
+        if (trk.lfos == 0)
+            trk.ResetLfoValue();
         break;
     case 0xC3:
         // LFODL
@@ -446,6 +462,8 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
         trk.mod = rom.ReadU8(trk.pos++);
         trk.updateVolume = true;
         trk.updatePitch = true;
+        if (trk.mod == 0)
+            trk.ResetLfoValue();
         break;
     case 0xC5:
         // MODT

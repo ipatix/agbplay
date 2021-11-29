@@ -81,6 +81,7 @@ public:
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
 private:
+    VolumeFade getVol() const;
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
     float waveBuffer[32];
     static uint8_t volLut[16];

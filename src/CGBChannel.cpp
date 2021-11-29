@@ -8,6 +8,7 @@
 #include "Debug.h"
 #include "Util.h"
 #include "Constants.h"
+#include "ConfigManager.h"
 
 /*
  * public CGBChannel
@@ -408,6 +409,36 @@ void WaveChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     } while (--numSamples > 0);
 
     updateVolFade();
+}
+
+VolumeFade WaveChannel::getVol() const
+{
+    GameConfig& cfg = ConfigManager::Instance().GetCfg();
+
+    auto retval = CGBChannel::getVol();
+
+    if (!cfg.GetAccurateCh3Volume()) {
+        return retval;
+    }
+
+    auto snapFunc = [](float x) {
+        if (x < 1.5f / 32.0f)
+            return 0.0f / 32.0f;
+        else if (x < 5.5f / 32.0f)
+            return 4.0f / 32.0f;
+        else if (x < 9.5f / 32.0f)
+            return 8.0f / 32.0f;
+        else if (x < 13.5f / 32.0f)
+            return 12.0f / 32.0f;
+        else
+            return 16.0f / 32.0f;
+    };
+
+    retval.fromVolLeft = snapFunc(retval.fromVolLeft);
+    retval.fromVolRight = snapFunc(retval.fromVolRight);
+    retval.toVolLeft = snapFunc(retval.toVolLeft);
+    retval.toVolRight = snapFunc(retval.toVolRight);
+    return retval;
 }
 
 bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)

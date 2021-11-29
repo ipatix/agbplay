@@ -102,6 +102,8 @@ void ConfigManager::Load()
         configs.back().SetResType(str2res(playlist.get("pcm-resampling-algo", "linear").asString()));
         configs.back().SetResTypeFixed(str2res(playlist.get("pcm-fixed-rate-resampling-algo", "linear").asString()));
         configs.back().SetTrackLimit(uint8_t(std::clamp<int>(playlist.get("song-track-limit", 16).asInt(), 0, 16)));
+        configs.back().SetAccurateCh3Volume(playlist.get("accurate-ch3-volume", false).asBool());
+        configs.back().SetAccurateCh3Quantization(playlist.get("accurate-ch3-volume", false).asBool());
 
         for (Json::Value song : playlist["songs"]) {
             configs.back().GetGameEntries().emplace_back(
@@ -125,6 +127,8 @@ void ConfigManager::Save()
         playlist["pcm-resampling-algo"] = res2str(cfg.GetResType());
         playlist["pcm-fixed-rate-resampling-algo"] = res2str(cfg.GetResTypeFixed());
         playlist["song-track-limit"] = static_cast<int>(cfg.GetTrackLimit());
+        playlist["accurate-ch3-volume"] = cfg.GetAccurateCh3Volume();
+        playlist["accurate-ch3-quantization"] = cfg.GetAccurateCh3Quantization();
 
         Json::Value games;
         for (const std::string& code : cfg.GetGameCodes())

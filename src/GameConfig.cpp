@@ -106,3 +106,23 @@ std::vector<SongEntry>& GameConfig::GetGameEntries()
 {
     return gameEntries;
 }
+
+bool GameConfig::GetAccurateCh3Volume() const
+{
+    return accurateCh3Volume;
+}
+
+void GameConfig::SetAccurateCh3Volume(bool enabled)
+{
+    this->accurateCh3Volume = enabled;
+}
+
+bool GameConfig::GetAccurateCh3Quantization() const
+{
+    return accurateCh3Quantization;
+}
+
+void GameConfig::SetAccurateCh3Quantization(bool enabled)
+{
+    this->accurateCh3Quantization = enabled;
+}

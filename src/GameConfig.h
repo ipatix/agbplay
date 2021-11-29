@@ -32,6 +32,10 @@ public:
     void SetTrackLimit(uint8_t trackLimit);
     uint16_t GetRevBufSize() const;
     void SetRevBufSize(uint16_t revBufSize);
+    bool GetAccurateCh3Volume() const;
+    void SetAccurateCh3Volume(bool enabled);
+    bool GetAccurateCh3Quantization() const;
+    void SetAccurateCh3Quantization(bool enabled);
 
     std::vector<SongEntry>& GetGameEntries();
 
@@ -46,4 +50,6 @@ private:
     uint8_t engineRev = 0x0;
     uint8_t trackLimit = 16;
     uint16_t revBufSize = 1584;
+    bool accurateCh3Volume = false;
+    bool accurateCh3Quantization = false;
 };

@@ -12,13 +12,14 @@ public:
     static ConfigManager& Instance();
 
     GameConfig& GetCfg();
+    const GameConfig& GetCfg() const;
     void SetGameCode(const std::string& gameCode);
     void Load();
     void Save();
     const std::filesystem::path& GetWavOutputDir();
-    CGBPolyphony GetCgbPolyphony();
-    int8_t GetMaxLoopsPlaylist();
-    int8_t GetMaxLoopsExport();
+    CGBPolyphony GetCgbPolyphony() const;
+    int8_t GetMaxLoopsPlaylist() const;
+    int8_t GetMaxLoopsExport() const;
 private:
     ConfigManager() = default;
     ConfigManager(const ConfigManager&) = delete;

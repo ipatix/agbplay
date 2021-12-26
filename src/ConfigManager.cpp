@@ -33,6 +33,14 @@ GameConfig& ConfigManager::GetCfg()
         throw Xcept("Trying to get the game config without setting the game code");
 }
 
+const GameConfig& ConfigManager::GetCfg() const
+{
+    if (curCfg)
+        return *curCfg;
+    else
+        throw Xcept("Trying to get the game config without setting the game code");
+}
+
 void ConfigManager::SetGameCode(const std::string& gameCode)
 {
     for (GameConfig& config : configs)
@@ -174,17 +182,17 @@ const std::filesystem::path& ConfigManager::GetWavOutputDir()
     return confWavOutputDir;
 }
 
-CGBPolyphony ConfigManager::GetCgbPolyphony()
+CGBPolyphony ConfigManager::GetCgbPolyphony() const
 {
     return confCgbPolyphony;
 }
 
-int8_t ConfigManager::GetMaxLoopsPlaylist()
+int8_t ConfigManager::GetMaxLoopsPlaylist() const
 {
     return maxLoopsPlaylist < -1 ? 0 : maxLoopsPlaylist;
 }
 
-int8_t ConfigManager::GetMaxLoopsExport()
+int8_t ConfigManager::GetMaxLoopsExport() const
 {
     return maxLoopsExport < 0 ? 0 : maxLoopsExport;
 }

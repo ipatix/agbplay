@@ -14,8 +14,8 @@
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel(ADSR env, Note note)
-    : env(env), note(note)
+CGBChannel::CGBChannel(ADSR env, Note note, bool useStairstep)
+    : env(env), note(note), useStairstep(useStairstep)
 {
     this->env.att &= 0x7;
     this->env.dec &= 0x7;
@@ -97,6 +97,14 @@ bool CGBChannel::IsFastReleasing() const
 }
 
 void CGBChannel::stepEnvelope()
+{
+    if (useStairstep)
+        stepEnvelopeStairstep();
+    else
+        stepEnvelopeSmooth();
+}
+
+void CGBChannel::stepEnvelopeSmooth()
 {
     if (envState == EnvState::INIT) {
         if (stop) {
@@ -243,6 +251,15 @@ pseudo_echo_start:
     //        (int)envState, (int)envLevelCur, (int)envLevelPrev, (int)envFrameCount, (int)envGradientFrame, envGradient);
 }
 
+void CGBChannel::stepEnvelopeStairstep()
+{
+    /* because channel #3 has additional volume quanitzation restictions,
+     * the smooth volume envelope can have issues. Use this as more accurate codepath
+     * when the accurate channel 3 volume is enabled */
+
+    // TODO implement actual stairstep and remove this call
+    stepEnvelopeSmooth();
+}
 
 void CGBChannel::updateVolFade()
 {
@@ -345,8 +362,8 @@ bool SquareChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t 
  * public WaveChannel
  */
 
-WaveChannel::WaveChannel(const uint8_t *wavePtr, ADSR env, Note note)
-    : CGBChannel(env, note), wavePtr(wavePtr)
+WaveChannel::WaveChannel(const uint8_t *wavePtr, ADSR env, Note note, bool useStairstep)
+    : CGBChannel(env, note, useStairstep), wavePtr(wavePtr)
 {
     this->rs = std::make_unique<BlepResampler>();
 

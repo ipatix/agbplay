@@ -14,7 +14,7 @@
 class CGBChannel
 {
 public: 
-    CGBChannel(ADSR env, Note note);
+    CGBChannel(ADSR env, Note note, bool useStairstep = false);
     CGBChannel(const CGBChannel&) = delete;
     CGBChannel& operator=(const CGBChannel&) = delete;
     virtual ~CGBChannel() = default;
@@ -30,7 +30,9 @@ public:
     bool IsReleasing() const;
     bool IsFastReleasing() const;
 protected:
-    virtual void stepEnvelope();
+    void stepEnvelope();
+    void stepEnvelopeSmooth();
+    void stepEnvelopeStairstep();
     void updateVolFade();
     void applyVol();
     VolumeFade getVol() const;
@@ -41,6 +43,7 @@ protected:
     float freq = 0.0f;
     ADSR env;
     Note note;
+    const bool useStairstep;
     bool stop = false;
     bool fastRelease = false;
     uint8_t vol = 0;
@@ -76,7 +79,7 @@ private:
 class WaveChannel : public CGBChannel
 {
 public:
-    WaveChannel(const uint8_t *wavePtr, ADSR env, Note note);
+    WaveChannel(const uint8_t *wavePtr, ADSR env, Note note, bool useStairstep);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
@@ -84,7 +87,7 @@ private:
     VolumeFade getVol() const;
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
     float dcCorrection;
-    const uint8_t *wavePtr;
+    const uint8_t * const wavePtr;
 };
 
 class NoiseChannel : public CGBChannel

@@ -257,7 +257,8 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     note.trackIdx = trackIdx;
 
     // prepare cgb polyphony suppression
-    CGBPolyphony cgbPolyphony = ConfigManager::Instance().GetCgbPolyphony();
+    const ConfigManager& cm = ConfigManager::Instance();
+    CGBPolyphony cgbPolyphony = cm.GetCgbPolyphony();
 
     auto cgbPolyphonySuppressFunc = [&](auto& channels) {
         // return 'true' if a note is allowed to play, 'false' if others with higher priority are playing
@@ -332,7 +333,8 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             ctx.waveChannels.emplace_back(
                     ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wavePtr,
                     ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
-                    note);
+                    note,
+                    cm.GetCfg().GetAccurateCh3Volume());
             break;
         case InstrType::NOISE:
             if (!cgbPolyphonySuppressFunc(ctx.noiseChannels))

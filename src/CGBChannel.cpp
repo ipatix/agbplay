@@ -98,10 +98,7 @@ bool CGBChannel::IsFastReleasing() const
 
 void CGBChannel::stepEnvelope()
 {
-    if (useStairstep)
-        stepEnvelopeStairstep();
-    else
-        stepEnvelopeSmooth();
+    stepEnvelopeSmooth();
 }
 
 void CGBChannel::stepEnvelopeSmooth()
@@ -124,18 +121,29 @@ void CGBChannel::stepEnvelopeSmooth()
         } else if (env.dec > 0) {
             envLevelPrev = envPeak;
             envLevelCur = envPeak;
-            if (envPeak > 0)
+            if (envPeak > 0) {
                 envState = EnvState::DEC;
-            else
+                if (useStairstep) {
+                    envFrameCount = env.dec;
+                    return;
+                }
+            } else {
                 envState = EnvState::SUS;
+            }
         } else {
             envLevelPrev = envSustain;
             envLevelCur = envSustain;
             envState = EnvState::SUS;
         }
     } else {
+        if (useStairstep) {
+            envLevelPrev = envLevelCur;
+            envGradient = 0.0f;
+        }
+
         if (++envInterStep < INTERFRAMES)
             return;
+
         envInterStep = 0;
 
         assert(envFrameCount > 0);
@@ -244,7 +252,10 @@ pseudo_echo_start:
         }
 
         assert(envFrameCount != 0);
-        envGradient = static_cast<float>(envLevelCur - envLevelPrev) / static_cast<float>(envFrameCount * INTERFRAMES);
+        if (useStairstep)
+            envGradient = static_cast<float>(envLevelCur - envLevelPrev);
+        else
+            envGradient = static_cast<float>(envLevelCur - envLevelPrev) / static_cast<float>(envFrameCount * INTERFRAMES);
     }
 
     //Debug::print("this=%p envState=%d envLevelCur=%d envLevelPrev=%d envFrameCount=%d envGradientFrame=%d envGradient=%f",

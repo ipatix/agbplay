@@ -31,8 +31,6 @@ public:
     bool IsFastReleasing() const;
 protected:
     void stepEnvelope();
-    void stepEnvelopeSmooth();
-    void stepEnvelopeStairstep();
     void updateVolFade();
     void applyVol();
     VolumeFade getVol() const;

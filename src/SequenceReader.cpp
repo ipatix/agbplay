@@ -317,7 +317,8 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             ctx.sq1Channels.emplace_back(
                     ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
                     ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
-                    note);
+                    note,
+                    ctx.bnk.GetSweep(trk.prog, trk.lastNoteKey));
             break;
         case InstrType::SQ2:
             if (!cgbPolyphonySuppressFunc(ctx.sq2Channels))
@@ -325,7 +326,8 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             ctx.sq2Channels.emplace_back(
                     ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
                     ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
-                    note);
+                    note,
+                    0);
             break;
         case InstrType::WAVE:
             if (!cgbPolyphonySuppressFunc(ctx.waveChannels))

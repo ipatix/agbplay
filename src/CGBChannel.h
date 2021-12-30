@@ -35,6 +35,9 @@ protected:
     void applyVol();
     VolumeFade getVol() const;
 
+    static float timer2freq(float timer);
+    static float freq2timer(float freq);
+
     std::unique_ptr<Resampler> rs;
     enum class Pan { LEFT, CENTER, RIGHT };
     uint32_t pos = 0;
@@ -64,13 +67,27 @@ protected:
 class SquareChannel : public CGBChannel
 {
 public:
-    SquareChannel(WaveDuty wd, ADSR env, Note note);
+    SquareChannel(WaveDuty wd, ADSR env, Note note, uint8_t sweep);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
 private:
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
+
+    static bool isSweepEnabled(uint8_t sweep);
+    static bool isSweepAscending(uint8_t sweep);
+    static float sweep2coeff(uint8_t sweep);
+    static float sweep2convergence(uint8_t sweep);
+    static uint8_t sweepTime(uint8_t sweep);
+
     const float *pat = nullptr;
+    int16_t sweepStartCount = -1;
+    const uint8_t sweep;
+    const bool sweepEnabled;
+    const float sweepConvergence;
+    const float sweepCoeff;
+    /* sweepTimer is emulated with float instead of hardware int to get sub frame accuracy */
+    float sweepTimer = 1.0f;
 };
 
 class WaveChannel : public CGBChannel

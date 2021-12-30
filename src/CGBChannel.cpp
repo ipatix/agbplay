@@ -53,6 +53,19 @@ VolumeFade CGBChannel::getVol() const
     return retval;
 }
 
+float CGBChannel::timer2freq(float timer)
+{
+    assert(timer >= 0.0f);
+    assert(timer <= 2047.0f);
+    return 131072.0f / static_cast<float>(2048.0f - timer);
+}
+
+float CGBChannel::freq2timer(float freq)
+{
+    assert(freq > 0.0f);
+    return 2048.0f - 131072.0f / freq;
+}
+
 const Note& CGBChannel::GetNote() const
 {
     return note;
@@ -284,8 +297,12 @@ void CGBChannel::applyVol()
  * public SquareChannel
  */
 
-SquareChannel::SquareChannel(WaveDuty wd, ADSR env, Note note)
+SquareChannel::SquareChannel(WaveDuty wd, ADSR env, Note note, uint8_t sweep)
     : CGBChannel(env, note)
+      , sweep(sweep)
+      , sweepEnabled(isSweepEnabled(sweep))
+      , sweepConvergence(sweep2convergence(sweep))
+      , sweepCoeff(sweep2coeff(sweep))
 {
     static const float *patterns[4] = {
         CGBPatterns::pat_sq12,
@@ -301,6 +318,16 @@ SquareChannel::SquareChannel(WaveDuty wd, ADSR env, Note note)
 void SquareChannel::SetPitch(int16_t pitch)
 {
     freq = 3520.0f * powf(2.0f, float(note.midiKeyPitch - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
+
+    if (sweepEnabled && sweepStartCount < 0) {
+        sweepTimer = freq2timer(freq / 8.0f);
+        /* Because the initial frequency of a sweeped sound can only be set
+         * in the beginning, we have to differentiate between the first and the other
+         * SetPitch calls. */
+        uint8_t time = sweepTime(sweep);
+        assert(time != 0);
+        sweepStartCount = static_cast<int16_t>(time * AGB_FPS * INTERFRAMES);
+    }
 }
 
 void SquareChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
@@ -317,9 +344,15 @@ void SquareChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.samplesPerBufferInv;
     float lVol = vol.fromVolLeft;
     float rVol = vol.fromVolRight;
-    float interStep = freq * args.sampleRateInv;
+    float interStep;
 
-    // TODO add sweep functionality
+    if (sweepEnabled) {
+        //Debug::print("sweepTimer=%f sweepConvergence=%f sweepCoeff=%f resultFreq=%f",
+        //        sweepTimer, sweepConvergence, sweepCoeff, timer2freq(sweepTimer));
+        interStep = 8.0f * timer2freq(sweepTimer) * args.sampleRateInv;
+    } else {
+        interStep = freq * args.sampleRateInv;
+    }
 
     float outBuffer[numSamples];
 
@@ -334,6 +367,21 @@ void SquareChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
         lVol += lVolStep;
         rVol += rVolStep;
     } while (--numSamples > 0);
+
+    if (sweepEnabled) {
+        assert(sweepStartCount >= 0);
+        if (sweepStartCount == 0) {
+            sweepTimer *= sweepCoeff;
+            if (isSweepAscending(sweep))
+                sweepTimer = std::min(sweepTimer, sweepConvergence);
+            else
+                sweepTimer = std::max(sweepTimer, sweepConvergence);
+        } else {
+            sweepStartCount -= 128;
+            if (sweepStartCount < 0)
+                sweepStartCount = 0;
+        }
+    }
 
     updateVolFade();
 }
@@ -352,6 +400,71 @@ bool SquareChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t 
         _this->pos %= 8;
     } while (--samplesToFetch > 0);
     return true;
+}
+
+bool SquareChannel::isSweepEnabled(uint8_t sweep)
+{
+    if (sweep >= 0x80 || (sweep & 0x7) == 0)
+        return false;
+    else
+        return true;
+}
+
+bool SquareChannel::isSweepAscending(uint8_t sweep)
+{
+    if (sweep & 8)
+        return false;
+    else
+        return true;
+}
+
+float SquareChannel::sweep2coeff(uint8_t sweep)
+{
+    /* if sweep time is zero, don't change pitch */
+    const int sweep_time = sweepTime(sweep);
+    if (sweep_time == 0)
+        return 1.0f;
+
+    const int shifts = sweep & 7;
+    float step_coeff;
+
+    if (isSweepAscending(sweep)) {
+        /* if ascending */
+        step_coeff = static_cast<float>(128 + (128 >> shifts)) / 128.0f;
+    } else {
+        /* if descending */
+        step_coeff = static_cast<float>(128 - (128 >> shifts)) / 128.0f;
+    }
+
+    /* convert the sweep pitch timer coefficient to the rate that agbplay runs at */
+    const float hardware_sweep_rate = 128 / static_cast<float>(sweep_time);
+    const float agbplay_sweep_rate = AGB_FPS * INTERFRAMES;
+    const float coeff = powf(step_coeff, hardware_sweep_rate / agbplay_sweep_rate);
+
+    return coeff;
+}
+
+float SquareChannel::sweep2convergence(uint8_t sweep)
+{
+    if (isSweepAscending(sweep)) {
+        /* if ascending:
+         *
+         * Convergance is always at the maximum timer value to prevent hardware overflow */
+        return 2047.0f;
+    } else {
+        /* if descending:
+         *
+         * Because hardware calculates sweep with:
+         * timer -= timer >> shift
+         * the timer converges to the value which timer >> shift always results zero. */
+        const int shifts = sweep & 7;
+        return static_cast<float>((1 << shifts) - 1);
+    }
+}
+
+uint8_t SquareChannel::sweepTime(uint8_t sweep)
+{
+    return static_cast<uint8_t>((sweep & 0x70) >> 4);
 }
 
 /*

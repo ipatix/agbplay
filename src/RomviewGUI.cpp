@@ -57,8 +57,8 @@ void RomviewGUI::update()
     wattrset(winPtr, A_BOLD | COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
     mvwprintw(winPtr, 9, 2, "0x%lX", songTablePos);
     wattrset(winPtr, A_UNDERLINE | COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
-    mvwprintw(winPtr, 11, 2, "Song Amount:");
+    mvwprintw(winPtr, 11, 2, "Number of Songs:");
     wattrset(winPtr, A_BOLD | COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
-    mvwprintw(winPtr, 12, 2, "%d", numSongs);
+    mvwprintw(winPtr, 12, 2, "%zu", numSongs);
     wrefresh(winPtr);
 }

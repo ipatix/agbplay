@@ -68,10 +68,9 @@ public:
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
-
-    const float *pat = nullptr;
 private:
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
+    const float *pat = nullptr;
 };
 
 class WaveChannel : public CGBChannel

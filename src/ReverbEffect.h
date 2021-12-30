@@ -6,8 +6,6 @@
 
 #include "Types.h"
 
-#define AGB_FPS 60
-
 class ReverbEffect
 {
 public:

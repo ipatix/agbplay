@@ -11,9 +11,6 @@
 #include "CGBChannel.h"
 #include "Constants.h"
 
-// AGB has 60 FPS based processing
-#define AGB_FPS 60
-
 struct PlayerContext;
 
 class SoundMixer

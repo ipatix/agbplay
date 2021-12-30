@@ -4,6 +4,7 @@
 #include "ReverbEffect.h"
 #include "Debug.h"
 #include "Util.h"
+#include "Constants.h"
 
 /*
  * public ReverbEffect

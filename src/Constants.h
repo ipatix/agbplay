@@ -6,6 +6,7 @@
 #define MIN_SONG_NUM 20
 
 #define BPM_PER_FRAME 150
+#define AGB_FPS 60
 
 #define STREAM_SAMPLERATE 48000
 #define SONG_FADE_OUT_TIME 10000

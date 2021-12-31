@@ -286,7 +286,7 @@ void CGBChannel::applyVol()
     else
         this->panCur = Pan::CENTER;
 
-    envPeak = std::clamp<uint8_t>(uint8_t((note.velocity * vol) >> 10), 0, 15);
+    envPeak = std::clamp<uint8_t>(uint8_t(((((note.velocity * vol) >> 7) << 1) - 1) >> 4), 0, 15);
     envSustain = std::clamp<uint8_t>(uint8_t((envPeak * env.sus + 15) >> 4), 0, 15);
     // TODO is this if below right???
     if (envState == EnvState::SUS)

@@ -114,5 +114,6 @@ public:
 private:
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
     SincResampler srs;
-    NoisePatt np;
+    uint16_t noiseState;
+    uint16_t noiseLfsrMask;
 };

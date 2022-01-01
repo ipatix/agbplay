@@ -636,7 +636,13 @@ NoiseChannel::NoiseChannel(NoisePatt np, ADSR env, Note note)
     : CGBChannel(env, note)
 {
     this->rs = std::make_unique<NearestResampler>();
-    this->np = np;
+    if (np == NoisePatt::FINE) {
+        noiseState = 0x4000;
+        noiseLfsrMask = 0x6000;
+    } else {
+        noiseState = 0x40;
+        noiseLfsrMask = 0x60;
+    }
 }
 
 void NoiseChannel::SetPitch(int16_t pitch)
@@ -692,16 +698,18 @@ bool NoiseChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t s
     size_t i = fetchBuffer.size();
     fetchBuffer.resize(samplesRequired);
 
-    if (_this->np == NoisePatt::FINE) {
-        do {
-            fetchBuffer[i++] = CGBPatterns::pat_noise_fine[_this->pos++] - 0.5f;
-            _this->pos %= NOISE_FINE_LEN;
-        } while (--samplesToFetch > 0);
-    } else if (_this->np == NoisePatt::ROUGH) {
-        do {
-            fetchBuffer[i++] = CGBPatterns::pat_noise_rough[_this->pos++] - 0.5f;
-            _this->pos %= NOISE_ROUGH_LEN;
-        } while (--samplesToFetch > 0);
-    }
+    do {
+        float sample;
+        if (_this->noiseState & 1) {
+            sample = 0.5f;
+            _this->noiseState >>= 1;
+            _this->noiseState ^= _this->noiseLfsrMask;
+        } else {
+            sample = -0.5f;
+            _this->noiseState >>= 1;
+        }
+        fetchBuffer[i++] = sample;
+    } while (--samplesToFetch > 0);
+
     return true;
 }

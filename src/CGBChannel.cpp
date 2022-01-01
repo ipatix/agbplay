@@ -647,8 +647,18 @@ NoiseChannel::NoiseChannel(NoisePatt np, ADSR env, Note note)
 
 void NoiseChannel::SetPitch(int16_t pitch)
 {
-    float noisefreq = 4096.0f * powf(8.0f, float(note.midiKeyPitch - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
-    freq = std::clamp(noisefreq, 8.0f, 524288.0f);
+    float fkey = note.midiKeyPitch + static_cast<float>(pitch) * (1.0f / 64.0f);
+    float noisefreq;
+    if (fkey < 76.0f)
+        noisefreq = 4096.0f * powf(8.0f, (fkey - 60.0f) * (1.0f / 12.0f));
+    else if (fkey < 78.0f)
+        noisefreq = 65536.0f * powf(2.0f, (fkey - 76.0f) * (1.0f / 2.0f));
+    else if (fkey < 80.0f)
+        noisefreq = 131072.0f * powf(2.0f, (fkey - 78.0f));
+    else
+        noisefreq = 524288.0f;
+
+    freq = std::max(4.5714f, noisefreq);
 }
 
 void NoiseChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)

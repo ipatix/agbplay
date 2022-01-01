@@ -3,9 +3,6 @@
 #include <cstdint>
 #include <string>
 
-// for increased quality we process in subframes (including the base frame)
-#define INTERFRAMES 4
-
 enum class CGBType : int { SQ1 = 0, SQ2, WAVE, NOISE };
 enum class EnvState : int { INIT = 0, ATK, DEC, SUS, REL, PSEUDO_ECHO, DIE, DEAD };
 enum class WaveDuty : int { D12 = 0, D25, D50, D75 };

@@ -8,6 +8,9 @@
 #define BPM_PER_FRAME 150
 #define AGB_FPS 60
 
+// for increased quality we process in subframes (including the base frame)
+#define INTERFRAMES 4
+
 #define STREAM_SAMPLERATE 48000
 #define SONG_FADE_OUT_TIME 10000
 #define SONG_FINISH_TIME 1000

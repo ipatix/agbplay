@@ -3,6 +3,7 @@
 #include <string>
 #include <algorithm>
 
+#include "Constants.h"
 #include "Debug.h"
 #include "SoundChannel.h"
 #include "Util.h"

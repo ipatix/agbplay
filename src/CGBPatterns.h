@@ -1,8 +1,5 @@
 #pragma once
 
-#define NOISE_FINE_LEN 32768
-#define NOISE_ROUGH_LEN 128
-
 namespace CGBPatterns
 {
     // sample patterns

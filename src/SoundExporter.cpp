@@ -3,6 +3,9 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <chrono>
 #include <climits>
+#include <atomic>
+#include <thread>
+#include <mutex>
 
 #include "SoundExporter.h"
 #include "Util.h"
@@ -23,6 +26,7 @@ SoundExporter::SoundExporter(SongTable& songTable, bool benchmarkOnly, bool sepe
 
 void SoundExporter::Export(const std::vector<SongEntry>& entries)
 {
+    /* create directories for file export */
     std::filesystem::path dir = ConfigManager::Instance().GetWavOutputDir();
     if (std::filesystem::exists(dir)) {
         if (!std::filesystem::is_directory(dir)) {
@@ -33,23 +37,44 @@ void SoundExporter::Export(const std::vector<SongEntry>& entries)
         throw Xcept("Creating output directory failed");
     }
 
-    size_t totalBlocksRendered = 0;
+    /* setup export thread worker function */
+    std::atomic<size_t> currentSong = 0;
+    std::atomic<size_t> totalBlocksRendered = 0;
 
+    std::function<void(void)> threadFunc = [&]() {
+#ifdef __linux__
+        nice(15);   // don't really care if nice fails
+#endif
+        while (true) {
+            size_t i = currentSong++;   // atomic ++
+            if (i >= entries.size())
+                return;
+
+            std::string fname = entries[i].name;
+            boost::replace_all(fname, "/", "_");
+            Debug::print("%3d %% - Rendering to file: \"%s\"", (i + 1) * 100 / entries.size(), fname.c_str());
+            char fileName[512];
+            snprintf(fileName, sizeof(fileName), "%s/%03zu - %s", dir.c_str(), i + 1, fname.c_str());
+            totalBlocksRendered += exportSong(fileName, entries[i].GetUID());
+        }
+    };
+
+    /* run the actual export threads */
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    for (size_t i = 0; i < entries.size(); i++)
-    {
-        std::string fname = entries[i].name;
-        boost::replace_all(fname, "/", "_");
-        Debug::print("%3d %% - Rendering to file: \"%s\"", (i + 1) * 100 / entries.size(), fname.c_str());
-        char fileName[512];
-        snprintf(fileName, sizeof(fileName), "%s/%03zu - %s", dir.c_str(), i + 1, fname.c_str());
-        size_t rblocks = exportSong(fileName, entries[i].GetUID());
-        totalBlocksRendered += rblocks;
-    }
+    size_t numThreads = std::thread::hardware_concurrency();
+    if (numThreads == 0)
+        numThreads = 1;
+    std::vector<std::thread> workers;
+    for (size_t i = 0; i < numThreads; i++)
+        workers.emplace_back(threadFunc);
+    for (auto& w : workers)
+        w.join();
+    workers.clear();
 
     auto endTime = std::chrono::high_resolution_clock::now();
 
+    /* report finished progress */
     if (std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count() == 0) {
         Debug::print("Successfully wrote %zu files", entries.size());
     } else {

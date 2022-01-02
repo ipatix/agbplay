@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <mutex>
 
 #include <boost/lockfree/spsc_queue.hpp>
 
@@ -25,4 +26,5 @@ private:
     uint32_t textWidth, textHeight;
     std::vector<std::string> textBuffer;
     boost::lockfree::spsc_queue<std::string> msgQueue;
+    std::mutex writeMutex;
 };

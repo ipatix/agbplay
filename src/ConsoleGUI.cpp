@@ -78,5 +78,8 @@ void ConsoleGUI::writeToBuffer(const std::string& str)
 void ConsoleGUI::remoteWrite(const std::string& str, void *obj)
 {
     ConsoleGUI *ui = (ConsoleGUI *)obj;
+
+    std::scoped_lock<std::mutex> l(ui->writeMutex);
+
     ui->msgQueue.push(str);
 }

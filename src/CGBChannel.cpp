@@ -159,6 +159,8 @@ void CGBChannel::stepEnvelope()
         envGradientFrame++;
     }
 
+    bool fromDecay;
+
     if (envState == EnvState::PSEUDO_ECHO) {
         assert(note.pseudoEchoLen != 0);
         if (--note.pseudoEchoLen == 0) {
@@ -175,8 +177,10 @@ void CGBChannel::stepEnvelope()
         } else {
             envState = EnvState::REL;
             envFrameCount = env.rel;
-            if (envLevelCur == 0 || envFrameCount == 0)
+            if (envLevelCur == 0 || envFrameCount == 0) {
+                fromDecay = false;
                 goto pseudo_echo_start;
+            }
             envGradientFrame = 0;
             envLevelPrev = envLevelCur;
             goto release;
@@ -203,6 +207,7 @@ release:
             assert((int8_t)envLevelCur >= 0);
 
             if (envLevelCur == 0) {
+                fromDecay = false;
 pseudo_echo_start:
                 envLevelCur = static_cast<uint8_t>(((envPeak * note.pseudoEchoVol) + 0xFF) >> 8);
                 if (envLevelCur != 0 && note.pseudoEchoLen != 0) {
@@ -210,7 +215,11 @@ pseudo_echo_start:
                     envFrameCount = 1;
                     envLevelPrev = envLevelCur;
                 } else {
-                    if (env.rel == 0) {
+                    if (fromDecay) {
+                        envState = EnvState::DIE;
+                        envLevelCur = 0;
+                        envFrameCount = env.dec;
+                    } else if (env.rel == 0) {
                         envState = EnvState::DEAD;
                         return;
                     } else {
@@ -232,6 +241,7 @@ pseudo_echo_start:
 
             if (envLevelCur <= envSustain) {
                 if (env.sus == 0) {
+                    fromDecay = true;
                     goto pseudo_echo_start;
                 } else {
                     envState = EnvState::SUS;

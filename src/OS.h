@@ -4,6 +4,7 @@
 #include <filesystem>
 
 namespace OS {
+    void LowerThreadPriority();
     void CheckTerminal();
     const std::filesystem::path GetMusicDirectory();
     const std::filesystem::path GetLocalConfigDirectory();

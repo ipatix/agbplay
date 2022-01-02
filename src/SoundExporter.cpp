@@ -14,6 +14,7 @@
 #include "Debug.h"
 #include "ConfigManager.h"
 #include "PlayerContext.h"
+#include "OS.h"
 
 /*
  * public SoundExporter
@@ -42,9 +43,7 @@ void SoundExporter::Export(const std::vector<SongEntry>& entries)
     std::atomic<size_t> totalBlocksRendered = 0;
 
     std::function<void(void)> threadFunc = [&]() {
-#ifdef __linux__
-        nice(15);   // don't really care if nice fails
-#endif
+        OS::LowerThreadPriority();
         while (true) {
             size_t i = currentSong++;   // atomic ++
             if (i >= entries.size())

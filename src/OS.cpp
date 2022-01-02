@@ -11,6 +11,12 @@
 #include <windows.h>
 #include <shlobj.h>
 
+void OS::LowerThreadPriority()
+{
+    // ignore errors if this fails
+    SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
+}
+
 const std::filesystem::path OS::GetMusicDirectory()
 {
     PWSTR folderPath = NULL;
@@ -56,6 +62,12 @@ const std::filesystem::path OS::GetGlobalConfigDirectory()
 #include <unistd.h>
 #include <pwd.h>
 #include <string.h>
+
+void OS::LowerThreadPriority()
+{
+    // we don't really care about errors here, so ignore errno
+    nice(15);
+}
 
 const std::filesystem::path OS::GetMusicDirectory()
 {

@@ -77,8 +77,9 @@ void SoundExporter::Export(const std::vector<SongEntry>& entries)
     if (std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count() == 0) {
         Debug::print("Successfully wrote %zu files", entries.size());
     } else {
-        size_t blocksPerSecond = totalBlocksRendered / (size_t)std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count();
-        Debug::print("Successfully wrote %zu files at %zu blocks per second", entries.size(), blocksPerSecond);
+        size_t secondsTotal = static_cast<size_t>(std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count());
+        size_t blocksPerSecond = totalBlocksRendered / secondsTotal;
+        Debug::print("Successfully wrote %zu files at %zu blocks per second (%zu seconds total)", entries.size(), blocksPerSecond, secondsTotal);
     }
 }
 

@@ -59,6 +59,7 @@ const std::filesystem::path OS::GetGlobalConfigDirectory()
 #elif __has_include(<unistd.h>)
 // if we compile for a UNIX'oid
 
+#define _XOPEN_SOURCE 700
 #include <unistd.h>
 #include <pwd.h>
 #include <string.h>

@@ -1,8 +1,8 @@
-#include <sndfile.h>
 #include <filesystem>
 #include <boost/algorithm/string/replace.hpp>
 #include <chrono>
 #include <climits>
+#include <cmath>
 #include <atomic>
 #include <thread>
 #include <mutex>
@@ -87,6 +87,15 @@ void SoundExporter::Export(const std::vector<SongEntry>& entries)
  * private SoundExporter
  */
 
+void SoundExporter::writeSilence(SNDFILE *ofile, float seconds)
+{
+    if (seconds <= 0.0f)
+        return;
+    int32_t samples = static_cast<int32_t>(round(STREAM_SAMPLERATE * seconds));
+    std::vector<float> silence(samples * 2, 0.0f);
+    sf_writef_float(ofile, silence.data(), samples);
+}
+
 size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t uid)
 {
     // setup our generators
@@ -103,6 +112,8 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     size_t nBlocks = ctx.mixer.GetSamplesPerBuffer();
     size_t nTracks = ctx.seq.tracks.size();
     std::vector<std::vector<sample>> trackAudio;
+    float padSecondsStart = ConfigManager::Instance().GetPadSecondsStart();
+    float padSecondsEnd = ConfigManager::Instance().GetPadSecondsEnd();
 
     if (!benchmarkOnly) 
     {
@@ -169,6 +180,8 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
             // do rendering and write
             std::vector<sample> renderedData(nBlocks);
 
+            writeSilence(ofile, padSecondsStart);
+
             while (true) 
             {
                 ctx.reader.Process();
@@ -194,6 +207,8 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
                 } while (processed < sf_count_t(nBlocks));
                 blocksRendered += nBlocks;
             }
+
+            writeSilence(ofile, padSecondsEnd);
 
             int err;
             if ((err = sf_close(ofile)) != 0)

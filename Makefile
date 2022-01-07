@@ -1,6 +1,6 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -O3 -g
-#CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -Og -g -fsanitize=address
+CXXFLAGS = -D_XOPEN_SOURCE=700 -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -O3 -g
+#CXXFLAGS = -D_XOPEN_SOURCE=700 -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -Og -g -fsanitize=address
 BINARY = agbplay
 LIBS = -lm -lncursesw -pthread -lsndfile -lportaudio -ljsoncpp
 # Use this macro if you have linker errors with ncursesw

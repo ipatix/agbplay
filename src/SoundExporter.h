@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sndfile.h>
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -19,6 +20,7 @@ public:
 
     void Export(const std::vector<SongEntry>& entries);
 private:
+    static void writeSilence(SNDFILE *ofile, float seconds);
     size_t exportSong(const std::filesystem::path& fileName, uint16_t uid);
 
     SongTable& songTable;

@@ -1,4 +1,3 @@
-#include <sndfile.h>
 #include <filesystem>
 #include <boost/algorithm/string/replace.hpp>
 #include <chrono>
@@ -87,10 +86,15 @@ void SoundExporter::Export(const std::vector<SongEntry>& entries)
 /*
  * private SoundExporter
  */
-static inline int32_t secondsToSamples(float seconds)
+
+void SoundExporter::writeSilence(SNDFILE *ofile, float seconds)
 {
-    return int32_t(round(STREAM_SAMPLERATE * seconds));
+    if (seconds <= 0.0f)
+        return;
+    std::vector<float> silence(round(STREAM_SAMPLERATE * seconds) * 2, 0.0f);
+    sf_writef_float(ofile, silence.data(), silence.size());
 }
+
 size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t uid)
 {
     // setup our generators
@@ -175,13 +179,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
             // do rendering and write
             std::vector<sample> renderedData(nBlocks);
 
-            if (padSecondsStart != 0.0f)
-            {
-                int32_t padSamplesStart = secondsToSamples(padSecondsStart);
-                float startSilence[padSamplesStart * 2];
-                memset(startSilence, 0.0f, sizeof(startSilence));
-                sf_writef_float(ofile, startSilence, padSamplesStart);
-            }
+            writeSilence(ofile, padSecondsStart);
 
             while (true) 
             {
@@ -209,13 +207,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
                 blocksRendered += nBlocks;
             }
 
-            if (padSecondsEnd != 0.0f)
-            {
-                int32_t endPadSamples = secondsToSamples(padSecondsEnd);
-                float endSilence[endPadSamples * 2];
-                memset(endSilence, 0.0f, sizeof(endSilence));
-                sf_writef_float(ofile, endSilence, endPadSamples);
-            }
+            writeSilence(ofile, padSecondsEnd);
 
             int err;
             if ((err = sf_close(ofile)) != 0)

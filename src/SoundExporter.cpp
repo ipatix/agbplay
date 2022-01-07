@@ -3,6 +3,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <chrono>
 #include <climits>
+#include <cmath>
 #include <atomic>
 #include <thread>
 #include <mutex>
@@ -86,7 +87,10 @@ void SoundExporter::Export(const std::vector<SongEntry>& entries)
 /*
  * private SoundExporter
  */
-
+static inline int32_t secondsToSamples(float seconds)
+{
+    return int32_t(round(STREAM_SAMPLERATE * seconds));
+}
 size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t uid)
 {
     // setup our generators
@@ -103,6 +107,8 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     size_t nBlocks = ctx.mixer.GetSamplesPerBuffer();
     size_t nTracks = ctx.seq.tracks.size();
     std::vector<std::vector<sample>> trackAudio;
+    float padSecondsStart = ConfigManager::Instance().GetPadSecondsStart();
+    float padSecondsEnd = ConfigManager::Instance().GetPadSecondsEnd();
 
     if (!benchmarkOnly) 
     {
@@ -169,6 +175,14 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
             // do rendering and write
             std::vector<sample> renderedData(nBlocks);
 
+            if (padSecondsStart != 0.0f)
+            {
+                int32_t padSamplesStart = secondsToSamples(padSecondsStart);
+                float startSilence[padSamplesStart * 2];
+                memset(startSilence, 0.0f, sizeof(startSilence));
+                sf_writef_float(ofile, startSilence, padSamplesStart);
+            }
+
             while (true) 
             {
                 ctx.reader.Process();
@@ -193,6 +207,14 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
                     processed += sf_writef_float(ofile, &renderedData[processed].left, sf_count_t(nBlocks) - processed);
                 } while (processed < sf_count_t(nBlocks));
                 blocksRendered += nBlocks;
+            }
+
+            if (padSecondsEnd != 0.0f)
+            {
+                int32_t endPadSamples = secondsToSamples(padSecondsEnd);
+                float endSilence[endPadSamples * 2];
+                memset(endSilence, 0.0f, sizeof(endSilence));
+                sf_writef_float(ofile, endSilence, endPadSamples);
             }
 
             int err;

@@ -94,6 +94,10 @@ void ConfigManager::Load()
     maxLoopsPlaylist = static_cast<int8_t>(root.get("max-loops-playlist", 1).asInt());
     maxLoopsExport = static_cast<int8_t>(root.get("max-loops-export", 1).asInt());
 
+    // Silence padding
+    padSecondsStart = static_cast<std::string>(root.get("pad-seconds-start", "0.0").asString());
+    padSecondsEnd = static_cast<std::string>(root.get("pad-seconds-end", "0.0").asString());
+
     for (Json::Value playlist : root["playlists"]) {
         // parse games
         std::vector<std::string> games;
@@ -161,6 +165,8 @@ void ConfigManager::Save()
     root["playlists"] = playlists;
     root["max-loops-playlist"] = maxLoopsPlaylist;
     root["max-loops-export"] = maxLoopsExport;
+    root["pad-seconds-start"] = padSecondsStart;
+    root["pad-seconds-end"] = padSecondsEnd;
 
     std::filesystem::create_directories(configPath.parent_path());
     std::ofstream jsonFile(configPath);
@@ -195,4 +201,14 @@ int8_t ConfigManager::GetMaxLoopsPlaylist() const
 int8_t ConfigManager::GetMaxLoopsExport() const
 {
     return maxLoopsExport < 0 ? 0 : maxLoopsExport;
+}
+
+float ConfigManager::GetPadSecondsStart() const
+{
+    return std::stof(padSecondsStart);
+}
+
+float ConfigManager::GetPadSecondsEnd() const
+{
+    return std::stof(padSecondsEnd);
 }

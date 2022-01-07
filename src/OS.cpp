@@ -1,3 +1,5 @@
+#define _XOPEN_SOURCE
+
 #include "OS.h"
 
 #include "Xcept.h"

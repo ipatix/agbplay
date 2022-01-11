@@ -95,8 +95,8 @@ void ConfigManager::Load()
     maxLoopsExport = static_cast<int8_t>(root.get("max-loops-export", 1).asInt());
 
     // Silence padding
-    padSecondsStart = static_cast<std::string>(root.get("pad-seconds-start", "0.0").asString());
-    padSecondsEnd = static_cast<std::string>(root.get("pad-seconds-end", "0.0").asString());
+    padSecondsStart = root.get("pad-seconds-start", "0.0").asString();
+    padSecondsEnd = root.get("pad-seconds-end", "0.0").asString();
 
     for (Json::Value playlist : root["playlists"]) {
         // parse games

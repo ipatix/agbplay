@@ -100,7 +100,10 @@ public:
 private:
     VolumeFade getVol() const;
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
-    float dcCorrection;
+    float dcCorrection100;
+    float dcCorrection75;
+    float dcCorrection50;
+    float dcCorrection25;
     const uint8_t * const wavePtr;
 };
 

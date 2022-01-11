@@ -296,7 +296,12 @@ void CGBChannel::applyVol()
     else
         this->panCur = Pan::CENTER;
 
-    envPeak = static_cast<uint8_t>(std::clamp(((((note.velocity * vol) >> 7) << 1) - 1) >> 4, 0, 15));
+    int volA = (128 * (vol << 1)) >> 8;
+    int volB = (127 * (vol << 1)) >> 8;
+    volA = (note.velocity * 128 * volA) >> 14;
+    volB = (note.velocity * 127 * volB) >> 14;
+
+    envPeak = static_cast<uint8_t>(std::clamp((volA + volB) >> 4, 0, 15));
     envSustain = static_cast<uint8_t>(std::clamp((envPeak * env.sus + 15) >> 4, 0, 15));
     // TODO is this if below right???
     if (envState == EnvState::SUS)
@@ -486,16 +491,51 @@ WaveChannel::WaveChannel(const uint8_t *wavePtr, ADSR env, Note note, bool useSt
 {
     this->rs = std::make_unique<BlepResampler>();
 
-    /* wave samples are unsigned by default, so we'll load them with
+    /* wave samples are unsigned by default, so we'll calculate the required
      * DC offset correction */
     float sum = 0.0f;
     for (int i = 0; i < 16; i++) {
         uint8_t twoNibbles = wavePtr[i];
-        sum += static_cast<float>(twoNibbles >> 4) / 16.0f;
-        sum += static_cast<float>(twoNibbles & 0xF) / 16.0f;
+        int nibbleA = twoNibbles >> 4;
+        int nibbleB = twoNibbles & 0xF;
+        sum += static_cast<float>(nibbleA) / 16.0f;
+        sum += static_cast<float>(nibbleB) / 16.0f;
     }
+    dcCorrection100 = -sum * (1.0f / 32.0f);
 
-    dcCorrection = -sum * (1.0f / 32.0f);
+    GameConfig& cfg = ConfigManager::Instance().GetCfg();
+
+    if (cfg.GetAccurateCh3Quantization()) {
+        sum = 0.0f;
+        for (int i = 0; i < 16; i++) {
+            uint8_t twoNibbles = wavePtr[i];
+            int nibbleA = twoNibbles >> 4;
+            int nibbleB = twoNibbles & 0xF;
+            sum += static_cast<float>((nibbleA >> 2) + (nibbleA >> 1)) / 16.0f;
+            sum += static_cast<float>((nibbleB >> 2) + (nibbleB >> 1)) / 16.0f;
+        }
+        dcCorrection75 = -sum * (1.0f / 32.0f);
+
+        sum = 0.0f;
+        for (int i = 0; i < 16; i++) {
+            uint8_t twoNibbles = wavePtr[i];
+            int nibbleA = twoNibbles >> 4;
+            int nibbleB = twoNibbles & 0xF;
+            sum += static_cast<float>((nibbleA >> 1)) / 16.0f;
+            sum += static_cast<float>((nibbleB >> 1)) / 16.0f;
+        }
+        dcCorrection50 = -sum * (1.0f / 32.0f);
+
+        sum = 0.0f;
+        for (int i = 0; i < 16; i++) {
+            uint8_t twoNibbles = wavePtr[i];
+            int nibbleA = twoNibbles >> 4;
+            int nibbleB = twoNibbles & 0xF;
+            sum += static_cast<float>((nibbleA >> 2)) / 16.0f;
+            sum += static_cast<float>((nibbleB >> 2)) / 16.0f;
+        }
+        dcCorrection25 = -sum * (1.0f / 32.0f);
+    }
 }
 
 void WaveChannel::SetPitch(int16_t pitch)
@@ -583,29 +623,36 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
         const float toVol = std::max(fade.toVolLeft, fade.toVolRight);
         /* I'm not entirely certain whether the hardware uses arithmetic shifts or logic shifts (with bias).
          * Using logic shifts for now, hopefully works good enough... */
-        auto mapFunc = [](float x, float& compensationScale, uint32_t& shiftA, uint32_t& shiftB) {
+        auto mapFunc = [_this](float x, float& compensationScale, float& dcCorrection, uint32_t& shiftA, uint32_t& shiftB) {
             if (x < 6.0f / 32.0f) {
                 shiftA = 2;
                 shiftB = 4;
                 compensationScale = 4.0f;
+                dcCorrection = _this->dcCorrection25;
             } else if (x < 10.0f / 32.0f) {
                 shiftA = 1;
                 shiftB = 4;
                 compensationScale = 2.0f;
+                dcCorrection = _this->dcCorrection50;
             } else if (x < 14.0f / 32.0f) {
                 shiftA = 1;
                 shiftB = 2;
                 compensationScale = 4.0f / 3.0f;
+                dcCorrection = _this->dcCorrection75;
             } else {
                 shiftA = 0;
                 shiftB = 4;
                 compensationScale = 1.0f;
+                dcCorrection = _this->dcCorrection100;
             }
         };
         uint32_t shiftAFrom, shiftATo, shiftBFrom, shiftBTo;
         float compensationScaleFrom, compensationScaleTo;
-        mapFunc(fromVol, compensationScaleFrom, shiftAFrom, shiftBFrom);
-        mapFunc(toVol, compensationScaleTo, shiftATo, shiftBTo);
+        float dcCorrectionFrom, dcCorrectionTo;
+        mapFunc(fromVol, compensationScaleFrom, dcCorrectionFrom, shiftAFrom, shiftBFrom);
+        mapFunc(toVol, compensationScaleTo, dcCorrectionTo, shiftATo, shiftBTo);
+        dcCorrectionFrom *= 16.0f;
+        dcCorrectionTo *= 16.0f;
 
         float t = 0.0f;
         float t_inc = 1.0f / static_cast<float>(samplesToFetch);
@@ -616,9 +663,9 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
                 nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] >> 4u);
             else
                 nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] & 0xF);
-            float sampleFrom = static_cast<float>((nibble >> shiftAFrom) + (nibble >> shiftBFrom)) * compensationScaleFrom;
-            float sampleTo = static_cast<float>((nibble >> shiftATo) + (nibble >> shiftBTo)) * compensationScaleTo;
-            float sample = (sampleFrom + t * (sampleTo - sampleFrom)) * (1.0f / 16.0f) + _this->dcCorrection;
+            float sampleFrom = (static_cast<float>((nibble >> shiftAFrom) + (nibble >> shiftBFrom)) + dcCorrectionFrom) * compensationScaleFrom;
+            float sampleTo   = (static_cast<float>((nibble >> shiftATo  ) + (nibble >> shiftBTo  )) + dcCorrectionTo  ) * compensationScaleTo;
+            float sample = (sampleFrom + t * (sampleTo - sampleFrom)) * (1.0f / 16.0f);
             t += t_inc;
             fetchBuffer[i++] = sample;
         }
@@ -630,7 +677,7 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
                 nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] >> 4u);
             else
                 nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] & 0xF);
-            float sample = nibble * (1.0f / 16.0f) + _this->dcCorrection;
+            float sample = nibble * (1.0f / 16.0f) + _this->dcCorrection100;
             fetchBuffer[i++] = sample;
         }
     }

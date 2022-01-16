@@ -15,6 +15,7 @@
 #include "ConfigManager.h"
 #include "PlayerContext.h"
 #include "OS.h"
+#include "Rom.h"
 
 /*
  * public SoundExporter
@@ -94,6 +95,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
 
     
     PlayerContext ctx(
+    		Rom::Instance(),
             ConfigManager::Instance().GetMaxLoopsExport(),
             cfg.GetTrackLimit(),
             EnginePars(cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq())

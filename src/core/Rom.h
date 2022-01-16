@@ -12,8 +12,6 @@
 class Rom {
 public:
     Rom(const std::filesystem::path& filePath);
-    Rom(const Rom&) = delete;
-    Rom& operator=(const Rom&) = delete;
     static void CreateInstance(const std::filesystem::path& filePath);
     static Rom& Instance() {
         return *global_instance;

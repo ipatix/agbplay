@@ -2,8 +2,10 @@
 
 #include <vector>
 
+#include "Rom.h"
 #include "SequenceReader.h"
 #include "SoundMixer.h"
+#include "SoundData.h"
 
 /* Instead of defining lots of global objects, we define
  * a context with all the things we need. So anything which
@@ -11,14 +13,13 @@
  * to a PlayerContext */
 
 struct PlayerContext {
-    PlayerContext(int8_t maxLoops, uint8_t maxTracks, EnginePars pars);
-    PlayerContext(const PlayerContext&) = delete;
-    PlayerContext& operator=(const PlayerContext&) = delete;
+    PlayerContext(Rom& rom, int8_t maxLoops, uint8_t maxTracks, EnginePars pars);
 
     void Process(std::vector<std::vector<sample>>& trackAudio);
     void InitSong(size_t songPos);
     bool HasEnded() const;
 
+    Rom rom;
     SequenceReader reader;
     SoundMixer mixer;
     Sequence seq;

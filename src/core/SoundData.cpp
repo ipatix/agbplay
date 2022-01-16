@@ -9,10 +9,18 @@
 #include "Debug.h"
 #include "Util.h"
 #include "Rom.h"
+#include "PlayerContext.h"
+
+struct PlayerContext;
 
 /*
  * public SoundBank
  */
+
+SoundBank::SoundBank(PlayerContext& ctx)
+    : ctx(ctx)
+{
+}
 
 void SoundBank::Init(size_t bankPos)
 {
@@ -21,7 +29,7 @@ void SoundBank::Init(size_t bankPos)
 
 InstrType SoundBank::GetInstrType(uint8_t instrNum, uint8_t midiKey)
 {
-    Rom& rom = Rom::Instance();
+    Rom& rom = this->ctx.rom;
     size_t pos = instrPos(instrNum, midiKey);
 
     switch (rom.ReadU8(pos + 0x0)) {
@@ -52,7 +60,7 @@ InstrType SoundBank::GetInstrType(uint8_t instrNum, uint8_t midiKey)
 
 uint8_t SoundBank::GetMidiKey(uint8_t instrNum, uint8_t midiKey)
 {
-    Rom& rom = Rom::Instance();
+    Rom& rom = this->ctx.rom;
 
     if (rom.ReadU8(bankPos + instrNum * 12 + 0) == 0x80) {
         size_t subBankPos = rom.ReadAgbPtrToPos(bankPos + instrNum * 12 + 0x4);
@@ -71,7 +79,7 @@ int8_t SoundBank::GetPan(uint8_t instrNum, uint8_t midiKey)
     if (t != InstrType::PCM && t != InstrType::PCM_FIXED)
         return 0;
 
-    uint8_t pan = Rom::Instance().ReadU8(pos + 3);
+    uint8_t pan = this->ctx.rom.ReadU8(pos + 3);
     if (pan & 0x80)
         return static_cast<int8_t>(pan - 0xC0);
     else
@@ -85,12 +93,12 @@ uint8_t SoundBank::GetSweep(uint8_t instrNum, uint8_t midiKey)
     if (t != InstrType::SQ1)
         throw Xcept("SoundBank Error: Invalid use of sweep at non SQ1 instrument: [%08X]", pos);
 
-    return Rom::Instance().ReadU8(pos + 3);
+    return this->ctx.rom.ReadU8(pos + 3);
 }
 
 CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
 {
-    Rom& rom = Rom::Instance();
+    Rom& rom = this->ctx.rom;
     CGBDef def;
 
     size_t pos = instrPos(instrNum, midiKey);
@@ -125,7 +133,7 @@ CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
 
 SampleInfo SoundBank::GetSampInfo(uint8_t instrNum, uint8_t midiKey)
 {
-    Rom& rom = Rom::Instance();
+    Rom& rom = this->ctx.rom;
 
     size_t pos = instrPos(instrNum, midiKey);
     InstrType t = GetInstrType(instrNum, midiKey);
@@ -148,7 +156,7 @@ SampleInfo SoundBank::GetSampInfo(uint8_t instrNum, uint8_t midiKey)
 
 ADSR SoundBank::GetADSR(uint8_t instrNum, uint8_t midiKey)
 {
-    Rom& rom = Rom::Instance();
+    Rom& rom = this->ctx.rom;
 
     size_t pos = instrPos(instrNum, midiKey);
     InstrType t = GetInstrType(instrNum, midiKey);
@@ -164,7 +172,7 @@ ADSR SoundBank::GetADSR(uint8_t instrNum, uint8_t midiKey)
 }
 
 size_t SoundBank::instrPos(uint8_t instrNum, uint8_t midiKey) {
-    Rom& rom = Rom::Instance();
+    Rom& rom = this->ctx.rom;
     uint8_t type = rom.ReadU8(bankPos + instrNum * 12 + 0x0);
 
     if (type == 0x80) {
@@ -183,15 +191,15 @@ size_t SoundBank::instrPos(uint8_t instrNum, uint8_t midiKey) {
  * public Sequence
  */
 
-Sequence::Sequence(uint8_t trackLimit)
-    : memaccArea(256), trackLimit(trackLimit)
+Sequence::Sequence(PlayerContext& ctx, uint8_t trackLimit)
+    : memaccArea(256), ctx(ctx), trackLimit(trackLimit)
 {
     Init(0);
 }
 
 void Sequence::Init(size_t songHeaderPos)
 {
-    Rom& rom = Rom::Instance();
+    Rom& rom = this->ctx.rom;
 
     this->songHeaderPos = songHeaderPos;
 
@@ -221,7 +229,7 @@ size_t Sequence::GetSoundBankPos()
     if (songHeaderPos == 0)
         return 0;
 
-    Rom& rom = Rom::Instance();
+    Rom& rom = this->ctx.rom;
     /* Sometimes songs have 0 tracks and will not have a valid
      * sound bank pointer. Return a dummy result instead since
      * it should not be accessed anyway */
@@ -236,7 +244,7 @@ uint8_t Sequence::GetReverb() const
     if (songHeaderPos == 0)
         return 0;
 
-    return Rom::Instance().ReadU8(songHeaderPos + 3);
+    return this->ctx.rom.ReadU8(songHeaderPos + 3);
 }
 
 uint8_t Sequence::GetPriority() const
@@ -244,7 +252,7 @@ uint8_t Sequence::GetPriority() const
     if (songHeaderPos == 0)
         return 0;
 
-    return Rom::Instance().ReadU8(songHeaderPos + 2);
+    return this->ctx.rom.ReadU8(songHeaderPos + 2);
 }
 
 size_t Sequence::GetSongHeaderPos() const
@@ -305,8 +313,8 @@ void Track::ResetLfoValue()
  * SongTable
  */
 
-SongTable::SongTable(size_t songTablePos)
-    : songTablePos(songTablePos)
+SongTable::SongTable(Rom& rom, size_t songTablePos)
+    : rom(rom), songTablePos(songTablePos)
 {
     if (this->songTablePos == UNKNOWN_TABLE) {
         this->songTablePos = locateSongTable();
@@ -319,7 +327,7 @@ size_t SongTable::GetSongTablePos() {
 }
 
 size_t SongTable::GetPosOfSong(uint16_t uid) {
-    return Rom::Instance().ReadAgbPtrToPos(songTablePos + uid * 8);
+    return this->rom.ReadAgbPtrToPos(songTablePos + uid * 8);
 }
 
 size_t SongTable::GetNumSongs() {
@@ -332,7 +340,7 @@ size_t SongTable::GetNumSongs() {
 
 size_t SongTable::locateSongTable() 
 {
-    Rom& rom = Rom::Instance();
+    Rom& rom = this->rom;
 
     for (size_t i = 0x200; i < rom.Size(); i += 4) {
         bool validEntries = true;
@@ -360,7 +368,7 @@ size_t SongTable::locateSongTable()
 
 bool SongTable::validateTableEntry(size_t pos)
 {
-    Rom& rom = Rom::Instance();
+    Rom& rom = this->rom;
 
     // check if the pointer is actually valid
     uint32_t songPtr = rom.ReadU32(pos);
@@ -384,7 +392,7 @@ bool SongTable::validateTableEntry(size_t pos)
 
 bool SongTable::validateSong(size_t songPos)
 {
-    Rom& rom = Rom::Instance();
+    Rom& rom = this->rom;
 
     uint8_t nTracks = rom.ReadU8(songPos + 0);
     uint8_t nBlocks = rom.ReadU8(songPos + 1);  // these could be anything

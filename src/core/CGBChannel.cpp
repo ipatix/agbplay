@@ -287,7 +287,7 @@ void CGBChannel::updateVolFade()
 
 void CGBChannel::applyVol()
 {
-    int combinedPan = std::clamp(pan + note.rhythmPan, -64, +63);
+    int combinedPan = clamp(pan + note.rhythmPan, -64, +63);
 
     if (combinedPan < -21)
         this->panCur = Pan::LEFT;
@@ -301,8 +301,8 @@ void CGBChannel::applyVol()
     volA = (note.velocity * 128 * volA) >> 14;
     volB = (note.velocity * 127 * volB) >> 14;
 
-    envPeak = static_cast<uint8_t>(std::clamp((volA + volB) >> 4, 0, 15));
-    envSustain = static_cast<uint8_t>(std::clamp((envPeak * env.sus + 15) >> 4, 0, 15));
+    envPeak = static_cast<uint8_t>(clamp((volA + volB) >> 4, 0, 15));
+    envSustain = static_cast<uint8_t>(clamp((envPeak * env.sus + 15) >> 4, 0, 15));
     // TODO is this if below right???
     if (envState == EnvState::SUS)
         envLevelCur = envSustain;

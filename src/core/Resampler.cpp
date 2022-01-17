@@ -1,4 +1,4 @@
-#include <boost/math/special_functions/sinc.hpp>
+#include <cassert>
 
 #include "Resampler.h"
 #include "Util.h"
@@ -213,7 +213,7 @@ static const std::vector<float> sinc_lut = []() {
     std::vector<float> l(LUT_SIZE+2);
     for (size_t i = 0; i < LUT_SIZE+1; i++) {
         float index = float(i) * float(SINC_WINDOW_SIZE * M_PI / double(LUT_SIZE));
-        l[i] = boost::math::sinc_pi(index);
+        l[i] = sinc_pi(index);
     }
     l[LUT_SIZE+1] = 0.0f;
     l.shrink_to_fit();
@@ -347,7 +347,7 @@ static const std::vector<float> Si_lut = []() {
         l[i] = static_cast<float>(acc * integral_level + 0.5 * convergence_level);
         for (size_t j = 0; j < INTEGRAL_RESOLUTION; j++) {
             index += integration_inc;
-            double new_value = boost::math::sinc_pi(M_PI * index);
+            double new_value = sinc_pi(M_PI * index);
             acc += (new_value + prev_value) * integration_inc * 0.5;
             prev_value = new_value;
         }
@@ -447,7 +447,7 @@ static const std::vector<float> Ti_lut = []() {
 
         for (size_t j = 0; j < INTEGRAL_RESOLUTION; j++) {
             index += integration_inc;
-            double new_value = boost::math::sinc_pi(M_PI * index);
+            double new_value = sinc_pi(M_PI * index);
             acc += (new_value + prev_value) * integration_inc * 0.5;
             prev_value = new_value;
         }

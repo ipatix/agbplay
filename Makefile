@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -D_XOPEN_SOURCE=700 -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -O3 -g
+CXXFLAGS = -D_XOPEN_SOURCE=700 -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -O3 -g -Isrc/core -Isrc/gui -fPIC
 #CXXFLAGS = -D_XOPEN_SOURCE=700 -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -Og -g -fsanitize=address
 BINARY = agbplay
 LIBS = -lm -lncursesw -pthread -lsndfile -lportaudio -ljsoncpp
@@ -12,8 +12,12 @@ BROWN = \033[1;33m
 WHITE = \033[1;37m
 NCOL = \033[0m
 
-SRC_FILES = $(wildcard src/*.cpp)
-OBJ_FILES = $(addprefix obj/,$(notdir $(SRC_FILES:.cpp=.o)))
+SRC_CORE = $(wildcard src/core/*.cpp)
+SRC_GUI = $(wildcard src/gui/*.cpp)
+
+CORE_OBJ_FILES = $(addprefix obj/,$(notdir $(SRC_CORE:.cpp=.o)))
+GUI_OBJ_FILES = $(addprefix obj/,$(notdir $(SRC_GUI:.cpp=.o)))
+OBJ_FILES = $(addprefix obj/,$(notdir $(SRC_CORE:.cpp=.o))) $(addprefix obj/,$(notdir $(SRC_GUI:.cpp=.o)))
 
 .PHONY: all clean format install conf_install_global conf_install_local conf_checkin_local
 all: $(BINARY)
@@ -39,10 +43,18 @@ conf_install_local:
 conf_checkin_local:
 	cp ~/.config/agbplay.json agbplay.json
 
-$(BINARY): $(OBJ_FILES)
+$(BINARY): $(CORE_OBJ_FILES) $(GUI_OBJ_FILES)
 	@printf "[$(RED)Linking$(NCOL)] $(WHITE)$(BINARY)$(NCOL)\n"
 	@gcc -o $@ $(CXXFLAGS) $^ $(LIBS) -lstdc++
 
-obj/%.o: src/%.cpp src/*.h
+library: $(CORE_OBJ_FILES)
+	@printf "[$(RED)Linking$(NCOL)] $(WHITE)$(BINARY)$(NCOL)\n"
+	@gcc -shared -o libagbplay.so $(CXXFLAGS) $^ -lstdc++
+
+obj/%.o: src/core/%.cpp src/core/*.h
+	@printf "[$(GREEN)Compiling$(NCOL)] $(WHITE)$@$(NCOL)\n"
+	$(CXX) -c -o $@ $< $(CXXFLAGS) $(IMPORT)
+
+obj/%.o: src/gui/%.cpp src/gui/*.h
 	@printf "[$(GREEN)Compiling$(NCOL)] $(WHITE)$@$(NCOL)\n"
 	@$(CXX) -c -o $@ $< $(CXXFLAGS) $(IMPORT)

@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
         ConfigManager::Instance().Load();
         ConfigManager::Instance().SetGameCode(Rom::Instance().GetROMCode());
         std::cout << "Reading Songtable" << std::endl;
-        SongTable songTable;
+        SongTable songTable(Rom::Instance());
         std::cout << "Initialization complete!" << std::endl;
         WindowGUI wgui(songTable);
 

@@ -5,12 +5,15 @@
 
 #include "Types.h"
 #include "Constants.h"
+#include "Rom.h"
+
+struct PlayerContext;
 
 enum class InstrType { PCM, PCM_FIXED, SQ1, SQ2, WAVE, NOISE, INVALID };
 class SoundBank
 {
 public:
-    SoundBank() = default;
+    SoundBank(PlayerContext& ctx);
     SoundBank(const SoundBank&) = delete;
     SoundBank& operator=(const SoundBank&) = delete;
 
@@ -24,6 +27,8 @@ public:
     SampleInfo GetSampInfo(uint8_t instrNum, uint8_t midiKey);
     ADSR GetADSR(uint8_t instrNum, uint8_t midiKey);
 private:
+    PlayerContext& ctx;
+
     size_t instrPos(uint8_t instrNum, uint8_t midiKey);
     size_t bankPos = 0;
 };
@@ -70,7 +75,7 @@ struct Track
 class Sequence 
 {
 public:
-    Sequence(uint8_t trackLimit);
+    Sequence(PlayerContext& ctx, uint8_t trackLimit);
     Sequence(const Sequence&) = delete;
     Sequence& operator=(const Sequence&) = delete;
 
@@ -89,6 +94,8 @@ public:
     uint8_t GetPriority() const;
     size_t GetSongHeaderPos() const;
 private:
+    PlayerContext& ctx;
+
     size_t songHeaderPos;
     uint8_t trackLimit;
 }; // end Sequence
@@ -96,7 +103,7 @@ private:
 class SongTable 
 {
 public:
-    SongTable(size_t songTablePos = UNKNOWN_TABLE);
+    SongTable(Rom& rom, size_t songTablePos = UNKNOWN_TABLE);
     SongTable(const SongTable&) = delete;
     SongTable& operator=(const SongTable&) = delete;
 
@@ -104,6 +111,8 @@ public:
     size_t GetPosOfSong(uint16_t uid);
     size_t GetNumSongs();
 private:
+    Rom& rom;
+
     size_t locateSongTable();
     bool validateTableEntry(size_t pos);
     bool validateSong(size_t songPos);

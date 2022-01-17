@@ -1,8 +1,8 @@
 #include "PlayerContext.h"
 #include "ConfigManager.h"
 
-PlayerContext::PlayerContext(int8_t maxLoops, uint8_t maxTracks, EnginePars pars)
-    : reader(*this, maxLoops), mixer(*this, STREAM_SAMPLERATE, 1.0f), seq(maxTracks), pars(pars)
+PlayerContext::PlayerContext(Rom& rom, int8_t maxLoops, uint8_t maxTracks, EnginePars pars)
+    : rom(rom), reader(*this, maxLoops), mixer(*this, STREAM_SAMPLERATE, 1.0f), seq(*this, maxTracks), bnk(*this), pars(pars)
 {
 }
 

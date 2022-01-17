@@ -59,7 +59,7 @@ uint8_t GameConfig::GetPCMVol() const
 
 void GameConfig::SetPCMVol(uint8_t pcmVol)
 {
-    this->pcmVol = std::clamp<uint8_t>(pcmVol, 0, 0xF);
+    this->pcmVol = clamp<uint8_t>(pcmVol, 0, 0xF);
 }
 
 uint8_t GameConfig::GetEngineFreq() const
@@ -69,7 +69,7 @@ uint8_t GameConfig::GetEngineFreq() const
 
 void GameConfig::SetEngineFreq(uint8_t engineFreq)
 {
-    this->engineFreq = std::clamp<uint8_t>(engineFreq, 1, 12);
+    this->engineFreq = clamp<uint8_t>(engineFreq, 1, 12);
 }
 
 uint8_t GameConfig::GetEngineRev() const
@@ -89,7 +89,7 @@ uint8_t GameConfig::GetTrackLimit() const
 
 void GameConfig::SetTrackLimit(uint8_t trackLimit)
 {
-    this->trackLimit = std::clamp<uint8_t>(trackLimit, 0, 16);
+    this->trackLimit = clamp<uint8_t>(trackLimit, 0, 16);
 }
 
 uint16_t GameConfig::GetRevBufSize() const

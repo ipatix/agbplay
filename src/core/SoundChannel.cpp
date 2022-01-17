@@ -109,7 +109,7 @@ uint8_t SoundChannel::GetTrackIdx() const
 void SoundChannel::SetVol(uint8_t vol, int8_t pan)
 {
     if (!stop) {
-        int combinedPan = std::clamp(pan + note.rhythmPan, -64, +63);
+        int combinedPan = clamp(pan + note.rhythmPan, -64, +63);
         this->leftVolCur = uint8_t(note.velocity * vol * (-combinedPan + 64) / 8192);
         this->rightVolCur = uint8_t(note.velocity * vol * (combinedPan + 64) / 8192);
     }

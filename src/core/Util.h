@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdexcept>
+#include <cmath>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -24,4 +25,12 @@ constexpr const T& clamp( const T& v, const T& lo, const T& hi )
 	if (v > hi)
 		return hi;
 	return v;
+}
+
+template <class T>
+T sinc_pi(T x)
+{
+	if (x == 0)
+		return 1;
+	return sin(x) / x;
 }

@@ -15,3 +15,13 @@ inline void CStrAppend(char *dest, size_t *index, const char *src)
     while ((ch = *copyChar++) != '\0')
         dest[(*index)++] = ch;
 }
+
+template<class T>
+constexpr const T& clamp( const T& v, const T& lo, const T& hi )
+{
+	if (v < lo)
+		return lo;
+	if (v > hi)
+		return hi;
+	return v;
+}

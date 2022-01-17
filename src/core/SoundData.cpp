@@ -294,7 +294,7 @@ int8_t Track::GetPan()
         p += lfoValue;
     p /= 2;
 
-    return static_cast<int8_t>(std::clamp(p, -64, 63));
+    return static_cast<int8_t>(clamp(p, -64, 63));
 }
 
 void Track::ResetLfoValue()

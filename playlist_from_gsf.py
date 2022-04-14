@@ -7,19 +7,20 @@ import zlib
 import sys
 import json
 
-def parse_songname_from_tags(tag_data):
-    if tag_data[0:5].decode("ascii") != "[TAG]":
-        raise Exception("Illegal Tag start")
-    tag_data = tag_data[5:]
-    tag_strings = tag_data.decode("utf-8").splitlines()
+def parse_songname_from_tags(filename, data):
+    try:
+        tag_data = data.split(b'[TAG]')[1]
+        tag_strings = tag_data.decode("utf-8").splitlines()
 
-    # now look for a tag called "title"
-    for tag in tag_strings:
-        if not tag.startswith("title="):
-            continue
-        return tag[6:]
-    return "unnamed song"
-
+        # now look for a tag called "title"
+        for tag in tag_strings:
+            if not tag.lower().startswith("title="):
+                continue
+            return tag[6:]
+    except:
+        pass
+    # default song name to filename if not found
+    return filename.replace('.minigsf', '').replace('\\', '/').split('/')[-1]
 
 def add_minigsf_to_playlist(minigsf_file, playlist):
     with open(minigsf_file, "rb") as minigsf_handle:
@@ -42,16 +43,12 @@ def add_minigsf_to_playlist(minigsf_file, playlist):
         if len(program_data) != 14 and len(program_data) != 13:
             raise Exception("This converter only supports GSF with 14 bytes program data")
         # get song num
-        if len(program_data) == 14:
+        if len(program_data) >= 14:
             song_num = (program_data[12] | (program_data[13] << 8))
         else:
             song_num = program_data[12]
         # get song name from tags
-        tag_data = minigsf_data[0x10 + reserved_data_size + program_data_size:]
-        if len(tag_data) == 0:
-            song_name = "unnamed song"
-        else:
-            song_name = parse_songname_from_tags(tag_data)
+        song_name = parse_songname_from_tags(minigsf_file, minigsf_data)
         playlist.append({ "index" : song_num, "name" : song_name })
 
 # MAIN PROGRAM STARTS HERE
@@ -62,11 +59,19 @@ if len(sys.argv) <= 1:
     print("$ playlist_from_gsf.py <input minigsfs...>")
     sys.exit(0)
 
-# GSF often have the track order encoded in the file name
-minigsfs = sorted(sys.argv[1:])
+# Collect filenames for inputs
+minigsfs = []
+for filename in sys.argv[1:]:
+    if '*' in filename:
+        # Windows doesn't expand wildcards on the command line
+        expanded = glob(filename, recursive=True)
+        minigsfs += [n for n in expanded if n.lower().endswith(".minigsf")]
+    elif filename.lower().endswith(".minigsf"):
+        # remove all non minigsf files
+        minigsfs.append(filename)
 
-# remove all non minigsf files
-minigsfs = [n for n in minigsfs if n.lower().endswith(".minigsf")]
+# GSF often have the track order encoded in the file name
+minigsfs = sorted(minigsfs)
 
 # generate playlist in sorted order
 playlist = []

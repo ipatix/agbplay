@@ -20,8 +20,8 @@ public:
     CGBPolyphony GetCgbPolyphony() const;
     int8_t GetMaxLoopsPlaylist() const;
     int8_t GetMaxLoopsExport() const;
-    float GetPadSecondsStart() const;
-    float GetPadSecondsEnd() const;
+    double GetPadSecondsStart() const;
+    double GetPadSecondsEnd() const;
 private:
     ConfigManager() = default;
     ConfigManager(const ConfigManager&) = delete;
@@ -33,6 +33,6 @@ private:
     int8_t maxLoopsExport;
     std::filesystem::path configPath;
     GameConfig *curCfg = nullptr;
-    std::string padSecondsStart;
-    std::string padSecondsEnd;
+    double padSecondsStart;
+    double padSecondsEnd;
 };

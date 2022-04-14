@@ -87,13 +87,13 @@ void SoundExporter::Export(const std::vector<SongEntry>& entries)
  * private SoundExporter
  */
 
-void SoundExporter::writeSilence(SNDFILE *ofile, float seconds)
+void SoundExporter::writeSilence(SNDFILE *ofile, double seconds)
 {
-    if (seconds <= 0.0f)
+    if (seconds <= 0.0)
         return;
-    int32_t samples = static_cast<int32_t>(round(STREAM_SAMPLERATE * seconds));
+    size_t samples = static_cast<size_t>(std::round(STREAM_SAMPLERATE * seconds));
     std::vector<float> silence(samples * 2, 0.0f);
-    sf_writef_float(ofile, silence.data(), samples);
+    sf_writef_float(ofile, silence.data(), static_cast<sf_count_t>(silence.size()));
 }
 
 size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t uid)
@@ -112,8 +112,8 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     size_t nBlocks = ctx.mixer.GetSamplesPerBuffer();
     size_t nTracks = ctx.seq.tracks.size();
     std::vector<std::vector<sample>> trackAudio;
-    float padSecondsStart = ConfigManager::Instance().GetPadSecondsStart();
-    float padSecondsEnd = ConfigManager::Instance().GetPadSecondsEnd();
+    double padSecondsStart = ConfigManager::Instance().GetPadSecondsStart();
+    double padSecondsEnd = ConfigManager::Instance().GetPadSecondsEnd();
 
     if (!benchmarkOnly) 
     {

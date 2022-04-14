@@ -95,8 +95,8 @@ void ConfigManager::Load()
     maxLoopsExport = static_cast<int8_t>(root.get("max-loops-export", 1).asInt());
 
     // Silence padding
-    padSecondsStart = root.get("pad-seconds-start", "0.0").asString();
-    padSecondsEnd = root.get("pad-seconds-end", "0.0").asString();
+    padSecondsStart = root.get("pad-seconds-start", 0.0).asDouble();
+    padSecondsEnd = root.get("pad-seconds-end", 0.0).asDouble();
 
     for (Json::Value playlist : root["playlists"]) {
         // parse games
@@ -203,12 +203,12 @@ int8_t ConfigManager::GetMaxLoopsExport() const
     return maxLoopsExport < 0 ? 0 : maxLoopsExport;
 }
 
-float ConfigManager::GetPadSecondsStart() const
+double ConfigManager::GetPadSecondsStart() const
 {
-    return std::stof(padSecondsStart);
+    return padSecondsStart;
 }
 
-float ConfigManager::GetPadSecondsEnd() const
+double ConfigManager::GetPadSecondsEnd() const
 {
-    return std::stof(padSecondsEnd);
+    return padSecondsEnd;
 }

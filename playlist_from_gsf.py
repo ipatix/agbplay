@@ -59,19 +59,10 @@ if len(sys.argv) <= 1:
     print("$ playlist_from_gsf.py <input minigsfs...>")
     sys.exit(0)
 
-# Collect filenames for inputs
-minigsfs = []
-for filename in sys.argv[1:]:
-    if '*' in filename:
-        # Windows doesn't expand wildcards on the command line
-        expanded = glob(filename, recursive=True)
-        minigsfs += [n for n in expanded if n.lower().endswith(".minigsf")]
-    elif filename.lower().endswith(".minigsf"):
-        # remove all non minigsf files
-        minigsfs.append(filename)
-
 # GSF often have the track order encoded in the file name
-minigsfs = sorted(minigsfs)
+minigsfs = sorted(sys.argv[1:])
+# remove all non minigsf files
+minigsfs = [n for n in minigsfs if n.lower().endswith(".minigsf")]
 
 # generate playlist in sorted order
 playlist = []

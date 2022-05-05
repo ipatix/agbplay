@@ -142,7 +142,7 @@ As for the reverb level, you can globally set it from 0 to 127. This overrides
 the song's reverb settings in their song header.
 
 The 'magic' samplerate values are listed below. Note that the 'magic' values
-orrespond to the values like they are used by m4aSoundMode (values: 1-12). `agbplay` will use
+correspond to the values like they are used by m4aSoundMode (values: 1-12). `agbplay` will use
 this 'magic' value to get the sample rate for so-called "fixed frequency
 sounds".
 

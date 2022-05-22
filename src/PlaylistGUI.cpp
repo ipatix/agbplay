@@ -186,6 +186,6 @@ void PlaylistGUI::swapEntry(uint32_t a, uint32_t b)
     if (a >= s || b >= s)
         return;
     std::swap(cfg.GetGameEntries()[a], cfg.GetGameEntries()[b]);
-    std::swap(ticked[a], ticked[b]);
+    std::vector<bool>::swap(ticked[a], ticked[b]);
     update();
 }

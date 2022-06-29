@@ -17,6 +17,10 @@
 CGBChannel::CGBChannel(ADSR env, Note note, bool useStairstep)
     : env(env), note(note), useStairstep(useStairstep)
 {
+    if (note.trackIdx == 5) {
+        Debug::print("STARTING NOTE! this=%p", this);
+    }
+
     this->env.att &= 0x7;
     this->env.dec &= 0x7;
     this->env.sus &= 0xF;
@@ -37,6 +41,10 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
      * intertwined with the envelope handling. So save them and actually update them during envelope handling */
     this->vol = vol;
     this->pan = pan;
+
+    if (note.trackIdx == 5) {
+        Debug::print(" - SetVol: this=%p vol=%d pan=%d", this, (int)vol, (int)pan);
+    }
 }
 
 VolumeFade CGBChannel::getVol() const
@@ -276,8 +284,10 @@ pseudo_echo_start:
             envGradient = static_cast<float>(envLevelCur - envLevelPrev) / static_cast<float>(envFrameCount * INTERFRAMES);
     }
 
-    //Debug::print("this=%p envState=%d envLevelCur=%d envLevelPrev=%d envFrameCount=%d envGradientFrame=%d envGradient=%f",
-    //        this, (int)envState, (int)envLevelCur, (int)envLevelPrev, (int)envFrameCount, (int)envGradientFrame, envGradient);
+    if (note.trackIdx == 5) {
+        Debug::print("this=%p envState=%d envLevelCur=%d envLevelPrev=%d envFrameCount=%d envGradientFrame=%d envGradient=%f",
+                this, (int)envState, (int)envLevelCur, (int)envLevelPrev, (int)envFrameCount, (int)envGradientFrame, envGradient);
+    }
 }
 
 void CGBChannel::updateVolFade()
@@ -306,6 +316,11 @@ void CGBChannel::applyVol()
     // TODO is this if below right???
     if (envState == EnvState::SUS)
         envLevelCur = envSustain;
+
+    if (note.trackIdx == 5) {
+        Debug::print(" - applyVol: this=%p envPeak=%d envSustain=%d envLevelCur=%d",
+                this, (int)envPeak, (int)envSustain, (int)envLevelCur);
+    }
 }
 
 /*

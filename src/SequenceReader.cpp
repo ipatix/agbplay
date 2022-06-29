@@ -253,7 +253,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     note.midiKeyPitch = ctx.bnk.GetMidiKey(trk.prog, trk.lastNoteKey);
     note.velocity = trk.lastNoteVel;
     note.priority = trk.priority;
-    note.rhythmPan = ctx.bnk.GetPan(trk.prog, trk.lastNoteKey);
+    note.rhythmPan = ctx.bnk.GetPan(trk.prog, trk.lastNoteKey) * 2;
     note.pseudoEchoVol = trk.pseudoEchoVol;
     note.pseudoEchoLen = trk.pseudoEchoLen;
     note.trackIdx = trackIdx;

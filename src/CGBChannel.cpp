@@ -297,21 +297,25 @@ void CGBChannel::updateVolFade()
 
 void CGBChannel::applyVol()
 {
-    int combinedPan = std::clamp(pan + note.rhythmPan, -64, +63);
+    // Code below is very carefully tuned to produce accurate results,
+    // take care when making changes that results are still accurate.
+    int x = vol << 1;
+    int y = std::clamp<int>(pan << 1, -128, 127);
 
-    if (combinedPan < -21)
-        this->panCur = Pan::LEFT;
-    else if (combinedPan > 20)
+    int volML = ((127 - y) * x) >> 8;
+    int volMR = ((y + 128) * x) >> 8;
+
+    int chnML = std::min(((127 - note.rhythmPan) * note.velocity * volML) >> 14, 255);
+    int chnMR = std::min(((128 + note.rhythmPan) * note.velocity * volMR) >> 14, 255);
+
+    if (chnMR / 2 >= chnML)
         this->panCur = Pan::RIGHT;
+    else if (chnML / 2 >= chnMR)
+        this->panCur = Pan::LEFT;
     else
         this->panCur = Pan::CENTER;
 
-    int volA = (128 * (vol << 1)) >> 8;
-    int volB = (127 * (vol << 1)) >> 8;
-    volA = (note.velocity * 128 * volA) >> 14;
-    volB = (note.velocity * 127 * volB) >> 14;
-
-    envPeak = static_cast<uint8_t>(std::clamp((volA + volB) >> 4, 0, 15));
+    envPeak = static_cast<uint8_t>(std::clamp((chnML + chnMR) >> 4, 0, 15));
     envSustain = static_cast<uint8_t>(std::clamp((envPeak * env.sus + 15) >> 4, 0, 15));
     // TODO is this if below right???
     if (envState == EnvState::SUS)

@@ -322,8 +322,8 @@ void CGBChannel::applyVol()
         envLevelCur = envSustain;
 
     if (note.trackIdx == 5) {
-        Debug::print(" - applyVol: this=%p envPeak=%d envSustain=%d envLevelCur=%d",
-                this, (int)envPeak, (int)envSustain, (int)envLevelCur);
+        Debug::print(" - applyVol: this=%p vol=%d pan=%d vel=%d sus=%d envPeak=%d envSustain=%d envLevelCur=%d",
+                this, (int)vol, (int)pan, (int)note.velocity, (int)env.sus, (int)envPeak, (int)envSustain, (int)envLevelCur);
     }
 }
 

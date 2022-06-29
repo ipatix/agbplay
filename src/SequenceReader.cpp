@@ -159,6 +159,8 @@ void SequenceReader::processSequenceTick()
                     trk.GetVol(),
                     trk.GetPan(),
                     trk.pitch = trk.GetPitch());
+            trk.updateVolume = false;
+            trk.updatePitch = false;
         } else {
             trk.pitch = trk.GetPitch();
         }

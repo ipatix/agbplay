@@ -186,10 +186,10 @@ void CGBChannel::stepEnvelope()
             goto release;
         }
     } else if (envFrameCount == 0) {
-        applyVol();
-
         envGradientFrame = 0;
         envLevelPrev = envLevelCur;
+
+        applyVol();
 
         if (envState == EnvState::REL && fastRelease) {
 fast_release:

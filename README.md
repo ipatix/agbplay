@@ -45,6 +45,7 @@ C++.
 
 Debian | Arch | Cygwin
 --- | --- | ---
+`build-essential` | `base-devel` | `make`, `gcc-g++`
 `libboost-all-dev` | `boost` | `libboost-devel`
 `portaudio19-dev` | `portaudio` | `libportaudio-devel`
 `libncursesw5-dev` | `ncurses5-compat-libs` <sup>AUR</sup> | `libncurses-devel`
@@ -199,6 +200,34 @@ that particular game.
 #### Debian portaudio issues
 
 If you have issues installing portaudio19-dev on Debian (conflicting packages) make sure to install "libjack-jackd2-dev" before. The reason for this is that portaudio on Debian depends on either the old dev package for jack or the jack2 dev package. By default apt wants to install the old one which for some reason causes problems on a lot of systems.
+
+#### "Missing DLLs"
+
+If you happen to get errors about missing DLLs and you compiled agbplay under
+the Cygwin environement, you also have to run agbplay from the Cygwin environment.
+Cygwin compiled software does require the Cygwin runtime for 99% of the programs,
+so please accept that you have to do this for agbplay as well.
+
+#### Terminal Colors
+
+agbplay requires 256 color terminal support. If you happen to see the message
+`Terminal does not support 256 colors`, you may have to use a different
+terminal emulator or you have to fix your `TERM` variable.
+
+If you are using the Cygwin environment, you can do the following:
+
+- Right click on the titlebar of the Cygwin Terminal
+- Click Options
+- Select "Terminal" in the tree view
+- Change Type to `xterm-256color`
+
+Another option is to use the Windows Terminal from the Windows Store
+(although it sometimes still seems to have a few graphical issues).
+
+**Never ever** set your `TERM` variable in your `.bashrc` or equivalent. This will
+cause issues if you are running your shell from the wrong terminal emulator.
+The `TERM` string required depends on the terminal emulator you use and thus
+should only be set by it.
 
 #### Building
 

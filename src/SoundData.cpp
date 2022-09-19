@@ -134,7 +134,7 @@ SampleInfo SoundBank::GetSampInfo(uint8_t instrNum, uint8_t midiKey)
 
     size_t samplePos = rom.ReadAgbPtrToPos(pos + 4);
 
-    bool loopEnabled = rom.ReadU8(samplePos + 3) & 0x40;
+    bool loopEnabled = rom.ReadU8(samplePos + 3) & 0xC0;
     if (rom.ReadU8(samplePos) != 0)
         throw Xcept("Sample Error: Unknown/unsupported sample mode: [%08X]=%02X, instrument: [%08X]",
                 samplePos, rom.ReadU8(samplePos), pos);

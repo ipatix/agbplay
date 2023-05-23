@@ -148,7 +148,9 @@ void SoundChannel::Kill()
 
 void SoundChannel::SetPitch(int16_t pitch)
 {
-    freq = sInfo.midCfreq * powf(2.0f, float(note.midiKeyPitch - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
+    // non original quality improving behavior
+    if (!stop || freq <= 0.0f)
+        freq = sInfo.midCfreq * powf(2.0f, float(note.midiKeyPitch - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
 bool SoundChannel::TickNote()

@@ -332,7 +332,9 @@ SquareChannel::SquareChannel(WaveDuty wd, ADSR env, Note note, uint8_t sweep)
 
 void SquareChannel::SetPitch(int16_t pitch)
 {
-    freq = 3520.0f * powf(2.0f, float(note.midiKeyPitch - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
+    // non original quality improving behavior
+    if (!stop || freq <= 0.0f)
+        freq = 3520.0f * powf(2.0f, float(note.midiKeyPitch - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 
     if (sweepEnabled && sweepStartCount < 0) {
         sweepTimer = freq2timer(freq / 8.0f);

@@ -49,7 +49,7 @@ private:
     uint8_t engineFreq = 0x4;
     uint8_t engineRev = 0x0;
     uint8_t trackLimit = 16;
-    uint16_t revBufSize = 1584;
+    uint16_t revBufSize = 0x630;
     bool accurateCh3Volume = false;
     bool accurateCh3Quantization = false;
 };

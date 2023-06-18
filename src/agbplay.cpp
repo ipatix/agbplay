@@ -4,6 +4,7 @@
 #include <curses.h>
 #include <portaudio.h>
 #include <clocale>
+#include <rtmidi/RtMidi.h>
 
 #include "SoundData.h"
 #include "Debug.h"
@@ -23,14 +24,26 @@ int main(int argc, char *argv[])
         std::cout << "Debug Init failed" << std::endl;
         return EXIT_FAILURE;
     }
-    if (argc != 2) {
+    if (argc < 2 || argc > 4) {
         usage();
         return EXIT_FAILURE;
     }
+
     if (!strcmp("--help", argv[1])) {
         help();
         return EXIT_SUCCESS;
     }
+
+    size_t songTablePos = UNKNOWN_TABLE;
+    if (argc >= 3) {
+        songTablePos = strtoul(argv[2], nullptr, 16);
+    }
+
+    int midiPortNumber = -1;
+    if (argc >= 4) {
+        midiPortNumber = atoi(argv[3]) - 1;
+    }
+
     try {
         setlocale(LC_ALL, "");
         if (Pa_Initialize() != paNoError)
@@ -42,9 +55,9 @@ int main(int argc, char *argv[])
         ConfigManager::Instance().Load();
         ConfigManager::Instance().SetGameCode(Rom::Instance().GetROMCode());
         std::cout << "Reading Songtable" << std::endl;
-        SongTable songTable;
+        SongTable songTable(songTablePos);
         std::cout << "Initialization complete!" << std::endl;
-        WindowGUI wgui(songTable);
+        WindowGUI wgui(songTable, midiPortNumber);
 
         std::chrono::nanoseconds frameTime(1000000000 / 60);
 
@@ -70,12 +83,33 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-static void usage() {
-    std::cout << "Usage: ./agbplay <ROM.gba>" << std::endl;
+static void usage()
+{
+    std::cout << "Usage: ./agbplay <ROM.gba> [song table position (hex)] [midi "
+                 "port number]"
+              << std::endl;
 }
 
-static void help() {
+static void listMidiInPorts()
+{
+    RtMidiIn midiin;
+    unsigned int nPorts = midiin.getPortCount();
+    std::cout << "\nThere are " << nPorts << " MIDI input sources available.\n";
+    std::string portName;
+    for (unsigned int i = 0; i < nPorts; i++) {
+        try {
+            portName = midiin.getPortName(i);
+        } catch (RtMidiError &error) {
+            continue;
+        }
+        std::cout << "  Input Port #" << i + 1 << ": " << portName << '\n';
+    }
+}
+
+static void help()
+{
     usage();
+    listMidiInPorts();
     std::cout << "\nControls:\n"
         "  - Arrow Keys or HJKL: Navigate through the program\n"
         "  - Tab: Change between Playlist and Songlist\n"

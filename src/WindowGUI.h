@@ -63,7 +63,7 @@
 class WindowGUI 
 {
 public:
-    WindowGUI(SongTable& songTable);
+    WindowGUI(SongTable& songTable, int midiPortNumber);
     WindowGUI(const WindowGUI&) = delete;
     WindowGUI& operator=(const WindowGUI&) = delete;
     ~WindowGUI();

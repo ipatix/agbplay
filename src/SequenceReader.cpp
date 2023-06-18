@@ -235,7 +235,7 @@ void SequenceReader::PlayLiveNoteOff(uint8_t key, uint8_t trackIdx)
     for (auto &chn : ctx.sndChannels) {
         if (chn.GetTrackIdx() == trackIdx &&
             chn.GetNote().noteId == noteOffId) {
-            chn.Release(false);
+            chn.Release();
             liveNotes.erase(std::make_pair(trackIdx, key));
             return;
         }

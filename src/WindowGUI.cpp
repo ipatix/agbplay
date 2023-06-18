@@ -95,9 +95,7 @@ WindowGUI::WindowGUI(SongTable &songTable, int midiPortNumber)
     Rom& rom = Rom::Instance();
     mplay = std::make_unique<PlayerInterface>(
             *trackUI,
-            rom.ReadAgbPtrToPos(songTable.GetSongTablePos())
-            );
-            *trackUI, rom.ReadAgbPtrToPos(songTable.GetSongTablePos()),
+            rom.ReadAgbPtrToPos(songTable.GetSongTablePos()),
             midiPortNumber);
     mplay->LoadSong(songTable.GetPosOfSong(0));
     trackUI->SetTitle(songUI->GetSong()->GetName());

@@ -232,7 +232,8 @@ void PlayerInterface::initContext()
     ctx = std::make_unique<PlayerContext>(
             ConfigManager::Instance().GetMaxLoopsPlaylist(),
             cfg.GetTrackLimit(),
-            EnginePars(cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq())
+            EnginePars(cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()),
+            midiin
             );
 }
 

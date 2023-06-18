@@ -52,11 +52,11 @@ SequenceReader::SequenceReader(PlayerContext& ctx, int8_t maxLoops)
 {
 }
 
-void SequenceReader::Process()
+void SequenceReader::Process(bool liveMode)
 {
     ctx.seq.bpmStack += uint32_t(float(ctx.seq.bpm) * speedFactor);
     while (ctx.seq.bpmStack >= BPM_PER_FRAME * INTERFRAMES) {
-        processSequenceTick();
+        processSequenceTick(liveMode);
         ctx.seq.bpmStack -= BPM_PER_FRAME * INTERFRAMES;
     }
 }
@@ -68,6 +68,8 @@ bool SequenceReader::EndReached() const
 
 void SequenceReader::Restart()
 {
+    liveNotes.clear();
+    liveNoteID = 0;
     numLoops = 0;
     endReached = false;
 }
@@ -81,7 +83,7 @@ void SequenceReader::SetSpeedFactor(float speedFactor)
  * private SequenceReader
  */
 
-void SequenceReader::processSequenceTick()
+void SequenceReader::processSequenceTick(bool liveMode)
 {
     Rom& rom = Rom::Instance();
     // process all tracks
@@ -96,38 +98,42 @@ void SequenceReader::processSequenceTick()
         isSongRunning = true;
         tickTrackNotes(uint8_t(itrk), trk.activeNotes);
 
-        // count down last delay and process
-        while (trk.isRunning && trk.delay == 0) {
-            uint8_t cmd = rom.ReadU8(trk.pos);
+        if (liveMode) {
+            ctx.ProcessMidi();
+        } else {
+            // count down last delay and process
+            while (trk.isRunning && trk.delay == 0) {
+                uint8_t cmd = rom.ReadU8(trk.pos);
 
-            // check if a previous command should be repeated
-            if (cmd < 0x80) {
-                cmd = trk.lastCmd;
+                // check if a previous command should be repeated
                 if (cmd < 0x80) {
-                    // song data error, command not initialized
-                    cmdPlayFine(trackIdx);
-                    break;
+                    cmd = trk.lastCmd;
+                    if (cmd < 0x80) {
+                        // song data error, command not initialized
+                        cmdPlayFine(trackIdx);
+                        break;
+                    }
+                } else {
+                    trk.pos++;
+                    if (cmd >= 0xBD) {
+                        // repeatable command
+                        trk.lastCmd = cmd;
+                    }
                 }
-            } else {
-                trk.pos++;
-                if (cmd >= 0xBD) {
-                    // repeatable command
-                    trk.lastCmd = cmd;
+
+                if (cmd >= 0xCF) {
+                    // note command
+                    cmdPlayNote(cmd, trackIdx);
+                } else if (cmd >= 0xB1) {
+                    // state altering command
+                    cmdPlayCommand(cmd, trackIdx);
+                } else {
+                    trk.delay = delayLut.at(cmd);
                 }
-            }
+            }    // end of processing loop
+        }
 
-            if (cmd >= 0xCF) {
-                // note command
-                cmdPlayNote(cmd, trackIdx);
-            } else if (cmd >= 0xB1) {
-                // state altering command
-                cmdPlayCommand(cmd, trackIdx);
-            } else {
-                trk.delay = delayLut.at(cmd);
-            }
-        } // end of processing loop
-
-        if (trk.isRunning)
+        if (!liveMode && trk.isRunning)
             trk.delay--;
 
         if (trk.lfos != 0 && trk.mod != 0) {
@@ -218,25 +224,147 @@ void SequenceReader::setTrackPV(uint8_t track_idx, uint8_t vol, int8_t pan, int1
     setFunc(ctx.noiseChannels);
 }
 
-void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
+void SequenceReader::PlayLiveNoteOn(uint8_t key, uint8_t vel, uint8_t trackIdx)
 {
-    Rom& rom = Rom::Instance();
-    Track& trk = ctx.seq.tracks[trackIdx];
+    enqueueNote(key, vel, 0, trackIdx, true);
+}
 
-    trk.lastNoteLen = noteLut.at(cmd);
-
-    // parse command from track data
-    if (rom.ReadU8(trk.pos) < 0x80) {
-        trk.lastNoteKey = rom.ReadU8(trk.pos++);
-
-        if (rom.ReadU8(trk.pos) < 0x80) {
-            trk.lastNoteVel = rom.ReadU8(trk.pos++);
-
-            if (rom.ReadU8(trk.pos) < 0x80) {
-                trk.lastNoteLen += rom.ReadU8(trk.pos++);
-            }
+void SequenceReader::PlayLiveNoteOff(uint8_t key, uint8_t trackIdx)
+{
+    uint32_t noteOffId = liveNotes[std::make_pair(trackIdx, key)];
+    for (auto &chn : ctx.sndChannels) {
+        if (chn.GetTrackIdx() == trackIdx &&
+            chn.GetNote().noteId == noteOffId) {
+            chn.Release(false);
+            liveNotes.erase(std::make_pair(trackIdx, key));
+            return;
         }
     }
+    for (auto &chn : ctx.sq1Channels) {
+        if (chn.GetTrackIdx() == trackIdx &&
+            chn.GetNote().noteId == noteOffId) {
+            chn.LiveRelease();
+            liveNotes.erase(std::make_pair(trackIdx, key));
+            return;
+        }
+    }
+    for (auto &chn : ctx.sq2Channels) {
+        if (chn.GetTrackIdx() == trackIdx &&
+            chn.GetNote().noteId == noteOffId) {
+            chn.LiveRelease();
+            liveNotes.erase(std::make_pair(trackIdx, key));
+            return;
+        }
+    }
+    for (auto &chn : ctx.waveChannels) {
+        if (chn.GetTrackIdx() == trackIdx &&
+            chn.GetNote().noteId == noteOffId) {
+            chn.LiveRelease();
+            liveNotes.erase(std::make_pair(trackIdx, key));
+            return;
+        }
+    }
+    for (auto &chn : ctx.noiseChannels) {
+        if (chn.GetTrackIdx() == trackIdx &&
+            chn.GetNote().noteId == noteOffId) {
+            chn.LiveRelease();
+            liveNotes.erase(std::make_pair(trackIdx, key));
+            return;
+        }
+    }
+}
+
+void SequenceReader::PlayLiveCommand(
+        uint8_t cmd, uint8_t uarg, int8_t sarg, uint8_t trackIdx)
+{
+    Track &trk = ctx.seq.tracks[trackIdx];
+
+    switch (cmd) {
+    case 0xBA:
+        // PRIO
+        trk.priority = uarg;
+        break;
+    case 0xBB:
+        // TEMPO
+        ctx.seq.bpm = static_cast<uint16_t>(uarg * 2);
+        break;
+    case 0xBC:
+        // KEYSH
+        trk.keyShift = sarg;
+        break;
+    case 0xBD:
+        // VOICE
+        trk.prog = uarg;
+        break;
+    case 0xBE:
+        // VOL
+        trk.vol = uarg;
+        trk.updateVolume = true;
+        break;
+    case 0xBF:
+        // PAN
+        trk.pan = static_cast<int8_t>(sarg - 0x40);
+        trk.updateVolume = true;
+        break;
+    case 0xC0:
+        // BEND
+        trk.bend = static_cast<int8_t>(sarg - 0x40);
+        trk.updatePitch = true;
+        break;
+    case 0xC1:
+        // BENDR
+        trk.bendr = uarg;
+        trk.updatePitch = true;
+        break;
+    case 0xC2:
+        // LFOS
+        // TODO rewrite to match libagbsnd
+        trk.lfos = uarg;
+        if (trk.lfos == 0)
+            trk.ResetLfoValue();
+        break;
+    case 0xC3:
+        // LFODL
+        // TODO rewrite to match libagbsnd
+        trk.lfodlCount = trk.lfodl = uarg;
+        break;
+    case 0xC4:
+        // MOD
+        // TODO rewrite to match libagbsnd
+        trk.mod = uarg;
+        trk.updateVolume = true;
+        trk.updatePitch = true;
+        if (trk.mod == 0)
+            trk.ResetLfoValue();
+        break;
+    case 0xC5:
+        // MODT
+        {
+            uint8_t modt = uarg;
+            if (static_cast<MODT>(modt) == trk.modt)
+                return;
+            trk.modt = static_cast<MODT>(modt);
+            trk.updateVolume = true;
+            trk.updatePitch = true;
+        }
+        break;
+    case 0xC8:
+        // TUNE
+        trk.tune = static_cast<int8_t>(sarg - 0x40);
+        trk.updatePitch = true;
+        break;
+    }
+
+}
+
+void SequenceReader::enqueueNote(
+        uint8_t key, uint8_t vel, uint8_t len, uint8_t trackIdx, bool liveMode)
+{
+    Track &trk = ctx.seq.tracks[trackIdx];
+
+    trk.lastNoteLen = len;
+    trk.lastNoteKey = key;
+    trk.lastNoteVel = vel;
 
     // don't play invalid instruments
     if (trk.prog > 127)
@@ -257,6 +385,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     note.pseudoEchoVol = trk.pseudoEchoVol;
     note.pseudoEchoLen = trk.pseudoEchoLen;
     note.trackIdx = trackIdx;
+    note.noteId = 0;
 
     // prepare cgb polyphony suppression
     const ConfigManager& cm = ConfigManager::Instance();
@@ -299,62 +428,100 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
 
     // enqueue actual note
     switch (ctx.bnk.GetInstrType(trk.prog, trk.lastNoteKey)) {
-        case InstrType::PCM:
-            ctx.sndChannels.emplace_back(
-                    ctx.bnk.GetSampInfo(trk.prog, trk.lastNoteKey),
-                    ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
-                    note,
-                    false);
-            break;
-        case InstrType::PCM_FIXED:
-            ctx.sndChannels.emplace_back(
-                    ctx.bnk.GetSampInfo(trk.prog, trk.lastNoteKey),
-                    ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
-                    note,
-                    true);
-            break;
-        case InstrType::SQ1:
-            if (!cgbPolyphonySuppressFunc(ctx.sq1Channels))
-                return;
-            ctx.sq1Channels.emplace_back(
-                    ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
-                    ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
-                    note,
-                    ctx.bnk.GetSweep(trk.prog, trk.lastNoteKey));
-            break;
-        case InstrType::SQ2:
-            if (!cgbPolyphonySuppressFunc(ctx.sq2Channels))
-                return;
-            ctx.sq2Channels.emplace_back(
-                    ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
-                    ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
-                    note,
-                    0);
-            break;
-        case InstrType::WAVE:
-            if (!cgbPolyphonySuppressFunc(ctx.waveChannels))
-                return;
-            ctx.waveChannels.emplace_back(
-                    ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wavePtr,
-                    ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
-                    note,
-                    cm.GetCfg().GetAccurateCh3Volume());
-            break;
-        case InstrType::NOISE:
-            if (!cgbPolyphonySuppressFunc(ctx.noiseChannels))
-                return;
-            ctx.noiseChannels.emplace_back(
-                    ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).np,
-                    ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
-                    note);
-            break;
-        case InstrType::INVALID:
+    case InstrType::PCM:
+        if (liveMode) {
+            note.noteId = liveNoteID++;
+            liveNotes[std::make_pair(trackIdx, key)] = note.noteId;
+        }
+        ctx.sndChannels.emplace_back(
+                ctx.bnk.GetSampInfo(trk.prog, trk.lastNoteKey),
+                ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey), note, false);
+        break;
+    case InstrType::PCM_FIXED:
+        if (liveMode) {
+            note.noteId = liveNoteID++;
+            liveNotes[std::make_pair(trackIdx, key)] = note.noteId;
+        }
+        ctx.sndChannels.emplace_back(
+                ctx.bnk.GetSampInfo(trk.prog, trk.lastNoteKey),
+                ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey), note, true);
+        break;
+    case InstrType::SQ1:
+        if (!cgbPolyphonySuppressFunc(ctx.sq1Channels))
             return;
+        if (liveMode) {
+            note.noteId = liveNoteID++;
+            liveNotes[std::make_pair(trackIdx, key)] = note.noteId;
+        }
+        ctx.sq1Channels.emplace_back(
+                ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
+                ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey), note,
+                ctx.bnk.GetSweep(trk.prog, trk.lastNoteKey));
+        break;
+    case InstrType::SQ2:
+        if (!cgbPolyphonySuppressFunc(ctx.sq2Channels))
+            return;
+        if (liveMode) {
+            note.noteId = liveNoteID++;
+            liveNotes[std::make_pair(trackIdx, key)] = note.noteId;
+        }
+        ctx.sq2Channels.emplace_back(
+                ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
+                ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey), note, 0);
+        break;
+    case InstrType::WAVE:
+        if (!cgbPolyphonySuppressFunc(ctx.waveChannels))
+            return;
+        if (liveMode) {
+            note.noteId = liveNoteID++;
+            liveNotes[std::make_pair(trackIdx, key)] = note.noteId;
+        }
+        ctx.waveChannels.emplace_back(
+                ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wavePtr,
+                ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey), note,
+                cm.GetCfg().GetAccurateCh3Volume());
+        break;
+    case InstrType::NOISE:
+        if (!cgbPolyphonySuppressFunc(ctx.noiseChannels))
+            return;
+        if (liveMode) {
+            note.noteId = liveNoteID++;
+            liveNotes[std::make_pair(trackIdx, key)] = note.noteId;
+        }
+        ctx.noiseChannels.emplace_back(
+                ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).np,
+                ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey), note);
+        break;
+    case InstrType::INVALID: return;
     }
 
     // new notes need correct pitch and volume applied
     trk.updateVolume = true;
     trk.updatePitch = true;
+}
+
+void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
+{
+    Rom &rom = Rom::Instance();
+    Track &trk = ctx.seq.tracks[trackIdx];
+
+    uint8_t len = noteLut.at(cmd);
+    uint8_t key = trk.lastNoteKey;
+    uint8_t vel = trk.lastNoteVel;
+
+    if (rom.ReadU8(trk.pos) < 0x80) {
+        key = rom.ReadU8(trk.pos++);
+
+        if (rom.ReadU8(trk.pos) < 0x80) {
+            vel = rom.ReadU8(trk.pos++);
+
+            if (rom.ReadU8(trk.pos) < 0x80) {
+                len += rom.ReadU8(trk.pos++);
+            }
+        }
+    }
+
+    enqueueNote(key, vel, len, trackIdx, false);
 }
 
 void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)

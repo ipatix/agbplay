@@ -355,6 +355,14 @@ size_t SongTable::locateSongTable()
             i += j * 8;
         }
     }
+
+    for (size_t i = 0x200; i < rom.Size(); i += 4) {
+        u_int32_t check = rom.ReadU32(i);
+        if (check == 0x10002) {
+            return i + 0xc;
+        }
+    }
+
     throw Xcept("Unable to find songtable");
 }
 

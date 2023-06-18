@@ -138,7 +138,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
 
             while (true)
             {
-                ctx.reader.Process();
+                ctx.reader.Process(false);
                 ctx.mixer.Process(trackAudio);
                 if (ctx.HasEnded())
                     break;
@@ -184,7 +184,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
 
             while (true) 
             {
-                ctx.reader.Process();
+                ctx.reader.Process(false);
                 ctx.mixer.Process(trackAudio);
                 if (ctx.HasEnded())
                     break;
@@ -217,9 +217,8 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     } 
     // if benchmark only
     else {
-        while (true)
-        {
-            ctx.reader.Process();
+        while (true) {
+            ctx.reader.Process(false);
             ctx.mixer.Process(trackAudio);
             blocksRendered += nBlocks;
             if (ctx.HasEnded())

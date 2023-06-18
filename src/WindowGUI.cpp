@@ -18,7 +18,7 @@
 
 #define KEY_TAB 9
 
-WindowGUI::WindowGUI(SongTable& songTable)
+WindowGUI::WindowGUI(SongTable &songTable, int midiPortNumber)
     : songTable(songTable)
 {
     // init ncurses stuff
@@ -97,8 +97,13 @@ WindowGUI::WindowGUI(SongTable& songTable)
             *trackUI,
             rom.ReadAgbPtrToPos(songTable.GetSongTablePos())
             );
+            *trackUI, rom.ReadAgbPtrToPos(songTable.GetSongTablePos()),
+            midiPortNumber);
     mplay->LoadSong(songTable.GetPosOfSong(0));
     trackUI->SetTitle(songUI->GetSong()->GetName());
+    if (midiPortNumber != -1) {
+        play = true;
+    }
 }
 
 WindowGUI::~WindowGUI() 

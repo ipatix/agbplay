@@ -66,9 +66,13 @@ float CGBChannel::freq2timer(float freq)
     return 2048.0f - 131072.0f / freq;
 }
 
-const Note& CGBChannel::GetNote() const
+const Note &CGBChannel::GetNote() const { return note; }
+
+void CGBChannel::LiveRelease()
 {
-    return note;
+    note.noteId = 0;
+    note.length = 0;
+    Release(false);
 }
 
 void CGBChannel::Release(bool fastRelease)
@@ -80,6 +84,9 @@ void CGBChannel::Release(bool fastRelease)
 bool CGBChannel::TickNote()
 {
     if (envState < EnvState::REL) {
+        if (note.noteId != 0) {
+            return true;
+        }
         if (note.length > 0) {
             note.length--;
             if (note.length == 0) {

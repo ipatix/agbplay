@@ -62,6 +62,7 @@ struct Note
     uint8_t pseudoEchoVol;
     uint8_t pseudoEchoLen;
     uint8_t trackIdx;
+    uint32_t noteId;
 };
 
 struct SampleInfo

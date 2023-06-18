@@ -23,6 +23,7 @@ public:
     uint8_t GetTrackIdx() const;
     void SetVol(uint8_t vol, int8_t pan);
     const Note& GetNote() const;
+    void LiveRelease();
     void Release(bool fastRelease = false);
     virtual void SetPitch(int16_t pitch) = 0;
     bool TickNote(); // returns true if note remains active

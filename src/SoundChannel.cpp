@@ -156,6 +156,9 @@ void SoundChannel::SetPitch(int16_t pitch)
 bool SoundChannel::TickNote()
 {
     if (!stop) {
+        if (note.noteId != 0) {
+            return true;
+        }
         if (note.length > 0) {
             note.length--;
             if (note.length == 0) {

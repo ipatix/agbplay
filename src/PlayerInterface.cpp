@@ -30,7 +30,6 @@ const std::vector<PaHostApiTypeId> PlayerInterface::hostApiPriority = {
  * public PlayerInterface
  */
 
-PlayerInterface::PlayerInterface(TrackviewGUI& trackUI, size_t initSongPos)
 PlayerInterface::PlayerInterface(
         TrackviewGUI &trackUI, size_t initSongPos, int midiPortNumber)
     : trackUI(trackUI),
@@ -38,7 +37,7 @@ PlayerInterface::PlayerInterface(
 {
     rtmidiOpen(midiPortNumber);
     initContext();
-    ctx->InitSong(initSongPos);
+    ctx->InitSong(initSongPos, midiin != nullptr);
     setupLoudnessCalcs();
     portaudioOpen();
     if (midiin != nullptr) {
@@ -50,6 +49,7 @@ PlayerInterface::~PlayerInterface()
 {
     // stop and deallocate player thread if required
     Stop();
+    rtmidiClose();
     portaudioClose();
 }
 
@@ -57,7 +57,7 @@ void PlayerInterface::LoadSong(size_t songPos)
 {
     bool play = playerState == State::PLAYING;
     Stop();
-    ctx->InitSong(songPos);
+    ctx->InitSong(songPos, midiin != nullptr);
     setupLoudnessCalcs();
     // TODO replace this with pairs
     float vols[ctx->seq.tracks.size() * 2];
@@ -246,7 +246,12 @@ void PlayerInterface::threadWorker()
         while (playerState != State::SHUTDOWN) {
             switch (playerState) {
             case State::RESTART:
-                ctx->InitSong(ctx->seq.GetSongHeaderPos());
+                if (midiin != nullptr) {
+                    ctx->KillAllChannels();
+                } else {
+                    ctx->InitSong(
+                            ctx->seq.GetSongHeaderPos(), midiin != nullptr);
+                }
                 playerState = State::PLAYING;
                 [[fallthrough]];
             case State::PLAYING:
@@ -286,8 +291,8 @@ void PlayerInterface::threadWorker()
             }
         }
         // reset song state after it has finished
-        ctx->InitSong(ctx->seq.GetSongHeaderPos());
     } catch (std::exception& e) {
+        ctx->InitSong(ctx->seq.GetSongHeaderPos(), midiin != nullptr);
         Debug::print("FATAL ERROR on streaming thread: %s", e.what());
     }
     masterLoudness.Reset();

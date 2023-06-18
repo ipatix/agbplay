@@ -17,9 +17,10 @@
 class PlayerInterface 
 {
 public:
-    PlayerInterface(TrackviewGUI& trackUI, size_t initSongPos);
     PlayerInterface(const PlayerInterface&) = delete;
     PlayerInterface& operator=(const PlayerInterface&) = delete;
+    PlayerInterface(
+            TrackviewGUI &trackUI, size_t initSongPos, int midiPortNumber);
     ~PlayerInterface();
 
     void LoadSong(size_t songPos);
@@ -46,10 +47,14 @@ private:
     void setupLoudnessCalcs();
     void portaudioOpen();
     void portaudioClose();
+    void rtmidiOpen(int portNumber);
+    void rtmidiClose();
 
     static const std::vector<PaHostApiTypeId> hostApiPriority;
 
     PaStream *audioStream;
+    RtMidiIn *midiin;
+    std::string midiPortName;
     uint32_t speedFactor = 64;
     volatile enum class State : int {
         RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED

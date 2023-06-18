@@ -1,11 +1,55 @@
-## agbplay
+## agbplay with Live MIDI mode
 __agbplay__ is a music player with Terminal interface for GBA ROMs that use
 the most common (mp2k/m4a) sound engine format. The code itself is written in
 C++.
 
-### Quick overview
-![agbplay](https://user-images.githubusercontent.com/8502545/95079441-e9e97c00-0716-11eb-8ea2-5240a19614ae.png)
+This fork adds a Live MIDI mode for playing the synth directly with MIDI input.
 
+### Quick overview
+![agbplay](https://user-images.githubusercontent.com/130002142/246687168-70a6d76b-575b-4e8c-9ccd-713f9a9db1c3.png)
+
+### Usage
+
+```
+agbplay <ROM.gba> [song table position] [MIDI port number]
+```
+- **ROM.gba**: Path to ROM for playback.
+- **song table position**: Song table position in hex (e.g., `55E0` or `0x55E0`). Specify `0` if you want to leave unset.
+- **MIDI port number**: MIDI port number to use. If provided and the port is valid, Live MIDI mode will be enabled.
+
+### Live MIDI mode
+
+To list MIDI port numbers that can be used as the MIDI port number value, use `agbplay --help`.
+
+```
+There are 9 MIDI input sources available.
+  Input Port #1: IAC Driver Bus 1
+  Input Port #2: IAC Driver Bus 2
+  Input Port #3: CASIO USB-MIDI
+```
+
+When Live MIDI mode is enabled, normal song playback is disabled. Instead, the song is immediately loaded with its instrument set and all control is given to MIDI input.
+
+#### MIDI reference
+
+* MIDI channel corresponds to track number (1-16).
+* Program change does as expected, however note that no sound will be produced until a program change is issued.
+* Pitch bend works as expected, however the resolution is limited to the upper 7-bits (-64 to 63). Bend range can be set with the BENDR control.
+* Control change
+  * **1**: Modulation depth (see settings below)
+  * **7**: Volume
+  * **10**: Pan 
+  * **20**: Pitch bend range
+  * **21**: Modulation speed
+  * **22**: Modulation type
+    * **0**: Vibrato
+    * **1**: Tremolo
+    * **2**: Auto pan
+  * **24**: Fine tune
+  * **26**: Modulation delay (ticks before mod kicks in)
+  * **33**: Polyphony note priority
+  * **123**: All notes off
+* Issuing extended commands like psuedo-echo aren't supported yet in Live MIDI mode.
 
 ### Controls
 - Arrow Keys or HJKL: Navigate through the program
@@ -43,14 +87,15 @@ C++.
 
 ### Dependencies
 
-Debian | Arch | Cygwin
---- | --- | ---
-`build-essential` | `base-devel` | `make`, `gcc-g++`
-`libboost-all-dev` | `boost` | `libboost-devel`
-`portaudio19-dev` | `portaudio` | `libportaudio-devel`
-`libncursesw5-dev` | `ncurses5-compat-libs` <sup>AUR</sup> | `libncurses-devel`
-`libsndfile1-dev` | `libsndfile` | `libsndfile-devel`
-`libjsoncpp-dev` | `jsoncpp` | `libjsoncpp-devel`
+Homebrew | Debian | Arch | Cygwin
+--- | --- | --- | ---
+Xcode CLI tools | `build-essential` | `base-devel` | `make`, `gcc-g++`
+`boost` | `libboost-all-dev` | `boost` | `libboost-devel`
+`portaudio` | `portaudio19-dev` | `portaudio` | `libportaudio-devel`
+`ncurses` | `libncursesw5-dev` | `ncurses5-compat-libs` <sup>AUR</sup> | `libncurses-devel`
+`libsndfile` | `libsndfile1-dev` | `libsndfile` | `libsndfile-devel`
+`jsoncpp` | `libjsoncpp-dev` | `jsoncpp` | `libjsoncpp-devel`
+`rtmidi` | `librtmidi-dev` | `rtmidi` | `librtmidi-devel`
 
 ### Configuration JSON
 Since 21.10.2020, agbplay uses a standard JSON format for storing playlists and

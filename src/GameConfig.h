@@ -36,6 +36,8 @@ public:
     void SetAccurateCh3Volume(bool enabled);
     bool GetAccurateCh3Quantization() const;
     void SetAccurateCh3Quantization(bool enabled);
+    bool GetSimulateCGBSustainBug() const;
+    void SetSimulateCGBSustainBug(bool enabled);
 
     std::vector<SongEntry>& GetGameEntries();
 
@@ -52,4 +54,5 @@ private:
     uint16_t revBufSize = 0x630;
     bool accurateCh3Volume = false;
     bool accurateCh3Quantization = false;
+    bool simulateCGBSustainBug = false;
 };

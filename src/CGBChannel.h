@@ -30,6 +30,7 @@ public:
     bool IsReleasing() const;
     bool IsFastReleasing() const;
 protected:
+    virtual bool IsChn3() const;
     void stepEnvelope();
     void updateVolFade();
     void applyVol();
@@ -49,6 +50,7 @@ protected:
     bool fastRelease = false;
     uint8_t vol = 0;
     int8_t pan = 0;
+    bool mp2k_sus_vol_bug_update = false;
 
     /* all of these values have pairs of new and old value to allow smooth fades */
     EnvState envState = EnvState::INIT;
@@ -97,6 +99,7 @@ public:
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
 private:
+    bool IsChn3() const override;
     VolumeFade getVol() const;
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
     float dcCorrection100;

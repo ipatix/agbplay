@@ -126,3 +126,13 @@ void GameConfig::SetAccurateCh3Quantization(bool enabled)
 {
     this->accurateCh3Quantization = enabled;
 }
+
+bool GameConfig::GetSimulateCGBSustainBug() const
+{
+    return simulateCGBSustainBug;
+}
+
+void GameConfig::SetSimulateCGBSustainBug(bool enabled)
+{
+    this->simulateCGBSustainBug = enabled;
+}

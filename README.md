@@ -130,6 +130,7 @@ Each playlist entry in the array contains the following properties:
 - `pcm-resampling-algo` and `pcm-fixed-rate-resampling-algo`
 - `song-track-limit`: Limit the number of tracks the engine can play.
   Useful for games which have an engine limit, but the song contain more tracks than the engine can handle.
+- `simulate-cgb-sustain-bug`: Emulate the mp2k CGB sustain bug. Enabling this will delay the application of certain volume changes which may fix certain songs (e.g. Pokémon Emerald's Battle Arena). Though, keeping it disabled (default) may make certain songs sound more like the composer originally intended it.
 - `songs`: This is again an array which contains all the playlist's songs.
   Format is pretty straight forward. There is an `index` property and a `name` property for each song.
 

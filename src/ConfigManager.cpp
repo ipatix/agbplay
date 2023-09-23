@@ -116,6 +116,7 @@ void ConfigManager::Load()
         configs.back().SetTrackLimit(uint8_t(std::clamp<int>(playlist.get("song-track-limit", 16).asInt(), 0, 16)));
         configs.back().SetAccurateCh3Volume(playlist.get("accurate-ch3-volume", false).asBool());
         configs.back().SetAccurateCh3Quantization(playlist.get("accurate-ch3-quantization", false).asBool());
+        configs.back().SetSimulateCGBSustainBug(playlist.get("simulate-cgb-sustain-bug", false).asBool());
 
         for (Json::Value song : playlist["songs"]) {
             configs.back().GetGameEntries().emplace_back(
@@ -141,6 +142,7 @@ void ConfigManager::Save()
         playlist["song-track-limit"] = static_cast<int>(cfg.GetTrackLimit());
         playlist["accurate-ch3-volume"] = cfg.GetAccurateCh3Volume();
         playlist["accurate-ch3-quantization"] = cfg.GetAccurateCh3Quantization();
+        playlist["simulate-cgb-sustain-bug"] = cfg.GetSimulateCGBSustainBug();
 
         Json::Value games;
         for (const std::string& code : cfg.GetGameCodes())

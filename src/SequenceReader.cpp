@@ -158,7 +158,9 @@ void SequenceReader::processSequenceTick()
             setTrackPV(trackIdx, 
                     trk.GetVol(),
                     trk.GetPan(),
-                    trk.pitch = trk.GetPitch());
+                    trk.pitch = trk.GetPitch(),
+                    trk.updateVolume,
+                    trk.updatePitch);
             trk.updateVolume = false;
             trk.updatePitch = false;
         } else {
@@ -200,13 +202,15 @@ int SequenceReader::tickTrackNotes(uint8_t track_idx, std::bitset<NUM_NOTES>& ac
     return active;
 }
 
-void SequenceReader::setTrackPV(uint8_t track_idx, uint8_t vol, int8_t pan, int16_t pitch)
+void SequenceReader::setTrackPV(uint8_t track_idx, uint8_t vol, int8_t pan, int16_t pitch, bool updateVolume, bool updatePitch)
 {
     auto setFunc = [&](auto& channels) {
         for (auto& chn : channels) {
             if (chn.GetTrackIdx() == track_idx) {
-                chn.SetVol(vol, pan);
-                chn.SetPitch(pitch);
+                if (updateVolume)
+                    chn.SetVol(vol, pan);
+                if (updatePitch)
+                    chn.SetPitch(pitch);
             }
         }
     };
@@ -452,22 +456,17 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
         break;
     case 0xC2:
         // LFOS
-        // TODO rewrite to match libagbsnd
         trk.lfos = rom.ReadU8(trk.pos++);
         if (trk.lfos == 0)
             trk.ResetLfoValue();
         break;
     case 0xC3:
         // LFODL
-        // TODO rewrite to match libagbsnd
         trk.lfodlCount = trk.lfodl = rom.ReadU8(trk.pos++);
         break;
     case 0xC4:
         // MOD
-        // TODO rewrite to match libagbsnd
         trk.mod = rom.ReadU8(trk.pos++);
-        trk.updateVolume = true;
-        trk.updatePitch = true;
         if (trk.mod == 0)
             trk.ResetLfoValue();
         break;

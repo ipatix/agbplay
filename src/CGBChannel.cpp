@@ -38,9 +38,6 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
     this->vol = vol;
     this->pan = pan;
     this->mp2k_sus_vol_bug_update = true;
-
-    if (note.trackIdx == 7)
-        Debug::print("SetVol(%d, %d)", (int)vol, (int)pan);
 }
 
 VolumeFade CGBChannel::getVol() const
@@ -119,9 +116,6 @@ void CGBChannel::stepEnvelope()
             return;
         }
 
-        if (note.trackIdx == 7)
-            Debug::print("Start Note");
-
         applyVol();
         panPrev = panCur;
 
@@ -172,8 +166,6 @@ void CGBChannel::stepEnvelope()
         }
         envFrameCount = 1;
     } else if (stop && envState < EnvState::REL) {
-        if (note.trackIdx == 7)
-            Debug::print("Stop Note");
         if (fastRelease) {
             /* fast release is mostly inteded as hack in agbplay for quickly supressing notes
              * but still giving them a little time to fade out */
@@ -280,9 +272,9 @@ pseudo_echo_start:
         assert(envFrameCount != 0);
     }
 
-    if (note.trackIdx == 7)
-        Debug::print("this=%p envState=%d envLevelCur=%d envFadeLevel=%f envFrameCount=%d",
-                this, (int)envState, (int)envLevelCur, envFadeLevel, (int)envFrameCount);
+    //if (note.trackIdx == 7)
+    //    Debug::print("this=%p envState=%d envLevelCur=%d envFadeLevel=%f envFrameCount=%d",
+    //            this, (int)envState, (int)envLevelCur, envFadeLevel, (int)envFrameCount);
 }
 
 void CGBChannel::updateVolFade()
@@ -328,8 +320,6 @@ void CGBChannel::applyVol()
      * envelope sustain level would be applied correctly. */
     if (cfg.GetSimulateCGBSustainBug()) {
         if (!IsChn3() && mp2k_sus_vol_bug_update && envState == EnvState::SUS) {
-            if (note.trackIdx == 7)
-                Debug::print("applyVol(): envLevelCur = %d", (int)envSustain);
             envLevelCur = envSustain;
             mp2k_sus_vol_bug_update = false;
         }
@@ -398,8 +388,8 @@ void SquareChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     float interStep;
 
     if (sweepEnabled) {
-        Debug::print("sweepTimer=%f sweepConvergence=%f sweepCoeff=%f resultFreq=%f",
-                sweepTimer, sweepConvergence, sweepCoeff, timer2freq(sweepTimer));
+        //Debug::print("sweepTimer=%f sweepConvergence=%f sweepCoeff=%f resultFreq=%f",
+        //        sweepTimer, sweepConvergence, sweepCoeff, timer2freq(sweepTimer));
         interStep = 8.0f * timer2freq(sweepTimer) * args.sampleRateInv;
     } else {
         interStep = freq * args.sampleRateInv;

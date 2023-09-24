@@ -54,12 +54,11 @@ protected:
     EnvState envState = EnvState::INIT;
     uint8_t envInterStep = 0;
     uint8_t envLevelCur = 0;
-    uint8_t envLevelPrev = 0;
     uint8_t envPeak = 0;
     uint8_t envSustain = 0;
     uint8_t envFrameCount = 0;
-    uint8_t envGradientFrame = 0;
-    float envGradient = 0.0f;
+    float envFadeLevel = 0.0f;
+    VolumeFade volFade{0.0f, 0.0f, 0.0f, 0.0f};
     Pan panCur = Pan::CENTER;
     Pan panPrev = Pan::CENTER;
 };

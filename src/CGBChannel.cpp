@@ -41,16 +41,7 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
 
 VolumeFade CGBChannel::getVol() const
 {
-    float envBase = static_cast<float>(envLevelPrev);
-    float finalFromEnv = envBase + envGradient * static_cast<float>(envGradientFrame * INTERFRAMES + envInterStep);
-    float finalToEnv = finalFromEnv + envGradient;
-
-    VolumeFade retval;
-    retval.fromVolLeft = (panPrev == Pan::RIGHT) ? 0.0f : finalFromEnv * (1.0f / 32.0f);
-    retval.fromVolRight = (panPrev == Pan::LEFT) ? 0.0f : finalFromEnv * (1.0f / 32.0f);
-    retval.toVolLeft = (panCur == Pan::RIGHT) ? 0.0f : finalToEnv * (1.0f / 32.0f);
-    retval.toVolRight = (panCur == Pan::LEFT) ? 0.0f : finalToEnv * (1.0f / 32.0f);
-    return retval;
+    return volFade;
 }
 
 float CGBChannel::timer2freq(float timer)
@@ -118,16 +109,16 @@ void CGBChannel::stepEnvelope()
         }
 
         applyVol();
-        updateVolFade();
+        panPrev = panCur;
 
         envLevelCur = 0;
         envInterStep = 0;
         envState = EnvState::ATK;
 
         if (env.att > 0) {
-            envLevelPrev = 0;
+            envFadeLevel = 0.0f;
         } else if (env.dec > 0) {
-            envLevelPrev = envPeak;
+            envFadeLevel = envPeak;
             envLevelCur = envPeak;
             if (envPeak > 0) {
                 envState = EnvState::DEC;
@@ -139,14 +130,13 @@ void CGBChannel::stepEnvelope()
                 envState = EnvState::SUS;
             }
         } else {
-            envLevelPrev = envSustain;
+            envFadeLevel = envSustain;
             envLevelCur = envSustain;
             envState = EnvState::SUS;
         }
     } else {
         if (useStairstep) {
-            envLevelPrev = envLevelCur;
-            envGradient = 0.0f;
+            envFadeLevel = envLevelCur;
         }
 
         if (++envInterStep < INTERFRAMES)
@@ -156,9 +146,9 @@ void CGBChannel::stepEnvelope()
 
         assert(envFrameCount > 0);
         envFrameCount--;
-        envGradientFrame++;
     }
 
+    // TODO do we need this after the introduction of envFadeLevel?
     bool fromDecay;
 
     if (envState == EnvState::PSEUDO_ECHO) {
@@ -168,7 +158,6 @@ void CGBChannel::stepEnvelope()
             envLevelCur = 0;
         }
         envFrameCount = 1;
-        envGradient = 0.0f;
     } else if (stop && envState < EnvState::REL) {
         if (fastRelease) {
             /* fast release is mostly inteded as hack in agbplay for quickly supressing notes
@@ -181,14 +170,9 @@ void CGBChannel::stepEnvelope()
                 fromDecay = false;
                 goto pseudo_echo_start;
             }
-            envGradientFrame = 0;
-            envLevelPrev = envLevelCur;
             goto release;
         }
     } else if (envFrameCount == 0) {
-        envGradientFrame = 0;
-        envLevelPrev = envLevelCur;
-
         applyVol();
 
         if (envState == EnvState::REL && fastRelease) {
@@ -197,8 +181,6 @@ fast_release:
              * then changes to fast release later. */
             envState = EnvState::DIE;
             envFrameCount = 1;
-            envGradientFrame = 0;
-            envLevelPrev = envLevelCur;
             envLevelCur = 0;
         } else if (envState == EnvState::REL) {
 release:
@@ -213,7 +195,6 @@ pseudo_echo_start:
                 if (envLevelCur != 0 && note.pseudoEchoLen != 0) {
                     envState = EnvState::PSEUDO_ECHO;
                     envFrameCount = 1;
-                    envLevelPrev = envLevelCur;
                 } else {
                     if (fromDecay) {
                         envState = EnvState::DIE;
@@ -257,6 +238,7 @@ pseudo_echo_start:
                 envState = EnvState::DEC;
                 envFrameCount = env.dec;
                 if (envPeak == 0 || envFrameCount == 0) {
+                    // TODO original code doesn't branch on envPeak == 0, why are we doing this?
                     envState = EnvState::SUS;
                 } else {
                     envLevelCur = envPeak;
@@ -270,19 +252,30 @@ pseudo_echo_start:
         }
 
         assert(envFrameCount != 0);
-        if (useStairstep)
-            envGradient = static_cast<float>(envLevelCur - envLevelPrev);
-        else
-            envGradient = static_cast<float>(envLevelCur - envLevelPrev) / static_cast<float>(envFrameCount * INTERFRAMES);
     }
 
-    //Debug::print("this=%p envState=%d envLevelCur=%d envLevelPrev=%d envFrameCount=%d envGradientFrame=%d envGradient=%f",
-    //        this, (int)envState, (int)envLevelCur, (int)envLevelPrev, (int)envFrameCount, (int)envGradientFrame, envGradient);
+    //Debug::print("this=%p envState=%d envLevelCur=%d envLevelPrev=%d envFrameCount=%d envGradient=%f",
+    //        this, (int)envState, (int)envLevelCur, (int)envLevelPrev, (int)envFrameCount, envGradient);
 }
 
 void CGBChannel::updateVolFade()
 {
+    const size_t interframesLeftCount = envFrameCount * INTERFRAMES - envInterStep;
+    assert(interframesLeftCount != 0);
+
+    float envFadeLevelNew;
+    if (useStairstep)
+        envFadeLevelNew = envLevelCur;
+    else
+        envFadeLevelNew = envFadeLevel + (envLevelCur - envFadeLevel) / static_cast<float>(interframesLeftCount);
+
+    volFade.fromVolLeft = (panPrev == Pan::RIGHT) ? 0.0f : envFadeLevel * (1.0f / 32.0f);
+    volFade.fromVolRight = (panPrev == Pan::LEFT) ? 0.0f : envFadeLevel * (1.0f / 32.0f);
+    volFade.toVolLeft = (panCur == Pan::RIGHT) ? 0.0f : envFadeLevelNew * (1.0f / 32.0f);
+    volFade.toVolRight = (panCur == Pan::LEFT) ? 0.0f : envFadeLevelNew * (1.0f / 32.0f);
+
     panPrev = panCur;
+    envFadeLevel = envFadeLevelNew;
 }
 
 void CGBChannel::applyVol()
@@ -352,6 +345,9 @@ void SquareChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     stepEnvelope();
     if (envState == EnvState::DEAD)
         return;
+
+    updateVolFade();
+
     if (numSamples == 0)
         return;
 
@@ -399,8 +395,6 @@ void SquareChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
                 sweepStartCount = 0;
         }
     }
-
-    updateVolFade();
 }
 
 bool SquareChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
@@ -551,6 +545,9 @@ void WaveChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     stepEnvelope();
     if (envState == EnvState::DEAD)
         return;
+
+    updateVolFade();
+
     if (numSamples == 0)
         return;
     VolumeFade vol = getVol();
@@ -573,8 +570,6 @@ void WaveChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
         lVol += lVolStep;
         rVol += rVolStep;
     } while (--numSamples > 0);
-
-    updateVolFade();
 }
 
 VolumeFade WaveChannel::getVol() const
@@ -726,6 +721,8 @@ void NoiseChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     if (envState == EnvState::DEAD)
         return;
 
+    updateVolFade();
+
     VolumeFade vol = getVol();
     float lVolStep = (vol.toVolLeft - vol.fromVolLeft) * args.samplesPerBufferInv;
     float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.samplesPerBufferInv;
@@ -754,8 +751,6 @@ void NoiseChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
         lVol += lVolStep;
         rVol += rVolStep;
     } while (--numSamples > 0);
-
-    updateVolFade();
 }
 
 bool NoiseChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)

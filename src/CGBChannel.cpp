@@ -216,8 +216,11 @@ pseudo_echo_start:
                         envLevelCur = 0;
                         envFrameCount = env.dec;
                     } else if (env.rel == 0) {
-                        envState = EnvState::DEAD;
-                        return;
+                        /* instead of setting the channel state to DEAD immediately, let's make a tiny fadeout ramp like this: */
+                        envLevelCur = 0;
+                        envState = EnvState::DIE;
+                        envFrameCount = 1;
+                        envInterStep = INTERFRAMES - 1;
                     } else {
                         envState = EnvState::DIE;
                         envLevelCur = 0;

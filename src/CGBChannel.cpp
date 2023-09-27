@@ -21,6 +21,9 @@ CGBChannel::CGBChannel(ADSR env, Note note, bool useStairstep)
     this->env.dec &= 0x7;
     this->env.sus &= 0xF;
     this->env.rel &= 0x7;
+
+    //if (note.trackIdx == 6)
+    //    Debug::print("note start: this=%p att=%d dec=%d sus=%d rel=%d", this, (int)env.att, (int)env.dec, (int)env.sus, (int)env.rel);
 }
 
 uint8_t CGBChannel::GetTrackIdx() const
@@ -72,6 +75,9 @@ void CGBChannel::Release(bool fastRelease)
 {
     this->stop = true;
     this->fastRelease = fastRelease;
+
+    //if (note.trackIdx == 6)
+    //    Debug::print("releasing: %d", fastRelease);
 }
 
 bool CGBChannel::TickNote()
@@ -315,6 +321,10 @@ void CGBChannel::updateVolFade()
     volFade.fromVolRight = (panPrev == Pan::LEFT) ? 0.0f : envFadeLevel * (1.0f / 32.0f);
     volFade.toVolLeft = (panCur == Pan::RIGHT) ? 0.0f : envFadeLevelNew * (1.0f / 32.0f);
     volFade.toVolRight = (panCur == Pan::LEFT) ? 0.0f : envFadeLevelNew * (1.0f / 32.0f);
+
+    //if (note.trackIdx == 6)
+    //    Debug::print("this=%p envState=%d envLevelCur=%d envFadeLevel=%f envFadeLevelNew=%f envFrameCount=%d envInterStep=%d",
+    //            this, (int)envState, (int)envLevelCur, envFadeLevel, envFadeLevelNew, (int)envFrameCount, (int)envInterStep);
 
     panPrev = panCur;
     envFadeLevel = envFadeLevelNew;
@@ -597,11 +607,15 @@ void WaveChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     if (envState == EnvState::DEAD)
         return;
 
+    //if (note.trackIdx == 6)
+    //    Debug::print("this=%p time=%f", this, (double)args.curInterFrame / (INTERFRAMES * AGB_FPS));
+
     updateVolFade();
 
     if (numSamples == 0)
         return;
     VolumeFade vol = getVol();
+
     float lVolStep = (vol.toVolLeft - vol.fromVolLeft) * args.samplesPerBufferInv;
     float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.samplesPerBufferInv;
     float lVol = vol.fromVolLeft;

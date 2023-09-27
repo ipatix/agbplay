@@ -31,6 +31,7 @@ struct MixingArgs
     uint32_t fixedModeRate;
     float sampleRateInv;
     float samplesPerBufferInv;
+    size_t curInterFrame;   // <-- for debugging only
 };
 
 struct VolumeFade

@@ -18,6 +18,7 @@ struct PlayerContext {
     void Process(std::vector<std::vector<sample>>& trackAudio);
     void InitSong(size_t songPos);
     bool HasEnded() const;
+    size_t GetCurInterFrame() const;
 
     SequenceReader reader;
     SoundMixer mixer;
@@ -31,4 +32,6 @@ struct PlayerContext {
     std::list<SquareChannel> sq2Channels;
     std::list<WaveChannel> waveChannels;
     std::list<NoiseChannel> noiseChannels;
+
+    size_t curInterFrame = 0;
 };

@@ -10,6 +10,7 @@ void PlayerContext::Process(std::vector<std::vector<sample>>& trackAudio)
 {
     reader.Process();
     mixer.Process(trackAudio);
+    curInterFrame++;
 }
 
 void PlayerContext::InitSong(size_t songHeaderPos)
@@ -22,6 +23,7 @@ void PlayerContext::InitSong(size_t songHeaderPos)
     waveChannels.clear();
     noiseChannels.clear();
 
+    curInterFrame = 0;
     seq.Init(songHeaderPos);
     bnk.Init(seq.GetSoundBankPos());
     reader.Restart();
@@ -43,4 +45,9 @@ void PlayerContext::InitSong(size_t songHeaderPos)
 bool PlayerContext::HasEnded() const
 {
     return reader.EndReached() && mixer.IsFadeDone();
+}
+
+size_t PlayerContext::GetCurInterFrame() const
+{
+    return curInterFrame;
 }

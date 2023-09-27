@@ -83,6 +83,7 @@ void SoundMixer::Process(std::vector<std::vector<sample>>& outputBuffers)
     margs.fixedModeRate = fixedModeRate;
     margs.sampleRateInv = 1.0f / static_cast<float>(sampleRate);
     margs.samplesPerBufferInv= 1.0f / static_cast<float>(samplesPerBuffer);
+    margs.curInterFrame = ctx.GetCurInterFrame();
 
     /* 4. mix channels which are affected by reverb (PCM only) */
     for (auto& chn : ctx.sndChannels) {

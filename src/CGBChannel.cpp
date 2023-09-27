@@ -45,6 +45,11 @@ VolumeFade CGBChannel::getVol() const
     return volFade;
 }
 
+uint8_t CGBChannel::getPseudoEchoLevel() const
+{
+    return static_cast<uint8_t>(((envPeak * note.pseudoEchoVol) + 0xFF) >> 8);
+}
+
 float CGBChannel::timer2freq(float timer)
 {
     assert(timer >= 0.0f);
@@ -119,32 +124,36 @@ void CGBChannel::stepEnvelope()
         applyVol();
         panPrev = panCur;
 
-        envLevelCur = 0;
         envInterStep = 0;
+
+        envLevelCur = 0;
+        envFrameCount = env.att;
         envState = EnvState::ATK;
 
-        if (env.att > 0) {
+        if (envFrameCount > 0) {
             envFadeLevel = 0.0f;
-        } else if (env.dec > 0) {
-            envFadeLevel = envPeak;
-            envLevelCur = envPeak;
-            if (envPeak > 0) {
-                envState = EnvState::DEC;
-                if (useStairstep) {
-                    envFrameCount = env.dec;
-                    return;
-                }
-            } else {
-                envState = EnvState::SUS;
-            }
+            return;
         } else {
-            envFadeLevel = envSustain;
-            envLevelCur = envSustain;
-            envState = EnvState::SUS;
+            if (env.dec > 0) {
+                envFadeLevel = envPeak;
+            } else if (envSustain > 0) {
+                envFadeLevel = envSustain;
+            } else if (getPseudoEchoLevel() > 0) {
+                envFadeLevel = getPseudoEchoLevel();
+            }
+            goto decay_start;
         }
     } else {
-        if (useStairstep) {
-            envFadeLevel = envLevelCur;
+        if (fastRelease && envState != EnvState::DIE) {
+            /* if note is already releasing but we are now releasing fast, do not wait
+             * until the next real frame but stop the note immerdiately */
+            if (env.rel == 0 || envState == EnvState::PSEUDO_ECHO)
+                envInterStep = INTERFRAMES - 1;
+            else
+                envInterStep = 0;
+            envState = EnvState::DIE;
+            envFrameCount = 1;
+            return;
         }
 
         if (++envInterStep < INTERFRAMES)
@@ -156,74 +165,52 @@ void CGBChannel::stepEnvelope()
         envFrameCount--;
     }
 
-    bool fromDecay;
+    /* if fastRelease == true then stop == true */
+    assert(!fastRelease || stop);
 
     if (envState == EnvState::PSEUDO_ECHO) {
         assert(note.pseudoEchoLen != 0);
+        envFrameCount = 1;
         if (--note.pseudoEchoLen == 0) {
             envState = EnvState::DIE;
-            envLevelCur = 0;
+            envInterStep = INTERFRAMES - 1;
         }
-        envFrameCount = 1;
     } else if (stop && envState < EnvState::REL) {
-        if (fastRelease) {
-            /* fast release is mostly inteded as hack in agbplay for quickly supressing notes
-             * but still giving them a little time to fade out */
-            goto fast_release;
+        envState = EnvState::REL;
+        envFrameCount = env.rel;
+        if (envLevelCur == 0 || envFrameCount == 0) {
+            /* original doesn't branch on envLevelCur == 0, but we do in order to avoid
+             * decreasing into the negative */
+            goto pseudo_echo_start;
         } else {
-            envState = EnvState::REL;
-            envFrameCount = env.rel;
-            if (envLevelCur == 0 || envFrameCount == 0) {
-                fromDecay = false;
-                goto pseudo_echo_start;
-            }
-            goto release;
+            return;
         }
     } else if (envFrameCount == 0) {
         applyVol();
 
-        if (envState == EnvState::REL && fastRelease) {
-fast_release:
-            /* This case should only occur if a note was release normally but
-             * then changes to fast release later. */
-            envState = EnvState::DIE;
-            envFrameCount = 1;
-            envLevelCur = 0;
-        } else if (envState == EnvState::REL) {
-release:
+        if (envState == EnvState::REL) {
             assert(envLevelCur > 0);
             envLevelCur--;
             assert((int8_t)envLevelCur >= 0);
 
             if (envLevelCur == 0) {
-                fromDecay = false;
 pseudo_echo_start:
-                envLevelCur = static_cast<uint8_t>(((envPeak * note.pseudoEchoVol) + 0xFF) >> 8);
+                envFrameCount = 1;
+                envLevelCur = getPseudoEchoLevel();
                 if (envLevelCur != 0 && note.pseudoEchoLen != 0) {
+                    /* original doesn't check for pseudoEchoLen */
                     envState = EnvState::PSEUDO_ECHO;
-                    envFrameCount = 1;
                 } else {
-                    if (fromDecay) {
-                        envState = EnvState::DIE;
-                        envLevelCur = 0;
-                        envFrameCount = env.dec;
-                    } else if (env.rel == 0) {
-                        /* instead of setting the channel state to DEAD immediately, let's make a tiny fadeout ramp like this: */
-                        envLevelCur = 0;
-                        envState = EnvState::DIE;
-                        envFrameCount = 1;
-                        envInterStep = INTERFRAMES - 1;
-                    } else {
-                        envState = EnvState::DIE;
-                        envLevelCur = 0;
-                        envFrameCount = env.rel;
-                    }
+                    envState = EnvState::DIE;
+                    envInterStep = INTERFRAMES - 1;
+                    return;
                 }
             } else {
                 envFrameCount = env.rel;
                 assert(env.rel != 0);
             }
         } else if (envState == EnvState::SUS) {
+sustain_state:
             if (cfg.GetSimulateCGBSustainBug()) {
                 envFrameCount = 7;
                 if (IsChn3())
@@ -239,12 +226,14 @@ pseudo_echo_start:
             assert((int8_t)envLevelCur >= 0);
 
             if (envLevelCur <= envSustain) {
+sustain_start:
                 if (env.sus == 0) {
-                    fromDecay = true;
+                    envState = EnvState::REL;
                     goto pseudo_echo_start;
                 } else {
                     envState = EnvState::SUS;
                     envLevelCur = envSustain;
+                    goto sustain_state;
                 }
             }
             envFrameCount = env.dec;
@@ -253,17 +242,21 @@ pseudo_echo_start:
             envLevelCur++;
 
             if (envLevelCur >= envPeak) {
+decay_start:
                 envState = EnvState::DEC;
                 envFrameCount = env.dec;
-                if (envPeak == 0 || envFrameCount == 0) {
-                    // TODO original code doesn't branch on envPeak == 0, why are we doing this?
-                    envState = EnvState::SUS;
+                if (envPeak == 0 || envFrameCount == 0 || envPeak == envSustain) {
+                    /* original code doesn't branch on envPeak == 0, but we do that we don't do a decrease envelope even
+                     * though the level is already zero. Original also doesn't branch when peak == sustain, which we to do avoid
+                     * an envelope decrease that will increase right after again. */
+                    goto sustain_start;
                 } else {
                     envLevelCur = envPeak;
                 }
+            } else {
+                envFrameCount = env.att;
+                assert(env.att != 0);
             }
-            envFrameCount = env.att;
-            assert(env.att != 0);
         } else if (envState == EnvState::DIE) {
             envState = EnvState::DEAD;
             return;
@@ -271,22 +264,52 @@ pseudo_echo_start:
 
         assert(envFrameCount != 0);
     }
-
-    //if (note.trackIdx == 7)
-    //    Debug::print("this=%p envState=%d envLevelCur=%d envFadeLevel=%f envFrameCount=%d",
-    //            this, (int)envState, (int)envLevelCur, envFadeLevel, (int)envFrameCount);
 }
 
 void CGBChannel::updateVolFade()
 {
-    const size_t interframesLeftCount = envFrameCount * INTERFRAMES - envInterStep;
-    assert(interframesLeftCount != 0);
+    size_t fadeInterframesCount = envFrameCount * INTERFRAMES - envInterStep;
+    assert(fadeInterframesCount != 0);
+
+    uint8_t envFadeLevelTo = 0xFF;
+    switch (envState) {
+    case EnvState::INIT:
+        assert(false);
+        break;
+    case EnvState::ATK:
+        assert(envLevelCur < 15);
+        envFadeLevelTo = envLevelCur + 1;
+        break;
+    case EnvState::DEC:
+    case EnvState::REL:
+        assert(envLevelCur > 0);
+        envFadeLevelTo = envLevelCur - 1;
+        break;
+    case EnvState::SUS:
+    case EnvState::PSEUDO_ECHO:
+        envFadeLevelTo = envLevelCur;
+        fadeInterframesCount = 1;
+        break;
+    case EnvState::DIE:
+        envFadeLevelTo = 0;
+        break;
+    case EnvState::DEAD:
+        assert(false);
+        break;
+    }
+    assert(envFadeLevelTo != 0xFF);
 
     float envFadeLevelNew;
-    if (useStairstep)
-        envFadeLevelNew = envLevelCur;
-    else
-        envFadeLevelNew = envFadeLevel + (envLevelCur - envFadeLevel) / static_cast<float>(interframesLeftCount);
+    if (useStairstep) {
+        /* In stairstep mode, the envelope will change in the last interframe before the next envelope update.
+         * This fixes wave channels to behave like on hardware. */
+        if (fadeInterframesCount == 1)
+            envFadeLevelNew = envFadeLevelTo;
+        else
+            envFadeLevelNew = envFadeLevel;
+    } else {
+        envFadeLevelNew = envFadeLevel + (envFadeLevelTo - envFadeLevel) / static_cast<float>(fadeInterframesCount);
+    }
 
     volFade.fromVolLeft = (panPrev == Pan::RIGHT) ? 0.0f : envFadeLevel * (1.0f / 32.0f);
     volFade.fromVolRight = (panPrev == Pan::LEFT) ? 0.0f : envFadeLevel * (1.0f / 32.0f);

@@ -35,6 +35,7 @@ protected:
     void updateVolFade();
     void applyVol();
     VolumeFade getVol() const;
+    uint8_t getPseudoEchoLevel() const;
 
     static float timer2freq(float timer);
     static float freq2timer(float freq);

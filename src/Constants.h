@@ -15,7 +15,7 @@
 #define SONG_FADE_OUT_TIME 10000
 #define SONG_FINISH_TIME 1000
 
-#define __STRM_BPSM ((STREAM_SAMPLERATE / 24) - 1)
+#define __STRM_BPSM ((STREAM_SAMPLERATE / 6) - 1)
 #define __STRM_BSA (__STRM_BPSM | (__STRM_BPSM >> 1))
 #define __STRM_BSB (__STRM_BSA | (__STRM_BSA >> 2))
 #define __STRM_BSC (__STRM_BSB | (__STRM_BSB >> 4))

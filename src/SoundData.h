@@ -40,8 +40,8 @@ struct Track
     Track& operator=(const Track&) = delete;
 
     int16_t GetPitch();
-    uint8_t GetVol();
-    int8_t GetPan();
+    uint16_t GetVol();
+    int16_t GetPan();
     void ResetLfoValue();
     std::bitset<NUM_NOTES> activeNotes;
 

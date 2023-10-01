@@ -202,7 +202,7 @@ int SequenceReader::tickTrackNotes(uint8_t track_idx, std::bitset<NUM_NOTES>& ac
     return active;
 }
 
-void SequenceReader::setTrackPV(uint8_t track_idx, uint8_t vol, int8_t pan, int16_t pitch, bool updateVolume, bool updatePitch)
+void SequenceReader::setTrackPV(uint8_t track_idx, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch)
 {
     auto setFunc = [&](auto& channels) {
         for (auto& chn : channels) {
@@ -257,7 +257,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     note.midiKeyPitch = ctx.bnk.GetMidiKey(trk.prog, trk.lastNoteKey);
     note.velocity = trk.lastNoteVel;
     note.priority = trk.priority;
-    note.rhythmPan = ctx.bnk.GetPan(trk.prog, trk.lastNoteKey);
+    note.rhythmPan = ctx.bnk.GetPan(trk.prog, trk.lastNoteKey) * 2;
     note.pseudoEchoVol = trk.pseudoEchoVol;
     note.pseudoEchoLen = trk.pseudoEchoLen;
     note.trackIdx = trackIdx;

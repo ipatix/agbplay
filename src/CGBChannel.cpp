@@ -31,7 +31,7 @@ uint8_t CGBChannel::GetTrackIdx() const
     return note.trackIdx;
 }
 
-void CGBChannel::SetVol(uint8_t vol, int8_t pan)
+void CGBChannel::SetVol(uint16_t vol, int16_t pan)
 {
     if (stop)
         return;
@@ -39,7 +39,9 @@ void CGBChannel::SetVol(uint8_t vol, int8_t pan)
     /* CGB volume and pan aren't applied immediately due to the nature of being heavily
      * intertwined with the envelope handling. So save them and actually update them during envelope handling */
     this->vol = vol;
-    this->pan = pan;
+    /* Due to aggressive rounding apply pan "perfectly" like for PCM channels,
+     * so clamp to 127 instead of 128 */
+    this->pan = std::clamp<int16_t>(pan, -128, 127);
     this->mp2k_sus_vol_bug_update = true;
 }
 
@@ -334,19 +336,26 @@ void CGBChannel::applyVol()
 {
     const GameConfig& cfg = ConfigManager::Instance().GetCfg();
 
-    int combinedPan = std::clamp(pan + note.rhythmPan, -64, +63);
+    /* because agbplay generally wants to avoid the center panorama dilemma
+     * (i.e. 0 pan not being in the center of the [-128,127] range)
+     * we delay applying pan changes at the channel level, so we don't do the slightly
+     * off center rounding for PCM channels. */
 
-    if (combinedPan < -21)
-        this->panCur = Pan::LEFT;
-    else if (combinedPan > 20)
+    int trkVolML = ((127 - pan) * vol) >> 8;
+    int trkVolMR = ((pan + 128) * vol) >> 8;
+    int chnVolL = (((127 - note.rhythmPan) * note.velocity) * trkVolML) >> 14;
+    int chnVolR = (((note.rhythmPan + 128) * note.velocity) * trkVolMR) >> 14;
+    assert(chnVolL >= 0);
+    assert(chnVolR >= 0);
+
+    /* strictly speaking the panorama also is affected by the sustain bug, but I'm too lazy to implement
+     * is since most games probably won't be affected by this. */
+    if (chnVolR / 2 >= chnVolL)
         this->panCur = Pan::RIGHT;
+    else if (chnVolL / 2 >= chnVolR)
+        this->panCur = Pan::LEFT;
     else
         this->panCur = Pan::CENTER;
-
-    int volA = (128 * (vol << 1)) >> 8;
-    int volB = (127 * (vol << 1)) >> 8;
-    volA = (note.velocity * 128 * volA) >> 14;
-    volB = (note.velocity * 127 * volB) >> 14;
 
     /* This envLevelCur assignment used to be below envSustain assignment and the only reason
      * it's now up here is because of a bug in the original mp2k where only 1 in 7 cases the
@@ -358,7 +367,7 @@ void CGBChannel::applyVol()
         }
     }
 
-    envPeak = static_cast<uint8_t>(std::clamp((volA + volB) >> 4, 0, 15));
+    envPeak = static_cast<uint8_t>(std::clamp((chnVolL + chnVolR) >> 4, 0, 15));
     envSustain = static_cast<uint8_t>(std::clamp((envPeak * env.sus + 15) >> 4, 0, 15));
 }
 

@@ -106,12 +106,17 @@ uint8_t SoundChannel::GetTrackIdx() const
     return note.trackIdx;
 }
 
-void SoundChannel::SetVol(uint8_t vol, int8_t pan)
+void SoundChannel::SetVol(uint16_t vol, int16_t pan)
 {
     if (!stop) {
-        int combinedPan = std::clamp(pan + note.rhythmPan, -64, +63);
-        this->leftVolCur = uint8_t(note.velocity * vol * (-combinedPan + 64) / 8192);
-        this->rightVolCur = uint8_t(note.velocity * vol * (combinedPan + 64) / 8192);
+        int combinedPan = std::clamp(pan + note.rhythmPan, -128, +128);
+        /* original doesn't do the if statement below, but it retains the 0 center
+         * panorama position while allowing the maximum pan valume of 126 (i.e. 63 on tracK)
+         * to be completely right sided. */
+        if (combinedPan >= 126)
+            combinedPan = 128;
+        this->leftVolCur = static_cast<uint8_t>(std::clamp(note.velocity * vol * (-combinedPan + 128) >> 15, 0, 255));
+        this->rightVolCur = static_cast<uint8_t>(std::clamp(note.velocity * vol * (combinedPan + 128) >> 15, 0, 255));
     }
 }
 

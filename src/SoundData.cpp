@@ -270,23 +270,20 @@ int16_t Track::GetPitch()
     return static_cast<int16_t>(p);
 }
 
-uint8_t Track::GetVol()
+uint16_t Track::GetVol()
 {
-    int v = vol << 1;
+    int32_t v = vol << 1;
     if (modt == MODT::VOL)
         v = (v * (lfoValue + 128)) >> 7;
-    v >>= 1;
-    return static_cast<uint8_t>(v);
+    return static_cast<uint16_t>(v);
 }
 
-int8_t Track::GetPan()
+int16_t Track::GetPan()
 {
     int p = pan << 1;
     if (modt == MODT::PAN)
         p += lfoValue;
-    p /= 2;
-
-    return static_cast<int8_t>(std::clamp(p, -64, 63));
+    return static_cast<int16_t>(p);
 }
 
 void Track::ResetLfoValue()

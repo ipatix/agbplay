@@ -21,7 +21,7 @@ public:
 
     virtual void Process(sample *buffer, size_t numSamples, MixingArgs& args) = 0;
     uint8_t GetTrackIdx() const;
-    void SetVol(uint8_t vol, int8_t pan);
+    void SetVol(uint16_t vol, int16_t pan);
     const Note& GetNote() const;
     void Release(bool fastRelease = false);
     virtual void SetPitch(int16_t pitch) = 0;
@@ -49,8 +49,8 @@ protected:
     const bool useStairstep;
     bool stop = false;
     bool fastRelease = false;
-    uint8_t vol = 0;
-    int8_t pan = 0;
+    uint16_t vol = 0;
+    int16_t pan = 0;
     bool mp2k_sus_vol_bug_update = false;
 
     /* all of these values have pairs of new and old value to allow smooth fades */

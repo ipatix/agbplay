@@ -92,8 +92,8 @@ void SoundExporter::writeSilence(SNDFILE *ofile, double seconds)
     if (seconds <= 0.0)
         return;
     size_t samples = static_cast<size_t>(std::round(STREAM_SAMPLERATE * seconds));
-    std::vector<float> silence(samples * 2, 0.0f);
-    sf_writef_float(ofile, silence.data(), static_cast<sf_count_t>(silence.size()));
+    std::vector<sample> silence(samples, {0.0f, 0.0f});
+    sf_writef_float(ofile, reinterpret_cast<float *>(silence.data()), static_cast<sf_count_t>(silence.size()));
 }
 
 size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t uid)

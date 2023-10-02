@@ -221,6 +221,7 @@ static const std::vector<float> sinc_lut = []() {
 }();
 
 static const std::vector<float> win_lut = []() {
+    // hann window (raised cosine)
     std::vector<float> l(LUT_SIZE+2);
     for (size_t i = 0; i < LUT_SIZE+1; i++) {
         float index = float(i) * float(M_PI / double(LUT_SIZE));
@@ -230,6 +231,26 @@ static const std::vector<float> win_lut = []() {
     l.shrink_to_fit();
     return l;
 }();
+
+/*
+static const std::vector<float> win_lut = []() {
+    // nuttall window, experimental, performs worse than hann ?
+    std::vector<float> l(LUT_SIZE+2);
+    for (size_t i = 0; i < LUT_SIZE+1; i++) {
+        const double a0 = 0.355768;
+        const double a1 = 0.487396;
+        const double a2 = 0.144232;
+        const double a3 = 0.012604;
+        const double N = static_cast<double>(LUT_SIZE);
+        const double pi_i_N = 0.5 * M_PI + static_cast<double>(i) * M_PI / (2.0 * N);
+        const double coeff = a0 - a1 * cos(2.0 * pi_i_N) + a2 * cos(4.0 * pi_i_N) - a3 * cos(6.0 * pi_i_N);
+        l[i] = static_cast<float>(coeff);
+    }
+    l[LUT_SIZE+1] = l[LUT_SIZE];
+    l.shrink_to_fit();
+    return l;
+}();
+*/
 
 float SincResampler::fast_sinf(float t)
 {

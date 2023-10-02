@@ -5,6 +5,10 @@
 #include <cmath>
 #include <cassert>
 
+#if __has_include(<pa_win_wasapi.h>)
+#include <pa_win_wasapi.h>
+#endif
+
 #include "PlayerInterface.h"
 #include "Xcept.h"
 #include "Debug.h"
@@ -23,7 +27,8 @@ const std::vector<PaHostApiTypeId> PlayerInterface::hostApiPriority = {
     paJACK,
     paALSA,
     // Windows
-    paMME, // only option for cygwin
+    paWASAPI,
+    paMME,
 };
 
 /*
@@ -315,6 +320,8 @@ void PlayerInterface::portaudioOpen()
     // init host api
     PaDeviceIndex deviceIndex = -1;
     PaHostApiIndex hostApiIndex = -1;
+    std::shared_ptr<void> hostApiSpecificStreamInfo;
+
     for (const auto apiType : hostApiPriority) {
         hostApiIndex = Pa_HostApiTypeIdToHostApiIndex(apiType);
         // prioritized host api available ?
@@ -325,6 +332,16 @@ void PlayerInterface::portaudioOpen()
         if (apiinfo == NULL)
             throw Xcept("Pa_GetHostApiInfo with valid index failed");
         deviceIndex = apiinfo->defaultOutputDevice;
+
+#if __has_include(<pa_win_wasapi.h>)
+        if (apiType == paWASAPI) {
+            hostApiSpecificStreamInfo = std::make_shared<PaWasapiStreamInfo>(
+                PaWasapiStreamInfo{
+                    sizeof(PaWasapiStreamInfo), paWASAPI, 1, paWinWasapiAutoConvert, 0, nullptr, nullptr, eThreadPriorityNone, eAudioCategoryMedia, eStreamOptionNone, {}
+                }
+            );
+        }
+#endif
         break;
     }
     if (hostApiIndex < 0) {
@@ -345,11 +362,11 @@ void PlayerInterface::portaudioOpen()
     outputStreamParameters.channelCount = 2;    // stereo
     outputStreamParameters.sampleFormat = paFloat32;
     outputStreamParameters.suggestedLatency = devinfo->defaultLowOutputLatency;
-    outputStreamParameters.hostApiSpecificStreamInfo = NULL;
+    outputStreamParameters.hostApiSpecificStreamInfo = hostApiSpecificStreamInfo.get();
 
     PaError err;
     uint32_t outSampleRate = ctx->mixer.GetSampleRate();
-    if ((err = Pa_OpenStream(&audioStream, NULL, &outputStreamParameters, outSampleRate, 0, paNoFlag, audioCallback, (void *)&rBuf)) != paNoError) {
+    if ((err = Pa_OpenStream(&audioStream, NULL, &outputStreamParameters, outSampleRate, paFramesPerBufferUnspecified, paNoFlag, audioCallback, (void *)&rBuf)) != paNoError) {
         Debug::print("Pa_OpenDefaultStream: %s", Pa_GetErrorText(err));
         return;
     }

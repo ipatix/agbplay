@@ -29,6 +29,9 @@ const std::vector<PaHostApiTypeId> PlayerInterface::hostApiPriority = {
     // Windows
     paWASAPI,
     paMME,
+    // Mac OS
+    paCoreAudio,
+    paSoundManager,
 };
 
 /*
@@ -318,20 +321,31 @@ void PlayerInterface::setupLoudnessCalcs()
 void PlayerInterface::portaudioOpen()
 {
     // init host api
-    PaDeviceIndex deviceIndex = -1;
-    PaHostApiIndex hostApiIndex = -1;
-    std::shared_ptr<void> hostApiSpecificStreamInfo;
+    std::vector<PaHostApiTypeId> hostApiPrioritiesWithFallback = hostApiPriority;
+    const PaHostApiIndex defaultHostApiIndex = Pa_GetDefaultHostApi();
+    if (defaultHostApiIndex < 0)
+        throw Xcept("Pa_GetDefaultHostApi(): No host API avilable: %s", Pa_GetErrorText(defaultHostApiIndex));
+    const PaHostApiInfo *defaultHostApiInfo = Pa_GetHostApiInfo(defaultHostApiIndex);
+    if (defaultHostApiInfo == nullptr)
+        throw Xcept("Pa_GetHostApiInfo(): failed with valid index");
+    const auto f = std::find(hostApiPrioritiesWithFallback.begin(), hostApiPrioritiesWithFallback.end(), defaultHostApiInfo->type);
+    if (f == hostApiPrioritiesWithFallback.end())
+        hostApiPrioritiesWithFallback.push_back(defaultHostApiInfo->type);
+
+    bool streamOpen = false;
 
     for (const auto apiType : hostApiPriority) {
-        hostApiIndex = Pa_HostApiTypeIdToHostApiIndex(apiType);
+        const PaHostApiIndex hostApiIndex = Pa_HostApiTypeIdToHostApiIndex(apiType);
         // prioritized host api available ?
         if (hostApiIndex < 0)
             continue;
 
-        const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(hostApiIndex);
-        if (apiinfo == NULL)
+        const PaHostApiInfo *apiInfo = Pa_GetHostApiInfo(hostApiIndex);
+        if (apiInfo == nullptr)
             throw Xcept("Pa_GetHostApiInfo with valid index failed");
-        deviceIndex = apiinfo->defaultOutputDevice;
+        const PaDeviceIndex deviceIndex = apiInfo->defaultOutputDevice;
+
+        std::shared_ptr<void> hostApiSpecificStreamInfo;
 
 #if __has_include(<pa_win_wasapi.h>)
         if (apiType == paWASAPI) {
@@ -342,38 +356,40 @@ void PlayerInterface::portaudioOpen()
             );
         }
 #endif
+
+        const PaDeviceInfo *devInfo = Pa_GetDeviceInfo(deviceIndex);
+        if (devInfo == nullptr)
+            throw Xcept("Pa_GetDeviceInfo(): failed with valid index");
+
+        PaStreamParameters outputStreamParameters;
+        outputStreamParameters.device = deviceIndex;
+        outputStreamParameters.channelCount = 2;    // stereo
+        outputStreamParameters.sampleFormat = paFloat32;
+        outputStreamParameters.suggestedLatency = devInfo->defaultLowOutputLatency;
+        outputStreamParameters.hostApiSpecificStreamInfo = hostApiSpecificStreamInfo.get();
+
+        const uint32_t rate = ctx->mixer.GetSampleRate();
+        PaError err = Pa_OpenStream(&audioStream, nullptr, &outputStreamParameters, rate, paFramesPerBufferUnspecified, paNoFlag, audioCallback, (void *)&rBuf);
+        if (err != paNoError) {
+            Debug::print("Pa_OpenStream(): unable to open stream with host API %s: %s", apiInfo->name, Pa_GetErrorText(err));
+            continue;
+        }
+
+        err = Pa_StartStream(audioStream);
+        if (err != paNoError) {
+            Debug::print("Pa_StartStream(): unable to start stream for Host API %s: %s", apiInfo->name, Pa_GetErrorText(err));
+            err = Pa_CloseStream(audioStream);
+            if (err != paNoError)
+                Debug::print("Pa_CloseStream(): unable to close fail-started stream for Host API %s: %s", apiInfo->name, Pa_GetErrorText(err));
+            continue;
+        }
+
+        streamOpen = true;
         break;
     }
-    if (hostApiIndex < 0) {
-        // no prioritized api was found, use default
-        const PaHostApiInfo *apiinfo = Pa_GetHostApiInfo(Pa_GetDefaultHostApi());
-        Debug::print("No supported API found, falling back to: %s", apiinfo->name);
-        if (apiinfo == NULL)
-            throw Xcept("Pa_GetHostApiInfo with valid index failed");
-        deviceIndex = apiinfo->defaultOutputDevice;
-    }
 
-    const PaDeviceInfo *devinfo = Pa_GetDeviceInfo(deviceIndex);
-    if (devinfo == NULL)
-        throw Xcept("Pa_GetDeviceInfo with valid index failed");
-
-    PaStreamParameters outputStreamParameters;
-    outputStreamParameters.device = deviceIndex;
-    outputStreamParameters.channelCount = 2;    // stereo
-    outputStreamParameters.sampleFormat = paFloat32;
-    outputStreamParameters.suggestedLatency = devinfo->defaultLowOutputLatency;
-    outputStreamParameters.hostApiSpecificStreamInfo = hostApiSpecificStreamInfo.get();
-
-    PaError err;
-    uint32_t outSampleRate = ctx->mixer.GetSampleRate();
-    if ((err = Pa_OpenStream(&audioStream, NULL, &outputStreamParameters, outSampleRate, paFramesPerBufferUnspecified, paNoFlag, audioCallback, (void *)&rBuf)) != paNoError) {
-        Debug::print("Pa_OpenDefaultStream: %s", Pa_GetErrorText(err));
-        return;
-    }
-    if ((err = Pa_StartStream(audioStream)) != paNoError) {
-        Debug::print("PA_StartStream: %s", Pa_GetErrorText(err));
-        return;
-    }
+    if (!streamOpen)
+        throw Xcept("Unable to initialize sound output: Host API could not be initialized");
 }
 
 void PlayerInterface::portaudioClose()

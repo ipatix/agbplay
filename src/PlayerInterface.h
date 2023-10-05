@@ -29,6 +29,7 @@ public:
     void SpeedDouble();
     void SpeedHalve();
     bool IsPlaying();
+    bool IsPaused() const;
     void UpdateView();
     void ToggleMute(size_t index);
     void Mute(size_t index, bool mute);

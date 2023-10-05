@@ -180,6 +180,11 @@ bool PlayerInterface::IsPlaying()
     return playerState != State::THREAD_DELETED && playerState != State::TERMINATED;
 }
 
+bool PlayerInterface::IsPaused() const
+{
+    return playerState == State::PAUSED;
+}
+
 void PlayerInterface::UpdateView()
 {
     if (playerState != State::THREAD_DELETED &&

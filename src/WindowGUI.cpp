@@ -168,7 +168,7 @@ bool WindowGUI::Handle()
                 break;
             case 'o':
             case ' ':
-                play = true;
+                play = mplay->IsPaused();
                 mplay->Pause();
                 break;
             case 'p':

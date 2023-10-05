@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cassert>
+#include <cstring>
 
 #if __has_include(<pa_win_wasapi.h>)
 #include <pa_win_wasapi.h>
@@ -354,11 +355,13 @@ void PlayerInterface::portaudioOpen()
 
 #if __has_include(<pa_win_wasapi.h>)
         if (apiType == paWASAPI) {
-            hostApiSpecificStreamInfo = std::make_shared<PaWasapiStreamInfo>(
-                PaWasapiStreamInfo{
-                    sizeof(PaWasapiStreamInfo), paWASAPI, 1, paWinWasapiAutoConvert, 0, nullptr, nullptr, eThreadPriorityNone, eAudioCategoryMedia, eStreamOptionNone, {}
-                }
-            );
+            PaWasapiStreamInfo info;
+            memset(&info, 0, sizeof(info));
+            info.size = sizeof(info);
+            info.hostApiType = paWASAPI;
+            info.version = 1;
+            info.flags = paWinWasapiAutoConvert;
+            hostApiSpecificStreamInfo = std::make_shared<PaWasapiStreamInfo>(info);
         }
 #endif
 

@@ -233,7 +233,7 @@ bool WindowGUI::Handle()
     } // end key loop
     if (play) {
         if (!mplay->IsPlaying()) {
-            if (cursorl != PLAYLIST && cursorl != SONGLIST) {
+            if ((cursorl != PLAYLIST && cursorl != SONGLIST) || isLastSong()) {
                 play = false;
             } else {
                 scrollDown();
@@ -457,6 +457,18 @@ void WindowGUI::scrollUp()
             break;
         default:
             break;
+    }
+}
+
+bool WindowGUI::isLastSong() const
+{
+    switch (cursorl) {
+    case SONGLIST:
+        return songUI->IsLast();
+    case PLAYLIST:
+        return playUI->IsLast();
+    default:
+        return false;
     }
 }
 

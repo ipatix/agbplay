@@ -81,6 +81,7 @@ private:
     void scrollRight();
     void scrollDown();
     void scrollUp();
+    bool isLastSong() const;
     void pageDown();
     void pageUp();
     void songInfo();

@@ -78,6 +78,13 @@ void SonglistGUI::PageUp()
     update();
 }
 
+bool SonglistGUI::IsLast() const
+{
+    if (cursorPos + 1 >= songlist.size())
+        return true;
+    return false;
+}
+
 void SonglistGUI::AddSong(SongEntry entry) 
 {
     songlist.push_back(entry);

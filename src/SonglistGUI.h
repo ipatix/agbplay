@@ -23,6 +23,7 @@ public:
     void ScrollUp();
     void PageDown();
     void PageUp();
+    bool IsLast() const;
 protected:
     virtual void scrollDownNoUpdate();
     virtual void scrollUpNoUpdate();

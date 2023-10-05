@@ -65,7 +65,7 @@ float CGBChannel::timer2freq(float timer)
 float CGBChannel::freq2timer(float freq)
 {
     assert(freq > 0.0f);
-    return 2048.0f - 131072.0f / freq;
+    return 2048.0f - std::min(131072.0f / freq, 2047.0f);
 }
 
 const Note& CGBChannel::GetNote() const

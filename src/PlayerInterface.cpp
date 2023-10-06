@@ -340,7 +340,7 @@ void PlayerInterface::portaudioOpen()
 
     bool streamOpen = false;
 
-    for (const auto apiType : hostApiPriority) {
+    for (const auto apiType : hostApiPrioritiesWithFallback) {
         const PaHostApiIndex hostApiIndex = Pa_HostApiTypeIdToHostApiIndex(apiType);
         // prioritized host api available ?
         if (hostApiIndex < 0)

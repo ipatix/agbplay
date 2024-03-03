@@ -18,10 +18,15 @@ public:
     void Save();
     const std::filesystem::path& GetWavOutputDir();
     CGBPolyphony GetCgbPolyphony() const;
+    void SetCgbPolyphony(CGBPolyphony value);
     int8_t GetMaxLoopsPlaylist() const;
+    void SetMaxLoopsPlaylist(int8_t value);
     int8_t GetMaxLoopsExport() const;
+    void SetMaxLoopsExport(int8_t value);
     double GetPadSecondsStart() const;
+    void SetPadSecondsStart(double value);
     double GetPadSecondsEnd() const;
+    void SetPadSecondsEnd(double value);
 private:
     ConfigManager() = default;
     ConfigManager(const ConfigManager&) = delete;

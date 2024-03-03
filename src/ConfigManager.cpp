@@ -89,7 +89,7 @@ void ConfigManager::Load()
 
     // CGB channel polyphony configuration
     confCgbPolyphony = str2cgbPoly(root.get("cgb-polyphony", "mono-strict").asString());
-    
+
     // Loop configuration
     maxLoopsPlaylist = static_cast<int8_t>(root.get("max-loops-playlist", 1).asInt());
     maxLoopsExport = static_cast<int8_t>(root.get("max-loops-export", 1).asInt());
@@ -195,9 +195,19 @@ CGBPolyphony ConfigManager::GetCgbPolyphony() const
     return confCgbPolyphony;
 }
 
+void ConfigManager::SetCgbPolyphony(CGBPolyphony value)
+{
+    confCgbPolyphony = value;
+}
+
 int8_t ConfigManager::GetMaxLoopsPlaylist() const
 {
     return maxLoopsPlaylist < -1 ? 0 : maxLoopsPlaylist;
+}
+
+void ConfigManager::SetMaxLoopsPlaylist(int8_t value)
+{
+    maxLoopsPlaylist = value;
 }
 
 int8_t ConfigManager::GetMaxLoopsExport() const
@@ -205,12 +215,28 @@ int8_t ConfigManager::GetMaxLoopsExport() const
     return maxLoopsExport < 0 ? 0 : maxLoopsExport;
 }
 
+void ConfigManager::SetMaxLoopsExport(int8_t value)
+{
+    maxLoopsExport = value;
+}
+
 double ConfigManager::GetPadSecondsStart() const
 {
     return padSecondsStart;
+}
+
+void ConfigManager::SetPadSecondsStart(double value)
+{
+    padSecondsStart = value;
 }
 
 double ConfigManager::GetPadSecondsEnd() const
 {
     return padSecondsEnd;
 }
+
+void ConfigManager::SetPadSecondsEnd(double value)
+{
+    padSecondsEnd = value;
+}
+

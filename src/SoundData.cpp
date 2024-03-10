@@ -302,12 +302,47 @@ void Track::ResetLfoValue()
  * SongTable
  */
 
+std::vector<SongTable> SongTable::ScanForTables()
+{
+    Rom& rom = Rom::Instance();
+    std::vector<SongTable> tables;
+
+    for (size_t i = 0x200; i < rom.Size(); i += 4) {
+        bool validEntries = true;
+        size_t location = i;
+        size_t j = 0;
+        for (j = 0; j < MIN_SONG_NUM; j++) {
+            if (!validateTableEntry(i + j * 8)) {
+                i += j * 8;
+                validEntries = false;
+                break;
+            }
+        }
+        if (validEntries) {
+            // before returning, check if reference to song table exists
+            for (size_t k = 0x200; k < rom.Size() - 3; k += 4) { // -3 due to possible alignment issues
+                size_t value = rom.ReadU32(k) - AGB_MAP_ROM;
+                if (value == location) {
+                    SongTable songTable(location);
+                    j = songTable.GetNumSongs();
+                    tables.push_back(songTable);
+                    break;
+                }
+            }
+            i += j * 8;
+        }
+    }
+
+    if (tables.size() == 0) {
+      throw Xcept("Unable to find songtable");
+    }
+
+    return tables;
+}
+
 SongTable::SongTable(size_t songTablePos)
     : songTablePos(songTablePos)
 {
-    if (this->songTablePos == UNKNOWN_TABLE) {
-        this->songTablePos = locateSongTable();
-    }
     numSongs = determineNumSongs();
 }
 
@@ -326,34 +361,6 @@ size_t SongTable::GetNumSongs() {
 /*
  * private
  */
-
-size_t SongTable::locateSongTable() 
-{
-    Rom& rom = Rom::Instance();
-
-    for (size_t i = 0x200; i < rom.Size(); i += 4) {
-        bool validEntries = true;
-        size_t location = i;
-        size_t j = 0;
-        for (j = 0; j < MIN_SONG_NUM; j++) {
-            if (!validateTableEntry(i + j * 8)) {
-                i += j * 8;
-                validEntries = false;
-                break;
-            }
-        }
-        if (validEntries) {
-            // before returning, check if reference to song table exists
-            for (size_t k = 0x200; k < rom.Size() - 3; k += 4) { // -3 due to possible alignment issues
-                size_t value = rom.ReadU32(k) - AGB_MAP_ROM;
-                if (value == location)
-                    return location;
-            }
-            i += j * 8;
-        }
-    }
-    throw Xcept("Unable to find songtable");
-}
 
 bool SongTable::validateTableEntry(size_t pos)
 {
@@ -406,7 +413,7 @@ bool SongTable::validateSong(size_t songPos)
     return true;
 }
 
-size_t SongTable::determineNumSongs() 
+size_t SongTable::determineNumSongs()
 {
     size_t pos = songTablePos;
     size_t count = 0;

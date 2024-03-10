@@ -67,7 +67,7 @@ struct Track
     bool updatePitch = false;
 }; // end Track
 
-class Sequence 
+class Sequence
 {
 public:
     Sequence(uint8_t trackLimit);
@@ -93,20 +93,20 @@ private:
     uint8_t trackLimit;
 }; // end Sequence
 
-class SongTable 
+class SongTable
 {
 public:
-    SongTable(size_t songTablePos = UNKNOWN_TABLE);
-    SongTable(const SongTable&) = delete;
-    SongTable& operator=(const SongTable&) = delete;
+    static std::vector<SongTable> ScanForTables();
+    SongTable(size_t songTablePos);
+    SongTable(const SongTable&) = default;
+    SongTable& operator=(const SongTable&) = default;
 
     size_t GetSongTablePos();
     size_t GetPosOfSong(uint16_t uid);
     size_t GetNumSongs();
 private:
-    size_t locateSongTable();
-    bool validateTableEntry(size_t pos);
-    bool validateSong(size_t songPos);
+    static bool validateTableEntry(size_t pos);
+    static bool validateSong(size_t songPos);
     size_t determineNumSongs();
 
     size_t songTablePos;

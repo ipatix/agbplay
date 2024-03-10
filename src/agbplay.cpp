@@ -15,7 +15,7 @@
 static void usage();
 static void help();
 
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
     OS::CheckTerminal();
 
@@ -23,13 +23,22 @@ int main(int argc, char *argv[])
         std::cout << "Debug Init failed" << std::endl;
         return EXIT_FAILURE;
     }
-    if (argc != 2) {
+    if (argc != 2 && argc != 3) {
         usage();
         return EXIT_FAILURE;
     }
     if (!strcmp("--help", argv[1])) {
         help();
         return EXIT_SUCCESS;
+    }
+    unsigned long songTableIndex = 0;
+    if (argc == 3) {
+      try {
+        songTableIndex = std::stoul(argv[2]);
+      } catch (std::exception& e) {
+        usage();
+        return EXIT_FAILURE;
+      }
     }
     try {
         setlocale(LC_ALL, "");
@@ -42,9 +51,13 @@ int main(int argc, char *argv[])
         ConfigManager::Instance().Load();
         ConfigManager::Instance().SetGameCode(Rom::Instance().GetROMCode());
         std::cout << "Reading Songtable" << std::endl;
-        SongTable songTable;
+        std::vector<SongTable> songTables = SongTable::ScanForTables();
+        std::cout << "Found " << songTables.size() << " Songtables." << std::endl;
+        if (songTableIndex >= songTables.size()) {
+          throw Xcept("Songtable index out of range");
+        }
         std::cout << "Initialization complete!" << std::endl;
-        WindowGUI wgui(songTable);
+        WindowGUI wgui(songTables[songTableIndex]);
 
         std::chrono::nanoseconds frameTime(1000000000 / 60);
 
@@ -71,7 +84,7 @@ int main(int argc, char *argv[])
 }
 
 static void usage() {
-    std::cout << "Usage: ./agbplay <ROM.gba>" << std::endl;
+    std::cout << "Usage: ./agbplay <ROM.gba> [table number]" << std::endl;
 }
 
 static void help() {

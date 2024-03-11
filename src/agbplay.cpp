@@ -49,12 +49,17 @@ int main(int argc, char *argv[])
         Rom::CreateInstance(argv[1]);
         std::cout << "Loading Config..." << std::endl;
         ConfigManager::Instance().Load();
-        ConfigManager::Instance().SetGameCode(Rom::Instance().GetROMCode());
         std::cout << "Reading Songtable" << std::endl;
         std::vector<SongTable> songTables = SongTable::ScanForTables();
-        std::cout << "Found " << songTables.size() << " Songtables." << std::endl;
+        std::cout << "Found " << songTables.size() << " Songtable(s)." << std::endl;
         if (songTableIndex >= songTables.size()) {
           throw Xcept("Songtable index out of range");
+        } else if (songTableIndex > 0) {
+          std::ostringstream ss;
+          ss << Rom::Instance().GetROMCode() << ":" << songTableIndex;
+          ConfigManager::Instance().SetGameCode(ss.str());
+        } else {
+          ConfigManager::Instance().SetGameCode(Rom::Instance().GetROMCode());
         }
         std::cout << "Initialization complete!" << std::endl;
         WindowGUI wgui(songTables[songTableIndex]);

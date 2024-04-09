@@ -2,7 +2,7 @@
 
 #define NUM_NOTES 128
 #define PROG_UNDEFINED 0xFF
-#define MIN_SONG_NUM 4
+#define MIN_SONG_NUM 4      // lowest seen one is 7 in Tetris World
 
 #define BPM_PER_FRAME 150
 #define AGB_FPS 60

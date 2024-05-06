@@ -47,32 +47,9 @@ void TrackviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32
     update();
 }
 
-void TrackviewGUI::SetState(const Sequence& seq, const float *vols, int activeChannels, int maxChannels)
+void TrackviewGUI::SetState(const PlaybackSongState &songState)
 {
-    this->activeChannels = activeChannels;
-    if (maxChannels == -1) {
-        this->maxChannels = std::max(this->maxChannels, this->activeChannels);
-    } else {
-        this->maxChannels = maxChannels;
-    }
-    size_t sz = seq.tracks.size();
-    if (disp.data.size() != sz) {
-        disp.data.resize(sz);
-    }
-    for (size_t i = 0; i < sz; i++) {
-        disp.data[i].trackPtr = uint32_t(seq.tracks[i].pos);
-        disp.data[i].isCalling = seq.tracks[i].reptCount > 0;
-        disp.data[i].isMuted = seq.tracks[i].muted;
-        disp.data[i].vol = seq.tracks[i].vol;
-        disp.data[i].mod = seq.tracks[i].mod;
-        disp.data[i].prog = seq.tracks[i].prog;
-        disp.data[i].pan = seq.tracks[i].pan;
-        disp.data[i].pitch = seq.tracks[i].pitch;
-        disp.data[i].envL = uint8_t(std::clamp<uint32_t>(uint32_t(vols[i*2  ] * 768.f), 0, 255));
-        disp.data[i].envR = uint8_t(std::clamp<uint32_t>(uint32_t(vols[i*2+1] * 768.f), 0, 255));
-        disp.data[i].delay = std::max<uint8_t>(0, static_cast<uint8_t>(seq.tracks[i].delay));
-        disp.data[i].activeNotes = seq.tracks[i].activeNotes;
-    }
+    disp = songState;
     update();
 }
 
@@ -130,12 +107,13 @@ void TrackviewGUI::update()
     // init draw
     const uint32_t yBias = 1;
     const uint32_t xBias = 1;
+    const size_t ntrks = disp.tracks_used;
     // clear field
-    if (cursorPos >= disp.data.size() && cursorPos > 0) {
-        cursorPos = (uint32_t)disp.data.size() - 1;
+    if (cursorPos >= ntrks && cursorPos > 0) {
+        cursorPos = (uint32_t)ntrks - 1;
     }
     wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
-    for (uint32_t i = yBias + 1 + (uint32_t)disp.data.size() * 2; i < height; i++) {
+    for (uint32_t i = yBias + 1 + (uint32_t)ntrks * 2; i < height; i++) {
         mvwhline(winPtr, (int)i, xBias, ' ', width - xBias);
     }
     // draw borderlines
@@ -163,21 +141,23 @@ void TrackviewGUI::update()
     wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)) | A_UNDERLINE);
     wprintw(winPtr, " - %-*s %3d/%3d", width - 24 - 3 - 8, songName.c_str(), activeChannels, maxChannels);
 
-    for (uint32_t i = 0, th = 0; i < disp.data.size(); i++, th += 2) {
+    for (uint32_t i = 0, th = 0; i < ntrks; i++, th += 2) {
         int aFlag = (cursorVisible && i == cursorPos) ? A_REVERSE : 0;
+        const auto &trk = disp.tracks[i];
+
         // print tickbox and first line
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
         mvwprintw(winPtr, (int)(yBias + 1 + th), xBias, "[");
-        wattrset(winPtr, COLOR_PAIR(static_cast<int>(disp.data[i].isMuted ? Color::TRK_NUM_MUTED : Color::TRK_NUM)) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(static_cast<int>(disp.tracks[i].isMuted ? Color::TRK_NUM_MUTED : Color::TRK_NUM)) | aFlag);
         wprintw(winPtr, "%02d", i);
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
         wprintw(winPtr, "] ");
-        wattrset(winPtr, (disp.data[i].isCalling ? COLOR_PAIR(static_cast<int>(Color::TRK_LOC_CALL)) : COLOR_PAIR(static_cast<int>(Color::TRK_LOC))));
-        wprintw(winPtr, "0x%07X", disp.data[i].trackPtr);
+        wattrset(winPtr, (trk.isCalling ? COLOR_PAIR(static_cast<int>(Color::TRK_LOC_CALL)) : COLOR_PAIR(static_cast<int>(Color::TRK_LOC))));
+        wprintw(winPtr, "0x%07X", trk.trackPtr);
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
         wprintw(winPtr, " ");
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::TRK_DEL)));
-        wprintw(winPtr, "W%02d", disp.data[i].delay);
+        wprintw(winPtr, "W%02d", trk.delay);
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
         wprintw(winPtr, " ");
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::TRK_NOTE)));
@@ -204,26 +184,26 @@ void TrackviewGUI::update()
         for (size_t j = 0;; j++) {
             // C and C#
             wattrset(winPtr, COLOR_PAIR(DECIDE_COL_C(
-                            disp.data[i].activeNotes[j*12+0],
-                            disp.data[i].activeNotes[j*12+1])));
+                            trk.activeNotes[j*12+0],
+                            trk.activeNotes[j*12+1])));
             waddstr(winPtr, "\u259D");
 
             // D and D#
             wattrset(winPtr, COLOR_PAIR(DECIDE_COL_D(
-                        disp.data[i].activeNotes[j*12+2],
-                        disp.data[i].activeNotes[j*12+3])));
+                        trk.activeNotes[j*12+2],
+                        trk.activeNotes[j*12+3])));
             waddstr(winPtr, "\u259D");
 
             // E and F
             wattrset(winPtr, COLOR_PAIR(DECIDE_COL_E(
-                        disp.data[i].activeNotes[j*12+4],
-                        disp.data[i].activeNotes[j*12+5])));
+                        trk.activeNotes[j*12+4],
+                        trk.activeNotes[j*12+5])));
             waddstr(winPtr, "\u2590");
 
             // F# and G
             wattrset(winPtr, COLOR_PAIR(DECIDE_COL_D(
-                        disp.data[i].activeNotes[j*12+7],
-                        disp.data[i].activeNotes[j*12+6])));
+                        trk.activeNotes[j*12+7],
+                        trk.activeNotes[j*12+6])));
             waddstr(winPtr, "\u2598");
 
             // keys only go up to key 127, this is the breakout point
@@ -232,14 +212,14 @@ void TrackviewGUI::update()
 
             // G# and A
             wattrset(winPtr, COLOR_PAIR(DECIDE_COL_D(
-                        disp.data[i].activeNotes[j*12+9],
-                        disp.data[i].activeNotes[j*12+8])));
+                        trk.activeNotes[j*12+9],
+                        trk.activeNotes[j*12+8])));
             waddstr(winPtr, "\u2598");
 
             // A# and B
             wattrset(winPtr, COLOR_PAIR(DECIDE_COL_D(
-                        disp.data[i].activeNotes[j*12+11],
-                        disp.data[i].activeNotes[j*12+10])));
+                        trk.activeNotes[j*12+11],
+                        trk.activeNotes[j*12+10])));
             waddstr(winPtr, "\u2598");
         }
 
@@ -276,19 +256,19 @@ void TrackviewGUI::update()
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
         mvwprintw(winPtr, (int)(yBias + 2 + th), xBias, "    ");
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::TRK_VOICE)));
-        if (disp.data[i].prog == PROG_UNDEFINED) {
+        if (trk.prog == PROG_UNDEFINED) {
             wprintw(winPtr, "---");
         } else {
-            wprintw(winPtr, "%-3d", disp.data[i].prog);
+            wprintw(winPtr, "%-3d", trk.prog);
         }
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::TRK_PAN)));
-        wprintw(winPtr, " %-+3d", disp.data[i].pan);
+        wprintw(winPtr, " %-+3d", trk.pan);
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::TRK_VOL)));
-        wprintw(winPtr, " %-3d", disp.data[i].vol);
+        wprintw(winPtr, " %-3d", trk.vol);
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::TRK_MOD)));
-        wprintw(winPtr, " %-3d", disp.data[i].mod);
+        wprintw(winPtr, " %-3d", trk.mod);
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::TRK_PITCH)));
-        wprintw(winPtr, " %-+6d", disp.data[i].pitch);
+        wprintw(winPtr, " %-+6d", trk.pitch);
 
         // print volume level
         static const char *fracBar[] = {
@@ -322,18 +302,18 @@ void TrackviewGUI::update()
 
         // should be big enough for 16 unicode block bars
         char bar[16 * strlen("\u2688") + 1];
-        uint32_t leftBar = disp.data[i].envL / 2;
-        uint32_t rightBar = disp.data[i].envR / 2;
+        uint32_t leftBar = trk.envL / 2;
+        uint32_t rightBar = trk.envR / 2;
 
         printBar16(bar, 128 - leftBar);
 
-        wattrset(winPtr, COLOR_PAIR(static_cast<int>(!disp.data[i].isMuted ? Color::TRK_LOUDNESS : Color::TRK_LOUDNESS_MUTED)) | A_REVERSE);
+        wattrset(winPtr, COLOR_PAIR(static_cast<int>(!trk.isMuted ? Color::TRK_LOUDNESS : Color::TRK_LOUDNESS_MUTED)) | A_REVERSE);
         wprintw(winPtr, "%s", bar);
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::TRK_LOUDNESS)));
         wprintw(winPtr, "\u2503");
 
         printBar16(bar, rightBar);
-        wattrset(winPtr, COLOR_PAIR(static_cast<int>(!disp.data[i].isMuted ? Color::TRK_LOUDNESS : Color::TRK_LOUDNESS_MUTED)));
+        wattrset(winPtr, COLOR_PAIR(static_cast<int>(!trk.isMuted ? Color::TRK_LOUDNESS : Color::TRK_LOUDNESS_MUTED)));
         wprintw(winPtr, "%s", bar);
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
         whline(winPtr, ' ', width - 60);
@@ -344,7 +324,7 @@ void TrackviewGUI::update()
 
 void TrackviewGUI::scrollDownNoUpdate() 
 {
-    if (cursorPos + 1 < disp.data.size())
+    if (cursorPos + 1 < disp.tracks_used)
         cursorPos++;
 }
 

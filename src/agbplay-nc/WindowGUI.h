@@ -94,6 +94,7 @@ private:
     void rename();
 
     void updateWindowSize();
+    void loadSong(const SongEntry *entry);
 
     void exportLaunch(bool benchmarkOnly, bool separate);
     bool exportReady();

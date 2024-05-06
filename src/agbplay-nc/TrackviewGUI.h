@@ -14,7 +14,7 @@ public:
     ~TrackviewGUI() override;
 
     void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;
-    void SetState(const Sequence& seq, const float *vols, int activeChannels, int maxChannels);
+    void SetState(const PlaybackSongState &songState);
     void SetTitle(const std::string& name);
     void Enter();
     void Leave();

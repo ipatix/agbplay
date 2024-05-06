@@ -39,9 +39,8 @@ const std::vector<PaHostApiTypeId> PlaybackEngine::hostApiPriority = {
  * public PlaybackEngine
  */
 
-PlaybackEngine::PlaybackEngine(TrackviewGUI& trackUI, size_t initSongPos)
-    : trackUI(trackUI),
-    mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit())
+PlaybackEngine::PlaybackEngine(size_t initSongPos)
+    : mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit())
 {
     initContext();
     ctx->InitSong(initSongPos);
@@ -62,12 +61,7 @@ void PlaybackEngine::LoadSong(size_t songPos)
     Stop();
     ctx->InitSong(songPos);
     setupLoudnessCalcs();
-    // TODO replace this with pairs
-    float vols[ctx->seq.tracks.size() * 2];
-    for (size_t i = 0; i < ctx->seq.tracks.size() * 2; i++)
-        vols[i] = 0.0f;
-
-    trackUI.SetState(ctx->seq, vols, 0, 0);
+    updatePlaybackState(true);
 
     if (play)
         Play();
@@ -186,22 +180,6 @@ bool PlaybackEngine::IsPaused() const
     return playerState == State::PAUSED;
 }
 
-void PlaybackEngine::UpdateView()
-{
-    if (playerState != State::THREAD_DELETED &&
-            playerState != State::SHUTDOWN &&
-            playerState != State::TERMINATED) {
-        size_t trks = ctx->seq.tracks.size();
-        assert(trks == trackLoudness.size());
-        float vols[trks * 2];
-        for (size_t i = 0; i < trks; i++)
-            trackLoudness[i].GetLoudness(vols[i*2], vols[i*2+1]);
-
-        /* count number of active PCM channels */
-        trackUI.SetState(ctx->seq, vols, static_cast<int>(ctx->sndChannels.size()), -1);
-    }
-}
-
 void PlaybackEngine::ToggleMute(size_t index)
 {
     mutedTracks[index] = !mutedTracks[index];
@@ -212,11 +190,6 @@ void PlaybackEngine::Mute(size_t index, bool mute)
     mutedTracks[index] = mute;
 }
 
-void PlaybackEngine::GetMasterVolLevels(float& left, float& right)
-{
-    masterLoudness.GetLoudness(left, right);
-}
-
 SongInfo PlaybackEngine::GetSongInfo() const
 {
     SongInfo result;
@@ -225,6 +198,11 @@ SongInfo PlaybackEngine::GetSongInfo() const
     result.reverb = ctx->seq.GetReverb();
     result.priority = ctx->seq.GetPriority();
     return result;
+}
+
+const PlaybackSongState &PlaybackEngine::GetPlaybackSongState() const
+{
+    return songState;
 }
 
 /*
@@ -277,9 +255,12 @@ void PlaybackEngine::threadWorker()
                             masterAudio[j].right += trackAudio[i][j].right;
                         }
                     }
+
                     // blocking write to audio buffer
                     rBuf.Put(masterAudio.data(), masterAudio.size());
                     masterLoudness.CalcLoudness(masterAudio.data(), samplesPerBuffer);
+                    updatePlaybackState();
+
                     if (ctx->HasEnded()) {
                         playerState = State::SHUTDOWN;
                         break;
@@ -304,6 +285,51 @@ void PlaybackEngine::threadWorker()
     // flush buffer
     rBuf.Clear();
     playerState = State::TERMINATED;
+}
+
+void PlaybackEngine::updatePlaybackState(bool reset)
+{
+    if (!reset) {
+        if (playerState == State::THREAD_DELETED ||
+                playerState == State::SHUTDOWN ||
+                playerState == State::TERMINATED)
+            return;
+    }
+
+    const size_t ntrks = ctx->seq.tracks.size();
+    assert(ntrks == trackLoudness.size());
+    std::array<std::pair<float, float>, MAX_TRACKS> vols;
+    for (size_t i = 0; i < ntrks; i++)
+        trackLoudness[i].GetLoudness(vols[i].first, vols[i].second);
+
+    /* Code below should probably be atomic, but we generally do not care about changes to the variables
+     * arriving late to the reading thread. */
+    songState.activeChannels = static_cast<int>(ctx->sndChannels.size());
+    if (reset)
+        songState.maxChannels = 0;
+    else
+        songState.maxChannels = std::max(songState.maxChannels, songState.activeChannels);
+    songState.tracks_used = ntrks;
+
+    for (size_t i = 0; i < ntrks; i++) {
+        const auto &trk_src = ctx->seq.tracks[i];
+        auto &trk_dst = songState.tracks[i];
+
+        trk_dst.trackPtr = static_cast<uint32_t>(trk_src.pos);
+        trk_dst.isCalling = trk_src.reptCount > 0;
+        trk_dst.isMuted = trk_src.muted;
+        trk_dst.vol = trk_src.vol;
+        trk_dst.mod = trk_src.mod;
+        trk_dst.prog = trk_src.prog;
+        trk_dst.pan = trk_src.pan;
+        trk_dst.pitch = trk_src.pitch;
+        trk_dst.envL = uint8_t(std::clamp<uint32_t>(uint32_t(vols[i].first * 768.f), 0, 255));
+        trk_dst.envR = uint8_t(std::clamp<uint32_t>(uint32_t(vols[i].second * 768.f), 0, 255));
+        trk_dst.delay = std::max<uint8_t>(0, static_cast<uint8_t>(trk_src.delay));
+        trk_dst.activeNotes = trk_src.activeNotes;
+    }
+
+    masterLoudness.GetLoudness(songState.masterVolLeft, songState.masterVolRight);
 }
 
 int PlaybackEngine::audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,

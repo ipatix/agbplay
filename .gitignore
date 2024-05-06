@@ -19,3 +19,4 @@ gmon.out
 analysis*
 perf.data
 build
+.vscode

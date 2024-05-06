@@ -10,20 +10,20 @@
 #include <pa_win_wasapi.h>
 #endif
 
-#include "PlayerInterface.h"
+#include "PlaybackEngine.h"
 #include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
 #include "ConfigManager.h"
 
 /*
- * PlayerInterface data
+ * PlaybackEngine data
  */
 
 // first portaudio hostapi has highest priority, last hostapi has lowest
 // if none are available, the default one is selected.
 // they are also the ones which are known to work
-const std::vector<PaHostApiTypeId> PlayerInterface::hostApiPriority = {
+const std::vector<PaHostApiTypeId> PlaybackEngine::hostApiPriority = {
     // Unix
     paJACK,
     paALSA,
@@ -36,10 +36,10 @@ const std::vector<PaHostApiTypeId> PlayerInterface::hostApiPriority = {
 };
 
 /*
- * public PlayerInterface
+ * public PlaybackEngine
  */
 
-PlayerInterface::PlayerInterface(TrackviewGUI& trackUI, size_t initSongPos)
+PlaybackEngine::PlaybackEngine(TrackviewGUI& trackUI, size_t initSongPos)
     : trackUI(trackUI),
     mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit())
 {
@@ -49,14 +49,14 @@ PlayerInterface::PlayerInterface(TrackviewGUI& trackUI, size_t initSongPos)
     portaudioOpen();
 }
 
-PlayerInterface::~PlayerInterface() 
+PlaybackEngine::~PlaybackEngine() 
 {
     // stop and deallocate player thread if required
     Stop();
     portaudioClose();
 }
 
-void PlayerInterface::LoadSong(size_t songPos)
+void PlaybackEngine::LoadSong(size_t songPos)
 {
     bool play = playerState == State::PLAYING;
     Stop();
@@ -73,7 +73,7 @@ void PlayerInterface::LoadSong(size_t songPos)
         Play();
 }
 
-void PlayerInterface::Play()
+void PlaybackEngine::Play()
 {
     switch (playerState) {
     case State::RESTART:
@@ -97,7 +97,7 @@ void PlayerInterface::Play()
         break;
     case State::THREAD_DELETED:
         playerState = State::PLAYING;
-        playerThread = std::make_unique<std::thread>(&PlayerInterface::threadWorker, this);
+        playerThread = std::make_unique<std::thread>(&PlaybackEngine::threadWorker, this);
 #ifdef __linux__
         pthread_setname_np(playerThread->native_handle(), "mixer thread");
 #endif
@@ -106,7 +106,7 @@ void PlayerInterface::Play()
     }
 }
 
-void PlayerInterface::Pause()
+void PlaybackEngine::Pause()
 {
     switch (playerState) {
         case State::RESTART:
@@ -130,7 +130,7 @@ void PlayerInterface::Pause()
     }
 }
 
-void PlayerInterface::Stop()
+void PlaybackEngine::Stop()
 {
     switch (playerState) {
         case State::RESTART:
@@ -160,7 +160,7 @@ void PlayerInterface::Stop()
     }
 }
 
-void PlayerInterface::SpeedDouble()
+void PlaybackEngine::SpeedDouble()
 {
     speedFactor <<= 1;
     if (speedFactor > 1024)
@@ -168,7 +168,7 @@ void PlayerInterface::SpeedDouble()
     ctx->reader.SetSpeedFactor(float(speedFactor) / 64.0f);
 }
 
-void PlayerInterface::SpeedHalve()
+void PlaybackEngine::SpeedHalve()
 {
     speedFactor >>= 1;
     if (speedFactor < 1)
@@ -176,17 +176,17 @@ void PlayerInterface::SpeedHalve()
     ctx->reader.SetSpeedFactor(float(speedFactor) / 64.0f);
 }
 
-bool PlayerInterface::IsPlaying()
+bool PlaybackEngine::IsPlaying()
 {
     return playerState != State::THREAD_DELETED && playerState != State::TERMINATED;
 }
 
-bool PlayerInterface::IsPaused() const
+bool PlaybackEngine::IsPaused() const
 {
     return playerState == State::PAUSED;
 }
 
-void PlayerInterface::UpdateView()
+void PlaybackEngine::UpdateView()
 {
     if (playerState != State::THREAD_DELETED &&
             playerState != State::SHUTDOWN &&
@@ -202,22 +202,22 @@ void PlayerInterface::UpdateView()
     }
 }
 
-void PlayerInterface::ToggleMute(size_t index)
+void PlaybackEngine::ToggleMute(size_t index)
 {
     mutedTracks[index] = !mutedTracks[index];
 }
 
-void PlayerInterface::Mute(size_t index, bool mute)
+void PlaybackEngine::Mute(size_t index, bool mute)
 {
     mutedTracks[index] = mute;
 }
 
-void PlayerInterface::GetMasterVolLevels(float& left, float& right)
+void PlaybackEngine::GetMasterVolLevels(float& left, float& right)
 {
     masterLoudness.GetLoudness(left, right);
 }
 
-SongInfo PlayerInterface::GetSongInfo() const
+SongInfo PlaybackEngine::GetSongInfo() const
 {
     SongInfo result;
     result.songHeaderPos = ctx->seq.GetSongHeaderPos();
@@ -228,10 +228,10 @@ SongInfo PlayerInterface::GetSongInfo() const
 }
 
 /*
- * private PlayerInterface
+ * private PlaybackEngine
  */
 
-void PlayerInterface::initContext()
+void PlaybackEngine::initContext()
 {
     const auto& cfg = ConfigManager::Instance().GetCfg();
 
@@ -244,7 +244,7 @@ void PlayerInterface::initContext()
             );
 }
 
-void PlayerInterface::threadWorker()
+void PlaybackEngine::threadWorker()
 {
     size_t samplesPerBuffer = ctx->mixer.GetSamplesPerBuffer();
     std::vector<sample> silence(samplesPerBuffer, sample{0.0f, 0.0f});
@@ -290,7 +290,7 @@ void PlayerInterface::threadWorker()
                 rBuf.Put(silence.data(), silence.size());
                 break;
             default:
-                throw Xcept("Internal PlayerInterface error: %d", (int)playerState);
+                throw Xcept("Internal PlaybackEngine error: %d", (int)playerState);
             }
         }
         // reset song state after it has finished
@@ -306,7 +306,7 @@ void PlayerInterface::threadWorker()
     playerState = State::TERMINATED;
 }
 
-int PlayerInterface::audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,
+int PlaybackEngine::audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,
         const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags, void *userData)
 {
     (void)inputBuffer;
@@ -317,14 +317,14 @@ int PlayerInterface::audioCallback(const void *inputBuffer, void *outputBuffer, 
     return 0;
 }
 
-void PlayerInterface::setupLoudnessCalcs()
+void PlaybackEngine::setupLoudnessCalcs()
 {
     trackLoudness.clear();
     for (size_t i = 0; i < ctx->seq.tracks.size(); i++)
         trackLoudness.emplace_back(5.0f);
 }
 
-void PlayerInterface::portaudioOpen()
+void PlaybackEngine::portaudioOpen()
 {
     // init host api
     std::vector<PaHostApiTypeId> hostApiPrioritiesWithFallback = hostApiPriority;
@@ -400,7 +400,7 @@ void PlayerInterface::portaudioOpen()
         throw Xcept("Unable to initialize sound output: Host API could not be initialized");
 }
 
-void PlayerInterface::portaudioClose()
+void PlaybackEngine::portaudioClose()
 {
     PaError err;
     if ((err = Pa_StopStream(audioStream)) != paNoError) {

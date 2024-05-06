@@ -5,7 +5,7 @@
 
 #include "CursesWin.h"
 #include "SoundData.h"
-#include "DisplayContainer.h"
+#include "PlaybackSongState.h"
 
 class TrackviewGUI : public CursesWin 
 {
@@ -29,7 +29,8 @@ private:
     void scrollDownNoUpdate();
     void scrollUpNoUpdate();
 
-    DisplayContainer disp; std::string songName; 
+    PlaybackSongState disp;
+    std::string songName; 
     uint32_t cursorPos;
     int maxChannels;
     int activeChannels;

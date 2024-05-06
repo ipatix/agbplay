@@ -21,11 +21,11 @@ struct DisplayData
     std::bitset<NUM_NOTES> activeNotes;
 };
 
-struct DisplayContainer 
+struct PlaybackSongState 
 {
-    DisplayContainer() = default;
-    DisplayContainer(const DisplayContainer&) = delete;
-    DisplayContainer& operator=(const DisplayContainer&) = delete;
+    PlaybackSongState() = default;
+    PlaybackSongState(const PlaybackSongState&) = delete;
+    PlaybackSongState& operator=(const PlaybackSongState&) = delete;
 
     std::vector<DisplayData> data;
 };

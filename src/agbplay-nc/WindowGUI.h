@@ -54,7 +54,7 @@
 #include "TitlebarGUI.h"
 #include "RomviewGUI.h"
 #include "TrackviewGUI.h"
-#include "PlayerInterface.h"
+#include "PlaybackEngine.h"
 #include "VUMeterGUI.h"
 #include "ConfigManager.h"
 
@@ -110,7 +110,7 @@ private:
 
     // resource
     SongTable& songTable;
-    std::unique_ptr<PlayerInterface> mplay;
+    std::unique_ptr<PlaybackEngine> mplay;
     std::unique_ptr<std::thread> exportThread;
     std::atomic<bool> exportBusy = false;
 

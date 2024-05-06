@@ -93,7 +93,7 @@ WindowGUI::WindowGUI(SongTable& songTable)
             VUMETER_XPOS(height, width));
 
     Rom& rom = Rom::Instance();
-    mplay = std::make_unique<PlayerInterface>(
+    mplay = std::make_unique<PlaybackEngine>(
             *trackUI,
             rom.ReadAgbPtrToPos(songTable.GetSongTablePos())
             );

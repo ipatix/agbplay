@@ -7,20 +7,20 @@
 #include <portaudio.h>
 
 #include "TrackviewGUI.h"
-#include "DisplayContainer.h"
+#include "PlaybackSongState.h"
 #include "Constants.h"
 #include "GameConfig.h"
 #include "Ringbuffer.h"
 #include "LoudnessCalculator.h"
 #include "PlayerContext.h"
 
-class PlayerInterface 
+class PlaybackEngine 
 {
 public:
-    PlayerInterface(TrackviewGUI& trackUI, size_t initSongPos);
-    PlayerInterface(const PlayerInterface&) = delete;
-    PlayerInterface& operator=(const PlayerInterface&) = delete;
-    ~PlayerInterface();
+    PlaybackEngine(TrackviewGUI& trackUI, size_t initSongPos);
+    PlaybackEngine(const PlaybackEngine&) = delete;
+    PlaybackEngine& operator=(const PlaybackEngine&) = delete;
+    ~PlaybackEngine();
 
     void LoadSong(size_t songPos);
     void Play();

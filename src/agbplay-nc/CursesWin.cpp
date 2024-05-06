@@ -18,7 +18,7 @@ CursesWin::~CursesWin() {
     if (delwin(winPtr) == ERR) {
         //throw Xcept("Error while deleteing curses window [delwin]");
         std::cerr << "FATAL ERROR: deleting window of curses window failed" << std::endl;
-        abort();
+        std::abort();
     }
 }
 

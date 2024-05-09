@@ -11,7 +11,7 @@
  * to a PlayerContext */
 
 struct PlayerContext {
-    PlayerContext(int8_t maxLoops, uint8_t maxTracks, EnginePars pars);
+    PlayerContext(int8_t maxLoops, uint8_t maxTracks, MP2KSoundMode soundMode);
     PlayerContext(const PlayerContext&) = delete;
     PlayerContext& operator=(const PlayerContext&) = delete;
 
@@ -24,7 +24,7 @@ struct PlayerContext {
     SoundMixer mixer;
     Sequence seq;
     SoundBank bnk;
-    EnginePars pars;
+    MP2KSoundMode soundMode;
 
     // sound channels
     std::list<SoundChannel> sndChannels;

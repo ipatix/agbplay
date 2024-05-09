@@ -105,7 +105,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     PlayerContext ctx(
             ConfigManager::Instance().GetMaxLoopsExport(),
             cfg.GetTrackLimit(),
-            EnginePars(cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq())
+            MP2KSoundMode{cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()}
             );
     ctx.InitSong(songTable.GetPosOfSong(uid));
     size_t blocksRendered = 0;

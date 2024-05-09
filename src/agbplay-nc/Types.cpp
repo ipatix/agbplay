@@ -117,14 +117,3 @@ SampleInfo::SampleInfo(const int8_t *samplePtr, float midCfreq, bool loopEnabled
 SampleInfo::SampleInfo()
 {
 }
-
-/*
- * public EnginePars
- */
-
-EnginePars::EnginePars(uint8_t vol, uint8_t rev, uint8_t freq)
-{
-    this->vol = vol;
-    this->rev = rev;
-    this->freq = freq;
-}

@@ -76,13 +76,11 @@ struct SampleInfo
     bool loopEnabled;
 };
 
-struct EnginePars
+struct MP2KSoundMode
 {
-    EnginePars(uint8_t vol, uint8_t rev, uint8_t freq);
-
-    uint8_t vol;
-    uint8_t rev;
-    uint8_t freq;
+    const uint8_t vol;
+    const uint8_t rev;
+    const uint8_t freq;
 };
 
 struct SongInfo

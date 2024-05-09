@@ -218,7 +218,7 @@ void PlaybackEngine::initContext()
     ctx = std::make_unique<PlayerContext>(
             ConfigManager::Instance().GetMaxLoopsPlaylist(),
             cfg.GetTrackLimit(),
-            EnginePars(cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq())
+            MP2KSoundMode{cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()}
             );
 }
 

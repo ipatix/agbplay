@@ -8,17 +8,16 @@
 #include "SoundChannel.h"
 #include "Util.h"
 #include "Xcept.h"
-#include "ConfigManager.h"
+#include "PlayerContext.h"
 
 /*
  * public SoundChannel
  */
 
-SoundChannel::SoundChannel(SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
-    : env(env), note(note), sInfo(sInfo), fixed(fixed) 
+SoundChannel::SoundChannel(const PlayerContext &ctx, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
+    : ctx(ctx), env(env), note(note), sInfo(sInfo), fixed(fixed) 
 {
-    GameConfig& cfg = ConfigManager::Instance().GetCfg();
-    ResamplerType t = fixed ? cfg.GetResTypeFixed() : cfg.GetResType();
+    const ResamplerType t = fixed ? ctx.mixingOptions.resamplerTypeFixed : ctx.mixingOptions.resamplerTypeNormal;
     switch (t) {
     case ResamplerType::NEAREST:
         this->rs = std::make_unique<NearestResampler>();

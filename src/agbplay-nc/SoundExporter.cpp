@@ -98,15 +98,33 @@ void SoundExporter::writeSilence(SNDFILE *ofile, double seconds)
 
 size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t uid)
 {
-    // setup our generators
-    GameConfig& cfg = ConfigManager::Instance().GetCfg();
+    const auto &cm = ConfigManager::Instance();
+    const auto &cfg = cm.GetCfg();
 
+    const MP2KSoundMode soundMode{
+        cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()
+    };
+
+    const AgbplayMixingOptions mixingOptions{
+        .resamplerTypeNormal = cfg.GetResType(),
+        .resamplerTypeFixed = cfg.GetResTypeFixed(),
+        .reverbType = cfg.GetRevType(),
+        .cgbPolyphony = cm.GetCgbPolyphony(),
+        .dmaBufferLen = cfg.GetRevBufSize(),
+        .trackLimit = cfg.GetTrackLimit(),
+        .maxLoops = cm.GetMaxLoopsExport(),
+        .padSilenceSecondsStart = cm.GetPadSecondsStart(),
+        .padSilenceSecondsEnd = cm.GetPadSecondsEnd(),
+        .accurateCh3Quantization = cfg.GetAccurateCh3Quantization(),
+        .accurateCh3Volume = cfg.GetAccurateCh3Volume(),
+        .emulateCgbSustainBug = cfg.GetSimulateCGBSustainBug(),
+    };
     
     PlayerContext ctx(
-            ConfigManager::Instance().GetMaxLoopsExport(),
-            cfg.GetTrackLimit(),
-            MP2KSoundMode{cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()}
-            );
+        soundMode,
+        mixingOptions
+    );
+
     ctx.InitSong(songTable.GetPosOfSong(uid));
     size_t blocksRendered = 0;
     size_t nBlocks = ctx.mixer.GetSamplesPerBuffer();

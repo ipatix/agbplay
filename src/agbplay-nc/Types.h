@@ -83,6 +83,23 @@ struct MP2KSoundMode
     const uint8_t freq;
 };
 
+struct AgbplayMixingOptions
+{
+    // find a better name
+    const ResamplerType resamplerTypeNormal;
+    const ResamplerType resamplerTypeFixed;
+    const ReverbType reverbType;
+    const CGBPolyphony cgbPolyphony;
+    const uint32_t dmaBufferLen;
+    const uint8_t trackLimit;
+    const int8_t maxLoops;
+    const double padSilenceSecondsStart;
+    const double padSilenceSecondsEnd;
+    const bool accurateCh3Quantization;
+    const bool accurateCh3Volume;
+    const bool emulateCgbSustainBug; // other places may call this 'simulate', should probably use 'emulate' everywhere
+};
+
 struct SongInfo
 {
     size_t songHeaderPos;

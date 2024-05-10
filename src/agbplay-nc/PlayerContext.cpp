@@ -1,8 +1,8 @@
 #include "PlayerContext.h"
 #include "ConfigManager.h"
 
-PlayerContext::PlayerContext(int8_t maxLoops, uint8_t maxTracks, MP2KSoundMode soundMode)
-    : reader(*this, maxLoops), mixer(*this, STREAM_SAMPLERATE, 1.0f), seq(maxTracks), soundMode(soundMode)
+PlayerContext::PlayerContext(const MP2KSoundMode &soundMode, const AgbplayMixingOptions &mixingOptions)
+    : reader(*this), mixer(*this, STREAM_SAMPLERATE, 1.0f), seq(mixingOptions.trackLimit), soundMode(soundMode), mixingOptions(mixingOptions)
 {
 }
 

@@ -8,14 +8,14 @@
 #include "Debug.h"
 #include "Util.h"
 #include "Constants.h"
-#include "ConfigManager.h"
+#include "PlayerContext.h"
 
 /*
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel(ADSR env, Note note, bool useStairstep)
-    : env(env), note(note), useStairstep(useStairstep)
+CGBChannel::CGBChannel(const PlayerContext &ctx, ADSR env, Note note, bool useStairstep)
+    : ctx(ctx), env(env), note(note), useStairstep(useStairstep)
 {
     this->env.att &= 0x7;
     this->env.dec &= 0x7;
@@ -121,8 +121,6 @@ bool CGBChannel::IsChn3() const
 
 void CGBChannel::stepEnvelope()
 {
-    const GameConfig& cfg = ConfigManager::Instance().GetCfg();
-
     if (envState == EnvState::INIT) {
         if (stop) {
             envState = EnvState::DEAD;
@@ -219,7 +217,7 @@ pseudo_echo_start:
             }
         } else if (envState == EnvState::SUS) {
 sustain_state:
-            if (cfg.GetSimulateCGBSustainBug()) {
+            if (ctx.mixingOptions.emulateCgbSustainBug) {
                 envFrameCount = 7;
                 if (IsChn3())
                     envLevelCur = envSustain;
@@ -334,8 +332,6 @@ void CGBChannel::updateVolFade()
 
 void CGBChannel::applyVol()
 {
-    const GameConfig& cfg = ConfigManager::Instance().GetCfg();
-
     /* because agbplay generally wants to avoid the center panorama dilemma
      * (i.e. 0 pan not being in the center of the [-128,127] range)
      * we delay applying pan changes at the channel level, so we don't do the slightly
@@ -360,7 +356,7 @@ void CGBChannel::applyVol()
     /* This envLevelCur assignment used to be below envSustain assignment and the only reason
      * it's now up here is because of a bug in the original mp2k where only 1 in 7 cases the
      * envelope sustain level would be applied correctly. */
-    if (cfg.GetSimulateCGBSustainBug()) {
+    if (ctx.mixingOptions.emulateCgbSustainBug) {
         if (!IsChn3() && mp2k_sus_vol_bug_update && envState == EnvState::SUS) {
             envLevelCur = envSustain;
             mp2k_sus_vol_bug_update = false;
@@ -375,8 +371,8 @@ void CGBChannel::applyVol()
  * public SquareChannel
  */
 
-SquareChannel::SquareChannel(WaveDuty wd, ADSR env, Note note, uint8_t sweep)
-    : CGBChannel(env, note)
+SquareChannel::SquareChannel(const PlayerContext &ctx, WaveDuty wd, ADSR env, Note note, uint8_t sweep)
+    : CGBChannel(ctx, env, note)
       , sweep(sweep)
       , sweepEnabled(isSweepEnabled(sweep))
       , sweepConvergence(sweep2convergence(sweep))
@@ -552,8 +548,8 @@ uint8_t SquareChannel::sweepTime(uint8_t sweep)
  * public WaveChannel
  */
 
-WaveChannel::WaveChannel(const uint8_t *wavePtr, ADSR env, Note note, bool useStairstep)
-    : CGBChannel(env, note, useStairstep), wavePtr(wavePtr)
+WaveChannel::WaveChannel(const PlayerContext &ctx, const uint8_t *wavePtr, ADSR env, Note note, bool useStairstep)
+    : CGBChannel(ctx, env, note, useStairstep), wavePtr(wavePtr)
 {
     this->rs = std::make_unique<BlepResampler>();
 
@@ -569,9 +565,7 @@ WaveChannel::WaveChannel(const uint8_t *wavePtr, ADSR env, Note note, bool useSt
     }
     dcCorrection100 = -sum * (1.0f / 32.0f);
 
-    GameConfig& cfg = ConfigManager::Instance().GetCfg();
-
-    if (cfg.GetAccurateCh3Quantization()) {
+    if (ctx.mixingOptions.accurateCh3Quantization) {
         sum = 0.0f;
         for (int i = 0; i < 16; i++) {
             uint8_t twoNibbles = wavePtr[i];
@@ -653,11 +647,9 @@ bool WaveChannel::IsChn3() const
 
 VolumeFade WaveChannel::getVol() const
 {
-    GameConfig& cfg = ConfigManager::Instance().GetCfg();
-
     auto retval = CGBChannel::getVol();
 
-    if (!cfg.GetAccurateCh3Volume()) {
+    if (!ctx.mixingOptions.accurateCh3Volume) {
         return retval;
     }
 
@@ -690,9 +682,7 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
     size_t i = fetchBuffer.size();
     fetchBuffer.resize(samplesRequired);
 
-    GameConfig& cfg = ConfigManager::Instance().GetCfg();
-
-    if (cfg.GetAccurateCh3Quantization()) {
+    if (_this->ctx.mixingOptions.accurateCh3Quantization) {
         /* WARNING; VERY UGLY AND HACKY */
         VolumeFade fade = _this->getVol();
         const float fromVol = std::max(fade.fromVolLeft, fade.fromVolRight);
@@ -765,8 +755,8 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
  * public NoiseChannel
  */
 
-NoiseChannel::NoiseChannel(NoisePatt np, ADSR env, Note note)
-    : CGBChannel(env, note)
+NoiseChannel::NoiseChannel(const PlayerContext &ctx, NoisePatt np, ADSR env, Note note)
+    : CGBChannel(ctx, env, note)
 {
     this->rs = std::make_unique<NearestResampler>();
     if (np == NoisePatt::FINE) {

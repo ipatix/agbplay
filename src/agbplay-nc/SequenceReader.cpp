@@ -7,7 +7,6 @@
 #include "Debug.h"
 #include "Rom.h"
 #include "PlayerContext.h"
-#include "ConfigManager.h"
 
 #define NOTE_TIE -1
 #define NOTE_ALL 0xFE
@@ -47,8 +46,8 @@ const std::map<uint8_t, int8_t> SequenceReader::noteLut = {
  * public SequenceReader
  */
 
-SequenceReader::SequenceReader(PlayerContext& ctx, int8_t maxLoops) 
-    : ctx(ctx), maxLoops(maxLoops)
+SequenceReader::SequenceReader(PlayerContext& ctx) 
+    : ctx(ctx)
 {
 }
 
@@ -263,12 +262,9 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     note.trackIdx = trackIdx;
 
     // prepare cgb polyphony suppression
-    const ConfigManager& cm = ConfigManager::Instance();
-    CGBPolyphony cgbPolyphony = cm.GetCgbPolyphony();
-
     auto cgbPolyphonySuppressFunc = [&](auto& channels) {
         // return 'true' if a note is allowed to play, 'false' if others with higher priority are playing
-        if (cgbPolyphony == CGBPolyphony::MONO_STRICT) {
+        if (ctx.mixingOptions.cgbPolyphony == CGBPolyphony::MONO_STRICT) {
             // only one tone should play in mono strict mode
             assert(channels.size() <= 1);
             if (channels.size() > 0) {
@@ -284,7 +280,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                 }
             }
             channels.clear();
-        } else if (cgbPolyphony == CGBPolyphony::MONO_SMOOTH) {
+        } else if (ctx.mixingOptions.cgbPolyphony == CGBPolyphony::MONO_SMOOTH) {
             for (auto& chn : channels) {
                 if (chn.GetState() < EnvState::PSEUDO_ECHO && !chn.IsFastReleasing()) {
                     const Note& playing_note = chn.GetNote();
@@ -305,6 +301,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     switch (ctx.bnk.GetInstrType(trk.prog, trk.lastNoteKey)) {
         case InstrType::PCM:
             ctx.sndChannels.emplace_back(
+                    ctx,
                     ctx.bnk.GetSampInfo(trk.prog, trk.lastNoteKey),
                     ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
                     note,
@@ -312,6 +309,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             break;
         case InstrType::PCM_FIXED:
             ctx.sndChannels.emplace_back(
+                    ctx,
                     ctx.bnk.GetSampInfo(trk.prog, trk.lastNoteKey),
                     ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
                     note,
@@ -321,6 +319,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             if (!cgbPolyphonySuppressFunc(ctx.sq1Channels))
                 return;
             ctx.sq1Channels.emplace_back(
+                    ctx,
                     ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
                     ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
                     note,
@@ -330,6 +329,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             if (!cgbPolyphonySuppressFunc(ctx.sq2Channels))
                 return;
             ctx.sq2Channels.emplace_back(
+                    ctx,
                     ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
                     ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
                     note,
@@ -339,15 +339,17 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             if (!cgbPolyphonySuppressFunc(ctx.waveChannels))
                 return;
             ctx.waveChannels.emplace_back(
+                    ctx,
                     ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wavePtr,
                     ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
                     note,
-                    cm.GetCfg().GetAccurateCh3Volume());
+                    ctx.mixingOptions.accurateCh3Volume);
             break;
         case InstrType::NOISE:
             if (!cgbPolyphonySuppressFunc(ctx.noiseChannels))
                 return;
             ctx.noiseChannels.emplace_back(
+                    ctx,
                     ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).np,
                     ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
                     note);
@@ -375,7 +377,7 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
         // GOTO
         if (trackIdx == 0) {
             // handle agbplay's internal loop counter
-            if (maxLoops != LOOP_ENDLESS && numLoops++ >= maxLoops && !endReached) {
+            if (ctx.mixingOptions.maxLoops != LOOP_ENDLESS && numLoops++ >= ctx.mixingOptions.maxLoops && !endReached) {
                 endReached = true;
                 ctx.mixer.StartFadeOut(SONG_FADE_OUT_TIME);
             }

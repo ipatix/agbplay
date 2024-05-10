@@ -211,15 +211,32 @@ const PlaybackSongState &PlaybackEngine::GetPlaybackSongState() const
 
 void PlaybackEngine::initContext()
 {
-    const auto& cfg = ConfigManager::Instance().GetCfg();
+    const auto &cm = ConfigManager::Instance();
+    const auto &cfg = cm.GetCfg();
 
-    /* We could make the context a member variable instead of
-     * a unique_ptr, but initialization get's a little messy that way */
+    const MP2KSoundMode soundMode{
+        cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()
+    };
+
+    const AgbplayMixingOptions mixingOptions{
+        .resamplerTypeNormal = cfg.GetResType(),
+        .resamplerTypeFixed = cfg.GetResTypeFixed(),
+        .reverbType = cfg.GetRevType(),
+        .cgbPolyphony = cm.GetCgbPolyphony(),
+        .dmaBufferLen = cfg.GetRevBufSize(),
+        .trackLimit = cfg.GetTrackLimit(),
+        .maxLoops = cm.GetMaxLoopsPlaylist(),
+        .padSilenceSecondsStart = cm.GetPadSecondsStart(),
+        .padSilenceSecondsEnd = cm.GetPadSecondsEnd(),
+        .accurateCh3Quantization = cfg.GetAccurateCh3Quantization(),
+        .accurateCh3Volume = cfg.GetAccurateCh3Volume(),
+        .emulateCgbSustainBug = cfg.GetSimulateCGBSustainBug(),
+    };
+
     ctx = std::make_unique<PlayerContext>(
-            ConfigManager::Instance().GetMaxLoopsPlaylist(),
-            cfg.GetTrackLimit(),
-            MP2KSoundMode{cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()}
-            );
+        soundMode,
+        mixingOptions
+    );
 }
 
 void PlaybackEngine::threadWorker()

@@ -12,7 +12,7 @@ struct PlayerContext;
 class SequenceReader
 {
 public:
-    SequenceReader(PlayerContext& ctx, int8_t maxLoops);
+    SequenceReader(PlayerContext& ctx);
     SequenceReader(const SequenceReader&) = delete;
     SequenceReader& operator=(const SequenceReader&) = delete;
 
@@ -30,7 +30,6 @@ private:
     PlayerContext& ctx;
 
     bool endReached = false;
-    const int8_t maxLoops = 1;
     uint8_t numLoops = 0;
     float speedFactor = 1.0f;
 

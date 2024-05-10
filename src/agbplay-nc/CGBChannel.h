@@ -11,10 +11,12 @@
 
 #define NOISE_SAMPLING_FREQ 65536.0f
 
+struct PlayerContext;
+
 class CGBChannel
 {
 public: 
-    CGBChannel(ADSR env, Note note, bool useStairstep = false);
+    CGBChannel(const PlayerContext &ctx, ADSR env, Note note, bool useStairstep = false);
     CGBChannel(const CGBChannel&) = delete;
     CGBChannel& operator=(const CGBChannel&) = delete;
     virtual ~CGBChannel() = default;
@@ -40,6 +42,7 @@ protected:
     static float timer2freq(float timer);
     static float freq2timer(float freq);
 
+    const PlayerContext &ctx;
     std::unique_ptr<Resampler> rs;
     enum class Pan { LEFT, CENTER, RIGHT };
     uint32_t pos = 0;
@@ -69,7 +72,7 @@ protected:
 class SquareChannel : public CGBChannel
 {
 public:
-    SquareChannel(WaveDuty wd, ADSR env, Note note, uint8_t sweep);
+    SquareChannel(const PlayerContext &ctx, WaveDuty wd, ADSR env, Note note, uint8_t sweep);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
@@ -95,7 +98,7 @@ private:
 class WaveChannel : public CGBChannel
 {
 public:
-    WaveChannel(const uint8_t *wavePtr, ADSR env, Note note, bool useStairstep);
+    WaveChannel(const PlayerContext &ctx, const uint8_t *wavePtr, ADSR env, Note note, bool useStairstep);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
@@ -113,7 +116,7 @@ private:
 class NoiseChannel : public CGBChannel
 {
 public:
-    NoiseChannel(NoisePatt np, ADSR env, Note note);
+    NoiseChannel(const PlayerContext &ctx, NoisePatt np, ADSR env, Note note);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;

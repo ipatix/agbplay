@@ -6,7 +6,6 @@
 #include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
-#include "ConfigManager.h"
 #include "PlayerContext.h"
 
 /*
@@ -25,7 +24,10 @@ void SoundMixer::Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVol
     this->numTracks = numTracks;
     this->pcmMasterVolume = pcmMasterVolume;
 
-    GameConfig& gameCfg = ConfigManager::Instance().GetCfg();
+    const uint8_t numDmaBuffers = std::max(
+        static_cast<uint8_t>(2),
+        static_cast<uint8_t>(ctx.mixingOptions.dmaBufferLen / (fixedModeRate / AGB_FPS))
+    );
 
     revdsps.resize(numTracks);
     for (size_t i = 0; i < numTracks; i++)
@@ -33,30 +35,30 @@ void SoundMixer::Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVol
         switch (rtype) {
         case ReverbType::NORMAL:
             revdsps[i] = std::make_unique<ReverbEffect>(
-                    reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)));
+                    reverb, sampleRate, numDmaBuffers);
             break;
         case ReverbType::NONE:
             revdsps[i] = std::make_unique<ReverbEffect>(
-                    0, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)));
+                    0, sampleRate, numDmaBuffers);
             break;
         case ReverbType::GS1:
             revdsps[i] = std::make_unique<ReverbGS1>(
-                    reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)));
+                    reverb, sampleRate, numDmaBuffers);
             break;
         case ReverbType::GS2:
             revdsps[i] = std::make_unique<ReverbGS2>(
-                    reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
+                    reverb, sampleRate, numDmaBuffers,
                     0.4140625f, -0.0625f);
             break;
             // Mario Power Tennis uses same coefficients as Mario Golf Advance Tour
         case ReverbType::MGAT:
             revdsps[i] = std::make_unique<ReverbGS2>(
-                    reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)),
+                    reverb, sampleRate, numDmaBuffers,
                     0.25f, -0.046875f);
             break;
         case ReverbType::TEST:
             revdsps[i] = std::make_unique<ReverbTest>(
-                    reverb, sampleRate, uint8_t(gameCfg.GetRevBufSize() / (fixedModeRate / AGB_FPS)));
+                    reverb, sampleRate, numDmaBuffers);
             break;
         default:
             throw Xcept("Invalid Reverb Effect");

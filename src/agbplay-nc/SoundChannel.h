@@ -7,6 +7,8 @@
 #include "Types.h"
 #include "Resampler.h"
 
+struct PlayerContext;
+
 class SoundChannel
 {
 private:
@@ -19,7 +21,7 @@ private:
         float interStep;
     };
 public:
-    SoundChannel(SampleInfo sInfo, ADSR env, const Note& note, bool fixed);
+    SoundChannel(const PlayerContext &ctx, SampleInfo sInfo, ADSR env, const Note& note, bool fixed);
     SoundChannel(const SoundChannel&) = delete;
     SoundChannel& operator=(const SoundChannel&) = delete;
 
@@ -43,6 +45,7 @@ private:
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
     static bool sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequires, void *cbdata);
 
+    const PlayerContext &ctx;
     std::unique_ptr<Resampler> rs;
     uint32_t pos = 0;
     float interPos = 0.0f;

@@ -504,7 +504,11 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
             }
             auto stopFunc = [&](auto& channels) {
                 for (auto& chn : channels) {
-                    if (chn.GetTrackIdx() == trackIdx && chn.GetNote().midiKeyTrackData == key) {
+                    if (chn.GetTrackIdx() != trackIdx)
+                        continue;
+                    if (chn.IsReleasing())
+                        continue;
+                    if (chn.GetNote().midiKeyTrackData == key) {
                         chn.Release();
                         break;
                     }

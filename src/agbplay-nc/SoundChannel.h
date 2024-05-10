@@ -30,6 +30,7 @@ public:
     void SetVol(uint16_t vol, int16_t pan);
     const Note& GetNote() const;
     void Release();
+    bool IsReleasing() const;
     void Kill();
     void SetPitch(int16_t pitch);
     bool TickNote(); // returns true if note remains active

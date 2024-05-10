@@ -144,6 +144,11 @@ void SoundChannel::Release()
     stop = true;
 }
 
+bool SoundChannel::IsReleasing() const
+{
+    return stop;
+}
+
 void SoundChannel::Kill()
 {
     envState = EnvState::DEAD;

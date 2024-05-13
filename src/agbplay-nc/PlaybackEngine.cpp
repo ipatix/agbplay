@@ -20,6 +20,20 @@
 #include "ConfigManager.h"
 
 /*
+ * set JACK client name
+ */
+
+/* use a global object to run the function before Pa_Initialize() */
+
+#if __has_include(<pa_jack.h>)
+struct JackNameSetter {
+    JackNameSetter() {
+        PaJack_SetClientName("agbplay");
+    }
+} jackNameSetter;
+#endif
+
+/*
  * PlaybackEngine data
  */
 
@@ -381,10 +395,6 @@ void PlaybackEngine::portaudioOpen()
     const auto f = std::find(hostApiPrioritiesWithFallback.begin(), hostApiPrioritiesWithFallback.end(), defaultHostApi.typeId());
     if (f == hostApiPrioritiesWithFallback.end())
         hostApiPrioritiesWithFallback.push_back(defaultHostApi.typeId());
-
-#if __has_include(<pa_jack.h>)
-    PaJack_SetClientName("agbplay");
-#endif
 
     bool streamOpen = false;
 

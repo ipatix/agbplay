@@ -9,6 +9,9 @@
 #if __has_include(<pa_win_wasapi.h>)
 #include <pa_win_wasapi.h>
 #endif
+#if __has_include(<pa_jack.h>)
+#include <pa_jack.h>
+#endif
 
 #include "PlaybackEngine.h"
 #include "Xcept.h"
@@ -369,30 +372,30 @@ void PlaybackEngine::setupLoudnessCalcs()
 
 void PlaybackEngine::portaudioOpen()
 {
+    auto &sys = portaudio::System::instance();
+
     // init host api
     std::vector<PaHostApiTypeId> hostApiPrioritiesWithFallback = hostApiPriority;
-    const PaHostApiIndex defaultHostApiIndex = Pa_GetDefaultHostApi();
-    if (defaultHostApiIndex < 0)
-        throw Xcept("Pa_GetDefaultHostApi(): No host API avilable: %s", Pa_GetErrorText(defaultHostApiIndex));
-    const PaHostApiInfo *defaultHostApiInfo = Pa_GetHostApiInfo(defaultHostApiIndex);
-    if (defaultHostApiInfo == nullptr)
-        throw Xcept("Pa_GetHostApiInfo(): failed with valid index");
-    const auto f = std::find(hostApiPrioritiesWithFallback.begin(), hostApiPrioritiesWithFallback.end(), defaultHostApiInfo->type);
+    const auto &defaultHostApi = sys.defaultHostApi();
+    const auto &defaultHostApiType = defaultHostApi.typeId();
+    const auto f = std::find(hostApiPrioritiesWithFallback.begin(), hostApiPrioritiesWithFallback.end(), defaultHostApi.typeId());
     if (f == hostApiPrioritiesWithFallback.end())
-        hostApiPrioritiesWithFallback.push_back(defaultHostApiInfo->type);
+        hostApiPrioritiesWithFallback.push_back(defaultHostApi.typeId());
+
+#if __has_include(<pa_jack.h>)
+    PaJack_SetClientName("agbplay");
+#endif
 
     bool streamOpen = false;
 
+    /* Loop over all wanted host APIs in the prioritized order and use the first one,
+     * which can successfully open a stream with the default device. */
     for (const auto apiType : hostApiPrioritiesWithFallback) {
         const PaHostApiIndex hostApiIndex = Pa_HostApiTypeIdToHostApiIndex(apiType);
-        // prioritized host api available ?
         if (hostApiIndex < 0)
             continue;
 
-        const PaHostApiInfo *apiInfo = Pa_GetHostApiInfo(hostApiIndex);
-        if (apiInfo == nullptr)
-            throw Xcept("Pa_GetHostApiInfo with valid index failed");
-        const PaDeviceIndex deviceIndex = apiInfo->defaultOutputDevice;
+        const auto &currentHostApi = sys.hostApiByIndex(hostApiIndex);
 
         std::shared_ptr<void> hostApiSpecificStreamInfo;
 
@@ -408,30 +411,33 @@ void PlaybackEngine::portaudioOpen()
         }
 #endif
 
-        const PaDeviceInfo *devInfo = Pa_GetDeviceInfo(deviceIndex);
-        if (devInfo == nullptr)
-            throw Xcept("Pa_GetDeviceInfo(): failed with valid index");
+        portaudio::DirectionSpecificStreamParameters outPars(
+            currentHostApi.defaultOutputDevice(),
+            2,  // stereo
+            portaudio::SampleDataFormat::FLOAT32,
+            true,
+            currentHostApi.defaultOutputDevice().defaultLowOutputLatency(),
+            hostApiSpecificStreamInfo.get()
+        );
 
-        PaStreamParameters outputStreamParameters;
-        outputStreamParameters.device = deviceIndex;
-        outputStreamParameters.channelCount = 2;    // stereo
-        outputStreamParameters.sampleFormat = paFloat32;
-        outputStreamParameters.suggestedLatency = devInfo->defaultLowOutputLatency;
-        outputStreamParameters.hostApiSpecificStreamInfo = hostApiSpecificStreamInfo.get();
+        portaudio::StreamParameters pars(
+            portaudio::DirectionSpecificStreamParameters::null(),
+            outPars,
+            ctx->mixer.GetSampleRate(),
+            paFramesPerBufferUnspecified,
+            paNoFlag
+        );
 
-        const uint32_t rate = ctx->mixer.GetSampleRate();
-        PaError err = Pa_OpenStream(&audioStream, nullptr, &outputStreamParameters, rate, paFramesPerBufferUnspecified, paNoFlag, audioCallback, (void *)&rBuf);
-        if (err != paNoError) {
-            Debug::print("Pa_OpenStream(): unable to open stream with host API %s: %s", apiInfo->name, Pa_GetErrorText(err));
-            continue;
-        }
+        try {
+            audioStream.open(
+                pars,
+                audioCallback,
+                static_cast<void *>(&rBuf)
+            );
 
-        err = Pa_StartStream(audioStream);
-        if (err != paNoError) {
-            Debug::print("Pa_StartStream(): unable to start stream for Host API %s: %s", apiInfo->name, Pa_GetErrorText(err));
-            err = Pa_CloseStream(audioStream);
-            if (err != paNoError)
-                Debug::print("Pa_CloseStream(): unable to close fail-started stream for Host API %s: %s", apiInfo->name, Pa_GetErrorText(err));
+            audioStream.start();
+        } catch (portaudio::Exception &e) {
+            Debug::print("unable to open/start stream with Host API %s: %s", currentHostApi.name(), e.what());
             continue;
         }
 
@@ -445,11 +451,10 @@ void PlaybackEngine::portaudioOpen()
 
 void PlaybackEngine::portaudioClose()
 {
-    PaError err;
-    if ((err = Pa_StopStream(audioStream)) != paNoError) {
-        Debug::print("Pa_StopStream: %s", Pa_GetErrorText(err));
-    }
-    if ((err = Pa_CloseStream(audioStream)) != paNoError) {
-        Debug::print("Pa_CloseStream: %s", Pa_GetErrorText(err));
+    try {
+        audioStream.stop();
+        audioStream.close();
+    } catch (portaudio::Exception &e) {
+        Debug::print("Error while stopping/closing portaudio stream: %s", e.what());
     }
 }

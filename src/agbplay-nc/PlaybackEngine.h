@@ -4,7 +4,7 @@
 #include <vector>
 #include <thread>
 #include <memory>
-#include <portaudio.h>
+#include <portaudiocpp/PortAudioCpp.hxx>
 
 #include "PlaybackSongState.h"
 #include "Constants.h"
@@ -49,7 +49,7 @@ private:
 
     static const std::vector<PaHostApiTypeId> hostApiPriority;
 
-    PaStream *audioStream;
+    portaudio::FunCallbackStream audioStream;
     uint32_t speedFactor = 64;
     volatile enum class State : int {
         RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED

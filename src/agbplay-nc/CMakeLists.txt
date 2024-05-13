@@ -8,7 +8,7 @@ find_package(jsoncpp REQUIRED)
 find_package(Boost REQUIRED)
 pkg_check_modules(ncurses REQUIRED IMPORTED_TARGET ncursesw)
 pkg_check_modules(sndfile REQUIRED IMPORTED_TARGET sndfile)
-pkg_check_modules(portaudio REQUIRED IMPORTED_TARGET portaudio-2.0)
+pkg_check_modules(portaudio REQUIRED IMPORTED_TARGET portaudiocpp)
 
 # TODO configure header
 

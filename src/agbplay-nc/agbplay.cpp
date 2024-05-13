@@ -2,7 +2,7 @@
 #include <cstring>
 #include <cstdio>
 #include <curses.h>
-#include <portaudio.h>
+#include <portaudiocpp/AutoSystem.hxx>
 #include <clocale>
 
 #include "SoundData.h"
@@ -42,8 +42,7 @@ int main(int argc, char *argv[])
     }
     try {
         setlocale(LC_ALL, "");
-        if (Pa_Initialize() != paNoError)
-            throw Xcept("Couldn't init portaudio");
+        portaudio::AutoSystem paSystem;
         std::cout << "Loading ROM..." << std::endl;
 
         Rom::CreateInstance(argv[1]);
@@ -82,8 +81,6 @@ int main(int argc, char *argv[])
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
-    if (Pa_Terminate() != paNoError)
-        std::cerr << "Error while terminating portaudio" << std::endl;
     Debug::close();
     return 0;
 }

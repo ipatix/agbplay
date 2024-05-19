@@ -121,6 +121,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     };
     
     PlayerContext ctx(
+        Rom::Instance(),
         soundMode,
         mixingOptions
     );

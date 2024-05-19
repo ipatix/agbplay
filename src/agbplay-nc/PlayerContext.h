@@ -4,6 +4,7 @@
 
 #include "SequenceReader.h"
 #include "SoundMixer.h"
+#include "Rom.h"
 
 /* Instead of defining lots of global objects, we define
  * a context with all the things we need. So anything which
@@ -11,7 +12,7 @@
  * to a PlayerContext */
 
 struct PlayerContext {
-    PlayerContext(const MP2KSoundMode &soundMode, const AgbplayMixingOptions &mixingOptions);
+    PlayerContext(const Rom &rom, const MP2KSoundMode &soundMode, const AgbplayMixingOptions &mixingOptions);
     PlayerContext(const PlayerContext&) = delete;
     PlayerContext& operator=(const PlayerContext&) = delete;
 
@@ -20,6 +21,7 @@ struct PlayerContext {
     bool HasEnded() const;
     size_t GetCurInterFrame() const;
 
+    const Rom& rom;
     SequenceReader reader;
     SoundMixer mixer;
     Sequence seq;

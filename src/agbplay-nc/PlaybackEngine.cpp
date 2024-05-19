@@ -251,6 +251,7 @@ void PlaybackEngine::initContext()
     };
 
     ctx = std::make_unique<PlayerContext>(
+        Rom::Instance(),
         soundMode,
         mixingOptions
     );

@@ -15,8 +15,6 @@ void PlayerContext::Process(std::vector<std::vector<sample>>& trackAudio)
 
 void PlayerContext::InitSong(size_t songHeaderPos)
 {
-    GameConfig& cfg = ConfigManager::Instance().GetCfg();
-
     sndChannels.clear();
     sq1Channels.clear();
     sq2Channels.clear();
@@ -36,10 +34,9 @@ void PlayerContext::InitSong(size_t songHeaderPos)
     else if (soundMode.rev & 0x80)
         reverb = soundMode.rev & 0x7F;
     float pcmMasterVolume = static_cast<float>(soundMode.vol + 1) / 16.0f;
-    auto reverbType = cfg.GetRevType();
     uint8_t numTracks = static_cast<uint8_t>(seq.tracks.size());
 
-    mixer.Init(fixedModeRate, reverb, pcmMasterVolume, reverbType, numTracks);
+    mixer.Init(fixedModeRate, reverb, pcmMasterVolume, mixingOptions.reverbType, numTracks);
 }
 
 bool PlayerContext::HasEnded() const

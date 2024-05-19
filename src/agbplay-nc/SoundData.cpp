@@ -413,7 +413,7 @@ bool SongTable::validateSong(size_t songPos)
     return true;
 }
 
-size_t SongTable::determineNumSongs()
+size_t SongTable::determineNumSongs() const
 {
     size_t pos = songTablePos;
     size_t count = 0;

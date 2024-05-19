@@ -107,7 +107,7 @@ public:
 private:
     static bool validateTableEntry(size_t pos);
     static bool validateSong(size_t songPos);
-    size_t determineNumSongs();
+    size_t determineNumSongs() const;
 
     size_t songTablePos;
     size_t numSongs;

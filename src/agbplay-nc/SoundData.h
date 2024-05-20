@@ -6,6 +6,9 @@
 #include "Types.h"
 #include "Constants.h"
 
+const uint8_t BANKDATA_TYPE_SPLIT = 0x40;
+const uint8_t BANKDATA_TYPE_RHYTHM = 0x80;
+
 enum class InstrType { PCM, PCM_FIXED, SQ1, SQ2, WAVE, NOISE, INVALID };
 class SoundBank
 {
@@ -17,8 +20,6 @@ public:
     void Init(size_t bankPos);
 
     InstrType GetInstrType(uint8_t instrNum, uint8_t midiKey);
-    uint8_t GetMidiKey(uint8_t instrNum, uint8_t midiKey);
-    int8_t GetPan(uint8_t instrNum, uint8_t midiKey);
     uint8_t GetSweep(uint8_t instrNum, uint8_t midiKey);
     CGBDef GetCGBDef(uint8_t instrNum, uint8_t midiKey);
     SampleInfo GetSampInfo(uint8_t instrNum, uint8_t midiKey);
@@ -82,14 +83,15 @@ public:
 
     // processing variables
     uint32_t tickCount = 0;
-    int32_t bpmStack;
-    uint16_t bpm;
-    size_t GetSoundBankPos();
+    int32_t bpmStack = 0;
+    uint16_t bpm = 0;
+    size_t GetSoundBankPos() const;
     uint8_t GetReverb() const;
     uint8_t GetPriority() const;
     size_t GetSongHeaderPos() const;
 private:
-    size_t songHeaderPos;
+    size_t songHeaderPos = 0;
+    size_t bankPos = 0;
     uint8_t trackLimit;
 }; // end Sequence
 

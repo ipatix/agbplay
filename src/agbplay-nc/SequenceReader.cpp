@@ -246,6 +246,34 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     if (trk.prog > 127)
         return;
 
+    // find instrument definition
+    uint8_t midiKeyPitch;
+    int8_t rhythmPan = 0;
+    size_t instrPos = ctx.seq.GetSoundBankPos() + trk.prog * 12;
+    if (const uint8_t bankDataType = rom.ReadU8(instrPos + 0x0); bankDataType & BANKDATA_TYPE_SPLIT) {
+        const size_t subBankPos = rom.ReadAgbPtrToPos(instrPos + 0x4);
+        const size_t subKeyMap = rom.ReadAgbPtrToPos(instrPos + 0x8);
+        instrPos = subBankPos + rom.ReadU8(subKeyMap + trk.lastNoteKey) * 12;
+        if (rom.ReadU8(instrPos + 0x0) & (BANKDATA_TYPE_SPLIT | BANKDATA_TYPE_RHYTHM)) {
+            Debug::print("cmdPlayNote: attempting to play recursive key split");
+            return;
+        }
+        midiKeyPitch = trk.lastNoteKey;
+    } else if (bankDataType == BANKDATA_TYPE_RHYTHM) {
+        const size_t subBankPos = rom.ReadAgbPtrToPos(instrPos + 0x4);
+        instrPos = subBankPos + trk.lastNoteKey * 12;
+        if (rom.ReadU8(instrPos + 0x0) & (BANKDATA_TYPE_SPLIT | BANKDATA_TYPE_RHYTHM)) {
+            Debug::print("cmdPlayNote: attempting to play recursive rhythm part");
+            return;
+        }
+        if (const uint8_t instrPan = rom.ReadU8(instrPos + 0x3); instrPan & 0x80)
+            rhythmPan = static_cast<int8_t>((instrPan - 0xC0) * 2);
+        midiKeyPitch = rom.ReadU8(instrPos + 0x1);
+    } else {
+        midiKeyPitch = trk.lastNoteKey;
+    }
+
+    // init LFO
     trk.lfodlCount = trk.lfodl;
     if (trk.lfodl != 0)
         trk.ResetLfoValue();
@@ -254,14 +282,15 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     Note note;
     note.length = trk.lastNoteLen;
     note.midiKeyTrackData = trk.lastNoteKey;
-    note.midiKeyPitch = ctx.bnk.GetMidiKey(trk.prog, trk.lastNoteKey);
+    note.midiKeyPitch = midiKeyPitch;
     note.velocity = trk.lastNoteVel;
     note.priority = trk.priority;
-    note.rhythmPan = ctx.bnk.GetPan(trk.prog, trk.lastNoteKey) * 2;
+    note.rhythmPan = rhythmPan;
     note.pseudoEchoVol = trk.pseudoEchoVol;
     note.pseudoEchoLen = trk.pseudoEchoLen;
     note.trackIdx = trackIdx;
 
+    // TODO move this to external function
     // prepare cgb polyphony suppression
     auto cgbPolyphonySuppressFunc = [&](auto& channels) {
         // return 'true' if a note is allowed to play, 'false' if others with higher priority are playing
@@ -299,6 +328,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     };
 
     // enqueue actual note
+    //switch (rom.ReadU8(pos + 0x0)) {
     switch (ctx.bnk.GetInstrType(trk.prog, trk.lastNoteKey)) {
         case InstrType::PCM:
             ctx.sndChannels.emplace_back(

@@ -100,20 +100,3 @@ ADSR::ADSR()
     this->sus = 0xFF;
     this->rel = 0x00;
 }
-
-/*
- * public SampleInfo
- */
-
-SampleInfo::SampleInfo(const int8_t *samplePtr, float midCfreq, bool loopEnabled, uint32_t loopPos, uint32_t endPos)
-{
-    this->samplePtr = samplePtr;
-    this->midCfreq = midCfreq;
-    this->loopPos = loopPos;
-    this->endPos = endPos;
-    this->loopEnabled = loopEnabled;
-}
-
-SampleInfo::SampleInfo()
-{
-}

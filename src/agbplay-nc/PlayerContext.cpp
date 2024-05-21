@@ -23,7 +23,6 @@ void PlayerContext::InitSong(size_t songHeaderPos)
 
     curInterFrame = 0;
     seq.Init(songHeaderPos);
-    bnk.Init(seq.GetSoundBankPos());
     reader.Restart();
     mixer.ResetFade();
 

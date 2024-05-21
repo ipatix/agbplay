@@ -59,8 +59,6 @@ struct Note
 
 struct SampleInfo
 {
-    SampleInfo(const int8_t *samplePtr, float midCfreq, bool loopEnabled, uint32_t loopPos, uint32_t endPos);
-    SampleInfo();
     const int8_t *samplePtr;
     float midCfreq;
     uint32_t loopPos;

@@ -296,10 +296,6 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     adsr.sus = rom.ReadU8(instrPos + 0xA);
     adsr.rel = rom.ReadU8(instrPos + 0xB);
 
-    // CGB only
-    const uint8_t sweep = rom.ReadU8(instrPos + 0x3);
-    const uint32_t instrDutyWaveNp = rom.ReadU32(instrPos + 0x4);
-
     // TODO move this to external function
     // prepare cgb polyphony suppression
     auto cgbPolyphonySuppressFunc = [&](auto& channels) {
@@ -337,26 +333,15 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
         return true;
     };
 
+    const uint8_t instrType = rom.ReadU8(instrPos);
+
     // enqueue actual note
-    //switch (rom.ReadU8(pos + 0x0)) {
-    switch (ctx.bnk.GetInstrType(trk.prog, trk.lastNoteKey)) {
-        case InstrType::PCM:
-            ctx.sndChannels.emplace_back(
-                    ctx,
-                    ctx.bnk.GetSampInfo(trk.prog, trk.lastNoteKey),
-                    adsr,
-                    note,
-                    false);
-            break;
-        case InstrType::PCM_FIXED:
-            ctx.sndChannels.emplace_back(
-                    ctx,
-                    ctx.bnk.GetSampInfo(trk.prog, trk.lastNoteKey),
-                    adsr,
-                    note,
-                    true);
-            break;
-        case InstrType::SQ1:
+    if (instrType & BANKDATA_TYPE_CGB) {
+        const uint8_t sweep = rom.ReadU8(instrPos + 0x3);
+        const uint32_t instrDutyWaveNp = rom.ReadU32(instrPos + 0x4);
+
+        switch (instrType & BANKDATA_TYPE_CGB) {
+        case BANKDATA_TYPE_SQ1:
             if (!cgbPolyphonySuppressFunc(ctx.sq1Channels))
                 return;
             ctx.sq1Channels.emplace_back(
@@ -366,7 +351,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                     note,
                     sweep);
             break;
-        case InstrType::SQ2:
+        case BANKDATA_TYPE_SQ2:
             if (!cgbPolyphonySuppressFunc(ctx.sq2Channels))
                 return;
             ctx.sq2Channels.emplace_back(
@@ -376,7 +361,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                     note,
                     0);
             break;
-        case InstrType::WAVE:
+        case BANKDATA_TYPE_WAVE:
             if (!cgbPolyphonySuppressFunc(ctx.waveChannels))
                 return;
             ctx.waveChannels.emplace_back(
@@ -386,7 +371,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                     note,
                     ctx.mixingOptions.accurateCh3Volume);
             break;
-        case InstrType::NOISE:
+        case BANKDATA_TYPE_NOISE:
             if (!cgbPolyphonySuppressFunc(ctx.noiseChannels))
                 return;
             ctx.noiseChannels.emplace_back(
@@ -395,8 +380,40 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                     adsr,
                     note);
             break;
-        case InstrType::INVALID:
+        default:
+            Debug::print("CGB Error: Invalid CGB Type: [%08X]=%02X, instrument: [%08X]",
+                instrPos, rom.ReadU8(instrPos), instrPos);
             return;
+        }
+    } else {
+        const size_t samplePos = rom.ReadAgbPtrToPos(instrPos + 0x4);
+        SampleInfo sinfo;
+
+        // TODO implement DPCM decompression
+        if (rom.ReadU8(samplePos + 0x0) != 0) {
+            Debug::print("Sample Error: Unknown/unsupported sample mode: [%08X]=%02X, instrument: [%08X]",
+                samplePos, rom.ReadU8(samplePos), instrPos);
+            return;
+        }
+
+        sinfo.loopEnabled = rom.ReadU8(samplePos + 0x3) & 0xC0;
+        sinfo.midCfreq = static_cast<float>(rom.ReadU32(samplePos + 4)) / 1024.0f;
+        sinfo.loopPos = rom.ReadU32(samplePos + 8);
+        sinfo.endPos = rom.ReadU32(samplePos + 12);
+
+        if (!rom.ValidRange(samplePos, 16 + sinfo.endPos)) {
+            Debug::print("Sample Error: Sample data reaches beyond end of file: instrument: [%08X]", instrPos);
+            return;
+        }
+
+        sinfo.samplePtr = static_cast<const int8_t *>(rom.GetPtr(samplePos + 16));
+
+        ctx.sndChannels.emplace_back(
+                ctx,
+                sinfo,
+                adsr,
+                note,
+                instrType & BANKDATA_TYPE_FIX);
     }
 
     // new notes need correct pitch and volume applied

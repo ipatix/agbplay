@@ -9,22 +9,14 @@
 const uint8_t BANKDATA_TYPE_SPLIT = 0x40;
 const uint8_t BANKDATA_TYPE_RHYTHM = 0x80;
 
-enum class InstrType { PCM, PCM_FIXED, SQ1, SQ2, WAVE, NOISE, INVALID };
-class SoundBank
-{
-public:
-    SoundBank() = default;
-    SoundBank(const SoundBank&) = delete;
-    SoundBank& operator=(const SoundBank&) = delete;
+const uint8_t BANKDATA_TYPE_CGB = 0x07;
+const uint8_t BANKDATA_TYPE_FIX = 0x08;
 
-    void Init(size_t bankPos);
-
-    InstrType GetInstrType(uint8_t instrNum, uint8_t midiKey);
-    SampleInfo GetSampInfo(uint8_t instrNum, uint8_t midiKey);
-private:
-    size_t instrPos(uint8_t instrNum, uint8_t midiKey);
-    size_t bankPos = 0;
-};
+const uint8_t BANKDATA_TYPE_PCM = 0x00;
+const uint8_t BANKDATA_TYPE_SQ1 = 0x01;
+const uint8_t BANKDATA_TYPE_SQ2 = 0x02;
+const uint8_t BANKDATA_TYPE_WAVE = 0x03;
+const uint8_t BANKDATA_TYPE_NOISE = 0x04;
 
 enum class MODT : int { PITCH = 0, VOL, PAN };
 

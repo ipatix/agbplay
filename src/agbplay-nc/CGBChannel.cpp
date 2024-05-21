@@ -549,8 +549,19 @@ uint8_t SquareChannel::sweepTime(uint8_t sweep)
  */
 
 WaveChannel::WaveChannel(const PlayerContext &ctx, uint32_t instrWave, ADSR env, Note note, bool useStairstep)
-    : CGBChannel(ctx, env, note, useStairstep), wavePtr(static_cast<const uint8_t *>(ctx.rom.GetPtr(instrWave)))
+    : CGBChannel(ctx, env, note, useStairstep)
 {
+    static const uint8_t dummyWave[16] = {0};
+    if (instrWave < AGB_MAP_ROM) {
+        wavePtr = dummyWave;
+    } else {
+        instrWave -= AGB_MAP_ROM;
+        if (ctx.rom.ValidRange(instrWave, 16))
+            wavePtr = static_cast<const uint8_t *>(ctx.rom.GetPtr(instrWave));
+        else
+            wavePtr = dummyWave;
+    }
+
     this->rs = std::make_unique<BlepResampler>();
 
     /* wave samples are unsigned by default, so we'll calculate the required

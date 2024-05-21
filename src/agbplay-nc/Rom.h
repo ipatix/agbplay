@@ -80,6 +80,12 @@ public:
         return true;
     }
 
+    bool ValidRange(size_t pos, size_t len) const {
+        if (pos + len >= data.size())
+            return false;
+        return true;
+    }
+
     std::string ReadString(size_t pos, size_t limit) const;
     std::string GetROMCode() const;
 

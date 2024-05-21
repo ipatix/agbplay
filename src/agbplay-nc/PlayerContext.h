@@ -25,7 +25,6 @@ struct PlayerContext {
     SequenceReader reader;
     SoundMixer mixer;
     Sequence seq;
-    SoundBank bnk;
     MP2KSoundMode soundMode;
     AgbplayMixingOptions mixingOptions;
 

@@ -110,7 +110,7 @@ private:
     float dcCorrection75;
     float dcCorrection50;
     float dcCorrection25;
-    const uint8_t * const wavePtr;
+    const uint8_t *wavePtr;
 };
 
 class NoiseChannel : public CGBChannel

@@ -20,7 +20,6 @@ public:
     void Init(size_t bankPos);
 
     InstrType GetInstrType(uint8_t instrNum, uint8_t midiKey);
-    uint8_t GetSweep(uint8_t instrNum, uint8_t midiKey);
     CGBDef GetCGBDef(uint8_t instrNum, uint8_t midiKey);
     SampleInfo GetSampInfo(uint8_t instrNum, uint8_t midiKey);
 private:

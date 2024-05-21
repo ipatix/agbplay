@@ -360,7 +360,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                     ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
                     adsr,
                     note,
-                    ctx.bnk.GetSweep(trk.prog, trk.lastNoteKey));
+                    rom.ReadU8(instrPos + 0x3));
             break;
         case InstrType::SQ2:
             if (!cgbPolyphonySuppressFunc(ctx.sq2Channels))

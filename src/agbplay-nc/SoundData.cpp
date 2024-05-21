@@ -50,16 +50,6 @@ InstrType SoundBank::GetInstrType(uint8_t instrNum, uint8_t midiKey)
     }
 }
 
-uint8_t SoundBank::GetSweep(uint8_t instrNum, uint8_t midiKey)
-{
-    size_t pos = instrPos(instrNum, midiKey);
-    InstrType t = GetInstrType(instrNum, midiKey);
-    if (t != InstrType::SQ1)
-        throw Xcept("SoundBank Error: Invalid use of sweep at non SQ1 instrument: [%08X]", pos);
-
-    return Rom::Instance().ReadU8(pos + 3);
-}
-
 CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
 {
     Rom& rom = Rom::Instance();

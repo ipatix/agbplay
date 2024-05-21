@@ -72,7 +72,7 @@ protected:
 class SquareChannel : public CGBChannel
 {
 public:
-    SquareChannel(const PlayerContext &ctx, WaveDuty wd, ADSR env, Note note, uint8_t sweep);
+    SquareChannel(const PlayerContext &ctx, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
@@ -98,7 +98,7 @@ private:
 class WaveChannel : public CGBChannel
 {
 public:
-    WaveChannel(const PlayerContext &ctx, const uint8_t *wavePtr, ADSR env, Note note, bool useStairstep);
+    WaveChannel(const PlayerContext &ctx, uint32_t instrWave, ADSR env, Note note, bool useStairstep);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
@@ -116,7 +116,7 @@ private:
 class NoiseChannel : public CGBChannel
 {
 public:
-    NoiseChannel(const PlayerContext &ctx, NoisePatt np, ADSR env, Note note);
+    NoiseChannel(const PlayerContext &ctx, uint32_t instrNp, ADSR env, Note note);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;

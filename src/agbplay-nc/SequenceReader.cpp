@@ -296,6 +296,10 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     adsr.sus = rom.ReadU8(instrPos + 0xA);
     adsr.rel = rom.ReadU8(instrPos + 0xB);
 
+    // CGB only
+    const uint8_t sweep = rom.ReadU8(instrPos + 0x3);
+    const uint32_t instrDutyWaveNp = rom.ReadU32(instrPos + 0x4);
+
     // TODO move this to external function
     // prepare cgb polyphony suppression
     auto cgbPolyphonySuppressFunc = [&](auto& channels) {
@@ -357,17 +361,17 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                 return;
             ctx.sq1Channels.emplace_back(
                     ctx,
-                    ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
+                    instrDutyWaveNp,
                     adsr,
                     note,
-                    rom.ReadU8(instrPos + 0x3));
+                    sweep);
             break;
         case InstrType::SQ2:
             if (!cgbPolyphonySuppressFunc(ctx.sq2Channels))
                 return;
             ctx.sq2Channels.emplace_back(
                     ctx,
-                    ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
+                    instrDutyWaveNp,
                     adsr,
                     note,
                     0);
@@ -377,7 +381,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                 return;
             ctx.waveChannels.emplace_back(
                     ctx,
-                    ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wavePtr,
+                    instrDutyWaveNp,
                     adsr,
                     note,
                     ctx.mixingOptions.accurateCh3Volume);
@@ -387,7 +391,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                 return;
             ctx.noiseChannels.emplace_back(
                     ctx,
-                    ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).np,
+                    instrDutyWaveNp,
                     adsr,
                     note);
             break;

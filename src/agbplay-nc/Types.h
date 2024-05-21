@@ -5,7 +5,6 @@
 
 enum class CGBType : int { SQ1 = 0, SQ2, WAVE, NOISE };
 enum class EnvState : int { INIT = 0, ATK, DEC, SUS, REL, PSEUDO_ECHO, DIE, DEAD };
-enum class WaveDuty : int { D12 = 0, D25, D50, D75 };
 enum class NoisePatt : int { FINE = 0, ROUGH };
 enum class ReverbType { NORMAL, GS1, GS2, MGAT, TEST, NONE };
 enum class ResamplerType { NEAREST, LINEAR, SINC, BLEP, BLAMP };
@@ -17,13 +16,6 @@ ResamplerType str2res(const std::string& str);
 std::string res2str(ResamplerType t);
 CGBPolyphony str2cgbPoly(const std::string& str);
 std::string cgbPoly2str(CGBPolyphony t);
-
-union CGBDef
-{
-    const uint8_t *wavePtr;
-    WaveDuty wd;
-    NoisePatt np;
-};
 
 struct MixingArgs
 {

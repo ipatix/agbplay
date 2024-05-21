@@ -50,41 +50,6 @@ InstrType SoundBank::GetInstrType(uint8_t instrNum, uint8_t midiKey)
     }
 }
 
-CGBDef SoundBank::GetCGBDef(uint8_t instrNum, uint8_t midiKey)
-{
-    Rom& rom = Rom::Instance();
-    CGBDef def;
-
-    size_t pos = instrPos(instrNum, midiKey);
-    InstrType t = GetInstrType(instrNum, midiKey);
-
-    if (t == InstrType::SQ1 || t == InstrType::SQ2) {
-        uint32_t dutyCycle = rom.ReadU32(pos + 4);
-        switch (dutyCycle) {
-        case 0: def.wd = WaveDuty::D12; break;
-        case 1: def.wd = WaveDuty::D25; break;
-        case 2: def.wd = WaveDuty::D50; break;
-        case 3: def.wd = WaveDuty::D75; break;
-        default:
-            throw Xcept("SoundBank Error: Invalid square wave duty cycle at [%08X+4]=%08X", pos, dutyCycle);
-        }
-    } else if (t == InstrType::WAVE) {
-        def.wavePtr = static_cast<const uint8_t *>(rom.GetPtr(rom.ReadAgbPtrToPos(pos + 4)));
-    } else if (t == InstrType::NOISE) {
-        uint32_t noisePatt = rom.ReadU32(pos + 4);
-        switch (noisePatt) {
-        case 0: def.np = NoisePatt::FINE; break;
-        case 1: def.np = NoisePatt::ROUGH; break;
-        default:
-            throw Xcept("SoundBank Error: Invalid noise pattern at [%08X+4]=%08X", pos, noisePatt);
-        }
-    } else {
-        throw Xcept("SoundBank Error: Cannot get CGB definition of instrument: [%08X]", pos);
-    }
-
-    return def;
-}
-
 SampleInfo SoundBank::GetSampInfo(uint8_t instrNum, uint8_t midiKey)
 {
     Rom& rom = Rom::Instance();

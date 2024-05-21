@@ -371,7 +371,7 @@ void CGBChannel::applyVol()
  * public SquareChannel
  */
 
-SquareChannel::SquareChannel(const PlayerContext &ctx, WaveDuty wd, ADSR env, Note note, uint8_t sweep)
+SquareChannel::SquareChannel(const PlayerContext &ctx, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep)
     : CGBChannel(ctx, env, note)
       , sweep(sweep)
       , sweepEnabled(isSweepEnabled(sweep))
@@ -385,7 +385,7 @@ SquareChannel::SquareChannel(const PlayerContext &ctx, WaveDuty wd, ADSR env, No
         CGBPatterns::pat_sq75,
     };
 
-    this->pat = patterns[static_cast<int>(wd)];
+    this->pat = patterns[instrDuty % 4];
     this->rs = std::make_unique<BlepResampler>();
 }
 
@@ -548,8 +548,8 @@ uint8_t SquareChannel::sweepTime(uint8_t sweep)
  * public WaveChannel
  */
 
-WaveChannel::WaveChannel(const PlayerContext &ctx, const uint8_t *wavePtr, ADSR env, Note note, bool useStairstep)
-    : CGBChannel(ctx, env, note, useStairstep), wavePtr(wavePtr)
+WaveChannel::WaveChannel(const PlayerContext &ctx, uint32_t instrWave, ADSR env, Note note, bool useStairstep)
+    : CGBChannel(ctx, env, note, useStairstep), wavePtr(static_cast<const uint8_t *>(ctx.rom.GetPtr(instrWave)))
 {
     this->rs = std::make_unique<BlepResampler>();
 
@@ -755,11 +755,11 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
  * public NoiseChannel
  */
 
-NoiseChannel::NoiseChannel(const PlayerContext &ctx, NoisePatt np, ADSR env, Note note)
+NoiseChannel::NoiseChannel(const PlayerContext &ctx, uint32_t instrNp, ADSR env, Note note)
     : CGBChannel(ctx, env, note)
 {
     this->rs = std::make_unique<NearestResampler>();
-    if (np == NoisePatt::FINE) {
+    if ((instrNp & 0x1) == 0) {
         noiseState = 0x4000;
         noiseLfsrMask = 0x6000;
     } else {

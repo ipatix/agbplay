@@ -36,12 +36,10 @@ struct VolumeFade
 
 struct ADSR
 {
-    ADSR(uint8_t att, uint8_t dec, uint8_t sus, uint8_t rel);
-    ADSR();
-    uint8_t att;
-    uint8_t dec;
-    uint8_t sus;
-    uint8_t rel;
+    uint8_t att = 0xFF;
+    uint8_t dec = 0x00;
+    uint8_t sus = 0xFF;
+    uint8_t rel = 0x00;
 };
 
 struct Note

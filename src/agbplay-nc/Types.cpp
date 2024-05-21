@@ -80,23 +80,3 @@ std::string cgbPoly2str(CGBPolyphony t) {
         return "poly";
     return "mono-strict";
 }
-
-/*
- * ADSR
- */
-
-ADSR::ADSR(uint8_t att, uint8_t dec, uint8_t sus, uint8_t rel)
-{
-    this->att = att;
-    this->dec = dec;
-    this->sus = sus;
-    this->rel = rel;
-}
-
-ADSR::ADSR()
-{
-    this->att = 0xFF;
-    this->dec = 0x00;
-    this->sus = 0xFF;
-    this->rel = 0x00;
-}

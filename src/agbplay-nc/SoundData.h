@@ -23,7 +23,6 @@ public:
     uint8_t GetSweep(uint8_t instrNum, uint8_t midiKey);
     CGBDef GetCGBDef(uint8_t instrNum, uint8_t midiKey);
     SampleInfo GetSampInfo(uint8_t instrNum, uint8_t midiKey);
-    ADSR GetADSR(uint8_t instrNum, uint8_t midiKey);
 private:
     size_t instrPos(uint8_t instrNum, uint8_t midiKey);
     size_t bankPos = 0;

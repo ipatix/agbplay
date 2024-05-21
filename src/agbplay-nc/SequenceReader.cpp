@@ -290,6 +290,12 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     note.pseudoEchoLen = trk.pseudoEchoLen;
     note.trackIdx = trackIdx;
 
+    ADSR adsr;
+    adsr.att = rom.ReadU8(instrPos + 0x8);
+    adsr.dec = rom.ReadU8(instrPos + 0x9);
+    adsr.sus = rom.ReadU8(instrPos + 0xA);
+    adsr.rel = rom.ReadU8(instrPos + 0xB);
+
     // TODO move this to external function
     // prepare cgb polyphony suppression
     auto cgbPolyphonySuppressFunc = [&](auto& channels) {
@@ -334,7 +340,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             ctx.sndChannels.emplace_back(
                     ctx,
                     ctx.bnk.GetSampInfo(trk.prog, trk.lastNoteKey),
-                    ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
+                    adsr,
                     note,
                     false);
             break;
@@ -342,7 +348,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             ctx.sndChannels.emplace_back(
                     ctx,
                     ctx.bnk.GetSampInfo(trk.prog, trk.lastNoteKey),
-                    ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
+                    adsr,
                     note,
                     true);
             break;
@@ -352,7 +358,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             ctx.sq1Channels.emplace_back(
                     ctx,
                     ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
-                    ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
+                    adsr,
                     note,
                     ctx.bnk.GetSweep(trk.prog, trk.lastNoteKey));
             break;
@@ -362,7 +368,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             ctx.sq2Channels.emplace_back(
                     ctx,
                     ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wd,
-                    ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
+                    adsr,
                     note,
                     0);
             break;
@@ -372,7 +378,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             ctx.waveChannels.emplace_back(
                     ctx,
                     ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).wavePtr,
-                    ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
+                    adsr,
                     note,
                     ctx.mixingOptions.accurateCh3Volume);
             break;
@@ -382,7 +388,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             ctx.noiseChannels.emplace_back(
                     ctx,
                     ctx.bnk.GetCGBDef(trk.prog, trk.lastNoteKey).np,
-                    ctx.bnk.GetADSR(trk.prog, trk.lastNoteKey),
+                    adsr,
                     note);
             break;
         case InstrType::INVALID:

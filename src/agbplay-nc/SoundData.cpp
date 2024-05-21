@@ -118,23 +118,6 @@ SampleInfo SoundBank::GetSampInfo(uint8_t instrNum, uint8_t midiKey)
     return SampleInfo(samplePtr, midCfreq, loopEnabled, loopPos, endPos);
 }
 
-ADSR SoundBank::GetADSR(uint8_t instrNum, uint8_t midiKey)
-{
-    Rom& rom = Rom::Instance();
-
-    size_t pos = instrPos(instrNum, midiKey);
-    InstrType t = GetInstrType(instrNum, midiKey);
-    if (t == InstrType::INVALID)
-        throw Xcept("SoundBank Error: Cannot get ADSR for unknown instrument type: [%08X]", pos);
-
-    ADSR adsr;
-    adsr.att = rom.ReadU8(pos + 8);
-    adsr.dec = rom.ReadU8(pos + 9);
-    adsr.sus = rom.ReadU8(pos + 10);
-    adsr.rel = rom.ReadU8(pos + 11);
-    return adsr;
-}
-
 size_t SoundBank::instrPos(uint8_t instrNum, uint8_t midiKey) {
     Rom& rom = Rom::Instance();
     uint8_t type = rom.ReadU8(bankPos + instrNum * 12 + 0x0);

@@ -306,13 +306,13 @@ void PlaybackEngine::threadWorker()
                 rBuf.Put(silence.data(), silence.size());
                 break;
             default:
-                throw Xcept("Internal PlaybackEngine error: %d", (int)playerState);
+                throw Xcept("Internal PlaybackEngine error: {}", (int)playerState);
             }
         }
         // reset song state after it has finished
         ctx->InitSong(ctx->seq.GetSongHeaderPos());
     } catch (std::exception& e) {
-        Debug::print("FATAL ERROR on streaming thread: %s", e.what());
+        Debug::print("FATAL ERROR on streaming thread: {}", e.what());
     }
     masterLoudness.Reset();
     for (LoudnessCalculator& c : trackLoudness)
@@ -448,7 +448,7 @@ void PlaybackEngine::portaudioOpen()
 
             audioStream.start();
         } catch (portaudio::Exception &e) {
-            Debug::print("unable to open/start stream with Host API %s: %s", currentHostApi.name(), e.what());
+            Debug::print("unable to open/start stream with Host API {}: {}", currentHostApi.name(), e.what());
             continue;
         }
 
@@ -466,6 +466,6 @@ void PlaybackEngine::portaudioClose()
         audioStream.stop();
         audioStream.close();
     } catch (portaudio::Exception &e) {
-        Debug::print("Error while stopping/closing portaudio stream: %s", e.what());
+        Debug::print("Error while stopping/closing portaudio stream: {}", e.what());
     }
 }

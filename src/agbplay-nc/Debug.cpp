@@ -39,17 +39,12 @@ void Debug::set_callback(void (*cb)(const std::string&, void *), void *obj) {
     cb_obj = obj;
 }
 
-void Debug::print(const char *str, ...) {
-    va_list args;
-    va_start(args, str);
-    char txtbuf[512];
-    vsnprintf(txtbuf, sizeof(txtbuf), str, args);
+void Debug::puts(const std::string &msg) {
     if (debug_file) {
-        fprintf(debug_file, "%s\n", txtbuf);
+        fprintf(debug_file, "%s\n", msg.c_str());
         fflush(debug_file);
     }
-    va_end(args);
-    if (callback) {
-        callback(txtbuf, cb_obj);
-    }
+
+    if (callback)
+        callback(msg.c_str(), cb_obj);
 }

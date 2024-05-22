@@ -2,15 +2,17 @@
 
 #include <exception>
 #include <string>
-
-#define MAX_EXCEPTION_LENGTH 1024
+#include <fmt/core.h>
 
 class Xcept : public std::exception {
-    public:
-        Xcept(const char *format, ...);
-        ~Xcept() override;
+public:
+    template<typename... Args>
+    constexpr Xcept(fmt::format_string<Args...> fmt, Args&&... args) {
+        msg = fmt::format(fmt, std::forward<Args>(args)...);
+    }
+    ~Xcept() override;
 
-        const char *what() const throw() override;
-    private:
-        std::string msg;
+    const char *what() const noexcept override;
+private:
+    std::string msg;
 };

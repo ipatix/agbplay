@@ -6,6 +6,7 @@ include(FindPkgConfig)
 find_package(PkgConfig REQUIRED)
 find_package(jsoncpp REQUIRED)
 find_package(Boost REQUIRED)
+find_package(fmt REQUIRED)
 pkg_check_modules(ncurses REQUIRED IMPORTED_TARGET ncursesw)
 pkg_check_modules(sndfile REQUIRED IMPORTED_TARGET sndfile)
 pkg_check_modules(portaudio REQUIRED IMPORTED_TARGET portaudiocpp)
@@ -21,6 +22,7 @@ target_include_directories(agbplay-nc PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 target_link_libraries(agbplay-nc
     JsonCpp::JsonCpp
     Boost::boost
+    fmt::fmt
     PkgConfig::sndfile
     PkgConfig::portaudio
     PkgConfig::ncurses

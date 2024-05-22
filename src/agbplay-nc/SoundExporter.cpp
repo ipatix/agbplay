@@ -51,9 +51,8 @@ void SoundExporter::Export(const std::vector<SongEntry>& entries)
 
             std::string fname = entries[i].name;
             boost::replace_all(fname, "/", "_");
-            Debug::print("%3d %% - Rendering to file: \"%s\"", (i + 1) * 100 / entries.size(), fname.c_str());
-            char fileName[512];
-            snprintf(fileName, sizeof(fileName), "%s/%03zu - %s", dir.c_str(), i + 1, fname.c_str());
+            Debug::print("{:3}% - Rendering to file: \"{}\"", (i + 1) * 100 / entries.size(), fname);
+            const auto fileName = std::format("{}/{:03d} - {}", dir.string(), i + 1, fname);
             totalBlocksRendered += exportSong(fileName, entries[i].GetUID());
         }
     };
@@ -75,11 +74,11 @@ void SoundExporter::Export(const std::vector<SongEntry>& entries)
 
     /* report finished progress */
     if (std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count() == 0) {
-        Debug::print("Successfully wrote %zu files", entries.size());
+        Debug::print("Successfully wrote {} files", entries.size());
     } else {
         size_t secondsTotal = static_cast<size_t>(std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count());
         size_t blocksPerSecond = totalBlocksRendered / secondsTotal;
-        Debug::print("Successfully wrote %zu files at %zu blocks per second (%zu seconds total)", entries.size(), blocksPerSecond, secondsTotal);
+        Debug::print("Successfully wrote {} files at {} blocks per second ({} seconds total)", entries.size(), blocksPerSecond, secondsTotal);
     }
 }
 
@@ -148,11 +147,10 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
                 oinfos[i].samplerate = STREAM_SAMPLERATE;
                 oinfos[i].channels = 2; // stereo
                 oinfos[i].format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
-                char outName[PATH_MAX];
-                snprintf(outName, sizeof(outName), "%s.%02zu.wav", fileName.c_str(), i);
-                ofiles[i] = sf_open(outName, SFM_WRITE, &oinfos[i]);
+                const std::string outName = fmt::format("{}.{:02d}.wav", fileName.string(), i);
+                ofiles[i] = sf_open(outName.c_str(), SFM_WRITE, &oinfos[i]);
                 if (ofiles[i] == NULL)
-                    Debug::print("Error: %s", sf_strerror(NULL));
+                    Debug::print("Error: {}", sf_strerror(NULL));
             }
 
             while (true)
@@ -181,7 +179,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
             {
                 int err = sf_close(i);
                 if (err != 0)
-                    Debug::print("Error: %s", sf_error_number(err));
+                    Debug::print("Error: {}", sf_error_number(err));
             }
         }
         else
@@ -193,7 +191,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
             oinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
             SNDFILE *ofile = sf_open((fileName.string() + ".wav").c_str(), SFM_WRITE, &oinfo);
             if (ofile == NULL) {
-                Debug::print("Error: %s", sf_strerror(NULL));
+                Debug::print("Error: {}", sf_strerror(NULL));
                 return 0;
             }
             // do rendering and write
@@ -231,7 +229,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
 
             int err;
             if ((err = sf_close(ofile)) != 0)
-                Debug::print("Error: %s", sf_error_number(err));
+                Debug::print("Error: {}", sf_error_number(err));
         }
     } 
     // if benchmark only

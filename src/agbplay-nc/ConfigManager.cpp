@@ -78,7 +78,7 @@ void ConfigManager::Load()
     }
 
     if (root["id"].asString() != "agbplay")
-        throw Xcept("Bad JSON ID: %s", root["id"].asString().c_str());
+        throw Xcept("Bad JSON ID: {}", root["id"].asString());
 
     // output directory used for saving rendered sogs
     if (root.isMember("wav-output-dir")) {
@@ -173,7 +173,7 @@ void ConfigManager::Save()
     std::filesystem::create_directories(configPath.parent_path());
     std::ofstream jsonFile(configPath);
     if (!jsonFile.is_open())
-        throw Xcept("Error while writing agbplay.json: %s", strerror(errno));
+        throw Xcept("Error while writing agbplay.json: {}", strerror(errno));
 
     Json::StreamWriterBuilder builder;
     builder["emitUTF8"] = true;

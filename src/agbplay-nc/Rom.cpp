@@ -81,14 +81,14 @@ void Rom::verify()
     }
     check = (check - 0x19) & 0xFF;
     if (check != checksum)
-        throw Xcept("ROM verification: Bad Header Checksum: %02X - expected %02X", (int)checksum, (int)check);
+        throw Xcept("ROM verification: Bad Header Checksum: {:02X} - expected {:02X}", checksum, check);
 }
 
 void Rom::loadFile(const std::filesystem::path& filePath)
 {
     std::ifstream is(filePath, std::ios_base::binary);
     if (!is.is_open()) {
-        throw Xcept("Error while opening ROM: %s", strerror(errno));
+        throw Xcept("Error while opening ROM: {}", strerror(errno));
     }
     is.seekg(0, std::ios_base::end);
     std::ifstream::pos_type size = is.tellg();

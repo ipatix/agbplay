@@ -60,7 +60,7 @@ public:
     size_t ReadAgbPtrToPos(size_t pos) const {
         uint32_t ptr = ReadU32(pos);
         if (!ValidPointer(ptr))
-            throw Xcept("Cannot parse pointer at [%08zX]=%08X", pos, ptr);
+            throw Xcept("Cannot parse pointer at [{:08X}]={:08X}", pos, ptr);
         return ptr - AGB_MAP_ROM;
     }
 

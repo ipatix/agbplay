@@ -381,7 +381,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                     note);
             break;
         default:
-            Debug::print("CGB Error: Invalid CGB Type: [%08X]=%02X, instrument: [%08X]",
+            Debug::print("CGB Error: Invalid CGB Type: [{:08X}]={:02X}, instrument: [{:08X}]",
                 instrPos, rom.ReadU8(instrPos), instrPos);
             return;
         }
@@ -391,7 +391,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
 
         // TODO implement DPCM decompression
         if (rom.ReadU8(samplePos + 0x0) != 0) {
-            Debug::print("Sample Error: Unknown/unsupported sample mode: [%08X]=%02X, instrument: [%08X]",
+            Debug::print("Sample Error: Unknown/unsupported sample mode: [{:08X}]={:02X}, instrument: [{:08X}]",
                 samplePos, rom.ReadU8(samplePos), instrPos);
             return;
         }
@@ -402,7 +402,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
         sinfo.endPos = rom.ReadU32(samplePos + 12);
 
         if (!rom.ValidRange(samplePos, 16 + sinfo.endPos)) {
-            Debug::print("Sample Error: Sample data reaches beyond end of file: instrument: [%08X]", instrPos);
+            Debug::print("Sample Error: Sample data reaches beyond end of file: instrument: [{:08X}]", instrPos);
             return;
         }
 

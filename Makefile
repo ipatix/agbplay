@@ -1,10 +1,15 @@
 CXX = g++
-CXXFLAGS = -D_XOPEN_SOURCE=700 -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -O3 -g
-#CXXFLAGS = -D_XOPEN_SOURCE=700 -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -Og -g -fsanitize=address
+CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -O3 -g
+#CXXFLAGS = -Wall -Wextra -Wconversion -Wunreachable-code -std=c++17 -Og -g -fsanitize=address
+NCURSES = `pkg-config --cflags --libs ncurses`
+NCURSESW = `pkg-config --cflags --libs ncursesw`
+PORTAUDIO = `pkg-config --cflags --libs portaudiocpp`
+SNDFILE = `pkg-config --cflags --libs sndfile`
+JSONCPP = `pkg-config --cflags --libs jsoncpp`
 BINARY = agbplay
-LIBS = -lm -lncursesw -pthread -lsndfile -lportaudio -ljsoncpp
+LIBS = $(NCURSESW) $(PORTAUDIO) $(SNDFILE) $(JSONCPP)
 # Use this macro if you have linker errors with ncursesw
-# LIBS = -lm -lncurses -pthread -lsndfile -lportaudio -ljsoncpp
+LIBS = $(NCURSES) $(PORTAUDIO) $(SNDFILE) $(JSONCPP)
 
 GREEN = \033[1;32m
 RED = \033[1;31m

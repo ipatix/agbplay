@@ -85,51 +85,6 @@ size_t Sequence::GetSongHeaderPos() const
 
 /*
  * public
- * Track
- */
-
-Track::Track(size_t pos)
-    : pos(pos)
-{
-}
-
-int16_t Track::GetPitch()
-{
-    int p = tune + bend * bendr + keyShift * 64;
-    if (modt == MODT::PITCH)
-        p += lfoValue * 4;
-    return static_cast<int16_t>(p);
-}
-
-uint16_t Track::GetVol()
-{
-    int32_t v = vol << 1;
-    if (modt == MODT::VOL)
-        v = (v * (lfoValue + 128)) >> 7;
-    return static_cast<uint16_t>(v);
-}
-
-int16_t Track::GetPan()
-{
-    int p = pan << 1;
-    if (modt == MODT::PAN)
-        p += lfoValue;
-    return static_cast<int16_t>(p);
-}
-
-void Track::ResetLfoValue()
-{
-    lfoValue = 0;
-    lfoPhase = 0;
-
-    if (modt == MODT::PITCH)
-        updatePitch = true;
-    else
-        updateVolume = true;
-}
-
-/*
- * public
  * SongTable
  */
 

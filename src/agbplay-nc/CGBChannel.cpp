@@ -15,7 +15,7 @@
  */
 
 CGBChannel::CGBChannel(const MP2KContext &ctx, ADSR env, Note note, bool useStairstep)
-    : ctx(ctx), env(env), note(note), useStairstep(useStairstep)
+    : MP2KChn(note, env), ctx(ctx), useStairstep(useStairstep)
 {
     this->env.att &= 0x7;
     this->env.dec &= 0x7;

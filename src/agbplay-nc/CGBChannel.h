@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "Types.h"
-#include "Resampler.h"
+#include "MP2KChn.h"
 
 #define INVALID_TRACK_IDX 0xFF
 
@@ -13,7 +13,7 @@
 
 struct MP2KContext;
 
-class CGBChannel
+class CGBChannel : public MP2KChn
 {
 public: 
     CGBChannel(const MP2KContext &ctx, ADSR env, Note note, bool useStairstep = false);
@@ -43,21 +43,14 @@ protected:
     static float freq2timer(float freq);
 
     const MP2KContext &ctx;
-    std::unique_ptr<Resampler> rs;
     enum class Pan { LEFT, CENTER, RIGHT };
-    uint32_t pos = 0;
-    float freq = 0.0f;
-    ADSR env;
-    Note note;
     const bool useStairstep;
-    bool stop = false;
     bool fastRelease = false;
     uint16_t vol = 0;
     int16_t pan = 0;
     bool mp2k_sus_vol_bug_update = false;
 
     /* all of these values have pairs of new and old value to allow smooth fades */
-    EnvState envState = EnvState::INIT;
     uint8_t envInterStep = 0;
     uint8_t envLevelCur = 0;
     uint8_t envPeak = 0;

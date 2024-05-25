@@ -15,7 +15,7 @@
  */
 
 SoundChannel::SoundChannel(const MP2KContext &ctx, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
-    : ctx(ctx), env(env), note(note), sInfo(sInfo), fixed(fixed) 
+    : MP2KChn(note, env), ctx(ctx), sInfo(sInfo), fixed(fixed) 
 {
     const ResamplerType t = fixed ? ctx.mixingOptions.resamplerTypeFixed : ctx.mixingOptions.resamplerTypeNormal;
     switch (t) {

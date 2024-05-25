@@ -5,11 +5,11 @@
 #include <memory>
 
 #include "Types.h"
-#include "Resampler.h"
+#include "MP2KChn.h"
 
 struct MP2KContext;
 
-class SoundChannel
+class SoundChannel : public MP2KChn
 {
 private:
     struct ProcArgs
@@ -47,14 +47,7 @@ private:
     static bool sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequires, void *cbdata);
 
     const MP2KContext &ctx;
-    std::unique_ptr<Resampler> rs;
-    uint32_t pos = 0;
-    float interPos = 0.0f;
-    float freq = 0.0f;
-    ADSR env;
-    Note note;
     SampleInfo sInfo;
-    bool stop = false;
     bool fixed;
     bool isGS;              // is Golden Sun synth
     bool isMPTcompressed;   // is Mario Power Tennis compressed

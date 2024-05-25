@@ -8,13 +8,13 @@
 #include "SoundChannel.h"
 #include "Util.h"
 #include "Xcept.h"
-#include "PlayerContext.h"
+#include "MP2KContext.h"
 
 /*
  * public SoundChannel
  */
 
-SoundChannel::SoundChannel(const PlayerContext &ctx, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
+SoundChannel::SoundChannel(const MP2KContext &ctx, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
     : ctx(ctx), env(env), note(note), sInfo(sInfo), fixed(fixed) 
 {
     const ResamplerType t = fixed ? ctx.mixingOptions.resamplerTypeFixed : ctx.mixingOptions.resamplerTypeNormal;

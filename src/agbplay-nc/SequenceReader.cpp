@@ -6,7 +6,7 @@
 #include "Util.h"
 #include "Debug.h"
 #include "Rom.h"
-#include "PlayerContext.h"
+#include "MP2KContext.h"
 
 #define NOTE_TIE -1
 #define NOTE_ALL 0xFE
@@ -46,7 +46,7 @@ const std::map<uint8_t, int8_t> SequenceReader::noteLut = {
  * public SequenceReader
  */
 
-SequenceReader::SequenceReader(PlayerContext& ctx) 
+SequenceReader::SequenceReader(MP2KContext& ctx) 
     : ctx(ctx)
 {
 }

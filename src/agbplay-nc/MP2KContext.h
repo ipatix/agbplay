@@ -9,12 +9,12 @@
 /* Instead of defining lots of global objects, we define
  * a context with all the things we need. So anything which
  * needs anything out of this context only needs a reference
- * to a PlayerContext */
+ * to a MP2KContext */
 
-struct PlayerContext {
-    PlayerContext(const Rom &rom, const MP2KSoundMode &soundMode, const AgbplayMixingOptions &mixingOptions);
-    PlayerContext(const PlayerContext&) = delete;
-    PlayerContext& operator=(const PlayerContext&) = delete;
+struct MP2KContext {
+    MP2KContext(const Rom &rom, const MP2KSoundMode &soundMode, const AgbplayMixingOptions &mixingOptions);
+    MP2KContext(const MP2KContext&) = delete;
+    MP2KContext& operator=(const MP2KContext&) = delete;
 
     void Process(std::vector<std::vector<sample>>& trackAudio);
     void InitSong(size_t songPos);

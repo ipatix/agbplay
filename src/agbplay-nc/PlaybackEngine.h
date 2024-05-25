@@ -11,7 +11,7 @@
 #include "GameConfig.h"
 #include "Ringbuffer.h"
 #include "LoudnessCalculator.h"
-#include "PlayerContext.h"
+#include "MP2KContext.h"
 
 class PlaybackEngine 
 {
@@ -54,7 +54,7 @@ private:
     volatile enum class State : int {
         RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED
     } playerState = State::THREAD_DELETED;
-    std::unique_ptr<PlayerContext> ctx;
+    std::unique_ptr<MP2KContext> ctx;
     Ringbuffer rBuf{STREAM_BUF_SIZE};
 
     LoudnessCalculator masterLoudness{10.0f};

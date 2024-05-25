@@ -13,7 +13,7 @@
 #include "Constants.h"
 #include "Debug.h"
 #include "ConfigManager.h"
-#include "PlayerContext.h"
+#include "MP2KContext.h"
 #include "OS.h"
 
 /*
@@ -119,7 +119,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
         .emulateCgbSustainBug = cfg.GetSimulateCGBSustainBug(),
     };
     
-    PlayerContext ctx(
+    MP2KContext ctx(
         Rom::Instance(),
         soundMode,
         mixingOptions

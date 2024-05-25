@@ -11,12 +11,12 @@
 #include "CGBChannel.h"
 #include "Constants.h"
 
-struct PlayerContext;
+struct MP2KContext;
 
 class SoundMixer
 {
 public:
-    SoundMixer(PlayerContext& ctx, uint32_t sampleRate, float masterVolume);
+    SoundMixer(MP2KContext& ctx, uint32_t sampleRate, float masterVolume);
     SoundMixer(const SoundMixer&) = delete;
     SoundMixer& operator=(const SoundMixer&) = delete;
 
@@ -31,7 +31,7 @@ public:
     bool IsFadeDone() const;
 
 private:
-    PlayerContext& ctx;
+    MP2KContext& ctx;
 
     std::vector<std::unique_ptr<ReverbEffect>> revdsps;
     uint32_t sampleRate;

@@ -7,12 +7,12 @@
 #include "SoundData.h"
 #include "SoundMixer.h"
 
-struct PlayerContext;
+struct MP2KContext;
 
 class SequenceReader
 {
 public:
-    SequenceReader(PlayerContext& ctx);
+    SequenceReader(MP2KContext& ctx);
     SequenceReader(const SequenceReader&) = delete;
     SequenceReader& operator=(const SequenceReader&) = delete;
 
@@ -27,7 +27,7 @@ private:
     static const std::map<uint8_t, int8_t> delayLut;
     static const std::map<uint8_t, int8_t> noteLut;
 
-    PlayerContext& ctx;
+    MP2KContext& ctx;
 
     bool endReached = false;
     uint8_t numLoops = 0;

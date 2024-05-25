@@ -1,19 +1,19 @@
-#include "PlayerContext.h"
+#include "MP2KContext.h"
 #include "ConfigManager.h"
 
-PlayerContext::PlayerContext(const Rom &rom, const MP2KSoundMode &soundMode, const AgbplayMixingOptions &mixingOptions)
+MP2KContext::MP2KContext(const Rom &rom, const MP2KSoundMode &soundMode, const AgbplayMixingOptions &mixingOptions)
     : rom(rom), reader(*this), mixer(*this, STREAM_SAMPLERATE, 1.0f), seq(mixingOptions.trackLimit), soundMode(soundMode), mixingOptions(mixingOptions)
 {
 }
 
-void PlayerContext::Process(std::vector<std::vector<sample>>& trackAudio)
+void MP2KContext::Process(std::vector<std::vector<sample>>& trackAudio)
 {
     reader.Process();
     mixer.Process(trackAudio);
     curInterFrame++;
 }
 
-void PlayerContext::InitSong(size_t songHeaderPos)
+void MP2KContext::InitSong(size_t songHeaderPos)
 {
     sndChannels.clear();
     sq1Channels.clear();
@@ -38,12 +38,12 @@ void PlayerContext::InitSong(size_t songHeaderPos)
     mixer.Init(fixedModeRate, reverb, pcmMasterVolume, mixingOptions.reverbType, numTracks);
 }
 
-bool PlayerContext::HasEnded() const
+bool MP2KContext::HasEnded() const
 {
     return reader.EndReached() && mixer.IsFadeDone();
 }
 
-size_t PlayerContext::GetCurInterFrame() const
+size_t MP2KContext::GetCurInterFrame() const
 {
     return curInterFrame;
 }

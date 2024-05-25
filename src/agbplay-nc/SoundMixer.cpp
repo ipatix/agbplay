@@ -6,13 +6,13 @@
 #include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
-#include "PlayerContext.h"
+#include "MP2KContext.h"
 
 /*
  * public SoundMixer
  */
 
-SoundMixer::SoundMixer(PlayerContext& ctx, uint32_t sampleRate, float masterVolume)
+SoundMixer::SoundMixer(MP2KContext& ctx, uint32_t sampleRate, float masterVolume)
     : ctx(ctx), sampleRate(sampleRate), masterVolume(masterVolume)
 {
 }

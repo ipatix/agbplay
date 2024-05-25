@@ -250,7 +250,7 @@ void PlaybackEngine::initContext()
         .emulateCgbSustainBug = cfg.GetSimulateCGBSustainBug(),
     };
 
-    ctx = std::make_unique<PlayerContext>(
+    ctx = std::make_unique<MP2KContext>(
         Rom::Instance(),
         soundMode,
         mixingOptions

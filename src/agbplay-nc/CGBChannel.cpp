@@ -8,13 +8,13 @@
 #include "Debug.h"
 #include "Util.h"
 #include "Constants.h"
-#include "PlayerContext.h"
+#include "MP2KContext.h"
 
 /*
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel(const PlayerContext &ctx, ADSR env, Note note, bool useStairstep)
+CGBChannel::CGBChannel(const MP2KContext &ctx, ADSR env, Note note, bool useStairstep)
     : ctx(ctx), env(env), note(note), useStairstep(useStairstep)
 {
     this->env.att &= 0x7;
@@ -371,7 +371,7 @@ void CGBChannel::applyVol()
  * public SquareChannel
  */
 
-SquareChannel::SquareChannel(const PlayerContext &ctx, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep)
+SquareChannel::SquareChannel(const MP2KContext &ctx, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep)
     : CGBChannel(ctx, env, note)
       , sweep(sweep)
       , sweepEnabled(isSweepEnabled(sweep))
@@ -548,7 +548,7 @@ uint8_t SquareChannel::sweepTime(uint8_t sweep)
  * public WaveChannel
  */
 
-WaveChannel::WaveChannel(const PlayerContext &ctx, uint32_t instrWave, ADSR env, Note note, bool useStairstep)
+WaveChannel::WaveChannel(const MP2KContext &ctx, uint32_t instrWave, ADSR env, Note note, bool useStairstep)
     : CGBChannel(ctx, env, note, useStairstep)
 {
     static const uint8_t dummyWave[16] = {0};
@@ -766,7 +766,7 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
  * public NoiseChannel
  */
 
-NoiseChannel::NoiseChannel(const PlayerContext &ctx, uint32_t instrNp, ADSR env, Note note)
+NoiseChannel::NoiseChannel(const MP2KContext &ctx, uint32_t instrNp, ADSR env, Note note)
     : CGBChannel(ctx, env, note)
 {
     this->rs = std::make_unique<NearestResampler>();

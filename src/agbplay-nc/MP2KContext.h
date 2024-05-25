@@ -5,6 +5,7 @@
 #include "SequenceReader.h"
 #include "SoundMixer.h"
 #include "Rom.h"
+#include "MP2KPlayer.h"
 
 /* Instead of defining lots of global objects, we define
  * a context with all the things we need. So anything which
@@ -24,7 +25,7 @@ struct MP2KContext {
     const Rom& rom;
     SequenceReader reader;
     SoundMixer mixer;
-    Sequence seq;
+    MP2KPlayer player; // TODO extend for multiple music players
     MP2KSoundMode soundMode;
     AgbplayMixingOptions mixingOptions;
 

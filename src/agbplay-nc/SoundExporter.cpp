@@ -128,7 +128,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     ctx.InitSong(songTable.GetPosOfSong(uid));
     size_t blocksRendered = 0;
     size_t nBlocks = ctx.mixer.GetSamplesPerBuffer();
-    size_t nTracks = ctx.seq.tracks.size();
+    size_t nTracks = ctx.player.tracks.size();
     std::vector<std::vector<sample>> trackAudio;
     double padSecondsStart = ConfigManager::Instance().GetPadSecondsStart();
     double padSecondsEnd = ConfigManager::Instance().GetPadSecondsEnd();

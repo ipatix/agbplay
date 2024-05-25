@@ -2,7 +2,7 @@
 #include "ConfigManager.h"
 
 MP2KContext::MP2KContext(const Rom &rom, const MP2KSoundMode &soundMode, const AgbplayMixingOptions &mixingOptions)
-    : rom(rom), reader(*this), mixer(*this, STREAM_SAMPLERATE, 1.0f), seq(mixingOptions.trackLimit), soundMode(soundMode), mixingOptions(mixingOptions)
+    : rom(rom), reader(*this), mixer(*this, STREAM_SAMPLERATE, 1.0f), player(mixingOptions.trackLimit), soundMode(soundMode), mixingOptions(mixingOptions)
 {
 }
 
@@ -22,18 +22,18 @@ void MP2KContext::InitSong(size_t songHeaderPos)
     noiseChannels.clear();
 
     curInterFrame = 0;
-    seq.Init(songHeaderPos);
+    player.Init(songHeaderPos);
     reader.Restart();
     mixer.ResetFade();
 
     uint32_t fixedModeRate = reader.freqLut.at(soundMode.freq - 1);
     uint8_t reverb = 0;
-    if (seq.GetReverb() & 0x80)
-        reverb = seq.GetReverb() & 0x7F;
+    if (player.GetReverb() & 0x80)
+        reverb = player.GetReverb() & 0x7F;
     else if (soundMode.rev & 0x80)
         reverb = soundMode.rev & 0x7F;
     float pcmMasterVolume = static_cast<float>(soundMode.vol + 1) / 16.0f;
-    uint8_t numTracks = static_cast<uint8_t>(seq.tracks.size());
+    uint8_t numTracks = static_cast<uint8_t>(player.tracks.size());
 
     mixer.Init(fixedModeRate, reverb, pcmMasterVolume, mixingOptions.reverbType, numTracks);
 }

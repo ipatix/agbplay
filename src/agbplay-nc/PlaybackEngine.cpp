@@ -210,10 +210,10 @@ void PlaybackEngine::Mute(size_t index, bool mute)
 SongInfo PlaybackEngine::GetSongInfo() const
 {
     SongInfo result;
-    result.songHeaderPos = ctx->seq.GetSongHeaderPos();
-    result.voiceTablePos = ctx->seq.GetSoundBankPos();
-    result.reverb = ctx->seq.GetReverb();
-    result.priority = ctx->seq.GetPriority();
+    result.songHeaderPos = ctx->player.GetSongHeaderPos();
+    result.voiceTablePos = ctx->player.GetSoundBankPos();
+    result.reverb = ctx->player.GetReverb();
+    result.priority = ctx->player.GetPriority();
     return result;
 }
 
@@ -267,7 +267,7 @@ void PlaybackEngine::threadWorker()
         while (playerState != State::SHUTDOWN) {
             switch (playerState) {
             case State::RESTART:
-                ctx->InitSong(ctx->seq.GetSongHeaderPos());
+                ctx->InitSong(ctx->player.GetSongHeaderPos());
                 playerState = State::PLAYING;
                 [[fallthrough]];
             case State::PLAYING:
@@ -280,7 +280,7 @@ void PlaybackEngine::threadWorker()
                         assert(trackAudio[i].size() == masterAudio.size());
 
                         bool muteThis = mutedTracks[i];
-                        ctx->seq.tracks[i].muted = muteThis;
+                        ctx->player.tracks[i].muted = muteThis;
                         trackLoudness[i].CalcLoudness(trackAudio[i].data(), samplesPerBuffer);
                         if (muteThis)
                             continue;
@@ -310,7 +310,7 @@ void PlaybackEngine::threadWorker()
             }
         }
         // reset song state after it has finished
-        ctx->InitSong(ctx->seq.GetSongHeaderPos());
+        ctx->InitSong(ctx->player.GetSongHeaderPos());
     } catch (std::exception& e) {
         Debug::print("FATAL ERROR on streaming thread: {}", e.what());
     }
@@ -331,7 +331,7 @@ void PlaybackEngine::updatePlaybackState(bool reset)
             return;
     }
 
-    const size_t ntrks = ctx->seq.tracks.size();
+    const size_t ntrks = ctx->player.tracks.size();
     assert(ntrks == trackLoudness.size());
     std::array<std::pair<float, float>, MAX_TRACKS> vols;
     for (size_t i = 0; i < ntrks; i++)
@@ -347,7 +347,7 @@ void PlaybackEngine::updatePlaybackState(bool reset)
     songState.tracks_used = ntrks;
 
     for (size_t i = 0; i < ntrks; i++) {
-        const auto &trk_src = ctx->seq.tracks[i];
+        const auto &trk_src = ctx->player.tracks[i];
         auto &trk_dst = songState.tracks[i];
 
         trk_dst.trackPtr = static_cast<uint32_t>(trk_src.pos);
@@ -381,7 +381,7 @@ int PlaybackEngine::audioCallback(const void *inputBuffer, void *outputBuffer, s
 void PlaybackEngine::setupLoudnessCalcs()
 {
     trackLoudness.clear();
-    for (size_t i = 0; i < ctx->seq.tracks.size(); i++)
+    for (size_t i = 0; i < ctx->player.tracks.size(); i++)
         trackLoudness.emplace_back(5.0f);
 }
 

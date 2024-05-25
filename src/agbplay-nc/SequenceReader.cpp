@@ -53,10 +53,10 @@ SequenceReader::SequenceReader(MP2KContext& ctx)
 
 void SequenceReader::Process()
 {
-    ctx.seq.bpmStack += uint32_t(float(ctx.seq.bpm) * speedFactor);
-    while (ctx.seq.bpmStack >= BPM_PER_FRAME * INTERFRAMES) {
+    ctx.player.bpmStack += uint32_t(float(ctx.player.bpm) * speedFactor);
+    while (ctx.player.bpmStack >= BPM_PER_FRAME * INTERFRAMES) {
         processSequenceTick();
-        ctx.seq.bpmStack -= BPM_PER_FRAME * INTERFRAMES;
+        ctx.player.bpmStack -= BPM_PER_FRAME * INTERFRAMES;
     }
 }
 
@@ -87,7 +87,7 @@ void SequenceReader::processSequenceTick()
     // process all tracks
     bool isSongRunning = false;
     int itrk = -1;
-    for (auto &trk : ctx.seq.tracks) {
+    for (auto &trk : ctx.player.tracks) {
         itrk += 1;
         const uint8_t trackIdx = static_cast<uint8_t>(itrk);
         if (!trk.isRunning)
@@ -173,7 +173,7 @@ void SequenceReader::processSequenceTick()
         endReached = true;
     }
 
-    ctx.seq.tickCount++;
+    ctx.player.tickCount++;
 }
 
 int SequenceReader::tickTrackNotes(uint8_t track_idx, std::bitset<NUM_NOTES>& activeNotes)
@@ -225,7 +225,7 @@ void SequenceReader::setTrackPV(uint8_t track_idx, uint16_t vol, int16_t pan, in
 void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
 {
     const Rom& rom = ctx.rom;
-    auto &trk = ctx.seq.tracks[trackIdx];
+    auto &trk = ctx.player.tracks[trackIdx];
 
     trk.lastNoteLen = noteLut.at(cmd);
 
@@ -249,7 +249,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     // find instrument definition
     uint8_t midiKeyPitch;
     int8_t rhythmPan = 0;
-    size_t instrPos = ctx.seq.GetSoundBankPos() + trk.prog * 12;
+    size_t instrPos = ctx.player.GetSoundBankPos() + trk.prog * 12;
     if (const uint8_t bankDataType = rom.ReadU8(instrPos + 0x0); bankDataType & BANKDATA_TYPE_SPLIT) {
         const size_t subBankPos = rom.ReadAgbPtrToPos(instrPos + 0x4);
         const size_t subKeyMap = rom.ReadAgbPtrToPos(instrPos + 0x8);
@@ -424,7 +424,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
 void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
 {
     const Rom &rom = ctx.rom;
-    auto &trk = ctx.seq.tracks[trackIdx];
+    auto &trk = ctx.player.tracks[trackIdx];
 
     switch (cmd) {
     case 0xB1:
@@ -484,7 +484,7 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
         break;
     case 0xBB:
         // TEMPO
-        ctx.seq.bpm = static_cast<uint16_t>(rom.ReadU8(trk.pos++) * 2);
+        ctx.player.bpm = static_cast<uint16_t>(rom.ReadU8(trk.pos++) * 2);
         break;
     case 0xBC:
         // KEYSH
@@ -598,16 +598,16 @@ void SequenceReader::cmdPlayFine(uint8_t trackIdx)
     stopFunc(ctx.sq2Channels);
     stopFunc(ctx.waveChannels);
     stopFunc(ctx.noiseChannels);
-    ctx.seq.tracks[trackIdx].isRunning = false;
+    ctx.player.tracks[trackIdx].isRunning = false;
 }
 
 void SequenceReader::cmdPlayMemacc(uint8_t trackIdx)
 {
     const Rom& rom = ctx.rom;
-    auto &trk = ctx.seq.tracks[trackIdx];
+    auto &trk = ctx.player.tracks[trackIdx];
 
     uint8_t op = rom.ReadU8(trk.pos++);
-    uint8_t& memory = ctx.seq.memaccArea[rom.ReadU8(trk.pos++)];
+    uint8_t& memory = ctx.player.memaccArea[rom.ReadU8(trk.pos++)];
     uint8_t data = rom.ReadU8(trk.pos++);
 
     switch (op) {
@@ -621,13 +621,13 @@ void SequenceReader::cmdPlayMemacc(uint8_t trackIdx)
         memory -= data;
         return;
     case 3:
-        memory = ctx.seq.memaccArea[data];
+        memory = ctx.player.memaccArea[data];
         return;
     case 4:
-        memory += ctx.seq.memaccArea[data];
+        memory += ctx.player.memaccArea[data];
         return;
     case 5:
-        memory -= ctx.seq.memaccArea[data];
+        memory -= ctx.player.memaccArea[data];
         return;
     case 6:
         if (memory == data) {
@@ -666,37 +666,37 @@ void SequenceReader::cmdPlayMemacc(uint8_t trackIdx)
         }
         break;
     case 12:
-        if (memory == ctx.seq.memaccArea[data]) {
+        if (memory == ctx.player.memaccArea[data]) {
             trk.pos = rom.ReadAgbPtrToPos(trk.pos);
             return;
         }
         break;
     case 13:
-        if (memory != ctx.seq.memaccArea[data]) {
+        if (memory != ctx.player.memaccArea[data]) {
             trk.pos = rom.ReadAgbPtrToPos(trk.pos);
             return;
         }
         break;
     case 14:
-        if (memory > ctx.seq.memaccArea[data]) {
+        if (memory > ctx.player.memaccArea[data]) {
             trk.pos = rom.ReadAgbPtrToPos(trk.pos);
             return;
         }
         break;
     case 15:
-        if (memory >= ctx.seq.memaccArea[data]) {
+        if (memory >= ctx.player.memaccArea[data]) {
             trk.pos = rom.ReadAgbPtrToPos(trk.pos);
             return;
         }
         break;
     case 16:
-        if (memory <= ctx.seq.memaccArea[data]) {
+        if (memory <= ctx.player.memaccArea[data]) {
             trk.pos = rom.ReadAgbPtrToPos(trk.pos);
             return;
         }
         break;
     case 17:
-        if (memory < ctx.seq.memaccArea[data]) {
+        if (memory < ctx.player.memaccArea[data]) {
             trk.pos = rom.ReadAgbPtrToPos(trk.pos);
             return;
         }
@@ -712,7 +712,7 @@ void SequenceReader::cmdPlayMemacc(uint8_t trackIdx)
 void SequenceReader::cmdPlayXCmd(uint8_t trackIdx)
 {
     const Rom& rom = ctx.rom;
-    auto &trk = ctx.seq.tracks[trackIdx];
+    auto &trk = ctx.player.tracks[trackIdx];
 
     uint8_t xCmdNo = rom.ReadU8(trk.pos++);
 

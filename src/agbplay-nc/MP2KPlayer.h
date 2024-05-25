@@ -18,7 +18,6 @@ public:
     void Reset();
 
     std::vector<MP2KTrack> tracks;
-    std::vector<uint8_t> memaccArea;
 
     // processing variables
     uint32_t tickCount = 0;

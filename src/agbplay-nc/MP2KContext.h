@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <list>
 
 #include "SequenceReader.h"
 #include "SoundMixer.h"
@@ -28,6 +29,7 @@ struct MP2KContext {
     MP2KPlayer player; // TODO extend for multiple music players
     MP2KSoundMode soundMode;
     AgbplayMixingOptions mixingOptions;
+    std::vector<uint8_t> memaccArea; // TODO, this will have to be accessible from outside for emulator support
 
     // sound channels
     std::list<SoundChannel> sndChannels;

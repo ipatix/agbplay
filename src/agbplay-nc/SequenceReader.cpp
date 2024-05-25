@@ -607,7 +607,7 @@ void SequenceReader::cmdPlayMemacc(uint8_t trackIdx)
     auto &trk = ctx.player.tracks[trackIdx];
 
     uint8_t op = rom.ReadU8(trk.pos++);
-    uint8_t& memory = ctx.player.memaccArea[rom.ReadU8(trk.pos++)];
+    uint8_t& memory = ctx.memaccArea[rom.ReadU8(trk.pos++)];
     uint8_t data = rom.ReadU8(trk.pos++);
 
     switch (op) {
@@ -621,13 +621,13 @@ void SequenceReader::cmdPlayMemacc(uint8_t trackIdx)
         memory -= data;
         return;
     case 3:
-        memory = ctx.player.memaccArea[data];
+        memory = ctx.memaccArea[data];
         return;
     case 4:
-        memory += ctx.player.memaccArea[data];
+        memory += ctx.memaccArea[data];
         return;
     case 5:
-        memory -= ctx.player.memaccArea[data];
+        memory -= ctx.memaccArea[data];
         return;
     case 6:
         if (memory == data) {
@@ -666,37 +666,37 @@ void SequenceReader::cmdPlayMemacc(uint8_t trackIdx)
         }
         break;
     case 12:
-        if (memory == ctx.player.memaccArea[data]) {
+        if (memory == ctx.memaccArea[data]) {
             trk.pos = rom.ReadAgbPtrToPos(trk.pos);
             return;
         }
         break;
     case 13:
-        if (memory != ctx.player.memaccArea[data]) {
+        if (memory != ctx.memaccArea[data]) {
             trk.pos = rom.ReadAgbPtrToPos(trk.pos);
             return;
         }
         break;
     case 14:
-        if (memory > ctx.player.memaccArea[data]) {
+        if (memory > ctx.memaccArea[data]) {
             trk.pos = rom.ReadAgbPtrToPos(trk.pos);
             return;
         }
         break;
     case 15:
-        if (memory >= ctx.player.memaccArea[data]) {
+        if (memory >= ctx.memaccArea[data]) {
             trk.pos = rom.ReadAgbPtrToPos(trk.pos);
             return;
         }
         break;
     case 16:
-        if (memory <= ctx.player.memaccArea[data]) {
+        if (memory <= ctx.memaccArea[data]) {
             trk.pos = rom.ReadAgbPtrToPos(trk.pos);
             return;
         }
         break;
     case 17:
-        if (memory < ctx.player.memaccArea[data]) {
+        if (memory < ctx.memaccArea[data]) {
             trk.pos = rom.ReadAgbPtrToPos(trk.pos);
             return;
         }

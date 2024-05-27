@@ -8,6 +8,7 @@
 #include "SoundMixer.h"
 
 struct MP2KContext;
+struct MP2KTrack;
 
 class SequenceReader
 {
@@ -34,13 +35,13 @@ private:
     float speedFactor = 1.0f;
 
     void processSequenceTick();
-    int tickTrackNotes(uint8_t track_idx, std::bitset<NUM_NOTES>& activeNotes);
-    void setTrackPV(uint8_t track_idx, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch);
+    int tickTrackNotes(MP2KTrack &trk);
+    void setTrackPV(MP2KTrack &trk, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch);
 
-    void cmdPlayNote(uint8_t cmd, uint8_t trackIdx);
-    void cmdPlayCommand(uint8_t cmd, uint8_t trackIdx);
+    void cmdPlayNote(MP2KTrack &trk, uint8_t cmd);
+    void cmdPlayCommand(MP2KTrack &trk, uint8_t cmd);
 
-    void cmdPlayFine(uint8_t trackIdx);
-    void cmdPlayMemacc(uint8_t trackIdx);
-    void cmdPlayXCmd(uint8_t trackIdx);
+    void cmdPlayFine(MP2KTrack &trk);
+    void cmdPlayMemacc(MP2KTrack &trk);
+    void cmdPlayXCmd(MP2KTrack &trk);
 };

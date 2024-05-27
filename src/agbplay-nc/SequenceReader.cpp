@@ -86,15 +86,12 @@ void SequenceReader::processSequenceTick()
 
     // process all tracks
     bool isSongRunning = false;
-    int itrk = -1; // TODO remove itrk
     for (auto &trk : ctx.player.tracks) {
-        itrk += 1;
-        const uint8_t trackIdx = static_cast<uint8_t>(itrk);
         if (!trk.isRunning)
             continue;
 
         isSongRunning = true;
-        tickTrackNotes(uint8_t(itrk), trk.activeNotes);
+        tickTrackNotes(trk);
 
         // count down last delay and process
         while (trk.isRunning && trk.delay == 0) {
@@ -105,7 +102,7 @@ void SequenceReader::processSequenceTick()
                 cmd = trk.lastCmd;
                 if (cmd < 0x80) {
                     // song data error, command not initialized
-                    cmdPlayFine(trackIdx);
+                    cmdPlayFine(trk);
                     break;
                 }
             } else {
@@ -118,10 +115,10 @@ void SequenceReader::processSequenceTick()
 
             if (cmd >= 0xCF) {
                 // note command
-                cmdPlayNote(cmd, trackIdx);
+                cmdPlayNote(trk, cmd);
             } else if (cmd >= 0xB1) {
                 // state altering command
-                cmdPlayCommand(cmd, trackIdx);
+                cmdPlayCommand(trk, cmd);
             } else {
                 trk.delay = delayLut.at(cmd);
             }
@@ -155,7 +152,7 @@ void SequenceReader::processSequenceTick()
 
         // TODO actually only update one or there other and not always both
         if (trk.updateVolume || trk.updatePitch || trk.mod > 0) {
-            setTrackPV(trackIdx, 
+            setTrackPV(trk, 
                     trk.GetVol(),
                     trk.GetPan(),
                     trk.pitch = trk.GetPitch(),
@@ -176,28 +173,24 @@ void SequenceReader::processSequenceTick()
     ctx.player.tickCount++;
 }
 
-int SequenceReader::tickTrackNotes(uint8_t track_idx, std::bitset<NUM_NOTES>& activeNotes)
+int SequenceReader::tickTrackNotes(MP2KTrack &trk)
 {
-    std::bitset<128> backBuffer;
+    std::bitset<NUM_NOTES> backBuffer;
     int active = 0;
-
-    auto &trk = ctx.player.tracks.at(track_idx);
 
     for (MP2KChn *chn = trk.channels; chn != nullptr; chn = chn->next) {
         if (chn->TickNote()) {
             active++;
-            backBuffer[chn->note.midiKeyTrackData % 128] = true;
+            backBuffer[chn->note.midiKeyTrackData % NUM_NOTES] = true;
         }
     }
 
-    activeNotes = backBuffer;
+    trk.activeNotes = backBuffer;
     return active;
 }
 
-void SequenceReader::setTrackPV(uint8_t track_idx, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch)
+void SequenceReader::setTrackPV(MP2KTrack &trk, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch)
 {
-    auto &trk = ctx.player.tracks.at(track_idx);
-
     // TODO: replace this with a normal linked list scan:
     // Why do we have to set pitch after release for SQ1 sweep sounds?
     // because after release the note is not expected to be in linked list
@@ -219,10 +212,9 @@ void SequenceReader::setTrackPV(uint8_t track_idx, uint16_t vol, int16_t pan, in
     setFunc(ctx.noiseChannels);
 }
 
-void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
+void SequenceReader::cmdPlayNote(MP2KTrack &trk, uint8_t cmd)
 {
     const Rom& rom = ctx.rom;
-    auto &trk = ctx.player.tracks[trackIdx];
 
     trk.lastNoteLen = noteLut.at(cmd);
 
@@ -285,7 +277,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     note.rhythmPan = rhythmPan;
     note.pseudoEchoVol = trk.pseudoEchoVol;
     note.pseudoEchoLen = trk.pseudoEchoLen;
-    note.trackIdx = trackIdx;
+    note.trackIdx = trk.trackIdx;
     note.playerIdx = ctx.player.playerIdx;
 
     ADSR adsr;
@@ -426,19 +418,18 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     trk.updatePitch = true;
 }
 
-void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
+void SequenceReader::cmdPlayCommand(MP2KTrack &trk, uint8_t cmd)
 {
     const Rom &rom = ctx.rom;
-    auto &trk = ctx.player.tracks[trackIdx];
 
     switch (cmd) {
     case 0xB1:
         // FINE
-        cmdPlayFine(trackIdx);
+        cmdPlayFine(trk);
         break;
     case 0xB2:
         // GOTO
-        if (trackIdx == 0) {
+        if (trk.trackIdx == 0) {
             // handle agbplay's internal loop counter
             if (ctx.mixingOptions.maxLoops != LOOP_ENDLESS && numLoops++ >= ctx.mixingOptions.maxLoops && !endReached) {
                 endReached = true;
@@ -450,7 +441,7 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
     case 0xB3:
         // PATT
         if (trk.patternLevel >= TRACK_CALL_STACK_SIZE) {
-            cmdPlayFine(trackIdx);
+            cmdPlayFine(trk);
             break;
         }
         trk.returnPos[trk.patternLevel++] = trk.pos + 4;
@@ -468,7 +459,7 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
         {
             uint8_t count = rom.ReadU8(trk.pos++);
             if (count == 0) {
-                cmdPlayFine(trackIdx);
+                cmdPlayFine(trk);
                 break;
             }
             if (++trk.reptCount < count) {
@@ -481,7 +472,7 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
         break;
     case 0xB9:
         // MEMACC
-        cmdPlayMemacc(trackIdx);
+        cmdPlayMemacc(trk);
         break;
     case 0xBA:
         // PRIO
@@ -553,7 +544,7 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
         break;
     case 0xCD:
         // xCMD
-        cmdPlayXCmd(trackIdx);
+        cmdPlayXCmd(trk);
         break;
     case 0xCE:
         // EOT
@@ -579,15 +570,13 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
         }
         break;
     default:
-        cmdPlayFine(trackIdx);
+        cmdPlayFine(trk);
         break;
     }
 }
 
-void SequenceReader::cmdPlayFine(uint8_t trackIdx)
+void SequenceReader::cmdPlayFine(MP2KTrack &trk)
 {
-    auto &trk = ctx.player.tracks.at(trackIdx);
-
     for (MP2KChn *chn = trk.channels; chn != nullptr; chn = chn->next) {
         chn->Release();
         chn->RemoveFromTrack();
@@ -596,10 +585,9 @@ void SequenceReader::cmdPlayFine(uint8_t trackIdx)
     trk.isRunning = false;
 }
 
-void SequenceReader::cmdPlayMemacc(uint8_t trackIdx)
+void SequenceReader::cmdPlayMemacc(MP2KTrack &trk)
 {
     const Rom& rom = ctx.rom;
-    auto &trk = ctx.player.tracks[trackIdx];
 
     uint8_t op = rom.ReadU8(trk.pos++);
     uint8_t& memory = ctx.memaccArea[rom.ReadU8(trk.pos++)];
@@ -704,17 +692,16 @@ void SequenceReader::cmdPlayMemacc(uint8_t trackIdx)
     trk.pos += 4;
 }
 
-void SequenceReader::cmdPlayXCmd(uint8_t trackIdx)
+void SequenceReader::cmdPlayXCmd(MP2KTrack &trk)
 {
     const Rom& rom = ctx.rom;
-    auto &trk = ctx.player.tracks[trackIdx];
 
     uint8_t xCmdNo = rom.ReadU8(trk.pos++);
 
     switch (xCmdNo) {
     case 0:
         // XXX
-        cmdPlayFine(trackIdx);
+        cmdPlayFine(trk);
         break;
     case 1:
         // XWAVE (stub)
@@ -726,7 +713,7 @@ void SequenceReader::cmdPlayXCmd(uint8_t trackIdx)
         break;
     case 3:
         // XXX
-        cmdPlayFine(trackIdx);
+        cmdPlayFine(trk);
         break;
     case 4:
         // XATTA (stub)
@@ -770,7 +757,7 @@ void SequenceReader::cmdPlayXCmd(uint8_t trackIdx)
         trk.pos += 4;
         break;
     default:
-        cmdPlayFine(trackIdx);
+        cmdPlayFine(trk);
         break;
     }
 }

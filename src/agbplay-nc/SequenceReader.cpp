@@ -86,7 +86,7 @@ void SequenceReader::processSequenceTick()
 
     // process all tracks
     bool isSongRunning = false;
-    int itrk = -1;
+    int itrk = -1; // TODO remove itrk
     for (auto &trk : ctx.player.tracks) {
         itrk += 1;
         const uint8_t trackIdx = static_cast<uint8_t>(itrk);
@@ -181,22 +181,14 @@ int SequenceReader::tickTrackNotes(uint8_t track_idx, std::bitset<NUM_NOTES>& ac
     std::bitset<128> backBuffer;
     int active = 0;
 
-    auto tickFunc = [&](auto& channels) {
-        for (auto& chn : channels) {
-            if (chn.GetTrackIdx() == track_idx) {
-                if (chn.TickNote()) {
-                    active++;
-                    backBuffer[chn.GetNote().midiKeyTrackData % 128] = true;
-                }
-            }
-        }
-    };
+    auto &trk = ctx.player.tracks.at(track_idx);
 
-    tickFunc(ctx.sndChannels);
-    tickFunc(ctx.sq1Channels);
-    tickFunc(ctx.sq2Channels);
-    tickFunc(ctx.waveChannels);
-    tickFunc(ctx.noiseChannels);
+    for (MP2KChn *chn = trk.channels; chn != nullptr; chn = chn->next) {
+        if (chn->TickNote()) {
+            active++;
+            backBuffer[chn->note.midiKeyTrackData % 128] = true;
+        }
+    }
 
     activeNotes = backBuffer;
     return active;
@@ -204,9 +196,14 @@ int SequenceReader::tickTrackNotes(uint8_t track_idx, std::bitset<NUM_NOTES>& ac
 
 void SequenceReader::setTrackPV(uint8_t track_idx, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch)
 {
+    auto &trk = ctx.player.tracks.at(track_idx);
+
+    // TODO: replace this with a normal linked list scan:
+    // Why do we have to set pitch after release for SQ1 sweep sounds?
+    // because after release the note is not expected to be in linked list
     auto setFunc = [&](auto& channels) {
         for (auto& chn : channels) {
-            if (chn.GetTrackIdx() == track_idx) {
+            if (chn.track == &trk) {
                 if (updateVolume)
                     chn.SetVol(vol, pan);
                 if (updatePitch)
@@ -289,6 +286,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     note.pseudoEchoVol = trk.pseudoEchoVol;
     note.pseudoEchoLen = trk.pseudoEchoLen;
     note.trackIdx = trackIdx;
+    note.playerIdx = ctx.player.playerIdx;
 
     ADSR adsr;
     adsr.att = rom.ReadU8(instrPos + 0x8);
@@ -297,6 +295,8 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
     adsr.rel = rom.ReadU8(instrPos + 0xB);
 
     // TODO move this to external function
+    // TODO the track address comparison is not well defined in terms of the relative location
+    // of track from multiple players. This should be replaced by a player+track combined priority
     // prepare cgb polyphony suppression
     auto cgbPolyphonySuppressFunc = [&](auto& channels) {
         // return 'true' if a note is allowed to play, 'false' if others with higher priority are playing
@@ -304,13 +304,13 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             // only one tone should play in mono strict mode
             assert(channels.size() <= 1);
             if (channels.size() > 0) {
-                const Note& playing_note = channels.front().GetNote();
+                const Note& playing_note = channels.front().note;
 
                 if (!channels.front().IsReleasing()) {
                     if (playing_note.priority > note.priority)
                         return false;
                     if (playing_note.priority == note.priority) {
-                        if (channels.front().GetTrackIdx() < trackIdx)
+                        if (channels.front().track < &trk)
                             return false;
                     }
                 }
@@ -318,12 +318,12 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
             channels.clear();
         } else if (ctx.mixingOptions.cgbPolyphony == CGBPolyphony::MONO_SMOOTH) {
             for (auto& chn : channels) {
-                if (chn.GetState() < EnvState::PSEUDO_ECHO && !chn.IsFastReleasing()) {
-                    const Note& playing_note = chn.GetNote();
+                if (chn.envState < EnvState::PSEUDO_ECHO && !chn.IsFastReleasing()) {
+                    const Note& playing_note = chn.note;
                     if (playing_note.priority > note.priority)
                         return false;
                     if (playing_note.priority == note.priority) {
-                        if (chn.GetTrackIdx() < trackIdx)
+                        if (chn.track < &trk)
                             return false;
                     }
                 }
@@ -346,6 +346,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                 return;
             ctx.sq1Channels.emplace_back(
                     ctx,
+                    &trk,
                     instrDutyWaveNp,
                     adsr,
                     note,
@@ -356,6 +357,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                 return;
             ctx.sq2Channels.emplace_back(
                     ctx,
+                    &trk,
                     instrDutyWaveNp,
                     adsr,
                     note,
@@ -366,6 +368,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                 return;
             ctx.waveChannels.emplace_back(
                     ctx,
+                    &trk,
                     instrDutyWaveNp,
                     adsr,
                     note,
@@ -376,6 +379,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
                 return;
             ctx.noiseChannels.emplace_back(
                     ctx,
+                    &trk,
                     instrDutyWaveNp,
                     adsr,
                     note);
@@ -410,6 +414,7 @@ void SequenceReader::cmdPlayNote(uint8_t cmd, uint8_t trackIdx)
 
         ctx.sndChannels.emplace_back(
                 ctx,
+                &trk,
                 sinfo,
                 adsr,
                 note,
@@ -560,23 +565,17 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
                 trk.pos++;
                 trk.lastNoteKey = key;
             }
-            auto stopFunc = [&](auto& channels) {
-                for (auto& chn : channels) {
-                    if (chn.GetTrackIdx() != trackIdx)
-                        continue;
-                    if (chn.IsReleasing())
-                        continue;
-                    if (chn.GetNote().midiKeyTrackData == key) {
-                        chn.Release();
-                        break;
-                    }
+            for (MP2KChn *chn = trk.channels; chn != nullptr; chn = chn->next) {
+                assert(chn->track == &trk);
+                if (chn->envState == EnvState::DEAD)
+                    continue;
+                if (chn->IsReleasing())
+                    continue;
+                if (chn->note.midiKeyTrackData == key) {
+                    chn->Release();
+                    break;
                 }
-            };
-            stopFunc(ctx.sndChannels);
-            stopFunc(ctx.sq1Channels);
-            stopFunc(ctx.sq2Channels);
-            stopFunc(ctx.waveChannels);
-            stopFunc(ctx.noiseChannels);
+            }
         }
         break;
     default:
@@ -587,18 +586,14 @@ void SequenceReader::cmdPlayCommand(uint8_t cmd, uint8_t trackIdx)
 
 void SequenceReader::cmdPlayFine(uint8_t trackIdx)
 {
-    auto stopFunc = [&](auto& channels) {
-        for (auto& chn : channels) {
-            if (chn.GetTrackIdx() == trackIdx)
-                chn.Release();
-        }
-    };
-    stopFunc(ctx.sndChannels);
-    stopFunc(ctx.sq1Channels);
-    stopFunc(ctx.sq2Channels);
-    stopFunc(ctx.waveChannels);
-    stopFunc(ctx.noiseChannels);
-    ctx.player.tracks[trackIdx].isRunning = false;
+    auto &trk = ctx.player.tracks.at(trackIdx);
+
+    for (MP2KChn *chn = trk.channels; chn != nullptr; chn = chn->next) {
+        chn->Release();
+        chn->RemoveFromTrack();
+    }
+
+    trk.isRunning = false;
 }
 
 void SequenceReader::cmdPlayMemacc(uint8_t trackIdx)

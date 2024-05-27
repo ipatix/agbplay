@@ -1,7 +1,7 @@
 #include "MP2KTrack.h"
 
-MP2KTrack::MP2KTrack(size_t pos)
-    : pos(pos)
+MP2KTrack::MP2KTrack(size_t pos, uint8_t trackIdx)
+    : pos(pos), trackIdx(trackIdx)
 {
     Init();
 }
@@ -37,6 +37,7 @@ void MP2KTrack::Init()
     isRunning = true;
     updateVolume = false;
     updatePitch = false;
+    channels = nullptr;
 }
 
 int16_t MP2KTrack::GetPitch()

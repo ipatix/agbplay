@@ -89,8 +89,7 @@ void SoundMixer::Process(std::vector<std::vector<sample>>& outputBuffers)
 
     /* 4. mix channels which are affected by reverb (PCM only) */
     for (auto& chn : ctx.sndChannels) {
-        assert(chn.GetTrackIdx() < numTracks);
-        chn.Process(outputBuffers[chn.GetTrackIdx()].data(), samplesPerBuffer, margs);
+        chn.Process(outputBuffers[chn.note.trackIdx].data(), samplesPerBuffer, margs);
     }
 
     /* 5. apply reverb */
@@ -100,28 +99,25 @@ void SoundMixer::Process(std::vector<std::vector<sample>>& outputBuffers)
 
     /* 6. mix channels which are not affected by reverb (CGB) */
     for (auto& chn : ctx.sq1Channels) {
-        assert(chn.GetTrackIdx() < numTracks);
-        chn.Process(outputBuffers[chn.GetTrackIdx()].data(), samplesPerBuffer, margs);
+        chn.Process(outputBuffers[chn.note.trackIdx].data(), samplesPerBuffer, margs);
     }
     for (auto& chn : ctx.sq2Channels) {
-        assert(chn.GetTrackIdx() < numTracks);
-        chn.Process(outputBuffers[chn.GetTrackIdx()].data(), samplesPerBuffer, margs);
+        chn.Process(outputBuffers[chn.note.trackIdx].data(), samplesPerBuffer, margs);
     }
     for (auto& chn : ctx.waveChannels) {
-        assert(chn.GetTrackIdx() < numTracks);
-        chn.Process(outputBuffers[chn.GetTrackIdx()].data(), samplesPerBuffer, margs);
+        chn.Process(outputBuffers[chn.note.trackIdx].data(), samplesPerBuffer, margs);
     }
     for (auto& chn : ctx.noiseChannels) {
-        assert(chn.GetTrackIdx() < numTracks);
-        chn.Process(outputBuffers[chn.GetTrackIdx()].data(), samplesPerBuffer, margs);
+        chn.Process(outputBuffers[chn.note.trackIdx].data(), samplesPerBuffer, margs);
     }
 
     /* 7. clean up all stopped channels */
-    ctx.sndChannels.remove_if([](const auto& chn) { return chn.GetState() == EnvState::DEAD; });
-    ctx.sq1Channels.remove_if([](const auto& chn) { return chn.GetState() == EnvState::DEAD; });
-    ctx.sq2Channels.remove_if([](const auto& chn) { return chn.GetState() == EnvState::DEAD; });
-    ctx.waveChannels.remove_if([](const auto& chn) { return chn.GetState() == EnvState::DEAD; });
-    ctx.noiseChannels.remove_if([](const auto& chn) { return chn.GetState() == EnvState::DEAD; });
+    auto removeFunc = [](const auto& chn) { return chn.envState == EnvState::DEAD; };
+    ctx.sndChannels.remove_if(removeFunc);
+    ctx.sq1Channels.remove_if(removeFunc);
+    ctx.sq2Channels.remove_if(removeFunc);
+    ctx.waveChannels.remove_if(removeFunc);
+    ctx.noiseChannels.remove_if(removeFunc);
 
     /* 8. apply fadeout if active */
     float masterFrom = masterVolume;

@@ -14,8 +14,8 @@
  * public SoundChannel
  */
 
-SoundChannel::SoundChannel(const MP2KContext &ctx, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
-    : MP2KChn(note, env), ctx(ctx), sInfo(sInfo), fixed(fixed) 
+SoundChannel::SoundChannel(const MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
+    : MP2KChn(track, note, env), ctx(ctx), sInfo(sInfo), fixed(fixed) 
 {
     const ResamplerType t = fixed ? ctx.mixingOptions.resamplerTypeFixed : ctx.mixingOptions.resamplerTypeNormal;
     switch (t) {
@@ -60,7 +60,7 @@ SoundChannel::SoundChannel(const MP2KContext &ctx, SampleInfo sInfo, ADSR env, c
 void SoundChannel::Process(sample *buffer, size_t numSamples, const MixingArgs& args)
 {
     stepEnvelope();
-    if (GetState() == EnvState::DEAD)
+    if (envState == EnvState::DEAD)
         return;
     if (numSamples == 0)
         return;
@@ -100,11 +100,6 @@ void SoundChannel::Process(sample *buffer, size_t numSamples, const MixingArgs& 
     updateVolFade();
 }
 
-uint8_t SoundChannel::GetTrackIdx() const
-{
-    return note.trackIdx;
-}
-
 void SoundChannel::SetVol(uint16_t vol, int16_t pan)
 {
     if (!stop) {
@@ -134,17 +129,12 @@ VolumeFade SoundChannel::getVol() const
     return retval;
 }
 
-const Note& SoundChannel::GetNote() const
-{
-    return note;
-}
-
-void SoundChannel::Release()
+void SoundChannel::Release() noexcept
 {
     stop = true;
 }
 
-bool SoundChannel::IsReleasing() const
+bool SoundChannel::IsReleasing() const noexcept
 {
     return stop;
 }
@@ -162,7 +152,7 @@ void SoundChannel::SetPitch(int16_t pitch)
         freq = sInfo.midCfreq * powf(2.0f, float(note.midiKeyPitch - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
-bool SoundChannel::TickNote()
+bool SoundChannel::TickNote() noexcept
 {
     if (!stop) {
         if (note.length > 0) {
@@ -176,11 +166,6 @@ bool SoundChannel::TickNote()
     } else {
         return false;
     }
-}
-
-EnvState SoundChannel::GetState() const
-{
-    return envState;
 }
 
 void SoundChannel::stepEnvelope()

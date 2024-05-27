@@ -5,10 +5,26 @@
 #include "Types.h"
 #include "Resampler.h"
 
+struct MP2KTrack;
+
 struct MP2KChn {
-    MP2KChn(const Note &note, const ADSR &env);
+    MP2KChn(MP2KTrack *track, const Note &note, const ADSR &env);
     MP2KChn(const MP2KChn &) = delete;
     MP2KChn& operator=(const MP2KChn&) = delete;
+    virtual ~MP2KChn();
+
+    void AddToTrack(MP2KTrack *track) noexcept;
+    void RemoveFromTrack() noexcept;
+
+    bool IsReleasing() const noexcept;
+    virtual void Release() noexcept = 0;
+    // TODO: Does TickNote really have to deviate between channel types?
+    virtual bool TickNote() noexcept = 0;
+
+    /* linked list of channels inside a track. */
+    MP2KChn *prev = nullptr;
+    MP2KChn *next = nullptr;
+    MP2KTrack *track = nullptr;
 
     std::unique_ptr<Resampler> rs;
 

@@ -21,20 +21,17 @@ private:
         float interStep;
     };
 public:
-    SoundChannel(const MP2KContext &ctx, SampleInfo sInfo, ADSR env, const Note& note, bool fixed);
+    SoundChannel(const MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed);
     SoundChannel(const SoundChannel&) = delete;
     SoundChannel& operator=(const SoundChannel&) = delete;
 
     void Process(sample *buffer, size_t numSamples, const MixingArgs& args);
-    uint8_t GetTrackIdx() const;
     void SetVol(uint16_t vol, int16_t pan);
-    const Note& GetNote() const;
-    void Release();
-    bool IsReleasing() const;
+    void Release() noexcept override;
+    bool IsReleasing() const noexcept;
     void Kill();
     void SetPitch(int16_t pitch);
-    bool TickNote(); // returns true if note remains active
-    EnvState GetState() const;
+    bool TickNote() noexcept override;
 private:
     void stepEnvelope();
     void updateVolFade();
@@ -55,7 +52,6 @@ private:
     uint8_t shiftMPTcompressed;
 
     /* all of these values have pairs of new and old value to allow smooth fades */
-    EnvState envState = EnvState::INIT;
     uint8_t envInterStep = 0;
     uint8_t envLevelCur;
     uint8_t envLevelPrev;

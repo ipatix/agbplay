@@ -7,13 +7,15 @@
 // TODO remove dependency for NUM_NOTES, and possibly remove active notes state?
 #include "Constants.h"
 
+#define TRACK_CALL_STACK_SIZE 3
 
 enum class MODT : int { PITCH = 0, VOL, PAN };
-#define TRACK_CALL_STACK_SIZE 3
+
+struct MP2KChn;
 
 struct MP2KTrack
 {
-    MP2KTrack(size_t pos);
+    MP2KTrack(size_t pos, uint8_t trackIdx);
     MP2KTrack(const MP2KTrack&) = delete;
     MP2KTrack(MP2KTrack &&) = default;
     MP2KTrack& operator=(const MP2KTrack&) = delete;
@@ -57,4 +59,8 @@ struct MP2KTrack
     bool isRunning;
     bool updateVolume;
     bool updatePitch;
+
+    const uint8_t trackIdx;
+
+    MP2KChn *channels = nullptr;
 };

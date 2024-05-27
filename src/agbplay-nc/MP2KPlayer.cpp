@@ -2,8 +2,8 @@
 
 #include "Rom.h" // TODO remove once Rom is deglobalized
 
-MP2KPlayer::MP2KPlayer(uint8_t trackLimit)
-    : trackLimit(trackLimit)
+MP2KPlayer::MP2KPlayer(uint8_t trackLimit, uint8_t playerIdx)
+    : trackLimit(trackLimit), playerIdx(playerIdx)
 {
     Init(0);
 }
@@ -17,11 +17,11 @@ void MP2KPlayer::Init(size_t songHeaderPos)
     tracks.clear();
     if (songHeaderPos != 0) {
         // read song header
-        size_t nTracks = std::min<uint8_t>(rom.ReadU8(songHeaderPos + 0), trackLimit);
+        const uint8_t nTracks = std::min<uint8_t>(rom.ReadU8(songHeaderPos + 0), trackLimit);
 
         // read track pointers
-        for (size_t i = 0; i < nTracks; i++)
-            tracks.emplace_back(rom.ReadAgbPtrToPos(songHeaderPos + 8 + 4 * i));
+        for (uint8_t i = 0; i < nTracks; i++)
+            tracks.emplace_back(rom.ReadAgbPtrToPos(songHeaderPos + 8 + 4 * i), i);
     }
 
     // reset runtime variables

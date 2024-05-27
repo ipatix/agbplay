@@ -14,8 +14,8 @@
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel(const MP2KContext &ctx, ADSR env, Note note, bool useStairstep)
-    : MP2KChn(note, env), ctx(ctx), useStairstep(useStairstep)
+CGBChannel::CGBChannel(const MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, bool useStairstep)
+    : MP2KChn(track, note, env), ctx(ctx), useStairstep(useStairstep)
 {
     this->env.att &= 0x7;
     this->env.dec &= 0x7;
@@ -24,11 +24,6 @@ CGBChannel::CGBChannel(const MP2KContext &ctx, ADSR env, Note note, bool useStai
 
     //if (note.trackIdx == 6)
     //    Debug::print("note start: this=%p att=%d dec=%d sus=%d rel=%d", this, (int)env.att, (int)env.dec, (int)env.sus, (int)env.rel);
-}
-
-uint8_t CGBChannel::GetTrackIdx() const
-{
-    return note.trackIdx;
 }
 
 void CGBChannel::SetVol(uint16_t vol, int16_t pan)
@@ -68,12 +63,12 @@ float CGBChannel::freq2timer(float freq)
     return 2048.0f - std::min(131072.0f / freq, 2047.0f);
 }
 
-const Note& CGBChannel::GetNote() const
+void CGBChannel::Release() noexcept
 {
-    return note;
+    Release(false);
 }
 
-void CGBChannel::Release(bool fastRelease)
+void CGBChannel::Release(bool fastRelease) noexcept
 {
     this->stop = true;
     this->fastRelease = fastRelease;
@@ -82,7 +77,7 @@ void CGBChannel::Release(bool fastRelease)
     //    Debug::print("releasing: %d", fastRelease);
 }
 
-bool CGBChannel::TickNote()
+bool CGBChannel::TickNote() noexcept
 {
     if (envState < EnvState::REL) {
         if (note.length > 0) {
@@ -97,16 +92,6 @@ bool CGBChannel::TickNote()
     } else {
         return false;
     }
-}
-
-EnvState CGBChannel::GetState() const
-{
-    return envState;
-}
-
-bool CGBChannel::IsReleasing() const
-{
-    return stop;
 }
 
 bool CGBChannel::IsFastReleasing() const
@@ -371,8 +356,8 @@ void CGBChannel::applyVol()
  * public SquareChannel
  */
 
-SquareChannel::SquareChannel(const MP2KContext &ctx, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep)
-    : CGBChannel(ctx, env, note)
+SquareChannel::SquareChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep)
+    : CGBChannel(ctx, track, env, note)
       , sweep(sweep)
       , sweepEnabled(isSweepEnabled(sweep))
       , sweepConvergence(sweep2convergence(sweep))
@@ -548,8 +533,8 @@ uint8_t SquareChannel::sweepTime(uint8_t sweep)
  * public WaveChannel
  */
 
-WaveChannel::WaveChannel(const MP2KContext &ctx, uint32_t instrWave, ADSR env, Note note, bool useStairstep)
-    : CGBChannel(ctx, env, note, useStairstep)
+WaveChannel::WaveChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep)
+    : CGBChannel(ctx, track, env, note, useStairstep)
 {
     static const uint8_t dummyWave[16] = {0};
     if (instrWave < AGB_MAP_ROM) {
@@ -766,8 +751,8 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
  * public NoiseChannel
  */
 
-NoiseChannel::NoiseChannel(const MP2KContext &ctx, uint32_t instrNp, ADSR env, Note note)
-    : CGBChannel(ctx, env, note)
+NoiseChannel::NoiseChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note)
+    : CGBChannel(ctx, track, env, note)
 {
     this->rs = std::make_unique<NearestResampler>();
     if ((instrNp & 0x1) == 0) {

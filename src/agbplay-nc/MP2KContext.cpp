@@ -2,7 +2,7 @@
 #include "ConfigManager.h"
 
 MP2KContext::MP2KContext(const Rom &rom, const MP2KSoundMode &soundMode, const AgbplayMixingOptions &mixingOptions)
-    : rom(rom), reader(*this), mixer(*this, STREAM_SAMPLERATE, 1.0f), player(mixingOptions.trackLimit), soundMode(soundMode), mixingOptions(mixingOptions), memaccArea(256)
+    : rom(rom), reader(*this), mixer(*this, STREAM_SAMPLERATE, 1.0f), player(mixingOptions.trackLimit, 0), soundMode(soundMode), mixingOptions(mixingOptions), memaccArea(256)
 {
 }
 

@@ -12,24 +12,22 @@
 #define NOISE_SAMPLING_FREQ 65536.0f
 
 struct MP2KContext;
+struct MP2KTrack;
 
 class CGBChannel : public MP2KChn
 {
 public: 
-    CGBChannel(const MP2KContext &ctx, ADSR env, Note note, bool useStairstep = false);
+    CGBChannel(const MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, bool useStairstep = false);
     CGBChannel(const CGBChannel&) = delete;
     CGBChannel& operator=(const CGBChannel&) = delete;
     virtual ~CGBChannel() = default;
 
     virtual void Process(sample *buffer, size_t numSamples, MixingArgs& args) = 0;
-    uint8_t GetTrackIdx() const;
     void SetVol(uint16_t vol, int16_t pan);
-    const Note& GetNote() const;
-    void Release(bool fastRelease = false);
+    void Release() noexcept override;
+    void Release(bool fastRelease) noexcept;
     virtual void SetPitch(int16_t pitch) = 0;
-    bool TickNote(); // returns true if note remains active
-    EnvState GetState() const;
-    bool IsReleasing() const;
+    bool TickNote() noexcept override;
     bool IsFastReleasing() const;
 protected:
     virtual bool IsChn3() const;
@@ -65,7 +63,7 @@ protected:
 class SquareChannel : public CGBChannel
 {
 public:
-    SquareChannel(const MP2KContext &ctx, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep);
+    SquareChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
@@ -91,7 +89,7 @@ private:
 class WaveChannel : public CGBChannel
 {
 public:
-    WaveChannel(const MP2KContext &ctx, uint32_t instrWave, ADSR env, Note note, bool useStairstep);
+    WaveChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
@@ -109,7 +107,7 @@ private:
 class NoiseChannel : public CGBChannel
 {
 public:
-    NoiseChannel(const MP2KContext &ctx, uint32_t instrNp, ADSR env, Note note);
+    NoiseChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note);
 
     void SetPitch(int16_t pitch) override;
     void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;

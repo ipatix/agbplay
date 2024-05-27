@@ -10,7 +10,7 @@
 class MP2KPlayer
 {
 public:
-    MP2KPlayer(uint8_t trackLimit);
+    MP2KPlayer(uint8_t trackLimit, uint8_t playerIdx);
     MP2KPlayer(const MP2KPlayer&) = delete;
     MP2KPlayer& operator=(const MP2KPlayer&) = delete;
 
@@ -23,6 +23,8 @@ public:
     uint32_t tickCount = 0;
     int32_t bpmStack = 0;
     uint16_t bpm = 0;
+    const uint8_t playerIdx;
+
     size_t GetSoundBankPos() const;
     uint8_t GetReverb() const;
     uint8_t GetPriority() const;

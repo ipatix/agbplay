@@ -1,5 +1,7 @@
 #include "MP2KChn.h"
 
+#include <cassert>
+
 #include "MP2KTrack.h"
 
 MP2KChn::MP2KChn(MP2KTrack *track, const Note &note, const ADSR &env) : note(note), env(env)
@@ -14,6 +16,7 @@ MP2KChn::~MP2KChn()
 
 void MP2KChn::AddToTrack(MP2KTrack *track) noexcept
 {
+    assert(this->track == nullptr);
     this->track = track;
 
     prev = nullptr;

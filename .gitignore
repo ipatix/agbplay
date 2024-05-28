@@ -19,4 +19,5 @@ gmon.out
 analysis*
 perf.data
 build
+build_dbg
 .vscode

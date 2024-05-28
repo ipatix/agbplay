@@ -129,7 +129,6 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     size_t blocksRendered = 0;
     size_t nBlocks = ctx.mixer.GetSamplesPerBuffer();
     size_t nTracks = ctx.player.tracks.size();
-    std::vector<std::vector<sample>> trackAudio;
     double padSecondsStart = ConfigManager::Instance().GetPadSecondsStart();
     double padSecondsEnd = ConfigManager::Instance().GetPadSecondsEnd();
 
@@ -155,12 +154,11 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
 
             while (true)
             {
-                ctx.reader.Process();
-                ctx.mixer.Process(trackAudio);
+                ctx.SoundMain();
                 if (ctx.HasEnded())
                     break;
 
-                assert(trackAudio.size() == nTracks);
+                assert(ctx.player.tracks.size() == nTracks);
 
                 for (size_t i = 0; i < nTracks; i++) 
                 {
@@ -169,7 +167,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
                         continue;
                     sf_count_t processed = 0;
                     do {
-                        processed += sf_writef_float(ofiles[i], &trackAudio[i][processed].left, sf_count_t(nBlocks) - processed);
+                        processed += sf_writef_float(ofiles[i], &ctx.masterAudioBuffer[processed].left, sf_count_t(nBlocks) - processed);
                     } while (processed < sf_count_t(nBlocks));
                 }
                 blocksRendered += nBlocks;
@@ -194,33 +192,18 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
                 Debug::print("Error: {}", sf_strerror(NULL));
                 return 0;
             }
-            // do rendering and write
-            std::vector<sample> renderedData(nBlocks);
 
             writeSilence(ofile, padSecondsStart);
 
             while (true) 
             {
-                ctx.reader.Process();
-                ctx.mixer.Process(trackAudio);
+                ctx.SoundMain();
                 if (ctx.HasEnded())
                     break;
-                // mix streams to one master
-                assert(trackAudio.size() == nTracks);
-                // clear mixing buffer
-                fill(renderedData.begin(), renderedData.end(), sample{0.0f, 0.0f});
-                // mix all tracks to buffer
-                for (std::vector<sample>& b : trackAudio)
-                {
-                    assert(b.size() == renderedData.size());
-                    for (size_t i = 0; i < b.size(); i++) {
-                        renderedData[i].left  += b[i].left;
-                        renderedData[i].right += b[i].right;
-                    }
-                }
+
                 sf_count_t processed = 0;
                 do {
-                    processed += sf_writef_float(ofile, &renderedData[processed].left, sf_count_t(nBlocks) - processed);
+                    processed += sf_writef_float(ofile, &ctx.masterAudioBuffer[processed].left, sf_count_t(nBlocks) - processed);
                 } while (processed < sf_count_t(nBlocks));
                 blocksRendered += nBlocks;
             }
@@ -236,8 +219,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     else {
         while (true)
         {
-            ctx.reader.Process();
-            ctx.mixer.Process(trackAudio);
+            ctx.SoundMain();
             blocksRendered += nBlocks;
             if (ctx.HasEnded())
                 break;

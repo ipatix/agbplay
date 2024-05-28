@@ -20,9 +20,9 @@ public:
     SoundMixer(const SoundMixer&) = delete;
     SoundMixer& operator=(const SoundMixer&) = delete;
 
-    void Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVolume, ReverbType rtype, uint8_t numTracks);
+    void Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVolume, ReverbType rtype);
 
-    void Process(std::vector<std::vector<sample>>& outputBuffers);
+    void Process();
     size_t GetSamplesPerBuffer() const;
     uint32_t GetSampleRate() const;
     void ResetFade();
@@ -33,7 +33,6 @@ public:
 private:
     MP2KContext& ctx;
 
-    std::vector<std::unique_ptr<ReverbEffect>> revdsps;
     uint32_t sampleRate;
     uint32_t fixedModeRate = 13379;
     size_t samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
@@ -45,6 +44,4 @@ private:
     float fadePos = 1.0f;
     float fadeStepPerMicroframe = 0.0f;
     size_t fadeMicroframesLeft = 0;
-
-    uint8_t numTracks = 0;
 };

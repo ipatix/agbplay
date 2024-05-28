@@ -17,11 +17,11 @@ SoundMixer::SoundMixer(MP2KContext& ctx, uint32_t sampleRate, float masterVolume
 {
 }
 
-void SoundMixer::Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVolume, ReverbType rtype, uint8_t numTracks)
+void SoundMixer::Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVolume, ReverbType rtype)
 {
+    // TODO with access to ctx, rtype is an unnecessary parameter
     this->fixedModeRate = fixedModeRate;
     this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
-    this->numTracks = numTracks;
     this->pcmMasterVolume = pcmMasterVolume;
 
     const uint8_t numDmaBuffers = std::max(
@@ -29,35 +29,34 @@ void SoundMixer::Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVol
         static_cast<uint8_t>(ctx.mixingOptions.dmaBufferLen / (fixedModeRate / AGB_FPS))
     );
 
-    revdsps.resize(numTracks);
-    for (size_t i = 0; i < numTracks; i++)
-    {
+    // TODO add for-loop for multiple players
+    for (auto &trk : ctx.player.tracks) {
         switch (rtype) {
         case ReverbType::NORMAL:
-            revdsps[i] = std::make_unique<ReverbEffect>(
+            trk.reverb = std::make_unique<ReverbEffect>(
                     reverb, sampleRate, numDmaBuffers);
             break;
         case ReverbType::NONE:
-            revdsps[i] = std::make_unique<ReverbEffect>(
+            trk.reverb = std::make_unique<ReverbEffect>(
                     0, sampleRate, numDmaBuffers);
             break;
         case ReverbType::GS1:
-            revdsps[i] = std::make_unique<ReverbGS1>(
+            trk.reverb = std::make_unique<ReverbGS1>(
                     reverb, sampleRate, numDmaBuffers);
             break;
         case ReverbType::GS2:
-            revdsps[i] = std::make_unique<ReverbGS2>(
+            trk.reverb = std::make_unique<ReverbGS2>(
                     reverb, sampleRate, numDmaBuffers,
                     0.4140625f, -0.0625f);
             break;
             // Mario Power Tennis uses same coefficients as Mario Golf Advance Tour
         case ReverbType::MGAT:
-            revdsps[i] = std::make_unique<ReverbGS2>(
+            trk.reverb = std::make_unique<ReverbGS2>(
                     reverb, sampleRate, numDmaBuffers,
                     0.25f, -0.046875f);
             break;
         case ReverbType::TEST:
-            revdsps[i] = std::make_unique<ReverbTest>(
+            trk.reverb = std::make_unique<ReverbTest>(
                     reverb, sampleRate, numDmaBuffers);
             break;
         default:
@@ -66,20 +65,19 @@ void SoundMixer::Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVol
     }
 }
 
-void SoundMixer::Process(std::vector<std::vector<sample>>& outputBuffers)
+void SoundMixer::Process()
 {
-    /* 1. match number of output buffers to the number of tracks we have */
-    if (outputBuffers.size() != numTracks) {
-        outputBuffers.resize(numTracks, std::vector<sample>(samplesPerBuffer));
+    /* 1. clear the mixing buffer before processing channels */
+    // TODO add player for-loop for multiple players
+    ctx.masterAudioBuffer.resize(samplesPerBuffer);
+    std::fill(ctx.masterAudioBuffer.begin(), ctx.masterAudioBuffer.end(), sample{0.0f, 0.0f});
+
+    for (auto &trk : ctx.player.tracks) {
+        trk.audioBuffer.resize(samplesPerBuffer);
+        std::fill(trk.audioBuffer.begin(), trk.audioBuffer.end(), sample{0.0f, 0.0f});
     }
 
-    /* 2. clear the mixing buffer before processing channels */
-    for (auto& outputBuffer : outputBuffers) {
-        assert(outputBuffer.size() == samplesPerBuffer);
-        std::fill(outputBuffer.begin(), outputBuffer.end(), sample{0.0f, 0.0f});
-    }
-
-    /* 3. prepare arguments for mixing */
+    /* 2. prepare arguments for mixing */
     MixingArgs margs;
     margs.vol = pcmMasterVolume;
     margs.fixedModeRate = fixedModeRate;
@@ -87,31 +85,26 @@ void SoundMixer::Process(std::vector<std::vector<sample>>& outputBuffers)
     margs.samplesPerBufferInv= 1.0f / static_cast<float>(samplesPerBuffer);
     margs.curInterFrame = ctx.GetCurInterFrame();
 
-    /* 4. mix channels which are affected by reverb (PCM only) */
-    for (auto& chn : ctx.sndChannels) {
-        chn.Process(outputBuffers[chn.note.trackIdx].data(), samplesPerBuffer, margs);
+    /* 3. mix channels which are affected by reverb (PCM only) */
+    auto mixFunc = [&](auto &channels) {
+        for (auto &chn : channels)
+            chn.Process(chn.track->audioBuffer.data(), samplesPerBuffer, margs);
+    };
+    mixFunc(ctx.sndChannels);
+
+    /* 4. apply reverb */
+    // TODO add player for-loop for multiple players
+    for (auto &trk : ctx.player.tracks) {
+        trk.reverb->ProcessData(trk.audioBuffer.data(), samplesPerBuffer);
     }
 
-    /* 5. apply reverb */
-    assert(revdsps.size() == numTracks);
-    for (size_t i = 0; i < outputBuffers.size(); i++)
-        revdsps[i]->ProcessData(outputBuffers[i].data(), samplesPerBuffer);
+    /* 5. mix channels which are not affected by reverb (CGB) */
+    mixFunc(ctx.sq1Channels);
+    mixFunc(ctx.sq2Channels);
+    mixFunc(ctx.waveChannels);
+    mixFunc(ctx.noiseChannels);
 
-    /* 6. mix channels which are not affected by reverb (CGB) */
-    for (auto& chn : ctx.sq1Channels) {
-        chn.Process(outputBuffers[chn.note.trackIdx].data(), samplesPerBuffer, margs);
-    }
-    for (auto& chn : ctx.sq2Channels) {
-        chn.Process(outputBuffers[chn.note.trackIdx].data(), samplesPerBuffer, margs);
-    }
-    for (auto& chn : ctx.waveChannels) {
-        chn.Process(outputBuffers[chn.note.trackIdx].data(), samplesPerBuffer, margs);
-    }
-    for (auto& chn : ctx.noiseChannels) {
-        chn.Process(outputBuffers[chn.note.trackIdx].data(), samplesPerBuffer, margs);
-    }
-
-    /* 7. clean up all stopped channels */
+    /* 6. clean up all stopped channels */
     auto removeFunc = [](const auto& chn) { return chn.envState == EnvState::DEAD; };
     ctx.sndChannels.remove_if(removeFunc);
     ctx.sq1Channels.remove_if(removeFunc);
@@ -119,7 +112,8 @@ void SoundMixer::Process(std::vector<std::vector<sample>>& outputBuffers)
     ctx.waveChannels.remove_if(removeFunc);
     ctx.noiseChannels.remove_if(removeFunc);
 
-    /* 8. apply fadeout if active */
+    /* 7. apply fadeout if active */
+    // TODO move this to FadeOutMain
     float masterFrom = masterVolume;
     float masterTo = masterVolume;
     if (fadeMicroframesLeft > 0) {
@@ -137,15 +131,29 @@ void SoundMixer::Process(std::vector<std::vector<sample>>& outputBuffers)
         fadeMicroframesLeft--;
     }
 
-    for (auto& outputBuffer : outputBuffers) {
-        float masterStep = (masterTo - masterFrom) * margs.samplesPerBufferInv;
+    // TODO add for-loop for multiple players
+    for (auto &trk : ctx.player.tracks) {
+        const float masterStep = (masterTo - masterFrom) * margs.samplesPerBufferInv;
         float masterLevel = masterFrom;
         for (size_t i = 0; i < samplesPerBuffer; i++)
         {
-            outputBuffer[i].left *= masterLevel;
-            outputBuffer[i].right *= masterLevel;
+            trk.audioBuffer[i].left *= masterLevel;
+            trk.audioBuffer[i].right *= masterLevel;
 
             masterLevel +=  masterStep;
+        }
+    }
+
+    /* 8. master mixdown */
+    // TODO add for-loop for multiple players
+    for (auto &trk : ctx.player.tracks) {
+        if (trk.muted)
+            continue;
+
+        assert(ctx.masterAudioBuffer.size() == trk.audioBuffer.size());
+        for (size_t i = 0; i < ctx.masterAudioBuffer.size(); i++) {
+            ctx.masterAudioBuffer[i].left += trk.audioBuffer[i].left;
+            ctx.masterAudioBuffer[i].right += trk.audioBuffer[i].right;
         }
     }
 }

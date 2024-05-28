@@ -1,5 +1,7 @@
 #include "MP2KTrack.h"
 
+#include "ReverbEffect.h"
+
 MP2KTrack::MP2KTrack(size_t pos, uint8_t trackIdx)
     : pos(pos), trackIdx(trackIdx)
 {

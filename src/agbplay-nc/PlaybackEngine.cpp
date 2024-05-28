@@ -261,8 +261,7 @@ void PlaybackEngine::threadWorker()
 {
     size_t samplesPerBuffer = ctx->mixer.GetSamplesPerBuffer();
     std::vector<sample> silence(samplesPerBuffer, sample{0.0f, 0.0f});
-    std::vector<sample> masterAudio(samplesPerBuffer, sample{0.0f, 0.0f});
-    std::vector<std::vector<sample>> trackAudio;
+
     try {
         while (playerState != State::SHUTDOWN) {
             switch (playerState) {
@@ -272,28 +271,21 @@ void PlaybackEngine::threadWorker()
                 [[fallthrough]];
             case State::PLAYING:
                 {
-                    // clear high level mixing buffer
-                    fill(masterAudio.begin(), masterAudio.end(), sample{0.0f, 0.0f});
                     // render audio buffers for tracks
-                    ctx->Process(trackAudio);
-                    for (size_t i = 0; i < trackAudio.size(); i++) {
-                        assert(trackAudio[i].size() == masterAudio.size());
+                    ctx->SoundMain();
 
-                        bool muteThis = mutedTracks[i];
+                    for (size_t i = 0; i < ctx->player.tracks.size(); i++) {
+                        auto &trk = ctx->player.tracks[i];
+                        const bool muteThis = mutedTracks[i]; // racy, as mutedTracks comes from different thread
                         ctx->player.tracks[i].muted = muteThis;
-                        trackLoudness[i].CalcLoudness(trackAudio[i].data(), samplesPerBuffer);
-                        if (muteThis)
-                            continue;
-
-                        for (size_t j = 0; j < masterAudio.size(); j++) {
-                            masterAudio[j].left += trackAudio[i][j].left;
-                            masterAudio[j].right += trackAudio[i][j].right;
-                        }
+                        assert(trk.audioBuffer.size() == samplesPerBuffer);
+                        trackLoudness[i].CalcLoudness(trk.audioBuffer.data(), trk.audioBuffer.size());
                     }
 
                     // blocking write to audio buffer
-                    rBuf.Put(masterAudio.data(), masterAudio.size());
-                    masterLoudness.CalcLoudness(masterAudio.data(), samplesPerBuffer);
+                    assert(ctx->masterAudioBuffer.size() == samplesPerBuffer);
+                    rBuf.Put(ctx->masterAudioBuffer.data(), ctx->masterAudioBuffer.size());
+                    masterLoudness.CalcLoudness(ctx->masterAudioBuffer.data(), ctx->masterAudioBuffer.size());
                     updatePlaybackState();
 
                     if (ctx->HasEnded()) {

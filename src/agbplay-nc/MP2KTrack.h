@@ -3,15 +3,19 @@
 #include <bitset>
 #include <cstdint>
 #include <cstddef>
+#include <memory>
+#include <vector>
 
 // TODO remove dependency for NUM_NOTES, and possibly remove active notes state?
 #include "Constants.h"
+#include "Types.h"
 
 #define TRACK_CALL_STACK_SIZE 3
 
 enum class MODT : int { PITCH = 0, VOL, PAN };
 
 struct MP2KChn;
+class ReverbEffect;
 
 struct MP2KTrack
 {
@@ -27,6 +31,8 @@ struct MP2KTrack
     void ResetLfoValue();
 
     std::bitset<NUM_NOTES> activeNotes;
+    std::vector<sample> audioBuffer;
+    std::unique_ptr<ReverbEffect> reverb;
 
     size_t pos;
     size_t returnPos[TRACK_CALL_STACK_SIZE];

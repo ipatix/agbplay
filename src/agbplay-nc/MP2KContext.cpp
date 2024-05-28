@@ -6,10 +6,10 @@ MP2KContext::MP2KContext(const Rom &rom, const MP2KSoundMode &soundMode, const A
 {
 }
 
-void MP2KContext::Process(std::vector<std::vector<sample>>& trackAudio)
+void MP2KContext::SoundMain()
 {
     reader.Process();
-    mixer.Process(trackAudio);
+    mixer.Process();
     curInterFrame++;
 }
 
@@ -35,7 +35,7 @@ void MP2KContext::InitSong(size_t songHeaderPos)
     float pcmMasterVolume = static_cast<float>(soundMode.vol + 1) / 16.0f;
     uint8_t numTracks = static_cast<uint8_t>(player.tracks.size());
 
-    mixer.Init(fixedModeRate, reverb, pcmMasterVolume, mixingOptions.reverbType, numTracks);
+    mixer.Init(fixedModeRate, reverb, pcmMasterVolume, mixingOptions.reverbType);
 }
 
 bool MP2KContext::HasEnded() const

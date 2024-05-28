@@ -6,6 +6,8 @@
 
 #include "Types.h"
 
+// TODO rename to Reverb
+
 class ReverbEffect
 {
 public:

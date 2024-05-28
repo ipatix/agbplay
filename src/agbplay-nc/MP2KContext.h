@@ -18,7 +18,7 @@ struct MP2KContext {
     MP2KContext(const MP2KContext&) = delete;
     MP2KContext& operator=(const MP2KContext&) = delete;
 
-    void Process(std::vector<std::vector<sample>>& trackAudio);
+    void SoundMain();
     void InitSong(size_t songPos);
     bool HasEnded() const;
     size_t GetCurInterFrame() const;
@@ -30,6 +30,7 @@ struct MP2KContext {
     MP2KSoundMode soundMode;
     AgbplayMixingOptions mixingOptions;
     std::vector<uint8_t> memaccArea; // TODO, this will have to be accessible from outside for emulator support
+    std::vector<sample> masterAudioBuffer;
 
     // sound channels
     std::list<SoundChannel> sndChannels;

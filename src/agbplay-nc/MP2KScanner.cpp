@@ -1,0 +1,310 @@
+#include "MP2KScanner.h"
+
+#include "Rom.h"
+
+MP2KScanner::MP2KScanner(const Rom &rom) : rom(rom)
+{
+}
+
+std::vector<MP2KScanner::Result> MP2KScanner::Scan()
+{
+    std::vector<Result> results;
+
+    size_t findStartPos = SEARCH_START;
+
+    while (true) {
+        size_t songTablePos;
+        size_t songCount;
+        const bool songtableValid = FindSongTable(findStartPos, songTablePos, songCount);
+        if (!songtableValid)
+            break;
+
+        std::vector<uint8_t> maxTracks;
+        size_t playerTablePos;
+        const bool maxTracksValid = FindPlayerTable(songTablePos, playerTablePos, maxTracks);
+        if (!maxTracksValid)
+            break;
+
+        uint32_t soundMode;
+        size_t soundModePos;
+        const bool soundModeValid = FindSoundMode(songTablePos, soundModePos, soundMode);
+        if (!soundModeValid)
+            break;
+
+        Result result{
+            .pcm_vol = static_cast<uint8_t>((soundMode >> 12) & 0xF),
+            .pcm_rev = static_cast<uint8_t>((soundMode >> 0) & 0xFF),
+            .pcm_freq = static_cast<uint8_t>((soundMode >> 16) & 0xF),
+            .pcm_max_channels = static_cast<uint8_t>((soundMode >> 8) & 0xF),
+            .dac_config = static_cast<uint8_t>((soundMode >> 20) & 0xF),
+            .player_max_tracks = maxTracks,
+            .songtable_pos = songTablePos,
+            .song_count = songCount,
+        };
+
+        results.emplace_back(result);
+    }
+
+    return results;
+}
+
+bool MP2KScanner::FindSongTable(size_t &findStartPos, size_t &songTablePos, size_t &songCount) const
+{
+    for (size_t i = findStartPos; i < rom.Size() - 3; i += 4) {
+        size_t candidatePos = i;
+        bool candidateValid = true;
+        
+        /* check if MIN_SONG_NUM entries look like a valid song table */
+        for (size_t j = 0; j < MIN_SONG_NUM; j++) {
+            if (!IsValidSongTableEntry(i + j * 8)) {
+                i += j * 8;
+                candidateValid = false;
+                break;
+            }
+        }
+
+        if (!candidateValid)
+            continue;
+
+        /* scan for a reference to the song table (for verification) */
+        if (!IsPosReferenced(candidatePos))
+            continue;
+
+        /* count number of songs */
+        songCount = 0;
+        for (size_t pos = candidatePos; pos <= rom.Size() - 3; pos += 8) {
+            if (!IsValidSongTableEntry(pos))
+                break;
+            songCount++;
+        }
+
+        /* return results */
+        songTablePos = candidatePos;
+        findStartPos += candidatePos + songCount * 8;
+        return true;
+    }
+
+    return false;
+}
+
+bool MP2KScanner::FindPlayerTable(size_t songTablePos, size_t &playerTablePos, std::vector<uint8_t> &maxTracks) const
+{
+    /* The player table is usually located right before the song table.
+     * For cases where it is not (e.g. romhacks), the user will have to specify
+     * it manually. */
+
+    /* 1. Search in reverse and skip possibly up to 3 linker alignment words. */
+
+    const size_t maxAlignmentWords = 3;
+    size_t playerTableEndPos = songTablePos;
+
+    for (size_t i = 0; i < maxAlignmentWords; i++) {
+        if (playerTableEndPos < 4)
+            return false;
+        if (rom.ReadU32(playerTableEndPos - 4) != 0)
+            break;
+        playerTableEndPos -= 4;
+    }
+
+    /* 2. Search in reverse how many player entries there are */
+
+    const size_t maxMusicPlayers = 32; // maximum of mks4agb
+    size_t playerTableStartPos = playerTableEndPos;
+    size_t musicPlayerCount = 0;
+
+    for (size_t i = 0; i < maxMusicPlayers; i++) {
+        if (playerTableStartPos < 12)
+            break;
+        if (!IsValidPlayerTableEntry(playerTableStartPos - 12))
+            break;
+        playerTableStartPos -= 12;
+        musicPlayerCount += 1;
+    }
+
+    if (musicPlayerCount == 0)
+        return false;
+
+    /* 3. check for reference to player table */
+    if (!IsPosReferenced(playerTableStartPos))
+        return false;
+
+    /* 4. return results */
+    maxTracks.clear();
+    for (size_t i = 0; i < musicPlayerCount; i++)
+        maxTracks.push_back(rom.ReadU8(playerTableStartPos + i * 12 + 8));
+    playerTablePos = playerTableStartPos;
+    return true;
+}
+
+bool MP2KScanner::FindSoundMode(size_t playerTablePos, size_t &soundModePos, uint32_t &soundMode) const
+{
+    /* We have to find the literal pool from m4aSoundInit(). */
+    size_t playerTableReferencePos;
+    size_t findStartPos = SEARCH_START;
+    while (IsPosReferenced(playerTablePos, findStartPos, playerTableReferencePos)) {
+        /* If we have found a reference, check if the following pattern exists:
+         * - mix code (ROM-addr)
+         * - mix code size (CpuSet Arg)
+         * - SoundInfo ptr (RAM-addr)
+         * - CgbChan ptr (RAM-addr)
+         * - sound mode <---- data of interest
+         * - player table len (0xNN, 0x00, 0x00, 0x00)
+         * - player table pos (RAM-addr) <---- we pivot from this supplied address
+         * - memacc area TODO confirm (RAM-addr) */
+
+        if (playerTableReferencePos < 20)
+            continue;
+
+        /* check mix code (ROM-addr) */
+        const size_t signaturePos = playerTableReferencePos - 20;
+        if (!rom.ValidPointer(rom.ReadU32(signaturePos + 0)))
+            continue;
+
+        /* check mix code size (CpuSet Arg) */
+        const uint32_t cpusetArg = rom.ReadU32(signaturePos + 4);
+        if ((cpusetArg & (1 << 26)) == 0) // Is 32 bit copy?
+            continue;
+        if ((cpusetArg & 0x1FFFFF) < 0x800) // Is data smaller than 0x800 words? (usually just SEARCH_START)
+            continue;
+
+        /* check SoundInfo pointer (RAM addr) */
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 8)))
+            continue;
+
+        /* check CgbChan pointer (RAM addr) */
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 12)))
+            continue;
+
+        /* check sound mode */
+        const uint32_t soundModePosCandidate = signaturePos + 16;
+        const uint32_t soundModeCandidate = rom.ReadU32(soundModePosCandidate);
+        if ((soundModeCandidate & 0xFF) != 0) // reserved byte must be 0
+            continue;
+        if (uint32_t freq = (soundModeCandidate >> 8) & 0xF; freq == 0 || freq > 12)
+            continue;
+        if (uint32_t dac = (soundModeCandidate >> 12) & 0xF; dac < 8 || dac > 11)
+            continue;
+        if (uint32_t maxchn = (soundModeCandidate >> 16) & 0xF; maxchn < 1 || maxchn > 12)
+            continue;
+
+        /* check player table len */
+        const uint8_t playerTableLen = rom.ReadU32(signaturePos + 16);
+        if (playerTableLen > 255)
+            continue;
+
+        /* check player table pos (probably redundant as it's an argument) */
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 20)))
+            continue;
+
+        /* check memacc address (TODO is this really the memacc address?) */
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 24)))
+            continue;
+
+        soundModePos = soundModePosCandidate;
+        soundMode = soundModeCandidate;
+        return true;
+    }
+
+    return false;
+}
+
+bool MP2KScanner::IsPosReferenced(size_t pos) const
+{
+    size_t dummy;
+    size_t findStartPos = SEARCH_START;
+    return IsPosReferenced(pos, findStartPos, dummy);
+}
+
+bool MP2KScanner::IsPosReferenced(size_t pos, size_t &findStartPos, size_t &referencePos) const
+{
+    bool foundReference = false;
+    for (size_t j = findStartPos; j < rom.Size() - 3; j += 4) {
+        const size_t referenceCandidate = rom.ReadU32(j);
+        if (!rom.ValidPointer(referenceCandidate))
+            continue;
+        if (referenceCandidate - AGB_MAP_ROM != pos)
+            continue;
+
+        foundReference = true;
+        referencePos = j;
+        findStartPos = j + 4;
+        break;
+    }
+    return foundReference;
+}
+
+bool MP2KScanner::IsValidSongTableEntry(size_t pos) const
+{
+    /* 1. check if pointer to song is valid */
+    if (!rom.ValidPointer(rom.ReadU32(pos + 0)))
+        return false;
+
+    /* 2. check if music player numbers are correct */
+    const uint8_t p1 = rom.ReadU8(pos + 4);
+    const uint8_t z1 = rom.ReadU8(pos + 5);
+    const uint8_t p2 = rom.ReadU8(pos + 6);
+    const uint8_t z2 = rom.ReadU8(pos + 7);
+
+    if (z1 != 0 || z2 != 0 || p1 != p2)
+        return false;
+
+    /* 3. check if song is valid */
+    const size_t songPos = rom.ReadAgbPtrToPos(pos + 0);
+
+    const uint8_t nTracks = rom.ReadU8(songPos + 0);
+    const uint8_t nBlocks = rom.ReadU8(songPos + 1);  // this field is not used, should be 0
+    const uint8_t prio = rom.ReadU8(songPos + 2);
+    const uint8_t rev = rom.ReadU8(songPos + 3);
+
+    /* 3.1. some 'empty' songs have all fields set to zero, allow those. */
+    if ((nTracks | nBlocks | prio | rev) == 0)
+        return true;
+
+    /* 3.2. check if voice group pointer is a valid pointer */
+    if (!rom.ValidPointer(rom.ReadU32(songPos + 4)))
+        return false;
+
+    /* 3.3. verify track pointers */
+    for (size_t i = 0; i < nTracks; i++) {
+        if (!rom.ValidPointer(rom.ReadU32(songPos + 8 + (i * 4))))
+            return false;
+    }
+
+    return true;
+}
+
+bool MP2KScanner::IsValidPlayerTableEntry(size_t pos) const
+{
+    if (!IsValidRamPointer(rom.ReadU32(pos + 0)))
+        return false;
+    if (!IsValidRamPointer(rom.ReadU32(pos + 4)))
+        return false;
+    if (rom.ReadU16(pos + 8) >= 16)
+        return false;
+    if (rom.ReadU16(pos + 10) >= 1)
+        return false;
+    return true;
+}
+
+bool MP2KScanner::IsValidIwramPointer(uint32_t word)
+{
+    if (word >= 0x03000000 && word <= 0x03007FFF)
+        return true;
+    return false;
+}
+
+bool MP2KScanner::IsValidEwramPointer(uint32_t word)
+{
+    if (word >= 0x02000000 && word <= 0x0203FFFF)
+        return true;
+    return false;
+}
+
+bool MP2KScanner::IsValidRamPointer(uint32_t word)
+{
+    if (IsValidIwramPointer(word))
+        return true;
+    if (IsValidEwramPointer(word))
+        return true;
+    return false;
+}

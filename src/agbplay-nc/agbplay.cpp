@@ -5,7 +5,6 @@
 #include <portaudiocpp/AutoSystem.hxx>
 #include <clocale>
 
-#include "SoundData.h"
 #include "Debug.h"
 #include "WindowGUI.h"
 #include "Xcept.h"

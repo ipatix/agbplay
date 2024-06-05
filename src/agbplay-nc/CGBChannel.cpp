@@ -202,7 +202,7 @@ pseudo_echo_start:
             }
         } else if (envState == EnvState::SUS) {
 sustain_state:
-            if (ctx.mixingOptions.emulateCgbSustainBug) {
+            if (ctx.agbplaySoundMode.emulateCgbSustainBug) {
                 envFrameCount = 7;
                 if (IsChn3())
                     envLevelCur = envSustain;
@@ -341,7 +341,7 @@ void CGBChannel::applyVol()
     /* This envLevelCur assignment used to be below envSustain assignment and the only reason
      * it's now up here is because of a bug in the original mp2k where only 1 in 7 cases the
      * envelope sustain level would be applied correctly. */
-    if (ctx.mixingOptions.emulateCgbSustainBug) {
+    if (ctx.agbplaySoundMode.emulateCgbSustainBug) {
         if (!IsChn3() && mp2k_sus_vol_bug_update && envState == EnvState::SUS) {
             envLevelCur = envSustain;
             mp2k_sus_vol_bug_update = false;
@@ -561,7 +561,7 @@ WaveChannel::WaveChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t inst
     }
     dcCorrection100 = -sum * (1.0f / 32.0f);
 
-    if (ctx.mixingOptions.accurateCh3Quantization) {
+    if (ctx.agbplaySoundMode.accurateCh3Quantization) {
         sum = 0.0f;
         for (int i = 0; i < 16; i++) {
             uint8_t twoNibbles = wavePtr[i];
@@ -645,7 +645,7 @@ VolumeFade WaveChannel::getVol() const
 {
     auto retval = CGBChannel::getVol();
 
-    if (!ctx.mixingOptions.accurateCh3Volume) {
+    if (!ctx.agbplaySoundMode.accurateCh3Volume) {
         return retval;
     }
 
@@ -678,7 +678,7 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
     size_t i = fetchBuffer.size();
     fetchBuffer.resize(samplesRequired);
 
-    if (_this->ctx.mixingOptions.accurateCh3Quantization) {
+    if (_this->ctx.agbplaySoundMode.accurateCh3Quantization) {
         /* WARNING; VERY UGLY AND HACKY */
         VolumeFade fade = _this->getVol();
         const float fromVol = std::max(fade.fromVolLeft, fade.fromVolRight);

@@ -100,11 +100,11 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     const auto &cm = ConfigManager::Instance();
     const auto &cfg = cm.GetCfg();
 
-    const MP2KSoundMode soundMode{
+    const MP2KSoundMode mp2kSoundMode{
         cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()
     };
 
-    const AgbplayMixingOptions mixingOptions{
+    const AgbplaySoundMode agbplaySoundMode{
         .resamplerTypeNormal = cfg.GetResType(),
         .resamplerTypeFixed = cfg.GetResTypeFixed(),
         .reverbType = cfg.GetRevType(),
@@ -121,8 +121,8 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     
     MP2KContext ctx(
         Rom::Instance(),
-        soundMode,
-        mixingOptions
+        mp2kSoundMode,
+        agbplaySoundMode
     );
 
     ctx.InitSong(songTable.GetPosOfSong(uid));

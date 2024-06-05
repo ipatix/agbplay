@@ -292,7 +292,7 @@ void SequenceReader::cmdPlayNote(MP2KTrack &trk, uint8_t cmd)
     // prepare cgb polyphony suppression
     auto cgbPolyphonySuppressFunc = [&](auto& channels) {
         // return 'true' if a note is allowed to play, 'false' if others with higher priority are playing
-        if (ctx.mixingOptions.cgbPolyphony == CGBPolyphony::MONO_STRICT) {
+        if (ctx.agbplaySoundMode.cgbPolyphony == CGBPolyphony::MONO_STRICT) {
             // only one tone should play in mono strict mode
             assert(channels.size() <= 1);
             if (channels.size() > 0) {
@@ -308,7 +308,7 @@ void SequenceReader::cmdPlayNote(MP2KTrack &trk, uint8_t cmd)
                 }
             }
             channels.clear();
-        } else if (ctx.mixingOptions.cgbPolyphony == CGBPolyphony::MONO_SMOOTH) {
+        } else if (ctx.agbplaySoundMode.cgbPolyphony == CGBPolyphony::MONO_SMOOTH) {
             for (auto& chn : channels) {
                 if (chn.envState < EnvState::PSEUDO_ECHO && !chn.IsFastReleasing()) {
                     const Note& playing_note = chn.note;
@@ -364,7 +364,7 @@ void SequenceReader::cmdPlayNote(MP2KTrack &trk, uint8_t cmd)
                     instrDutyWaveNp,
                     adsr,
                     note,
-                    ctx.mixingOptions.accurateCh3Volume);
+                    ctx.agbplaySoundMode.accurateCh3Volume);
             break;
         case BANKDATA_TYPE_NOISE:
             if (!cgbPolyphonySuppressFunc(ctx.noiseChannels))
@@ -431,7 +431,7 @@ void SequenceReader::cmdPlayCommand(MP2KTrack &trk, uint8_t cmd)
         // GOTO
         if (trk.trackIdx == 0) {
             // handle agbplay's internal loop counter
-            if (ctx.mixingOptions.maxLoops != LOOP_ENDLESS && numLoops++ >= ctx.mixingOptions.maxLoops && !endReached) {
+            if (ctx.agbplaySoundMode.maxLoops != LOOP_ENDLESS && numLoops++ >= ctx.agbplaySoundMode.maxLoops && !endReached) {
                 endReached = true;
                 ctx.mixer.StartFadeOut(SONG_FADE_OUT_TIME);
             }

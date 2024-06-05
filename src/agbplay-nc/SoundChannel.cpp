@@ -17,7 +17,7 @@
 SoundChannel::SoundChannel(const MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
     : MP2KChn(track, note, env), ctx(ctx), sInfo(sInfo), fixed(fixed) 
 {
-    const ResamplerType t = fixed ? ctx.mixingOptions.resamplerTypeFixed : ctx.mixingOptions.resamplerTypeNormal;
+    const ResamplerType t = fixed ? ctx.agbplaySoundMode.resamplerTypeFixed : ctx.agbplaySoundMode.resamplerTypeNormal;
     switch (t) {
     case ResamplerType::NEAREST:
         this->rs = std::make_unique<NearestResampler>();

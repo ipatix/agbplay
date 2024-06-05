@@ -72,7 +72,7 @@ struct MP2KSoundMode
     const uint8_t freq;
 };
 
-struct AgbplayMixingOptions
+struct AgbplaySoundMode
 {
     // find a better name
     const ResamplerType resamplerTypeNormal;

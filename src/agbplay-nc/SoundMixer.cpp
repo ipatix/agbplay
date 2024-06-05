@@ -26,7 +26,7 @@ void SoundMixer::Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVol
 
     const uint8_t numDmaBuffers = std::max(
         static_cast<uint8_t>(2),
-        static_cast<uint8_t>(ctx.mixingOptions.dmaBufferLen / (fixedModeRate / AGB_FPS))
+        static_cast<uint8_t>(ctx.agbplaySoundMode.dmaBufferLen / (fixedModeRate / AGB_FPS))
     );
 
     // TODO add for-loop for multiple players

@@ -13,7 +13,6 @@ struct MP2KChn {
     MP2KChn& operator=(const MP2KChn&) = delete;
     virtual ~MP2KChn();
 
-    void AddToTrack(MP2KTrack *track) noexcept;
     void RemoveFromTrack() noexcept;
 
     bool IsReleasing() const noexcept;

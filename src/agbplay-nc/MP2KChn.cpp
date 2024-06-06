@@ -6,19 +6,7 @@
 
 MP2KChn::MP2KChn(MP2KTrack *track, const Note &note, const ADSR &env) : note(note), env(env)
 {
-    AddToTrack(track);
-}
-
-MP2KChn::~MP2KChn()
-{
-    RemoveFromTrack();
-}
-
-void MP2KChn::AddToTrack(MP2KTrack *track) noexcept
-{
-    assert(this->track == nullptr);
     this->track = track;
-    assert(this->trackOrg == nullptr);
     this->trackOrg = track;
 
     prev = nullptr;
@@ -28,6 +16,11 @@ void MP2KChn::AddToTrack(MP2KTrack *track) noexcept
         track->channels->prev = this;
 
     track->channels = this;
+}
+
+MP2KChn::~MP2KChn()
+{
+    RemoveFromTrack();
 }
 
 void MP2KChn::RemoveFromTrack() noexcept

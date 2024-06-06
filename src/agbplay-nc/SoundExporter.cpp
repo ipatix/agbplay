@@ -125,7 +125,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
         agbplaySoundMode
     );
 
-    ctx.InitSong(songTable.GetPosOfSong(uid));
+    ctx.m4aSongNumStart(songTable.GetPosOfSong(uid));
     size_t blocksRendered = 0;
     size_t nBlocks = ctx.mixer.GetSamplesPerBuffer();
     size_t nTracks = ctx.player.tracks.size();
@@ -154,7 +154,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
 
             while (true)
             {
-                ctx.SoundMain();
+                ctx.m4aSoundMain();
                 if (ctx.HasEnded())
                     break;
 
@@ -197,7 +197,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
 
             while (true) 
             {
-                ctx.SoundMain();
+                ctx.m4aSoundMain();
                 if (ctx.HasEnded())
                     break;
 
@@ -219,7 +219,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     else {
         while (true)
         {
-            ctx.SoundMain();
+            ctx.m4aSoundMain();
             blocksRendered += nBlocks;
             if (ctx.HasEnded())
                 break;

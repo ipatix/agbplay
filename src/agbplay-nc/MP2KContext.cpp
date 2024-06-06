@@ -6,21 +6,15 @@ MP2KContext::MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, con
 {
 }
 
-void MP2KContext::SoundMain()
+void MP2KContext::m4aSoundMain()
 {
     reader.Process();
     mixer.Process();
     curInterFrame++;
 }
 
-void MP2KContext::InitSong(size_t songHeaderPos)
+void MP2KContext::m4aSongNumStart(size_t songHeaderPos)
 {
-    sndChannels.clear();
-    sq1Channels.clear();
-    sq2Channels.clear();
-    waveChannels.clear();
-    noiseChannels.clear();
-
     curInterFrame = 0;
     player.Init(songHeaderPos);
     reader.Restart();
@@ -36,6 +30,15 @@ void MP2KContext::InitSong(size_t songHeaderPos)
     uint8_t numTracks = static_cast<uint8_t>(player.tracks.size());
 
     mixer.Init(fixedModeRate, reverb, pcmMasterVolume, agbplaySoundMode.reverbType);
+}
+
+void MP2KContext::SoundClear()
+{
+    sndChannels.clear();
+    sq1Channels.clear();
+    sq2Channels.clear();
+    waveChannels.clear();
+    noiseChannels.clear();
 }
 
 bool MP2KContext::HasEnded() const

@@ -60,7 +60,7 @@ PlaybackEngine::PlaybackEngine(size_t initSongPos)
     : mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit())
 {
     initContext();
-    ctx->InitSong(initSongPos);
+    ctx->m4aSongNumStart(initSongPos);
     setupLoudnessCalcs();
     portaudioOpen();
 }
@@ -76,7 +76,8 @@ void PlaybackEngine::LoadSong(size_t songPos)
 {
     bool play = playerState == State::PLAYING;
     Stop();
-    ctx->InitSong(songPos);
+    ctx->SoundClear();
+    ctx->m4aSongNumStart(songPos);
     setupLoudnessCalcs();
     updatePlaybackState(true);
 
@@ -262,17 +263,19 @@ void PlaybackEngine::threadWorker()
     size_t samplesPerBuffer = ctx->mixer.GetSamplesPerBuffer();
     std::vector<sample> silence(samplesPerBuffer, sample{0.0f, 0.0f});
 
+    // TODO rewrite this thread main loop
+
     try {
         while (playerState != State::SHUTDOWN) {
             switch (playerState) {
             case State::RESTART:
-                ctx->InitSong(ctx->player.GetSongHeaderPos());
+                ctx->m4aSongNumStart(ctx->player.GetSongHeaderPos());
                 playerState = State::PLAYING;
                 [[fallthrough]];
             case State::PLAYING:
                 {
                     // render audio buffers for tracks
-                    ctx->SoundMain();
+                    ctx->m4aSoundMain();
 
                     for (size_t i = 0; i < ctx->player.tracks.size(); i++) {
                         auto &trk = ctx->player.tracks[i];
@@ -302,7 +305,7 @@ void PlaybackEngine::threadWorker()
             }
         }
         // reset song state after it has finished
-        ctx->InitSong(ctx->player.GetSongHeaderPos());
+        ctx->m4aSongNumStart(ctx->player.GetSongHeaderPos());
     } catch (std::exception& e) {
         Debug::print("FATAL ERROR on streaming thread: {}", e.what());
     }

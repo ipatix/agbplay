@@ -18,8 +18,13 @@ struct MP2KContext {
     MP2KContext(const MP2KContext&) = delete;
     MP2KContext& operator=(const MP2KContext&) = delete;
 
-    void SoundMain();
-    void InitSong(size_t songPos);
+    /* original API functions */
+    void m4aSoundMain();
+    void m4aSongNumStart(size_t songPos);
+
+    /* custom helper functions */
+    void SoundClear();
+
     bool HasEnded() const;
     size_t GetCurInterFrame() const;
 

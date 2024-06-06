@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 enum class CGBType : int { SQ1 = 0, SQ2, WAVE, NOISE };
 enum class EnvState : int { INIT = 0, ATK, DEC, SUS, REL, PSEUDO_ECHO, DIE, DEAD };
@@ -70,6 +71,8 @@ struct MP2KSoundMode
     const uint8_t vol;
     const uint8_t rev;
     const uint8_t freq;
+    const uint8_t maxChannels;
+    const uint8_t dacConfig;
 };
 
 struct AgbplaySoundMode
@@ -100,4 +103,14 @@ struct SongInfo
 struct sample {
     float left;
     float right;
+};
+
+struct PlaylistEntry {
+    std::string name;
+    uint16_t id;
+};
+
+struct GameMatch {
+    std::vector<std::string> gameCodes;
+    std::vector<uint8_t> magicBytes;
 };

@@ -557,7 +557,7 @@ void SequenceReader::cmdPlayCommand(MP2KTrack &trk, uint8_t cmd)
                 trk.lastNoteKey = key;
             }
             for (MP2KChn *chn = trk.channels; chn != nullptr; chn = chn->next) {
-                assert(chn->track == &trk);
+                assert(chn->trackOrg == &trk);
                 if (chn->envState == EnvState::DEAD)
                     continue;
                 if (chn->IsReleasing())

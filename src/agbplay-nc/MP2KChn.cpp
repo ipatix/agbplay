@@ -18,6 +18,8 @@ void MP2KChn::AddToTrack(MP2KTrack *track) noexcept
 {
     assert(this->track == nullptr);
     this->track = track;
+    assert(this->trackOrg == nullptr);
+    this->trackOrg = track;
 
     prev = nullptr;
     next = track->channels;
@@ -43,6 +45,7 @@ void MP2KChn::RemoveFromTrack() noexcept
 
     // Do not clear pointers in order to not break for loops over the channel list.
     // This possibly leads to dangling pointers!
+    // Do not use these pointers if track == nullptr.
     //prev = nullptr;
     //next = nullptr;
     track = nullptr;

@@ -88,7 +88,7 @@ void SoundMixer::Process()
     /* 3. mix channels which are affected by reverb (PCM only) */
     auto mixFunc = [&](auto &channels) {
         for (auto &chn : channels)
-            chn.Process(chn.track->audioBuffer.data(), samplesPerBuffer, margs);
+            chn.Process(chn.trackOrg->audioBuffer.data(), samplesPerBuffer, margs);
     };
     mixFunc(ctx.sndChannels);
 

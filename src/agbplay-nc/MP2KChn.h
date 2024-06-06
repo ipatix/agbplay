@@ -26,6 +26,9 @@ struct MP2KChn {
     MP2KChn *next = nullptr;
     MP2KTrack *track = nullptr;
 
+    /* this track pointer is identical, but is not NULLed once the channel is released */
+    MP2KTrack *trackOrg = nullptr;
+
     std::unique_ptr<Resampler> rs;
 
     Note note;

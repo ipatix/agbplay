@@ -1,8 +1,8 @@
 #include "MP2KContext.h"
 #include "ConfigManager.h"
 
-MP2KContext::MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, const AgbplaySoundMode &agbplaySoundMode)
-    : rom(rom), reader(*this), mixer(*this, STREAM_SAMPLERATE, 1.0f), player(agbplaySoundMode.trackLimit, 0), mp2kSoundMode(mp2kSoundMode), agbplaySoundMode(agbplaySoundMode), memaccArea(256)
+MP2KContext::MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, const AgbplaySoundMode &agbplaySoundMode, const SongTableInfo &songTableInfo)
+    : rom(rom), reader(*this), mixer(*this, STREAM_SAMPLERATE, 1.0f), player(agbplaySoundMode.trackLimit, 0), mp2kSoundMode(mp2kSoundMode), agbplaySoundMode(agbplaySoundMode), songTableInfo(songTableInfo), memaccArea(256)
 {
 }
 
@@ -13,10 +13,20 @@ void MP2KContext::m4aSoundMain()
     curInterFrame++;
 }
 
-void MP2KContext::m4aSongNumStart(size_t songHeaderPos)
+void MP2KContext::m4aSongNumStart(uint16_t songId)
 {
+    if (songId >= songTableInfo.songCount)
+        throw Xcept("Failed to load out of range songId={} (total songCount={})", songId, songTableInfo.songCount);
+    const size_t songPos = rom.ReadAgbPtrToPos(songTableInfo.songTablePos + songId * 8 + 0);
+    const uint8_t playerIdx = rom.ReadU8(songTableInfo.songTablePos + songId * 8 + 4);
+    m4aMPlayStart(playerIdx, songPos);
+}
+
+void MP2KContext::m4aMPlayStart(uint8_t playerIdx, size_t songPos)
+{
+    // TODO implement player number usage
     curInterFrame = 0;
-    player.Init(songHeaderPos);
+    player.Init(songPos);
     reader.Restart();
     mixer.ResetFade();
 
@@ -27,7 +37,6 @@ void MP2KContext::m4aSongNumStart(size_t songHeaderPos)
     else if (mp2kSoundMode.rev & 0x80)
         reverb = mp2kSoundMode.rev & 0x7F;
     float pcmMasterVolume = static_cast<float>(mp2kSoundMode.vol + 1) / 16.0f;
-    uint8_t numTracks = static_cast<uint8_t>(player.tracks.size());
 
     mixer.Init(fixedModeRate, reverb, pcmMasterVolume, agbplaySoundMode.reverbType);
 }

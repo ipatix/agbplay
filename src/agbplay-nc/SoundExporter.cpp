@@ -20,8 +20,8 @@
  * public SoundExporter
  */
 
-SoundExporter::SoundExporter(SongTable& songTable, bool benchmarkOnly, bool seperate)
-: songTable(songTable), benchmarkOnly(benchmarkOnly), seperate(seperate)
+SoundExporter::SoundExporter(size_t songTablePos, uint16_t songCount, bool benchmarkOnly, bool seperate)
+: benchmarkOnly(benchmarkOnly), seperate(seperate), songTablePos(songTablePos), songCount(songCount)
 {
 }
 
@@ -118,14 +118,20 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
         .accurateCh3Volume = cfg.GetAccurateCh3Volume(),
         .emulateCgbSustainBug = cfg.GetSimulateCGBSustainBug(),
     };
+
+    const SongTableInfo songTableInfo{
+        songTablePos,
+        songCount,
+    };
     
     MP2KContext ctx(
         Rom::Instance(),
         mp2kSoundMode,
-        agbplaySoundMode
+        agbplaySoundMode,
+        songTableInfo
     );
 
-    ctx.m4aSongNumStart(songTable.GetPosOfSong(uid));
+    ctx.m4aSongNumStart(uid);
     size_t blocksRendered = 0;
     size_t nBlocks = ctx.mixer.GetSamplesPerBuffer();
     size_t nTracks = ctx.player.tracks.size();

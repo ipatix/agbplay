@@ -14,7 +14,7 @@
 class SoundExporter
 {
 public:
-    SoundExporter(SongTable& songTable, bool benchmarkOnly, bool seperate);
+    SoundExporter(size_t songTablePos, uint16_t songCount, bool benchmarkOnly, bool seperate);
     SoundExporter(const SoundExporter&) = delete;
     SoundExporter& operator=(const SoundExporter&) = delete;
 
@@ -23,8 +23,9 @@ private:
     static void writeSilence(SNDFILE *ofile, double seconds);
     size_t exportSong(const std::filesystem::path& fileName, uint16_t uid);
 
-    SongTable& songTable;
-
     bool benchmarkOnly;
     bool seperate; // seperate tracks to multiple files
+
+    size_t songTablePos;
+    uint16_t songCount;
 };

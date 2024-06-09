@@ -4,12 +4,14 @@
 #include <curses.h>
 #include <portaudiocpp/AutoSystem.hxx>
 #include <clocale>
+#include <fmt/core.h>
 
 #include "Debug.h"
 #include "WindowGUI.h"
 #include "Xcept.h"
 #include "ConfigManager.h"
 #include "OS.h"
+#include "MP2KScanner.h"
 
 static void usage();
 static void help();
@@ -40,28 +42,35 @@ int main(int argc, char *argv[])
       }
     }
     try {
+        ConfigManager &cfm = ConfigManager::Instance();
         setlocale(LC_ALL, "");
 
         portaudio::AutoSystem paSystem;
-        std::cout << "Loading ROM..." << std::endl;
-
+        fmt::print("Loading ROM...\n");
         Rom::CreateInstance(argv[1]);
-        std::cout << "Loading Config..." << std::endl;
-        ConfigManager::Instance().Load();
-        std::cout << "Reading Songtable" << std::endl;
-        std::vector<SongTable> songTables = SongTable::ScanForTables();
-        std::cout << "Found " << songTables.size() << " Songtable(s)." << std::endl;
-        if (songTableIndex >= songTables.size()) {
-          throw Xcept("Songtable index out of range");
-        } else if (songTableIndex > 0) {
-          std::ostringstream ss;
-          ss << Rom::Instance().GetROMCode() << ":" << songTableIndex;
-          ConfigManager::Instance().SetGameCode(ss.str());
-        } else {
-          ConfigManager::Instance().SetGameCode(Rom::Instance().GetROMCode());
+
+        fmt::print("Loading Config...\n");
+        cfm.Load();
+
+        fmt::print("Scanning for MP2K Engine\n");
+        MP2KScanner scanner(Rom::Instance());
+        auto scanResults = scanner.Scan();
+        fmt::print(" -> Found {} instance(s)\n", scanResults.size());
+        if (songTableIndex >= scanResults.size()) {
+            if (songTableIndex == 0)
+                throw Xcept("Unable to find Songtable");
+            else
+                throw Xcept("Songtable index out of range");
         }
-        std::cout << "Initialization complete!" << std::endl;
-        WindowGUI wgui(songTables[songTableIndex]);
+
+        std::string gameCode = Rom::Instance().GetROMCode();
+        if (songTableIndex > 0)
+            gameCode = fmt::format("{}:{}", gameCode, songTableIndex);
+        cfm.SetGameCode(gameCode);
+        auto scanResult = scanResults.at(songTableIndex);
+
+        fmt::print("Initialization complete!\n");
+        WindowGUI wgui(scanResult.songtable_pos, scanResult.song_count);
 
         std::chrono::nanoseconds frameTime(1000000000 / 60);
 

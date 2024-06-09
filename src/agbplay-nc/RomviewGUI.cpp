@@ -8,13 +8,11 @@
  * public
  */
 
-RomviewGUI::RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, SongTable& songTable)
-    : CursesWin(height, width, yPos, xPos) 
+RomviewGUI::RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, size_t songTablePos, size_t songCount)
+    : CursesWin(height, width, yPos, xPos), songTablePos(songTablePos), songCount(songCount)
 {
     gameName = Rom::Instance().ReadString(0xA0, 12);
     gameCode = Rom::Instance().ReadString(0xAC, 4);
-    songTablePos = songTable.GetSongTablePos();
-    numSongs = songTable.GetNumSongs();
     update();
 }
 
@@ -59,6 +57,6 @@ void RomviewGUI::update()
     wattrset(winPtr, A_UNDERLINE | COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
     mvwprintw(winPtr, 11, 2, "Number of Songs:");
     wattrset(winPtr, A_BOLD | COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
-    mvwprintw(winPtr, 12, 2, "%zu", numSongs);
+    mvwprintw(winPtr, 12, 2, "%zu", songCount);
     wrefresh(winPtr);
 }

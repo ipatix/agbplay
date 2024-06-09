@@ -16,12 +16,12 @@
 class PlaybackEngine 
 {
 public:
-    PlaybackEngine(size_t initSongPos);
+    PlaybackEngine(size_t songTablePos, uint16_t songCount);
     PlaybackEngine(const PlaybackEngine&) = delete;
     PlaybackEngine& operator=(const PlaybackEngine&) = delete;
     ~PlaybackEngine();
 
-    void LoadSong(size_t songPos);
+    void LoadSong(uint16_t songIdx);
     void Play();
     void Pause();
     void Stop();
@@ -63,4 +63,7 @@ private:
     std::vector<bool> mutedTracks;
 
     std::unique_ptr<std::thread> playerThread;
+
+    size_t songTablePos;
+    uint16_t songCount;
 };

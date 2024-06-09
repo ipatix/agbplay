@@ -5,7 +5,7 @@
 #include "Rom.h" // TODO remove once Rom is deglobalized
 
 MP2KPlayer::MP2KPlayer(uint8_t trackLimit, uint8_t playerIdx)
-    : trackLimit(trackLimit), playerIdx(playerIdx)
+    : playerIdx(playerIdx), trackLimit(trackLimit)
 {
     Init(0);
 }

@@ -18,8 +18,8 @@
 
 #define KEY_TAB 9
 
-WindowGUI::WindowGUI(SongTable& songTable)
-    : songTable(songTable)
+WindowGUI::WindowGUI(size_t songTablePos, uint16_t songCount)
+    : songTablePos(songTablePos), songCount(songCount)
 {
     // init ncurses stuff
     this->containerWin = initscr();
@@ -54,10 +54,9 @@ WindowGUI::WindowGUI(SongTable& songTable)
             SONGLIST_XPOS(height, width), true);
 
     // add songs to table
-    for (uint16_t i = 0; i < songTable.GetNumSongs(); i++) {
-        std::ostringstream txt;
-        txt << std::setw(4) << std::setfill('0') << i;
-        songUI->AddSong(SongEntry(txt.str(), i));
+    for (uint16_t i = 0; i < songCount; i++) {
+        auto songName = fmt::format("{:04}", i);
+        songUI->AddSong(SongEntry(songName, i));
     }
     songUI->Enter();
 
@@ -78,7 +77,8 @@ WindowGUI::WindowGUI(SongTable& songTable)
             ROMVIEW_WIDTH(height, width),
             ROMVIEW_YPOS(height, width),
             ROMVIEW_XPOS(height, width),
-            songTable);
+            songTablePos,
+            songCount);
 
     trackUI = std::make_unique<TrackviewGUI>(
             TRACKVIEW_HEIGHT(height, width),
@@ -92,10 +92,10 @@ WindowGUI::WindowGUI(SongTable& songTable)
             VUMETER_YPOS(height, width),
             VUMETER_XPOS(height, width));
 
-    Rom& rom = Rom::Instance();
     mplay = std::make_unique<PlaybackEngine>(
-            rom.ReadAgbPtrToPos(songTable.GetSongTablePos())
-            );
+        songTablePos,
+        songCount
+    );
     loadSong(nullptr);
 }
 
@@ -700,10 +700,10 @@ void WindowGUI::updateWindowSize()
 void WindowGUI::loadSong(const SongEntry *entry)
 {
     if (entry) {
-        mplay->LoadSong(songTable.GetPosOfSong(entry->GetUID()));
+        mplay->LoadSong(entry->GetUID());
         trackUI->SetTitle(entry->GetName());
     } else {
-        mplay->LoadSong(songTable.GetPosOfSong(0));
+        mplay->LoadSong(0);
         trackUI->SetTitle("0000");
     }
     const auto &songState = mplay->GetPlaybackSongState();
@@ -728,7 +728,7 @@ void WindowGUI::exportLaunch(bool benchmarkOnly, bool separate)
     exportBusy.store(true);
 
     exportThread = std::make_unique<std::thread>([&](std::vector<SongEntry> tEntries, bool tBenchmarkOnly, bool tSeparate) {
-            SoundExporter se(songTable, tBenchmarkOnly, tSeparate);
+            SoundExporter se(songTablePos, songCount, tBenchmarkOnly, tSeparate);
             se.Export(tEntries);
             exportBusy.store(false);
         },

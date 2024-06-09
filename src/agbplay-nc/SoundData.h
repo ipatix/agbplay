@@ -16,23 +16,3 @@ const uint8_t BANKDATA_TYPE_SQ1 = 0x01;
 const uint8_t BANKDATA_TYPE_SQ2 = 0x02;
 const uint8_t BANKDATA_TYPE_WAVE = 0x03;
 const uint8_t BANKDATA_TYPE_NOISE = 0x04;
-
-class SongTable
-{
-public:
-    static std::vector<SongTable> ScanForTables();
-    SongTable(size_t songTablePos);
-    SongTable(const SongTable&) = default;
-    SongTable& operator=(const SongTable&) = default;
-
-    size_t GetSongTablePos();
-    size_t GetPosOfSong(uint16_t uid);
-    size_t GetNumSongs();
-private:
-    static bool validateTableEntry(size_t pos);
-    static bool validateSong(size_t songPos);
-    size_t determineNumSongs() const;
-
-    size_t songTablePos;
-    size_t numSongs;
-};

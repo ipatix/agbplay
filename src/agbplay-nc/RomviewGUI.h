@@ -8,7 +8,7 @@
 
 class RomviewGUI : public CursesWin {
 public:
-    RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, SongTable& songTable);
+    RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, size_t songTablePos, size_t songCount);
     ~RomviewGUI() override;
 
     void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;
@@ -17,5 +17,5 @@ private:
     std::string gameName;
     std::string gameCode;
     size_t songTablePos;
-    size_t numSongs;
+    size_t songCount;
 };

@@ -14,13 +14,14 @@
  * to a MP2KContext */
 
 struct MP2KContext {
-    MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, const AgbplaySoundMode &agbplaySoundMode);
+    MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, const AgbplaySoundMode &agbplaySoundMode, const SongTableInfo &songTableInfo);
     MP2KContext(const MP2KContext&) = delete;
     MP2KContext& operator=(const MP2KContext&) = delete;
 
     /* original API functions */
     void m4aSoundMain();
-    void m4aSongNumStart(size_t songPos);
+    void m4aSongNumStart(uint16_t songPos);
+    void m4aMPlayStart(uint8_t playerIdx, size_t songPos);
 
     /* custom helper functions */
     void SoundClear();
@@ -34,6 +35,7 @@ struct MP2KContext {
     MP2KPlayer player; // TODO extend for multiple music players
     MP2KSoundMode mp2kSoundMode;
     AgbplaySoundMode agbplaySoundMode;
+    SongTableInfo songTableInfo;
     std::vector<uint8_t> memaccArea; // TODO, this will have to be accessible from outside for emulator support
     std::vector<sample> masterAudioBuffer;
 

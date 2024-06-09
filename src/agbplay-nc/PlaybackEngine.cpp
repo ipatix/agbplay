@@ -56,11 +56,11 @@ const std::vector<PaHostApiTypeId> PlaybackEngine::hostApiPriority = {
  * public PlaybackEngine
  */
 
-PlaybackEngine::PlaybackEngine(size_t initSongPos)
-    : mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit())
+PlaybackEngine::PlaybackEngine(size_t songTablePos, uint16_t songCount)
+    : mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit()), songTablePos(songTablePos), songCount(songCount)
 {
     initContext();
-    ctx->m4aSongNumStart(initSongPos);
+    ctx->m4aSongNumStart(0);
     setupLoudnessCalcs();
     portaudioOpen();
 }
@@ -72,12 +72,12 @@ PlaybackEngine::~PlaybackEngine()
     portaudioClose();
 }
 
-void PlaybackEngine::LoadSong(size_t songPos)
+void PlaybackEngine::LoadSong(uint16_t songIdx)
 {
     bool play = playerState == State::PLAYING;
     Stop();
     ctx->SoundClear();
-    ctx->m4aSongNumStart(songPos);
+    ctx->m4aSongNumStart(songIdx);
     setupLoudnessCalcs();
     updatePlaybackState(true);
 
@@ -251,10 +251,16 @@ void PlaybackEngine::initContext()
         .emulateCgbSustainBug = cfg.GetSimulateCGBSustainBug(),
     };
 
+    const SongTableInfo songTableInfo{
+        songTablePos,
+        songCount,
+    };
+
     ctx = std::make_unique<MP2KContext>(
         Rom::Instance(),
         mp2kSoundMode,
-        agbplaySoundMode
+        agbplaySoundMode,
+        songTableInfo
     );
 }
 
@@ -269,7 +275,7 @@ void PlaybackEngine::threadWorker()
         while (playerState != State::SHUTDOWN) {
             switch (playerState) {
             case State::RESTART:
-                ctx->m4aSongNumStart(ctx->player.GetSongHeaderPos());
+                ctx->m4aMPlayStart(ctx->player.playerIdx, ctx->player.GetSongHeaderPos());
                 playerState = State::PLAYING;
                 [[fallthrough]];
             case State::PLAYING:
@@ -305,7 +311,7 @@ void PlaybackEngine::threadWorker()
             }
         }
         // reset song state after it has finished
-        ctx->m4aSongNumStart(ctx->player.GetSongHeaderPos());
+        ctx->m4aMPlayStart(ctx->player.playerIdx, ctx->player.GetSongHeaderPos());
     } catch (std::exception& e) {
         Debug::print("FATAL ERROR on streaming thread: {}", e.what());
     }
@@ -387,7 +393,6 @@ void PlaybackEngine::portaudioOpen()
     // init host api
     std::vector<PaHostApiTypeId> hostApiPrioritiesWithFallback = hostApiPriority;
     const auto &defaultHostApi = sys.defaultHostApi();
-    const auto &defaultHostApiType = defaultHostApi.typeId();
     const auto f = std::find(hostApiPrioritiesWithFallback.begin(), hostApiPrioritiesWithFallback.end(), defaultHostApi.typeId());
     if (f == hostApiPrioritiesWithFallback.end())
         hostApiPrioritiesWithFallback.push_back(defaultHostApi.typeId());

@@ -63,12 +63,11 @@
 class WindowGUI 
 {
 public:
-    WindowGUI(SongTable& songTable);
+    WindowGUI(size_t songTablePos, uint16_t songCount);
     WindowGUI(const WindowGUI&) = delete;
     WindowGUI& operator=(const WindowGUI&) = delete;
     ~WindowGUI();
 
-    // main GUI handler
     bool Handle();
 private:
     // sub window control
@@ -110,10 +109,11 @@ private:
     std::unique_ptr<VUMeterGUI> meterUI;
 
     // resource
-    SongTable& songTable;
     std::unique_ptr<PlaybackEngine> mplay;
     std::unique_ptr<std::thread> exportThread;
     std::atomic<bool> exportBusy = false;
+    const size_t songTablePos;
+    const uint16_t songCount;
 
     // ncurses windows
     WINDOW *containerWin;

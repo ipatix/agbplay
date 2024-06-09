@@ -71,8 +71,8 @@ struct MP2KSoundMode
     const uint8_t vol;
     const uint8_t rev;
     const uint8_t freq;
-    const uint8_t maxChannels;
-    const uint8_t dacConfig;
+    const uint8_t maxChannels = 0; // currently unused
+    const uint8_t dacConfig = 0; // currently unused
 };
 
 struct AgbplaySoundMode
@@ -90,6 +90,12 @@ struct AgbplaySoundMode
     const bool accurateCh3Quantization;
     const bool accurateCh3Volume;
     const bool emulateCgbSustainBug; // other places may call this 'simulate', should probably use 'emulate' everywhere
+};
+
+struct SongTableInfo
+{
+    const size_t songTablePos;
+    const size_t songCount;
 };
 
 struct SongInfo

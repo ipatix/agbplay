@@ -47,7 +47,7 @@ void TrackviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32
     update();
 }
 
-void TrackviewGUI::SetState(const PlaybackSongState &songState)
+void TrackviewGUI::SetState(const MP2KVisualizerState &songState)
 {
     disp = songState;
     update();
@@ -107,7 +107,7 @@ void TrackviewGUI::update()
     // init draw
     const uint32_t yBias = 1;
     const uint32_t xBias = 1;
-    const size_t ntrks = disp.tracks_used;
+    const size_t ntrks = disp.tracksUsed;
     // clear field
     if (cursorPos >= ntrks && cursorPos > 0) {
         cursorPos = (uint32_t)ntrks - 1;
@@ -324,7 +324,7 @@ void TrackviewGUI::update()
 
 void TrackviewGUI::scrollDownNoUpdate() 
 {
-    if (cursorPos + 1 < disp.tracks_used)
+    if (cursorPos + 1 < disp.tracksUsed)
         cursorPos++;
 }
 

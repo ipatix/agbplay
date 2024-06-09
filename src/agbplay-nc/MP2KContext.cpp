@@ -1,4 +1,8 @@
 #include "MP2KContext.h"
+
+#include <algorithm>
+#include <cassert>
+
 #include "ConfigManager.h"
 
 MP2KContext::MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, const AgbplaySoundMode &agbplaySoundMode, const SongTableInfo &songTableInfo)
@@ -58,4 +62,35 @@ bool MP2KContext::HasEnded() const
 size_t MP2KContext::GetCurInterFrame() const
 {
     return curInterFrame;
+}
+
+void MP2KContext::GetVisualizerState(MP2KVisualizerState &visualizerState)
+{
+    visualizerState.activeChannels = sndChannels.size();
+    visualizerState.tracksUsed = player.tracks.size();
+
+    for (size_t i = 0; i < player.tracks.size(); i++) {
+        auto &trk_src = player.tracks[i];
+        auto &trk_dst = visualizerState.tracks[i];
+
+        trk_src.loudnessCalculator.CalcLoudness(trk_src.audioBuffer.data(), trk_src.audioBuffer.size());
+        float volLeft, volRight;
+        trk_src.loudnessCalculator.GetLoudness(volLeft, volRight);
+
+        trk_dst.trackPtr = static_cast<uint32_t>(trk_src.pos);
+        trk_dst.isCalling = trk_src.reptCount > 0;
+        trk_dst.isMuted = trk_src.muted;
+        trk_dst.vol = trk_src.vol;
+        trk_dst.mod = trk_src.mod;
+        trk_dst.prog = trk_src.prog;
+        trk_dst.pan = trk_src.pan;
+        trk_dst.pitch = trk_src.pitch;
+        trk_dst.envL = uint8_t(std::clamp<uint32_t>(uint32_t(volLeft * 768.f), 0, 255));
+        trk_dst.envR = uint8_t(std::clamp<uint32_t>(uint32_t(volRight * 768.f), 0, 255));
+        trk_dst.delay = std::max<uint8_t>(0, static_cast<uint8_t>(trk_src.delay));
+        trk_dst.activeNotes = trk_src.activeNotes;
+    }
+
+    masterLoudnessCalculator.CalcLoudness(masterAudioBuffer.data(), masterAudioBuffer.size());
+    masterLoudnessCalculator.GetLoudness(visualizerState.masterVolLeft, visualizerState.masterVolRight);
 }

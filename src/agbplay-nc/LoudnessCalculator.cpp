@@ -12,7 +12,7 @@ LoudnessCalculator::LoudnessCalculator(const float lowpassFreq)
 
 void LoudnessCalculator::CalcLoudness(const sample *audio, size_t numSamples)
 {
-    do {
+    for (size_t i = 0; i < numSamples; i++) {
         float l = audio->left;
         float r = audio->right;
         audio++;
@@ -22,7 +22,7 @@ void LoudnessCalculator::CalcLoudness(const sample *audio, size_t numSamples)
         r *= r;
         avgVolLeftSq = avgVolLeftSq + lpAlpha * (l - avgVolLeftSq);
         avgVolRightSq = avgVolRightSq + lpAlpha * (r - avgVolRightSq);
-    } while (--numSamples > 0);
+    }
 
     static const float sqrt_2 = sqrtf(2.0f);
 

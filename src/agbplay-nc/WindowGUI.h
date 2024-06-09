@@ -57,6 +57,7 @@
 #include "PlaybackEngine.h"
 #include "VUMeterGUI.h"
 #include "ConfigManager.h"
+#include "Types.h"
 
 #include <memory>
 
@@ -93,6 +94,7 @@ private:
     void rename();
 
     void updateWindowSize();
+    void updateVisualizerState();
     void loadSong(const SongEntry *entry);
 
     void exportLaunch(bool benchmarkOnly, bool separate);
@@ -112,8 +114,11 @@ private:
     std::unique_ptr<PlaybackEngine> mplay;
     std::unique_ptr<std::thread> exportThread;
     std::atomic<bool> exportBusy = false;
+
+    // other
     const size_t songTablePos;
     const uint16_t songCount;
+    MP2KVisualizerState visualizerState;
 
     // ncurses windows
     WINDOW *containerWin;

@@ -79,7 +79,7 @@ void PlaybackEngine::LoadSong(uint16_t songIdx)
     ctx->SoundClear();
     ctx->m4aSongNumStart(songIdx);
     setupLoudnessCalcs();
-    updatePlaybackState(true);
+    updateVisualizerState();
 
     if (play)
         Play();
@@ -218,9 +218,11 @@ SongInfo PlaybackEngine::GetSongInfo() const
     return result;
 }
 
-const PlaybackSongState &PlaybackEngine::GetPlaybackSongState() const
+void PlaybackEngine::GetVisualizerState(MP2KVisualizerState &visualizerState)
 {
-    return songState;
+    std::scoped_lock l(visualizerStateMutex);
+
+    visualizerState = visualizerStateObserver;
 }
 
 /*
@@ -280,22 +282,15 @@ void PlaybackEngine::threadWorker()
                 [[fallthrough]];
             case State::PLAYING:
                 {
-                    // render audio buffers for tracks
+                    /* run sound engine */
                     ctx->m4aSoundMain();
 
-                    for (size_t i = 0; i < ctx->player.tracks.size(); i++) {
-                        auto &trk = ctx->player.tracks[i];
-                        const bool muteThis = mutedTracks[i]; // racy, as mutedTracks comes from different thread
-                        ctx->player.tracks[i].muted = muteThis;
-                        assert(trk.audioBuffer.size() == samplesPerBuffer);
-                        trackLoudness[i].CalcLoudness(trk.audioBuffer.data(), trk.audioBuffer.size());
-                    }
+                    /* update visualization */
+                    updateVisualizerState();
 
                     // blocking write to audio buffer
                     assert(ctx->masterAudioBuffer.size() == samplesPerBuffer);
                     rBuf.Put(ctx->masterAudioBuffer.data(), ctx->masterAudioBuffer.size());
-                    masterLoudness.CalcLoudness(ctx->masterAudioBuffer.data(), ctx->masterAudioBuffer.size());
-                    updatePlaybackState();
 
                     if (ctx->HasEnded()) {
                         playerState = State::SHUTDOWN;
@@ -323,49 +318,17 @@ void PlaybackEngine::threadWorker()
     playerState = State::TERMINATED;
 }
 
-void PlaybackEngine::updatePlaybackState(bool reset)
+void PlaybackEngine::updateVisualizerState()
 {
-    if (!reset) {
-        if (playerState == State::THREAD_DELETED ||
-                playerState == State::SHUTDOWN ||
-                playerState == State::TERMINATED)
-            return;
-    }
+    /* We assume that GetVisualizerState may be more expensive than a simple copy.
+     * Accordingly we generate the state, then we lock the mutex and publish the state.
+     * That way the mutex is only locked for the smallest duration necessary. */
 
-    const size_t ntrks = ctx->player.tracks.size();
-    assert(ntrks == trackLoudness.size());
-    std::array<std::pair<float, float>, MAX_TRACKS> vols;
-    for (size_t i = 0; i < ntrks; i++)
-        trackLoudness[i].GetLoudness(vols[i].first, vols[i].second);
+    ctx->GetVisualizerState(visualizerStatePlayer);
 
-    /* Code below should probably be atomic, but we generally do not care about changes to the variables
-     * arriving late to the reading thread. */
-    songState.activeChannels = static_cast<int>(ctx->sndChannels.size());
-    if (reset)
-        songState.maxChannels = 0;
-    else
-        songState.maxChannels = std::max(songState.maxChannels, songState.activeChannels);
-    songState.tracks_used = ntrks;
+    std::scoped_lock l(visualizerStateMutex);
 
-    for (size_t i = 0; i < ntrks; i++) {
-        const auto &trk_src = ctx->player.tracks[i];
-        auto &trk_dst = songState.tracks[i];
-
-        trk_dst.trackPtr = static_cast<uint32_t>(trk_src.pos);
-        trk_dst.isCalling = trk_src.reptCount > 0;
-        trk_dst.isMuted = trk_src.muted;
-        trk_dst.vol = trk_src.vol;
-        trk_dst.mod = trk_src.mod;
-        trk_dst.prog = trk_src.prog;
-        trk_dst.pan = trk_src.pan;
-        trk_dst.pitch = trk_src.pitch;
-        trk_dst.envL = uint8_t(std::clamp<uint32_t>(uint32_t(vols[i].first * 768.f), 0, 255));
-        trk_dst.envR = uint8_t(std::clamp<uint32_t>(uint32_t(vols[i].second * 768.f), 0, 255));
-        trk_dst.delay = std::max<uint8_t>(0, static_cast<uint8_t>(trk_src.delay));
-        trk_dst.activeNotes = trk_src.activeNotes;
-    }
-
-    masterLoudness.GetLoudness(songState.masterVolLeft, songState.masterVolRight);
+    visualizerStateObserver = visualizerStatePlayer;
 }
 
 int PlaybackEngine::audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,

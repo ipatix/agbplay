@@ -3,6 +3,7 @@
 #include <vector>
 #include <list>
 
+#include "LoudnessCalculator.h"
 #include "SequenceReader.h"
 #include "SoundMixer.h"
 #include "Rom.h"
@@ -28,6 +29,7 @@ struct MP2KContext {
 
     bool HasEnded() const;
     size_t GetCurInterFrame() const;
+    void GetVisualizerState(MP2KVisualizerState &visualizerState);
 
     const Rom& rom;
     SequenceReader reader;
@@ -38,6 +40,7 @@ struct MP2KContext {
     SongTableInfo songTableInfo;
     std::vector<uint8_t> memaccArea; // TODO, this will have to be accessible from outside for emulator support
     std::vector<sample> masterAudioBuffer;
+    LoudnessCalculator masterLoudnessCalculator{5.0f};
 
     // sound channels
     std::list<SoundChannel> sndChannels;

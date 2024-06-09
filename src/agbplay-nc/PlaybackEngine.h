@@ -6,7 +6,6 @@
 #include <memory>
 #include <portaudiocpp/PortAudioCpp.hxx>
 
-#include "PlaybackSongState.h"
 #include "Constants.h"
 #include "GameConfig.h"
 #include "Ringbuffer.h"
@@ -33,12 +32,12 @@ public:
     void Mute(size_t index, bool mute);
     size_t GetMaxTracks() { return mutedTracks.size(); }
     SongInfo GetSongInfo() const;
-    const PlaybackSongState &GetPlaybackSongState() const;
+    void GetVisualizerState(MP2KVisualizerState &visualizerState);
 
 private:
     void initContext();
     void threadWorker();
-    void updatePlaybackState(bool reset = false);
+    void updateVisualizerState();
     static int audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,
             const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags,
             void *userData);
@@ -58,7 +57,10 @@ private:
     Ringbuffer rBuf{STREAM_BUF_SIZE};
 
     LoudnessCalculator masterLoudness{10.0f};
-    PlaybackSongState songState;
+    MP2KVisualizerState visualizerStatePlayer;
+    MP2KVisualizerState visualizerStateObserver;
+    std::mutex visualizerStateMutex;
+
     std::vector<LoudnessCalculator> trackLoudness;
     std::vector<bool> mutedTracks;
 

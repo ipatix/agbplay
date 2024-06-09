@@ -5,7 +5,6 @@
 
 #include "CursesWin.h"
 #include "SoundData.h"
-#include "PlaybackSongState.h"
 
 class TrackviewGUI : public CursesWin 
 {
@@ -14,7 +13,7 @@ public:
     ~TrackviewGUI() override;
 
     void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;
-    void SetState(const PlaybackSongState &songState);
+    void SetState(const MP2KVisualizerState &songState);
     void SetTitle(const std::string& name);
     void Enter();
     void Leave();
@@ -29,7 +28,7 @@ private:
     void scrollDownNoUpdate();
     void scrollUpNoUpdate();
 
-    PlaybackSongState disp;
+    MP2KVisualizerState disp;
     std::string songName; 
     uint32_t cursorPos;
     int maxChannels;

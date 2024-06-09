@@ -1,8 +1,12 @@
 #pragma once
 
+#include <array>
+#include <bitset>
 #include <cstdint>
 #include <string>
 #include <vector>
+
+#include "Constants.h"
 
 enum class CGBType : int { SQ1 = 0, SQ2, WAVE, NOISE };
 enum class EnvState : int { INIT = 0, ATK, DEC, SUS, REL, PSEUDO_ECHO, DIE, DEAD };
@@ -119,4 +123,35 @@ struct PlaylistEntry {
 struct GameMatch {
     std::vector<std::string> gameCodes;
     std::vector<uint8_t> magicBytes;
+};
+
+struct MP2KVisualizerState 
+{
+    MP2KVisualizerState() = default;
+    MP2KVisualizerState(const MP2KVisualizerState&) = delete;
+    //MP2KVisualizerState& operator=(const MP2KVisualizerState&) = delete;
+
+    struct TrackState
+    {
+        uint32_t trackPtr = 0;
+        bool isCalling = false;
+        bool isMuted = false;
+        uint8_t vol = 100;              // range 0 to 127
+        uint8_t mod = 0;                // range 0 to 127
+        uint8_t prog = PROG_UNDEFINED;  // range 0 to 127
+        int8_t pan = 0;                 // range -64 to 63
+        int16_t pitch = 0;              // range -32768 to 32767
+        uint8_t envL = 0;               // range 0 to 255
+        uint8_t envR = 0;               // range 0 to 255
+        uint8_t delay = 0;              // range 0 to 96
+                                        //
+        std::bitset<NUM_NOTES> activeNotes;
+        float volLeft = 0.0f, volRight = 0.0f;
+    };
+
+    std::array<TrackState, MAX_TRACKS> tracks;
+    size_t tracksUsed = 0;
+
+    float masterVolLeft = 0.0f, masterVolRight = 0.0f;
+    size_t activeChannels = 0;
 };

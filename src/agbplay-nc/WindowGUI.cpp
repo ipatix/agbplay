@@ -238,9 +238,8 @@ bool WindowGUI::Handle()
                 mplay->Play();
             }
         }
-        const auto &songState = mplay->GetPlaybackSongState();
-        meterUI->SetVol(songState.masterVolLeft, songState.masterVolRight);
-        trackUI->SetState(songState);
+
+        updateVisualizerState();
     }
     conUI->Refresh();
     return true;
@@ -697,6 +696,13 @@ void WindowGUI::updateWindowSize()
     height = std::clamp(height, WINDOW_MIN_HEIGHT, WINDOW_MAX_HEIGHT);
 }
 
+void WindowGUI::updateVisualizerState()
+{
+    mplay->GetVisualizerState(visualizerState);
+    meterUI->SetVol(visualizerState.masterVolLeft, visualizerState.masterVolRight);
+    trackUI->SetState(visualizerState);
+}
+
 void WindowGUI::loadSong(const SongEntry *entry)
 {
     if (entry) {
@@ -706,9 +712,7 @@ void WindowGUI::loadSong(const SongEntry *entry)
         mplay->LoadSong(0);
         trackUI->SetTitle("0000");
     }
-    const auto &songState = mplay->GetPlaybackSongState();
-    meterUI->SetVol(songState.masterVolLeft, songState.masterVolRight);
-    trackUI->SetState(songState);
+    updateVisualizerState();
 }
 
 void WindowGUI::exportLaunch(bool benchmarkOnly, bool separate)

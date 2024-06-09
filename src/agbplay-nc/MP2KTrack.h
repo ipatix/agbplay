@@ -9,6 +9,7 @@
 // TODO remove dependency for NUM_NOTES, and possibly remove active notes state?
 #include "Constants.h"
 #include "Types.h"
+#include "LoudnessCalculator.h"
 
 #define TRACK_CALL_STACK_SIZE 3
 
@@ -33,6 +34,7 @@ struct MP2KTrack
     std::bitset<NUM_NOTES> activeNotes;
     std::vector<sample> audioBuffer;
     std::unique_ptr<ReverbEffect> reverb;
+    LoudnessCalculator loudnessCalculator{5.0f};
 
     size_t pos;
     size_t returnPos[TRACK_CALL_STACK_SIZE];

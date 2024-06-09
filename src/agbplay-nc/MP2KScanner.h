@@ -20,13 +20,13 @@ public:
         std::vector<uint8_t> player_max_tracks;
 
         size_t songtable_pos = 0;
-        size_t song_count = 0;
+        uint16_t song_count = 0;
     };
 
     std::vector<Result> Scan();
 
 private:
-    bool FindSongTable(size_t &findStartPos, size_t &songTablePos, size_t &songCount) const;
+    bool FindSongTable(size_t &findStartPos, size_t &songTablePos, uint16_t &songCount) const;
     bool FindPlayerTable(size_t songTablePos, size_t &playerTablePos, std::vector<uint8_t> &maxTracks) const;
     bool FindSoundMode(size_t playerTablePos, size_t &soundModePos, uint32_t &soundMode) const;
 
@@ -39,7 +39,7 @@ private:
     static bool IsValidEwramPointer(uint32_t word);
     static bool IsValidRamPointer(uint32_t word);
 
-    static const size_t MIN_SONG_NUM = 4;
+    static const size_t MIN_SONG_NUM = 4; // lowest one seen is 7 in Tetris World
     static const size_t SEARCH_START = 0x200;
 
     const Rom &rom;

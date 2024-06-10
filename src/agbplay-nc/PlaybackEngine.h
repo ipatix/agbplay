@@ -1,8 +1,11 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <vector>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 #include <memory>
 #include <portaudiocpp/PortAudioCpp.hxx>
 
@@ -15,34 +18,33 @@
 class PlaybackEngine 
 {
 public:
-    PlaybackEngine(size_t songTablePos, uint16_t songCount);
+    PlaybackEngine(const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo);
     PlaybackEngine(const PlaybackEngine&) = delete;
     PlaybackEngine& operator=(const PlaybackEngine&) = delete;
     ~PlaybackEngine();
 
     void LoadSong(uint16_t songIdx);
     void Play();
-    void Pause();
+    bool Pause();
     void Stop();
     void SpeedDouble();
     void SpeedHalve();
-    bool IsPlaying();
-    bool IsPaused() const;
+    bool HasEnded() const;
     void ToggleMute(size_t index);
     void Mute(size_t index, bool mute);
-    size_t GetMaxTracks() { return mutedTracks.size(); }
-    SongInfo GetSongInfo() const;
+    SongInfo GetSongInfo();
     void GetVisualizerState(MP2KVisualizerState &visualizerState);
 
 private:
-    void initContext();
+    void InitContext();
     void threadWorker();
     void updateVisualizerState();
+    void InvokeAsPlayer(const std::function<void(void)> &func);
+    void InvokeRun();
     static int audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,
             const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags,
             void *userData);
 
-    void setupLoudnessCalcs();
     void portaudioOpen();
     void portaudioClose();
 
@@ -50,22 +52,24 @@ private:
 
     portaudio::FunCallbackStream audioStream;
     uint32_t speedFactor = 64;
-    volatile enum class State : int {
-        RESTART, PLAYING, PAUSED, TERMINATED, SHUTDOWN, THREAD_DELETED
-    } playerState = State::THREAD_DELETED;
+    bool paused = false;
     std::unique_ptr<MP2KContext> ctx;
     Ringbuffer rBuf{STREAM_BUF_SIZE};
 
-    LoudnessCalculator masterLoudness{10.0f};
     MP2KVisualizerState visualizerStatePlayer;
     MP2KVisualizerState visualizerStateObserver;
     std::mutex visualizerStateMutex;
 
-    std::vector<LoudnessCalculator> trackLoudness;
-    std::vector<bool> mutedTracks;
-
+    std::mutex playerInvokeMutex;
+    std::condition_variable playerInvokeReady;
+    std::condition_variable playerInvokeComplete;
+    std::atomic<bool> playerInvokePending = false;
     std::unique_ptr<std::thread> playerThread;
+    std::atomic<bool> playerThreadQuit = false;
 
-    size_t songTablePos;
-    uint16_t songCount;
+    std::atomic<bool> hasEnded = false;
+
+    const SongTableInfo &songTableInfo;
+    const PlayerTableInfo &playerTableInfo;
+    uint16_t songIdx = 0;
 };

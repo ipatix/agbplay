@@ -30,10 +30,6 @@ TrackviewGUI::TrackviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint3
     : CursesWin(height, width, yPos, xPos) 
 {
     // will clear the screen due to not overriding from CursesWin base class
-    cursorPos = 0;
-    maxChannels = 0;
-    activeChannels = 0;
-    cursorVisible = false;
     update();
 }
 
@@ -107,7 +103,12 @@ void TrackviewGUI::update()
     // init draw
     const uint32_t yBias = 1;
     const uint32_t xBias = 1;
-    const size_t ntrks = disp.tracksUsed;
+    size_t ntrks = 0;
+    if (disp.players.size() != 0) {
+        const auto &player = disp.players.at(disp.primaryPlayer);
+        ntrks = player.tracksUsed;
+    }
+
     // clear field
     if (cursorPos >= ntrks && cursorPos > 0) {
         cursorPos = (uint32_t)ntrks - 1;
@@ -139,16 +140,20 @@ void TrackviewGUI::update()
     wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::TRK_NOTE)) | A_UNDERLINE);
     wprintw(winPtr, "Note");
     wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)) | A_UNDERLINE);
-    wprintw(winPtr, " - %-*s %3d/%3d", width - 24 - 3 - 8, songName.c_str(), activeChannels, maxChannels);
+    if (maxChannels < disp.activeChannels)
+        maxChannels = disp.activeChannels;
+    wprintw(winPtr, " - %-*s %3zu/%3zu", width - 24 - 3 - 8, songName.c_str(), disp.activeChannels, maxChannels);
 
     for (uint32_t i = 0, th = 0; i < ntrks; i++, th += 2) {
+        const auto &player = disp.players.at(disp.primaryPlayer);
+        const auto &trk = player.tracks.at(i);
+
         int aFlag = (cursorVisible && i == cursorPos) ? A_REVERSE : 0;
-        const auto &trk = disp.tracks[i];
 
         // print tickbox and first line
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
         mvwprintw(winPtr, (int)(yBias + 1 + th), xBias, "[");
-        wattrset(winPtr, COLOR_PAIR(static_cast<int>(disp.tracks[i].isMuted ? Color::TRK_NUM_MUTED : Color::TRK_NUM)) | aFlag);
+        wattrset(winPtr, COLOR_PAIR(static_cast<int>(player.tracks[i].isMuted ? Color::TRK_NUM_MUTED : Color::TRK_NUM)) | aFlag);
         wprintw(winPtr, "%02d", i);
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
         wprintw(winPtr, "] ");
@@ -324,7 +329,8 @@ void TrackviewGUI::update()
 
 void TrackviewGUI::scrollDownNoUpdate() 
 {
-    if (cursorPos + 1 < disp.tracksUsed)
+    auto &player = disp.players.at(disp.primaryPlayer);
+    if (cursorPos + 1 < player.tracks.size())
         cursorPos++;
 }
 

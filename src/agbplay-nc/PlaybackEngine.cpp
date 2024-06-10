@@ -56,120 +56,104 @@ const std::vector<PaHostApiTypeId> PlaybackEngine::hostApiPriority = {
  * public PlaybackEngine
  */
 
-PlaybackEngine::PlaybackEngine(size_t songTablePos, uint16_t songCount)
-    : mutedTracks(ConfigManager::Instance().GetCfg().GetTrackLimit()), songTablePos(songTablePos), songCount(songCount)
+PlaybackEngine::PlaybackEngine(const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo)
+    : songTableInfo(songTableInfo), playerTableInfo(playerTableInfo)
 {
-    initContext();
+    InitContext();
     ctx->m4aSongNumStart(0);
-    setupLoudnessCalcs();
+    ctx->m4aSongNumStop(0);
     portaudioOpen();
+    playerThread = std::make_unique<std::thread>(&PlaybackEngine::threadWorker, this);
+#ifdef __linux__
+    pthread_setname_np(playerThread->native_handle(), "mixer thread");
+#endif
 }
 
 PlaybackEngine::~PlaybackEngine() 
 {
     // stop and deallocate player thread if required
-    Stop();
+    if (playerThread) {
+        playerThreadQuit = true;
+        playerThread->join();
+    }
+
     portaudioClose();
 }
 
 void PlaybackEngine::LoadSong(uint16_t songIdx)
 {
-    bool play = playerState == State::PLAYING;
-    Stop();
-    ctx->SoundClear();
-    ctx->m4aSongNumStart(songIdx);
-    setupLoudnessCalcs();
-    updateVisualizerState();
+    auto func = [this, songIdx]() {
+        const uint8_t playerIdx = ctx->primaryPlayer;
+        if (playerIdx >= ctx->players.size())
+            return;
 
-    if (play)
-        Play();
+        const bool playing = ctx->m4aMPlayIsPlaying(playerIdx);
+        ctx->m4aMPlayAllStop();
+        ctx->m4aSongNumStart(songIdx);
+        if (!playing)
+            ctx->m4aMPlayStop(ctx->primaryPlayer);
+    };
+
+    InvokeAsPlayer(func);
 }
 
 void PlaybackEngine::Play()
 {
-    switch (playerState) {
-    case State::RESTART:
-        // --> handled by worker
-        break;
-    case State::PLAYING:
-        // restart song if player is running
-        playerState = State::RESTART;
-        break;
-    case State::PAUSED:
-        // continue paused playback
-        playerState = State::PLAYING;
-        break;
-    case State::TERMINATED:
-        // thread needs to be deleted before restarting
-        Stop();
-        Play();
-        break;
-    case State::SHUTDOWN:
-        // --> handled by worker
-        break;
-    case State::THREAD_DELETED:
-        playerState = State::PLAYING;
-        playerThread = std::make_unique<std::thread>(&PlaybackEngine::threadWorker, this);
-#ifdef __linux__
-        pthread_setname_np(playerThread->native_handle(), "mixer thread");
-#endif
-        // start thread and play back song
-        break;
-    }
+    auto func = [this]() {
+        const uint8_t playerIdx = ctx->primaryPlayer;
+        if (playerIdx >= ctx->players.size())
+            return;
+
+        if (paused) {
+            paused = false;
+        } else {
+            ctx->m4aMPlayStart(playerIdx, ctx->players.at(playerIdx).GetSongHeaderPos());
+            hasEnded = false;
+        }
+    };
+
+    InvokeAsPlayer(func);
 }
 
-void PlaybackEngine::Pause()
+bool PlaybackEngine::Pause()
 {
-    switch (playerState) {
-        case State::RESTART:
-            // --> handled by worker
-            break;
-        case State::PLAYING:
-            playerState = State::PAUSED;
-            break;
-        case State::PAUSED:
-            playerState = State::PLAYING;
-            break;
-        case State::TERMINATED:
-            // ingore this
-            break;
-        case State::SHUTDOWN:
-            // --> handled by worker
-            break;
-        case State::THREAD_DELETED:
-            Play();
-            break;
-    }
+    auto func = [this]() {
+        const uint8_t playerIdx = ctx->primaryPlayer;
+        if (playerIdx >= ctx->players.size())
+            return;
+
+        const bool playing = ctx->m4aMPlayIsPlaying(playerIdx);
+        if (playing) {
+            paused = !paused;
+        } else {
+            ctx->m4aMPlayStart(playerIdx, ctx->players.at(playerIdx).GetSongHeaderPos());
+            hasEnded = false;
+            paused = false;
+        }
+        //paused = !paused;
+    };
+
+    InvokeAsPlayer(func);
+
+    /* Return true if the player was paused an is now playing again. False otherwise. */
+    return !paused;
 }
 
 void PlaybackEngine::Stop()
 {
-    switch (playerState) {
-        case State::RESTART:
-            // wait until player has initialized and quit then
-            while (playerState != State::PLAYING) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(5));
-            }
-            Stop();
-            break;
-        case State::PLAYING:
-            playerState = State::SHUTDOWN;
-            Stop();
-            break;
-        case State::PAUSED:
-            playerState = State::SHUTDOWN;
-            Stop();
-            break;
-        case State::TERMINATED:
-        case State::SHUTDOWN:
-            playerThread->join();
-            playerThread.reset();
-            playerState = State::THREAD_DELETED;
-            break;            
-        case State::THREAD_DELETED:
-            // ignore this
-            break;
-    }
+    auto func = [this]() {
+        const uint8_t playerIdx = ctx->primaryPlayer;
+        if (playerIdx >= ctx->players.size())
+            return;
+
+        ctx->m4aMPlayAllStop();
+        ctx->m4aMPlayStart(playerIdx, ctx->players.at(playerIdx).GetSongHeaderPos());
+        ctx->m4aMPlayStop(playerIdx);
+        hasEnded = false;
+        paused = false;
+    };
+
+    InvokeAsPlayer(func);
 }
 
 void PlaybackEngine::SpeedDouble()
@@ -177,7 +161,13 @@ void PlaybackEngine::SpeedDouble()
     speedFactor <<= 1;
     if (speedFactor > 1024)
         speedFactor = 1024;
-    ctx->reader.SetSpeedFactor(float(speedFactor) / 64.0f);
+
+    auto func = [this]() {
+        // TODO replace this with m4aMPlayTempoControl
+        ctx->reader.SetSpeedFactor(float(speedFactor) / 64.0f);
+    };
+
+    InvokeAsPlayer(func);
 }
 
 void PlaybackEngine::SpeedHalve()
@@ -185,41 +175,74 @@ void PlaybackEngine::SpeedHalve()
     speedFactor >>= 1;
     if (speedFactor < 1)
         speedFactor = 1;
-    ctx->reader.SetSpeedFactor(float(speedFactor) / 64.0f);
+
+    auto func = [this]() {
+        // TODO replace this with m4aMPlayTempoControl
+        ctx->reader.SetSpeedFactor(float(speedFactor) / 64.0f);
+    };
+
+    InvokeAsPlayer(func);
 }
 
-bool PlaybackEngine::IsPlaying()
+bool PlaybackEngine::HasEnded() const
 {
-    return playerState != State::THREAD_DELETED && playerState != State::TERMINATED;
-}
-
-bool PlaybackEngine::IsPaused() const
-{
-    return playerState == State::PAUSED;
+    return hasEnded;
 }
 
 void PlaybackEngine::ToggleMute(size_t index)
 {
-    mutedTracks[index] = !mutedTracks[index];
+    auto func = [this, index]() {
+        const uint8_t playerIdx = ctx->primaryPlayer;
+        if (playerIdx >= ctx->players.size())
+            return;
+        MP2KPlayer &player = ctx->players.at(playerIdx);
+        if (index >= player.tracks.size())
+            return;
+        MP2KTrack &trk = player.tracks.at(index);
+        trk.muted = !trk.muted;
+    };
+
+    InvokeAsPlayer(func);
 }
 
 void PlaybackEngine::Mute(size_t index, bool mute)
 {
-    mutedTracks[index] = mute;
+    auto func = [this, index, mute]() {
+        const uint8_t playerIdx = ctx->primaryPlayer;
+        if (playerIdx >= ctx->players.size())
+            return;
+        MP2KPlayer &player = ctx->players.at(playerIdx);
+        if (index >= player.tracks.size())
+            return;
+        MP2KTrack &trk = player.tracks.at(index);
+        trk.muted = mute;
+    };
+
+    InvokeAsPlayer(func);
 }
 
-SongInfo PlaybackEngine::GetSongInfo() const
+SongInfo PlaybackEngine::GetSongInfo()
 {
-    SongInfo result;
-    result.songHeaderPos = ctx->player.GetSongHeaderPos();
-    result.voiceTablePos = ctx->player.GetSoundBankPos();
-    result.reverb = ctx->player.GetReverb();
-    result.priority = ctx->player.GetPriority();
-    return result;
+    SongInfo songInfo;
+
+    auto func = [this, &songInfo]() {
+        const MP2KPlayer &player = ctx->players.at(ctx->primaryPlayer);
+
+        songInfo.songHeaderPos = player.GetSongHeaderPos();
+        songInfo.voiceTablePos = player.GetSoundBankPos();
+        songInfo.reverb = player.GetReverb();
+        songInfo.priority = player.GetPriority();
+    };
+
+    InvokeAsPlayer(func);
+
+    return songInfo;
 }
 
 void PlaybackEngine::GetVisualizerState(MP2KVisualizerState &visualizerState)
 {
+    /* We do not use InvokeAsPlayer, as that would block the call until the background thread
+     * makes the data available. Like this, the mutex only blocks for the actual copy. */
     std::scoped_lock l(visualizerStateMutex);
 
     visualizerState = visualizerStateObserver;
@@ -229,7 +252,7 @@ void PlaybackEngine::GetVisualizerState(MP2KVisualizerState &visualizerState)
  * private PlaybackEngine
  */
 
-void PlaybackEngine::initContext()
+void PlaybackEngine::InitContext()
 {
     const auto &cm = ConfigManager::Instance();
     const auto &cfg = cm.GetCfg();
@@ -244,7 +267,6 @@ void PlaybackEngine::initContext()
         .reverbType = cfg.GetRevType(),
         .cgbPolyphony = cm.GetCgbPolyphony(),
         .dmaBufferLen = cfg.GetRevBufSize(),
-        .trackLimit = cfg.GetTrackLimit(),
         .maxLoops = cm.GetMaxLoopsPlaylist(),
         .padSilenceSecondsStart = cm.GetPadSecondsStart(),
         .padSilenceSecondsEnd = cm.GetPadSecondsEnd(),
@@ -253,69 +275,45 @@ void PlaybackEngine::initContext()
         .emulateCgbSustainBug = cfg.GetSimulateCGBSustainBug(),
     };
 
-    const SongTableInfo songTableInfo{
-        songTablePos,
-        songCount,
-    };
-
     ctx = std::make_unique<MP2KContext>(
         Rom::Instance(),
         mp2kSoundMode,
         agbplaySoundMode,
-        songTableInfo
+        songTableInfo,
+        playerTableInfo
     );
 }
 
 void PlaybackEngine::threadWorker()
 {
-    size_t samplesPerBuffer = ctx->mixer.GetSamplesPerBuffer();
-    std::vector<sample> silence(samplesPerBuffer, sample{0.0f, 0.0f});
+    std::vector<sample> silenceBuffer(ctx->mixer.GetSamplesPerBuffer());
 
-    // TODO rewrite this thread main loop
+    while (!playerThreadQuit) {
+        /* Run events from main thread. */
+        InvokeRun();
 
-    try {
-        while (playerState != State::SHUTDOWN) {
-            switch (playerState) {
-            case State::RESTART:
-                ctx->m4aMPlayStart(ctx->player.playerIdx, ctx->player.GetSongHeaderPos());
-                playerState = State::PLAYING;
-                [[fallthrough]];
-            case State::PLAYING:
-                {
-                    /* run sound engine */
-                    ctx->m4aSoundMain();
+        if (paused) {
+            /* Silence output buffer. */
+            rBuf.Put(silenceBuffer.data(), silenceBuffer.size());
+        } else {
+            /* Run sound engine. */
+            ctx->m4aSoundMain();
+            updateVisualizerState();
 
-                    /* update visualization */
-                    updateVisualizerState();
-
-                    // blocking write to audio buffer
-                    assert(ctx->masterAudioBuffer.size() == samplesPerBuffer);
-                    rBuf.Put(ctx->masterAudioBuffer.data(), ctx->masterAudioBuffer.size());
-
-                    if (ctx->HasEnded()) {
-                        playerState = State::SHUTDOWN;
-                        break;
-                    }
-                }
-                break;
-            case State::PAUSED:
-                rBuf.Put(silence.data(), silence.size());
-                break;
-            default:
-                throw Xcept("Internal PlaybackEngine error: {}", (int)playerState);
-            }
+            /* Write audio data to portaudio ringbuffer. */
+            assert(ctx->masterAudioBuffer.size() == ctx->mixer.GetSamplesPerBuffer());
+            rBuf.Put(ctx->masterAudioBuffer.data(), ctx->masterAudioBuffer.size());
         }
-        // reset song state after it has finished
-        ctx->m4aMPlayStart(ctx->player.playerIdx, ctx->player.GetSongHeaderPos());
-    } catch (std::exception& e) {
-        Debug::print("FATAL ERROR on streaming thread: {}", e.what());
+
+        /* Stop all players after loop fadeout (or end). */
+        if (ctx->HasEnded() && !hasEnded) {
+            ctx->m4aMPlayAllStop();
+            hasEnded = true;
+        }
     }
-    masterLoudness.Reset();
-    for (LoudnessCalculator& c : trackLoudness)
-        c.Reset();
+
     // flush buffer
     rBuf.Clear();
-    playerState = State::TERMINATED;
 }
 
 void PlaybackEngine::updateVisualizerState()
@@ -331,6 +329,36 @@ void PlaybackEngine::updateVisualizerState()
     visualizerStateObserver = visualizerStatePlayer;
 }
 
+void PlaybackEngine::InvokeAsPlayer(const std::function<void(void)> &func)
+{
+    /* This function must be called from within the main thread only! */
+    assert(std::this_thread::get_id() != playerThread->get_id());
+
+    std::unique_lock l(playerInvokeMutex);
+
+    playerInvokePending = true;
+    playerInvokeReady.wait(l);
+    func();
+    playerInvokePending = false;
+    playerInvokeComplete.notify_one();
+}
+
+void PlaybackEngine::InvokeRun()
+{
+    /* This function must be called from within the player thread only! */
+    //This does not work as playerThread is not fully initialized eventhough this thread is already running
+    //assert(std::this_thread::get_id() == playerThread->get_id());
+
+    if (!playerInvokePending)
+        return;
+
+    std::unique_lock l(playerInvokeMutex);
+    playerInvokeReady.notify_one();
+
+    /* wait for remote invocation to complete... */
+    playerInvokeComplete.wait(l);
+}
+
 int PlaybackEngine::audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,
         const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags, void *userData)
 {
@@ -340,13 +368,6 @@ int PlaybackEngine::audioCallback(const void *inputBuffer, void *outputBuffer, s
     Ringbuffer *rBuf = (Ringbuffer *)userData;
     rBuf->Take((sample *)outputBuffer, framesPerBuffer);
     return 0;
-}
-
-void PlaybackEngine::setupLoudnessCalcs()
-{
-    trackLoudness.clear();
-    for (size_t i = 0; i < ctx->player.tracks.size(); i++)
-        trackLoudness.emplace_back(5.0f);
 }
 
 void PlaybackEngine::portaudioOpen()

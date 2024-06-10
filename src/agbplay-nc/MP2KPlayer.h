@@ -12,6 +12,7 @@ class MP2KPlayer
 public:
     MP2KPlayer(uint8_t trackLimit, uint8_t playerIdx);
     MP2KPlayer(const MP2KPlayer&) = delete;
+    MP2KPlayer(MP2KPlayer &&) = default;
     MP2KPlayer& operator=(const MP2KPlayer&) = delete;
 
     void Init(size_t songHeaderPos);
@@ -20,10 +21,12 @@ public:
     std::vector<MP2KTrack> tracks;
 
     // processing variables
-    uint32_t tickCount = 0;
+    size_t tickCount = 0;
     int32_t bpmStack = 0;
     uint16_t bpm = 0;
     const uint8_t playerIdx;
+    bool enabled = false;
+    uint8_t tracksUsed = 0;
 
     size_t GetSoundBankPos() const;
     uint8_t GetReverb() const;

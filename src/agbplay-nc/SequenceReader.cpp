@@ -53,10 +53,13 @@ SequenceReader::SequenceReader(MP2KContext& ctx)
 
 void SequenceReader::Process()
 {
-    ctx.player.bpmStack += uint32_t(float(ctx.player.bpm) * speedFactor);
-    while (ctx.player.bpmStack >= BPM_PER_FRAME * INTERFRAMES) {
-        processSequenceTick();
-        ctx.player.bpmStack -= BPM_PER_FRAME * INTERFRAMES;
+    bool playing = false;
+    for (MP2KPlayer &player : ctx.players)
+        playing |= PlayerMain(player);
+
+    if (!playing && !endReached) {
+        ctx.mixer.StartFadeOut(SONG_FINISH_TIME);
+        endReached = true;
     }
 }
 
@@ -80,116 +83,143 @@ void SequenceReader::SetSpeedFactor(float speedFactor)
  * private SequenceReader
  */
 
-void SequenceReader::processSequenceTick()
+bool SequenceReader::PlayerMain(MP2KPlayer &player)
+{
+    if (!player.enabled)
+        return false;
+
+    // TODO implement player based fadeout
+
+    player.bpmStack += uint32_t(float(player.bpm) * speedFactor);
+    while (player.bpmStack >= BPM_PER_FRAME * INTERFRAMES) {
+        bool playing = false;
+        for (MP2KTrack &trk : player.tracks)
+            playing |= TrackMain(player, trk);
+
+        player.tickCount++;
+        player.bpmStack -= BPM_PER_FRAME * INTERFRAMES;
+        if (!playing)
+            player.enabled = false;
+    }
+
+    for (MP2KTrack &trk : player.tracks)
+        TrackVolPitchMain(trk);
+
+    return player.enabled;
+}
+
+bool SequenceReader::TrackMain(MP2KPlayer &player, MP2KTrack &trk)
 {
     const Rom& rom = ctx.rom;
 
-    // process all tracks
-    bool isSongRunning = false;
-    for (auto &trk : ctx.player.tracks) {
-        if (!trk.isRunning)
-            continue;
+    if (!trk.enabled)
+        return false;
 
-        isSongRunning = true;
-        tickTrackNotes(trk);
+    /* Count down note duration and end notes if necessary. */
+    TickTrackNotes(trk);
 
-        // count down last delay and process
-        while (trk.isRunning && trk.delay == 0) {
-            uint8_t cmd = rom.ReadU8(trk.pos);
+    /* Count down track delay and process events if necessary. */
+    while (trk.delay == 0) {
+        uint8_t cmd = rom.ReadU8(trk.pos);
 
-            // check if a previous command should be repeated
+        // check if a previous command should be repeated
+        if (cmd < 0x80) {
+            cmd = trk.lastCmd;
             if (cmd < 0x80) {
-                cmd = trk.lastCmd;
-                if (cmd < 0x80) {
-                    // song data error, command not initialized
-                    cmdPlayFine(trk);
-                    break;
-                }
-            } else {
-                trk.pos++;
-                if (cmd >= 0xBD) {
-                    // repeatable command
-                    trk.lastCmd = cmd;
-                }
+                // song data error, command not initialized
+                cmdPlayFine(trk);
+                return false;
             }
-
-            if (cmd >= 0xCF) {
-                // note command
-                cmdPlayNote(trk, cmd);
-            } else if (cmd >= 0xB1) {
-                // state altering command
-                cmdPlayCommand(trk, cmd);
-            } else {
-                trk.delay = delayLut.at(cmd);
-            }
-        } // end of processing loop
-
-        if (trk.isRunning)
-            trk.delay--;
-
-        if (trk.lfos != 0 && trk.mod != 0) {
-            if (trk.lfodlCount == 0) {
-                trk.lfoPhase += trk.lfos;
-                int lfoPoint;
-                if (static_cast<int8_t>(trk.lfoPhase - 64) >= 0)
-                    lfoPoint = 128 - trk.lfoPhase;
-                else
-                    lfoPoint = static_cast<int8_t>(trk.lfoPhase);
-                lfoPoint *= trk.mod;
-                lfoPoint >>= 6;
-
-                if (trk.lfoValue != lfoPoint) {
-                    trk.lfoValue = static_cast<int8_t>(lfoPoint);
-                    if (trk.modt == MODT::PITCH)
-                        trk.updatePitch = true;
-                    else
-                        trk.updateVolume = true;
-                }
-            } else {
-                trk.lfodlCount--;
-            }
-        }
-
-        // TODO actually only update one or there other and not always both
-        if (trk.updateVolume || trk.updatePitch || trk.mod > 0) {
-            setTrackPV(trk, 
-                    trk.GetVol(),
-                    trk.GetPan(),
-                    trk.pitch = trk.GetPitch(),
-                    trk.updateVolume,
-                    trk.updatePitch);
-            trk.updateVolume = false;
-            trk.updatePitch = false;
         } else {
-            trk.pitch = trk.GetPitch();
+            trk.pos++;
+            if (cmd >= 0xBD) {
+                // repeatable command
+                trk.lastCmd = cmd;
+            }
+        }
+
+        if (cmd >= 0xCF) {
+            // note command
+            cmdPlayNote(player, trk, cmd);
+        } else if (cmd >= 0xB1) {
+            // state altering command
+            cmdPlayCommand(player, trk, cmd);
+            if (!trk.enabled)
+                return false;
+        } else {
+            trk.delay = delayLut.at(cmd);
         }
     }
 
-    if (!isSongRunning && !endReached) {
-        ctx.mixer.StartFadeOut(SONG_FINISH_TIME);
-        endReached = true;
+    trk.delay--;
+
+    if (trk.lfos != 0 && trk.mod != 0) {
+        if (trk.lfodlCount == 0) {
+            trk.lfoPhase += trk.lfos;
+            int lfoPoint;
+            if (static_cast<int8_t>(trk.lfoPhase - 64) >= 0)
+                lfoPoint = 128 - trk.lfoPhase;
+            else
+                lfoPoint = static_cast<int8_t>(trk.lfoPhase);
+            lfoPoint *= trk.mod;
+            lfoPoint >>= 6;
+
+            if (trk.lfoValue != lfoPoint) {
+                trk.lfoValue = static_cast<int8_t>(lfoPoint);
+                if (trk.modt == MODT::PITCH)
+                    trk.updatePitch = true;
+                else
+                    trk.updateVolume = true;
+            }
+        } else {
+            trk.lfodlCount--;
+        }
     }
 
-    ctx.player.tickCount++;
+    return true;
 }
 
-int SequenceReader::tickTrackNotes(MP2KTrack &trk)
+void SequenceReader::TrackVolPitchMain(MP2KTrack &trk)
 {
-    std::bitset<NUM_NOTES> backBuffer;
+    if (!trk.enabled)
+        return;
+
+    /* The pitch variable is not required to be stored as state variable,
+     * but it allows UI tracking. */
+    trk.pitch = trk.GetPitch();
+
+    if (!trk.updateVolume && !trk.updatePitch)
+        return;
+
+    TrackVolPitchSet(
+        trk,
+        trk.GetVol(),
+        trk.GetPan(),
+        trk.pitch,
+        trk.updateVolume,
+        trk.updatePitch
+    );
+
+    trk.updateVolume = false;
+    trk.updatePitch = false;
+}
+
+int SequenceReader::TickTrackNotes(MP2KTrack &trk)
+{
+    trk.activeNotes.reset();
     int active = 0;
 
     for (MP2KChn *chn = trk.channels; chn != nullptr; chn = chn->next) {
         if (chn->TickNote()) {
             active++;
-            backBuffer[chn->note.midiKeyTrackData % NUM_NOTES] = true;
+            trk.activeNotes[chn->note.midiKeyTrackData % NUM_NOTES] = true;
         }
     }
 
-    trk.activeNotes = backBuffer;
     return active;
 }
 
-void SequenceReader::setTrackPV(MP2KTrack &trk, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch)
+void SequenceReader::TrackVolPitchSet(MP2KTrack &trk, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch)
 {
     // TODO: replace this with a normal linked list scan:
     // Why do we have to set pitch after release for SQ1 sweep sounds?
@@ -212,7 +242,7 @@ void SequenceReader::setTrackPV(MP2KTrack &trk, uint16_t vol, int16_t pan, int16
     setFunc(ctx.noiseChannels);
 }
 
-void SequenceReader::cmdPlayNote(MP2KTrack &trk, uint8_t cmd)
+void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd)
 {
     const Rom& rom = ctx.rom;
 
@@ -238,7 +268,7 @@ void SequenceReader::cmdPlayNote(MP2KTrack &trk, uint8_t cmd)
     // find instrument definition
     uint8_t midiKeyPitch;
     int8_t rhythmPan = 0;
-    size_t instrPos = ctx.player.GetSoundBankPos() + trk.prog * 12;
+    size_t instrPos = player.GetSoundBankPos() + trk.prog * 12;
     if (const uint8_t bankDataType = rom.ReadU8(instrPos + 0x0); bankDataType & BANKDATA_TYPE_SPLIT) {
         const size_t subBankPos = rom.ReadAgbPtrToPos(instrPos + 0x4);
         const size_t subKeyMap = rom.ReadAgbPtrToPos(instrPos + 0x8);
@@ -278,7 +308,7 @@ void SequenceReader::cmdPlayNote(MP2KTrack &trk, uint8_t cmd)
     note.pseudoEchoVol = trk.pseudoEchoVol;
     note.pseudoEchoLen = trk.pseudoEchoLen;
     note.trackIdx = trk.trackIdx;
-    note.playerIdx = ctx.player.playerIdx;
+    note.playerIdx = player.playerIdx;
 
     ADSR adsr;
     adsr.att = rom.ReadU8(instrPos + 0x8);
@@ -418,7 +448,7 @@ void SequenceReader::cmdPlayNote(MP2KTrack &trk, uint8_t cmd)
     trk.updatePitch = true;
 }
 
-void SequenceReader::cmdPlayCommand(MP2KTrack &trk, uint8_t cmd)
+void SequenceReader::cmdPlayCommand(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd)
 {
     const Rom &rom = ctx.rom;
 
@@ -480,7 +510,7 @@ void SequenceReader::cmdPlayCommand(MP2KTrack &trk, uint8_t cmd)
         break;
     case 0xBB:
         // TEMPO
-        ctx.player.bpm = static_cast<uint16_t>(rom.ReadU8(trk.pos++) * 2);
+        player.bpm = static_cast<uint16_t>(rom.ReadU8(trk.pos++) * 2);
         break;
     case 0xBC:
         // KEYSH
@@ -582,7 +612,7 @@ void SequenceReader::cmdPlayFine(MP2KTrack &trk)
         chn->RemoveFromTrack();
     }
 
-    trk.isRunning = false;
+    trk.enabled = false;
 }
 
 void SequenceReader::cmdPlayMemacc(MP2KTrack &trk)

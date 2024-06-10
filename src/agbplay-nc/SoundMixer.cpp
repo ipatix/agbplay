@@ -4,7 +4,6 @@
 
 #include "SoundMixer.h"
 #include "Xcept.h"
-#include "Debug.h"
 #include "Util.h"
 #include "MP2KContext.h"
 
@@ -30,37 +29,9 @@ void SoundMixer::Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVol
     );
 
     // TODO add for-loop for multiple players
-    for (auto &trk : ctx.player.tracks) {
-        switch (rtype) {
-        case ReverbType::NORMAL:
-            trk.reverb = std::make_unique<ReverbEffect>(
-                    reverb, sampleRate, numDmaBuffers);
-            break;
-        case ReverbType::NONE:
-            trk.reverb = std::make_unique<ReverbEffect>(
-                    0, sampleRate, numDmaBuffers);
-            break;
-        case ReverbType::GS1:
-            trk.reverb = std::make_unique<ReverbGS1>(
-                    reverb, sampleRate, numDmaBuffers);
-            break;
-        case ReverbType::GS2:
-            trk.reverb = std::make_unique<ReverbGS2>(
-                    reverb, sampleRate, numDmaBuffers,
-                    0.4140625f, -0.0625f);
-            break;
-            // Mario Power Tennis uses same coefficients as Mario Golf Advance Tour
-        case ReverbType::MGAT:
-            trk.reverb = std::make_unique<ReverbGS2>(
-                    reverb, sampleRate, numDmaBuffers,
-                    0.25f, -0.046875f);
-            break;
-        case ReverbType::TEST:
-            trk.reverb = std::make_unique<ReverbTest>(
-                    reverb, sampleRate, numDmaBuffers);
-            break;
-        default:
-            throw Xcept("Invalid Reverb Effect");
+    for (MP2KPlayer &player : ctx.players) {
+        for (MP2KTrack &trk : player.tracks) {
+            trk.reverb = ReverbEffect::MakeReverb(rtype, reverb, sampleRate, numDmaBuffers);
         }
     }
 }
@@ -68,13 +39,14 @@ void SoundMixer::Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVol
 void SoundMixer::Process()
 {
     /* 1. clear the mixing buffer before processing channels */
-    // TODO add player for-loop for multiple players
     ctx.masterAudioBuffer.resize(samplesPerBuffer);
     std::fill(ctx.masterAudioBuffer.begin(), ctx.masterAudioBuffer.end(), sample{0.0f, 0.0f});
 
-    for (auto &trk : ctx.player.tracks) {
-        trk.audioBuffer.resize(samplesPerBuffer);
-        std::fill(trk.audioBuffer.begin(), trk.audioBuffer.end(), sample{0.0f, 0.0f});
+    for (MP2KPlayer &player : ctx.players) {
+        for (MP2KTrack &trk : player.tracks) {
+            trk.audioBuffer.resize(samplesPerBuffer);
+            std::fill(trk.audioBuffer.begin(), trk.audioBuffer.end(), sample{0.0f, 0.0f});
+        }
     }
 
     /* 2. prepare arguments for mixing */
@@ -94,8 +66,10 @@ void SoundMixer::Process()
 
     /* 4. apply reverb */
     // TODO add player for-loop for multiple players
-    for (auto &trk : ctx.player.tracks) {
-        trk.reverb->ProcessData(trk.audioBuffer.data(), samplesPerBuffer);
+    for (MP2KPlayer &player : ctx.players) {
+        for (MP2KTrack &trk : player.tracks) {
+            trk.reverb->ProcessData(trk.audioBuffer.data(), samplesPerBuffer);
+        }
     }
 
     /* 5. mix channels which are not affected by reverb (CGB) */
@@ -131,29 +105,31 @@ void SoundMixer::Process()
         fadeMicroframesLeft--;
     }
 
-    // TODO add for-loop for multiple players
-    for (auto &trk : ctx.player.tracks) {
-        const float masterStep = (masterTo - masterFrom) * margs.samplesPerBufferInv;
-        float masterLevel = masterFrom;
-        for (size_t i = 0; i < samplesPerBuffer; i++)
-        {
-            trk.audioBuffer[i].left *= masterLevel;
-            trk.audioBuffer[i].right *= masterLevel;
+    for (MP2KPlayer &player : ctx.players) {
+        for (MP2KTrack &trk : player.tracks) {
+            const float masterStep = (masterTo - masterFrom) * margs.samplesPerBufferInv;
+            float masterLevel = masterFrom;
+            for (size_t i = 0; i < samplesPerBuffer; i++)
+            {
+                trk.audioBuffer[i].left *= masterLevel;
+                trk.audioBuffer[i].right *= masterLevel;
 
-            masterLevel +=  masterStep;
+                masterLevel +=  masterStep;
+            }
         }
     }
 
     /* 8. master mixdown */
-    // TODO add for-loop for multiple players
-    for (auto &trk : ctx.player.tracks) {
-        if (trk.muted)
-            continue;
+    for (MP2KPlayer &player : ctx.players) {
+        for (MP2KTrack &trk : player.tracks) {
+            if (trk.muted)
+                continue;
 
-        assert(ctx.masterAudioBuffer.size() == trk.audioBuffer.size());
-        for (size_t i = 0; i < ctx.masterAudioBuffer.size(); i++) {
-            ctx.masterAudioBuffer[i].left += trk.audioBuffer[i].left;
-            ctx.masterAudioBuffer[i].right += trk.audioBuffer[i].right;
+            assert(ctx.masterAudioBuffer.size() == trk.audioBuffer.size());
+            for (size_t i = 0; i < ctx.masterAudioBuffer.size(); i++) {
+                ctx.masterAudioBuffer[i].left += trk.audioBuffer[i].left;
+                ctx.masterAudioBuffer[i].right += trk.audioBuffer[i].right;
+            }
         }
     }
 }

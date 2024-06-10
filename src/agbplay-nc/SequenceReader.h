@@ -9,6 +9,7 @@
 
 struct MP2KContext;
 struct MP2KTrack;
+struct MP2KPlayer;
 
 class SequenceReader
 {
@@ -34,12 +35,14 @@ private:
     uint8_t numLoops = 0;
     float speedFactor = 1.0f;
 
-    void processSequenceTick();
-    int tickTrackNotes(MP2KTrack &trk);
-    void setTrackPV(MP2KTrack &trk, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch);
+    bool PlayerMain(MP2KPlayer &player);
+    bool TrackMain(MP2KPlayer &player, MP2KTrack &trk);
+    void TrackVolPitchMain(MP2KTrack &trk);
+    void TrackVolPitchSet(MP2KTrack &trk, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch);
+    int TickTrackNotes(MP2KTrack &trk);
 
-    void cmdPlayNote(MP2KTrack &trk, uint8_t cmd);
-    void cmdPlayCommand(MP2KTrack &trk, uint8_t cmd);
+    void cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd);
+    void cmdPlayCommand(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd);
 
     void cmdPlayFine(MP2KTrack &trk);
     void cmdPlayMemacc(MP2KTrack &trk);

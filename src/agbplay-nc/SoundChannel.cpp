@@ -4,7 +4,6 @@
 #include <algorithm>
 
 #include "Constants.h"
-#include "Debug.h"
 #include "SoundChannel.h"
 #include "Util.h"
 #include "Xcept.h"
@@ -59,6 +58,8 @@ SoundChannel::SoundChannel(const MP2KContext &ctx, MP2KTrack *track, SampleInfo 
 
 void SoundChannel::Process(sample *buffer, size_t numSamples, const MixingArgs& args)
 {
+    if (envState == EnvState::DEAD)
+        return;
     stepEnvelope();
     if (envState == EnvState::DEAD)
         return;
@@ -137,12 +138,6 @@ void SoundChannel::Release() noexcept
 bool SoundChannel::IsReleasing() const noexcept
 {
     return stop;
-}
-
-void SoundChannel::Kill()
-{
-    envState = EnvState::DEAD;
-    envInterStep = 0;
 }
 
 void SoundChannel::SetPitch(int16_t pitch)

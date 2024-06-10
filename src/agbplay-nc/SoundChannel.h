@@ -29,7 +29,6 @@ public:
     void SetVol(uint16_t vol, int16_t pan);
     void Release() noexcept override;
     bool IsReleasing() const noexcept;
-    void Kill();
     void SetPitch(int16_t pitch);
     bool TickNote() noexcept override;
 private:

@@ -69,8 +69,13 @@ int main(int argc, char *argv[])
         cfm.SetGameCode(gameCode);
         auto scanResult = scanResults.at(songTableIndex);
 
+        SongTableInfo songTableInfo{
+            .songTablePos = scanResult.songtable_pos,
+            .songCount = scanResult.song_count,
+        };
+
         fmt::print("Initialization complete!\n");
-        WindowGUI wgui(scanResult.songtable_pos, scanResult.song_count);
+        WindowGUI wgui(songTableInfo, scanResult.player_max_tracks);
 
         std::chrono::nanoseconds frameTime(1000000000 / 60);
 

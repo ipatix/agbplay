@@ -393,6 +393,8 @@ void SquareChannel::SetPitch(int16_t pitch)
 
 void SquareChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
 {
+    if (envState == EnvState::DEAD)
+        return;
     stepEnvelope();
     if (envState == EnvState::DEAD)
         return;

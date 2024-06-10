@@ -30,9 +30,8 @@ private:
 
     MP2KVisualizerState disp;
     std::string songName; 
-    uint32_t cursorPos;
-    int maxChannels;
-    int activeChannels;
-    bool cursorVisible;
+    uint32_t cursorPos = 0;
+    size_t maxChannels = 0;
+    bool cursorVisible = false;
     static const std::vector<const char *> noteNames;
 };

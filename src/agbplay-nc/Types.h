@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include <bitset>
 #include <cstdint>
 #include <string>
@@ -81,13 +80,11 @@ struct MP2KSoundMode
 
 struct AgbplaySoundMode
 {
-    // find a better name
     const ResamplerType resamplerTypeNormal;
     const ResamplerType resamplerTypeFixed;
     const ReverbType reverbType;
     const CGBPolyphony cgbPolyphony;
     const uint32_t dmaBufferLen;
-    const uint8_t trackLimit;
     const int8_t maxLoops;
     const double padSilenceSecondsStart;
     const double padSilenceSecondsEnd;
@@ -99,8 +96,10 @@ struct AgbplaySoundMode
 struct SongTableInfo
 {
     const size_t songTablePos;
-    const size_t songCount;
+    const uint16_t songCount;
 };
+
+typedef std::vector<uint8_t> PlayerTableInfo;
 
 struct SongInfo
 {
@@ -149,9 +148,16 @@ struct MP2KVisualizerState
         float volLeft = 0.0f, volRight = 0.0f;
     };
 
-    std::array<TrackState, MAX_TRACKS> tracks;
-    size_t tracksUsed = 0;
+    struct PlayerState
+    {
+        std::vector<TrackState> tracks;
+        uint16_t bpm = 0;
+        uint8_t tracksUsed = 0;
+    };
+
+    std::vector<PlayerState> players;
 
     float masterVolLeft = 0.0f, masterVolRight = 0.0f;
     size_t activeChannels = 0;
+    uint8_t primaryPlayer = 0;
 };

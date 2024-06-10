@@ -20,12 +20,14 @@ class ReverbEffect;
 
 struct MP2KTrack
 {
-    MP2KTrack(size_t pos, uint8_t trackIdx);
+    MP2KTrack(uint8_t trackIdx);
     MP2KTrack(const MP2KTrack&) = delete;
     MP2KTrack(MP2KTrack &&) = default;
     MP2KTrack& operator=(const MP2KTrack&) = delete;
 
-    void Init();
+    void Init(size_t pos);
+    void Stop();
+
     int16_t GetPitch();
     uint16_t GetVol();
     int16_t GetPan();
@@ -64,7 +66,7 @@ struct MP2KTrack
     int8_t tune;
     int8_t keyShift;
     bool muted;
-    bool isRunning;
+    bool enabled;
     bool updateVolume;
     bool updatePitch;
 

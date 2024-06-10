@@ -18,8 +18,8 @@
 
 #define KEY_TAB 9
 
-WindowGUI::WindowGUI(size_t songTablePos, uint16_t songCount)
-    : songTablePos(songTablePos), songCount(songCount)
+WindowGUI::WindowGUI(const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo)
+    : songTableInfo(songTableInfo), playerTableInfo(playerTableInfo)
 {
     // init ncurses stuff
     this->containerWin = initscr();
@@ -54,7 +54,7 @@ WindowGUI::WindowGUI(size_t songTablePos, uint16_t songCount)
             SONGLIST_XPOS(height, width), true);
 
     // add songs to table
-    for (uint16_t i = 0; i < songCount; i++) {
+    for (uint16_t i = 0; i < songTableInfo.songCount; i++) {
         auto songName = fmt::format("{:04}", i);
         songUI->AddSong(SongEntry(songName, i));
     }
@@ -77,8 +77,7 @@ WindowGUI::WindowGUI(size_t songTablePos, uint16_t songCount)
             ROMVIEW_WIDTH(height, width),
             ROMVIEW_YPOS(height, width),
             ROMVIEW_XPOS(height, width),
-            songTablePos,
-            songCount);
+            songTableInfo);
 
     trackUI = std::make_unique<TrackviewGUI>(
             TRACKVIEW_HEIGHT(height, width),
@@ -93,10 +92,10 @@ WindowGUI::WindowGUI(size_t songTablePos, uint16_t songCount)
             VUMETER_XPOS(height, width));
 
     mplay = std::make_unique<PlaybackEngine>(
-        songTablePos,
-        songCount
+        songTableInfo,
+        playerTableInfo
     );
-    loadSong(nullptr);
+    trackUI->SetTitle("0000");
 }
 
 WindowGUI::~WindowGUI() 
@@ -166,8 +165,7 @@ bool WindowGUI::Handle()
                 break;
             case 'o':
             case ' ':
-                play = mplay->IsPaused();
-                mplay->Pause();
+                play = mplay->Pause();
                 break;
             case 'p':
                 play = false;
@@ -229,18 +227,17 @@ bool WindowGUI::Handle()
                 return false;
         } // end key handling switch
     } // end key loop
-    if (play) {
-        if (!mplay->IsPlaying()) {
-            if ((cursorl != PLAYLIST && cursorl != SONGLIST) || isLastSong()) {
-                play = false;
-            } else {
-                scrollDown();
-                mplay->Play();
-            }
-        }
 
-        updateVisualizerState();
+    if (play && mplay->HasEnded()) {
+        if ((cursorl != PLAYLIST && cursorl != SONGLIST) || isLastSong()) {
+            play = false;
+        } else {
+            scrollDown();
+            mplay->Play();
+        }
     }
+
+    updateVisualizerState();
     conUI->Refresh();
     return true;
 }
@@ -565,55 +562,28 @@ void WindowGUI::del()
 
 void WindowGUI::mute()
 {
-    size_t cur;
-    size_t count;
-    switch (cursorl) {
-        case TRACKS_SONGLIST:
-        case TRACKS_PLAYLIST:
-            cur = trackUI->GetCursorLoc();
-            count = mplay->GetMaxTracks();
-            for (size_t i = 0; i < count; i++) {
-                if (cur == i)
-                    mplay->Mute(i, true);
-            }
-            break;
-        default:
-            break;
-    }
+    if (cursorl != TRACKS_SONGLIST && cursorl != TRACKS_PLAYLIST)
+        return;
+
+    mplay->Mute(trackUI->GetCursorLoc(), true);
 }
 
 void WindowGUI::solo()
 {
-    size_t cur;
-    size_t count;
-    switch (cursorl) {
-        case TRACKS_SONGLIST:
-        case TRACKS_PLAYLIST:
-            cur = trackUI->GetCursorLoc();
-            count = mplay->GetMaxTracks();
-            for (size_t i = 0; i < count; i++) {
-                mplay->Mute(i, cur != i);
-            }
-            break;
-        default:
-            break;
-    }
+    if (cursorl != TRACKS_SONGLIST && cursorl != TRACKS_PLAYLIST)
+        return;
+
+    for (size_t i = 0; i < MAX_TRACKS; i++)
+        mplay->Mute(i, trackUI->GetCursorLoc() != i);
 }
 
 void WindowGUI::tutti()
 {
-    size_t count;
-    switch (cursorl) {
-        case TRACKS_SONGLIST:
-        case TRACKS_PLAYLIST:
-            count = mplay->GetMaxTracks();
-            for (size_t i = 0; i < count; i++) {
-                mplay->Mute(i, false);
-            }
-            break;
-        default:
-            break;
-    }
+    if (cursorl != TRACKS_SONGLIST && cursorl != TRACKS_PLAYLIST)
+        return;
+
+    for (size_t i = 0; i < MAX_TRACKS; i++)
+        mplay->Mute(i, false);
 }
 
 void WindowGUI::rename()
@@ -732,7 +702,7 @@ void WindowGUI::exportLaunch(bool benchmarkOnly, bool separate)
     exportBusy.store(true);
 
     exportThread = std::make_unique<std::thread>([&](std::vector<SongEntry> tEntries, bool tBenchmarkOnly, bool tSeparate) {
-            SoundExporter se(songTablePos, songCount, tBenchmarkOnly, tSeparate);
+            SoundExporter se(songTableInfo, playerTableInfo, tBenchmarkOnly, tSeparate);
             se.Export(tEntries);
             exportBusy.store(false);
         },

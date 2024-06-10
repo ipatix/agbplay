@@ -2,7 +2,7 @@
 
 #define NUM_NOTES 128
 #define PROG_UNDEFINED 0xFF
-#define MAX_TRACKS 32       // on real GBA this is 16 only, let's do homebrew a favor
+#define MAX_TRACKS 16
 
 #define BPM_PER_FRAME 150
 #define AGB_FPS 60

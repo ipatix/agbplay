@@ -1,15 +1,19 @@
 #include "MP2KTrack.h"
 
-#include "ReverbEffect.h"
+#include <cassert>
 
-MP2KTrack::MP2KTrack(size_t pos, uint8_t trackIdx)
-    : pos(pos), trackIdx(trackIdx)
+#include "ReverbEffect.h"
+#include "MP2KChn.h"
+
+MP2KTrack::MP2KTrack(uint8_t trackIdx)
+    : trackIdx(trackIdx)
 {
-    Init();
+    Init(0);
 }
 
-void MP2KTrack::Init()
+void MP2KTrack::Init(size_t pos)
 {
+    this->pos = pos;
     patternLevel = 0;
     modt = MODT::PITCH;
     lastCmd = 0;
@@ -36,10 +40,22 @@ void MP2KTrack::Init()
     tune = 0;
     keyShift = 0;
     muted = false;
-    isRunning = true;
+    enabled = pos != 0;
     updateVolume = false;
     updatePitch = false;
     channels = nullptr;
+    activeNotes.reset();
+}
+
+void MP2KTrack::Stop()
+{
+    if (!enabled)
+        return;
+
+    for (MP2KChn *chn = channels; chn != nullptr; chn = chn->next)
+        chn->Kill();
+
+    assert(channels == nullptr);
 }
 
 int16_t MP2KTrack::GetPitch()

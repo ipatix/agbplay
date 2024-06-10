@@ -15,17 +15,26 @@
  * to a MP2KContext */
 
 struct MP2KContext {
-    MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, const AgbplaySoundMode &agbplaySoundMode, const SongTableInfo &songTableInfo);
+    MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, const AgbplaySoundMode &agbplaySoundMode, const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo);
     MP2KContext(const MP2KContext&) = delete;
     MP2KContext& operator=(const MP2KContext&) = delete;
 
     /* original API functions */
     void m4aSoundMain();
-    void m4aSongNumStart(uint16_t songPos);
+    void m4aSongNumStart(uint16_t songId);
+    void m4aSongNumStop(uint16_t songId);
     void m4aMPlayStart(uint8_t playerIdx, size_t songPos);
+    void m4aMPlayStop(uint8_t playerIdx);
+    void m4aMPlayAllStop();
+    void m4aMPlayContinue(uint8_t playerIdx);
+    void m4aMPlayAllContinue();
 
     /* custom helper functions */
-    void SoundClear();
+    void m4aSoundClear();
+    void m4aMPlayKill(uint8_t playerIdx);
+    void m4aMPlayAllKill();
+    uint8_t m4aSongNumPlayerGet(uint16_t songId) const;
+    bool m4aMPlayIsPlaying(uint8_t playerIdx) const;
 
     bool HasEnded() const;
     size_t GetCurInterFrame() const;
@@ -34,10 +43,10 @@ struct MP2KContext {
     const Rom& rom;
     SequenceReader reader;
     SoundMixer mixer;
-    MP2KPlayer player; // TODO extend for multiple music players
     MP2KSoundMode mp2kSoundMode;
     AgbplaySoundMode agbplaySoundMode;
     SongTableInfo songTableInfo;
+    std::vector<MP2KPlayer> players;
     std::vector<uint8_t> memaccArea; // TODO, this will have to be accessible from outside for emulator support
     std::vector<sample> masterAudioBuffer;
     LoudnessCalculator masterLoudnessCalculator{5.0f};
@@ -50,4 +59,5 @@ struct MP2KContext {
     std::list<NoiseChannel> noiseChannels;
 
     size_t curInterFrame = 0;
+    uint8_t primaryPlayer = 0; // <-- this is only used for visualization, perhaps move outside from here
 };

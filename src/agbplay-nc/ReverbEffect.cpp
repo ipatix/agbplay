@@ -2,9 +2,9 @@
 #include <cassert>
 
 #include "ReverbEffect.h"
-#include "Debug.h"
 #include "Util.h"
 #include "Constants.h"
+#include "Xcept.h"
 
 /*
  * public ReverbEffect
@@ -30,6 +30,35 @@ void ReverbEffect::ProcessData(sample *buffer, size_t numSamples)
         size_t left = processInternal(buffer, numSamples);
         buffer += (numSamples - left);
         numSamples = left;
+    }
+}
+
+std::unique_ptr<ReverbEffect> ReverbEffect::MakeReverb(ReverbType reverbType, uint8_t intensity, size_t sampleRate, uint8_t numDmaBuffers)
+{
+    switch (reverbType) {
+    case ReverbType::NORMAL:
+        return std::make_unique<ReverbEffect>(
+                intensity, sampleRate, numDmaBuffers);
+    case ReverbType::NONE:
+        return std::make_unique<ReverbEffect>(
+                0, sampleRate, numDmaBuffers);
+    case ReverbType::GS1:
+        return std::make_unique<ReverbGS1>(
+                intensity, sampleRate, numDmaBuffers);
+    case ReverbType::GS2:
+        return std::make_unique<ReverbGS2>(
+                intensity, sampleRate, numDmaBuffers,
+                0.4140625f, -0.0625f);
+        // Mario Power Tennis uses same coefficients as Mario Golf Advance Tour
+    case ReverbType::MGAT:
+        return std::make_unique<ReverbGS2>(
+                intensity, sampleRate, numDmaBuffers,
+                0.25f, -0.046875f);
+    case ReverbType::TEST:
+        return std::make_unique<ReverbTest>(
+                intensity, sampleRate, numDmaBuffers);
+    default:
+        throw Xcept("MakeReverb: Invalid Reverb Effect: {}", static_cast<int>(reverbType));
     }
 }
 

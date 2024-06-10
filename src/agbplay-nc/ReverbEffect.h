@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <memory>
 #include <vector>
 
 #include "Types.h"
@@ -14,6 +15,8 @@ public:
     ReverbEffect(uint8_t intesity, size_t streamRate, uint8_t numAgbBuffers);
     virtual ~ReverbEffect();
     void ProcessData(sample *buffer, size_t numSamples);
+
+    static std::unique_ptr<ReverbEffect> MakeReverb(ReverbType reverbType, uint8_t intensity, size_t sampleRate, uint8_t numDmaBuffers);
 protected:
     virtual size_t processInternal(sample *buffer, size_t numSamples);
     size_t getBlocksPerBuffer() const;

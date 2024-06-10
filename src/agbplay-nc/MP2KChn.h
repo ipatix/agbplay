@@ -16,6 +16,7 @@ struct MP2KChn {
     void RemoveFromTrack() noexcept;
 
     bool IsReleasing() const noexcept;
+    void Kill() noexcept;
     virtual void Release() noexcept = 0;
     // TODO: Does TickNote really have to deviate between channel types?
     virtual bool TickNote() noexcept = 0;

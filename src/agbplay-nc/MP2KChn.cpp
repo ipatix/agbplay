@@ -48,3 +48,9 @@ bool MP2KChn::IsReleasing() const noexcept
 {
     return stop;
 }
+
+void MP2KChn::Kill() noexcept
+{
+    envState = EnvState::DEAD;
+    RemoveFromTrack();
+}

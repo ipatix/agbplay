@@ -8,8 +8,8 @@
  * public
  */
 
-RomviewGUI::RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, size_t songTablePos, size_t songCount)
-    : CursesWin(height, width, yPos, xPos), songTablePos(songTablePos), songCount(songCount)
+RomviewGUI::RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, const SongTableInfo &songTableInfo)
+    : CursesWin(height, width, yPos, xPos), songTableInfo(songTableInfo)
 {
     gameName = Rom::Instance().ReadString(0xA0, 12);
     gameCode = Rom::Instance().ReadString(0xAC, 4);
@@ -53,10 +53,10 @@ void RomviewGUI::update()
     wattrset(winPtr, A_UNDERLINE | COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
     mvwprintw(winPtr, 8, 2, "Songtable Offset:");
     wattrset(winPtr, A_BOLD | COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
-    mvwprintw(winPtr, 9, 2, "0x%lX", songTablePos);
+    mvwprintw(winPtr, 9, 2, "0x%lX", songTableInfo.songTablePos);
     wattrset(winPtr, A_UNDERLINE | COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
     mvwprintw(winPtr, 11, 2, "Number of Songs:");
     wattrset(winPtr, A_BOLD | COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
-    mvwprintw(winPtr, 12, 2, "%zu", songCount);
+    mvwprintw(winPtr, 12, 2, "%zu", static_cast<size_t>(songTableInfo.songCount));
     wrefresh(winPtr);
 }

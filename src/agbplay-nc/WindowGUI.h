@@ -64,7 +64,7 @@
 class WindowGUI 
 {
 public:
-    WindowGUI(size_t songTablePos, uint16_t songCount);
+    WindowGUI(const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo);
     WindowGUI(const WindowGUI&) = delete;
     WindowGUI& operator=(const WindowGUI&) = delete;
     ~WindowGUI();
@@ -116,8 +116,8 @@ private:
     std::atomic<bool> exportBusy = false;
 
     // other
-    const size_t songTablePos;
-    const uint16_t songCount;
+    const SongTableInfo &songTableInfo;
+    const PlayerTableInfo &playerTableInfo;
     MP2KVisualizerState visualizerState;
 
     // ncurses windows

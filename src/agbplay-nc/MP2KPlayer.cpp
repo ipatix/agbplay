@@ -7,6 +7,8 @@
 MP2KPlayer::MP2KPlayer(uint8_t trackLimit, uint8_t playerIdx)
     : playerIdx(playerIdx), trackLimit(trackLimit)
 {
+    for (uint8_t i = 0; i < trackLimit; i++)
+        tracks.emplace_back(i);
     Init(0);
 }
 
@@ -16,15 +18,23 @@ void MP2KPlayer::Init(size_t songHeaderPos)
 
     this->songHeaderPos = songHeaderPos;
 
-    tracks.clear();
     if (songHeaderPos != 0) {
         // read song header
-        const uint8_t nTracks = std::min<uint8_t>(rom.ReadU8(songHeaderPos + 0), trackLimit);
+        tracksUsed = std::min<uint8_t>(rom.ReadU8(songHeaderPos + 0), trackLimit);
 
         // read track pointers
-        for (uint8_t i = 0; i < nTracks; i++)
-            tracks.emplace_back(rom.ReadAgbPtrToPos(songHeaderPos + 8 + 4 * i), i);
+        for (size_t i = 0; i < tracksUsed; i++)
+            tracks.at(i).Init(rom.ReadAgbPtrToPos(songHeaderPos + 8 + 4 * i));
+
+        enabled = true;
+    } else {
+        tracksUsed = 0;
+        enabled = false;
     }
+
+    // reset rest of the tracks
+    for (size_t i = tracksUsed; i < tracks.size(); i++)
+        tracks.at(i).Init(0);
 
     // reset runtime variables
     bpmStack = 0;

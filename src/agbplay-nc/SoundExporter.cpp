@@ -20,8 +20,8 @@
  * public SoundExporter
  */
 
-SoundExporter::SoundExporter(size_t songTablePos, uint16_t songCount, bool benchmarkOnly, bool seperate)
-: benchmarkOnly(benchmarkOnly), seperate(seperate), songTablePos(songTablePos), songCount(songCount)
+SoundExporter::SoundExporter(const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo, bool benchmarkOnly, bool seperate)
+: songTableInfo(songTableInfo), playerTableInfo(playerTableInfo), benchmarkOnly(benchmarkOnly), seperate(seperate)
 {
 }
 
@@ -110,7 +110,6 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
         .reverbType = cfg.GetRevType(),
         .cgbPolyphony = cm.GetCgbPolyphony(),
         .dmaBufferLen = cfg.GetRevBufSize(),
-        .trackLimit = cfg.GetTrackLimit(),
         .maxLoops = cm.GetMaxLoopsExport(),
         .padSilenceSecondsStart = cm.GetPadSecondsStart(),
         .padSilenceSecondsEnd = cm.GetPadSecondsEnd(),
@@ -118,23 +117,21 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
         .accurateCh3Volume = cfg.GetAccurateCh3Volume(),
         .emulateCgbSustainBug = cfg.GetSimulateCGBSustainBug(),
     };
-
-    const SongTableInfo songTableInfo{
-        songTablePos,
-        songCount,
-    };
     
     MP2KContext ctx(
         Rom::Instance(),
         mp2kSoundMode,
         agbplaySoundMode,
-        songTableInfo
+        songTableInfo,
+        playerTableInfo
     );
 
     ctx.m4aSongNumStart(uid);
+
+    const uint8_t playerIdx = ctx.m4aSongNumPlayerGet(uid);
     size_t blocksRendered = 0;
     size_t nBlocks = ctx.mixer.GetSamplesPerBuffer();
-    size_t nTracks = ctx.player.tracks.size();
+    size_t nTracks = ctx.players.at(playerIdx).tracks.size();
     double padSecondsStart = ConfigManager::Instance().GetPadSecondsStart();
     double padSecondsEnd = ConfigManager::Instance().GetPadSecondsEnd();
 
@@ -164,7 +161,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
                 if (ctx.HasEnded())
                     break;
 
-                assert(ctx.player.tracks.size() == nTracks);
+                assert(ctx.players.at(playerIdx).tracks.size() == nTracks);
 
                 for (size_t i = 0; i < nTracks; i++) 
                 {
@@ -173,7 +170,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
                         continue;
                     sf_count_t processed = 0;
                     do {
-                        processed += sf_writef_float(ofiles[i], &ctx.masterAudioBuffer[processed].left, sf_count_t(nBlocks) - processed);
+                        processed += sf_writef_float(ofiles[i], &ctx.players.at(playerIdx).tracks.at(i).audioBuffer[processed].left, sf_count_t(nBlocks) - processed);
                     } while (processed < sf_count_t(nBlocks));
                 }
                 blocksRendered += nBlocks;

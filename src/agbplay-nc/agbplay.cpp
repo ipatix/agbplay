@@ -56,6 +56,22 @@ int main(int argc, char *argv[])
         MP2KScanner scanner(Rom::Instance());
         auto scanResults = scanner.Scan();
         fmt::print(" -> Found {} instance(s)\n", scanResults.size());
+
+        for (size_t i = 0; i < scanResults.size(); i++) {
+            auto &r = scanResults.at(i);
+            fmt::print("  - songtable: 0x{:x}\n", r.songtable_pos);
+            fmt::print("    song count: {}\n", r.song_count);
+            fmt::print("    sound mode:\n");
+            fmt::print("      pcm vol: {}\n", r.pcm_vol);
+            fmt::print("      pcm rev: {}\n", r.pcm_rev);
+            fmt::print("      pcm freq: {}\n", r.pcm_freq);
+            fmt::print("      pcm channels: {}\n", r.pcm_max_channels);
+            fmt::print("      dac config: {}\n", r.dac_config);
+            fmt::print("    player max tracks:\n");
+            for (auto j : r.player_max_tracks)
+                fmt::print("      {}\n", j);
+        }
+
         if (songTableIndex >= scanResults.size()) {
             if (songTableIndex == 0)
                 throw Xcept("Unable to find Songtable");

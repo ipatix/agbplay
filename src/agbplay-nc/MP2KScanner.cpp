@@ -95,7 +95,6 @@ bool MP2KScanner::FindPlayerTable(size_t songTablePos, size_t &playerTablePos, s
      * it manually. */
 
     /* 1. Search in reverse and skip possibly up to 3 linker alignment words. */
-
     const size_t maxAlignmentWords = 3;
     size_t playerTableEndPos = songTablePos;
 
@@ -108,26 +107,37 @@ bool MP2KScanner::FindPlayerTable(size_t songTablePos, size_t &playerTablePos, s
     }
 
     /* 2. Search in reverse how many player entries there are */
-
     const size_t maxMusicPlayers = 32; // maximum of mks4agb
     size_t playerTableStartPos = playerTableEndPos;
     size_t musicPlayerCount = 0;
+    std::vector<size_t> playerTableStartPosCandidates;
+    std::vector<size_t> musicPlayerCountCandidates;
 
     for (size_t i = 0; i < maxMusicPlayers; i++) {
         if (playerTableStartPos < 12)
             break;
+
+        /* Some games use zero padded player table entires. Such an entry may be the first entry,
+         * so we need to check all possible start addresses of valid candidates. */
+
         if (!IsValidPlayerTableEntry(playerTableStartPos - 12))
             break;
+
         playerTableStartPos -= 12;
         musicPlayerCount += 1;
+        playerTableStartPosCandidates.insert(playerTableStartPosCandidates.begin(), playerTableStartPos);
+        musicPlayerCountCandidates.insert(musicPlayerCountCandidates.begin(), musicPlayerCount);
     }
 
     if (musicPlayerCount == 0)
         return false;
 
     /* 3. check for reference to player table */
-    if (!IsPosReferenced(playerTableStartPos))
+    size_t candidateIndex;
+    if (!IsPosReferenced(playerTableStartPosCandidates, candidateIndex))
         return false;
+    playerTableStartPos = playerTableStartPosCandidates.at(candidateIndex);
+    musicPlayerCount = musicPlayerCountCandidates.at(candidateIndex);
 
     /* 4. return results */
     maxTracks.clear();
@@ -271,6 +281,24 @@ bool MP2KScanner::IsPosReferenced(size_t pos, size_t &findStartPos, size_t &refe
     return foundReference;
 }
 
+bool MP2KScanner::IsPosReferenced(const std::vector<size_t> &poss, size_t &index) const
+{
+    for (size_t j = SEARCH_START; j < rom.Size() - 3; j+= 4) {
+        const size_t referenceCandidate = rom.ReadU32(j);
+        if (!rom.ValidPointer(referenceCandidate))
+            continue;
+
+        for (size_t i = 0; i < poss.size(); i++) {
+            if (referenceCandidate - AGB_MAP_ROM == poss[i]) {
+                index = i;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 bool MP2KScanner::IsValidSongTableEntry(size_t pos) const
 {
     /* 1. check if pointer to song is valid */
@@ -318,14 +346,24 @@ bool MP2KScanner::IsValidPlayerTableEntry(size_t pos) const
      * - RAM pointer
      * - max track count
      * - unknown flag (0 or 1)
+     *
+     * Optionally, all fields may be zero.
      */
-    if (!IsValidRamPointer(rom.ReadU32(pos + 0)))
+    const uint32_t playerPtr = rom.ReadU32(pos + 0);
+    const uint32_t trackPtr = rom.ReadU32(pos + 4);
+    const uint16_t trackLimit = rom.ReadU16(pos + 8);
+    const uint16_t unknown = rom.ReadU16(pos + 10);
+
+    if (playerPtr == 0 && trackPtr == 0 && trackLimit == 0 && unknown == 0)
+        return true;
+
+    if (!IsValidRamPointer(playerPtr))
         return false;
-    if (!IsValidRamPointer(rom.ReadU32(pos + 4)))
+    if (!IsValidRamPointer(trackPtr))
         return false;
-    if (rom.ReadU16(pos + 8) > MAX_TRACKS)
+    if (trackLimit > MAX_TRACKS)
         return false;
-    if (rom.ReadU16(pos + 10) > 1)
+    if (unknown > 1)
         return false;
 
     return true;

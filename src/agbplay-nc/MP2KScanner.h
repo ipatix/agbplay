@@ -32,6 +32,7 @@ private:
 
     bool IsPosReferenced(size_t pos) const;
     bool IsPosReferenced(size_t pos, size_t &findStartPos, size_t &referencePos) const;
+    bool IsPosReferenced(const std::vector<size_t> &poss, size_t &index) const;
     bool IsValidSongTableEntry(size_t pos) const;
     bool IsValidPlayerTableEntry(size_t pos) const;
 

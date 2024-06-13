@@ -1,6 +1,7 @@
 #include "MP2KScanner.h"
 
 #include "Rom.h"
+#include "Constants.h"
 
 MP2KScanner::MP2KScanner(const Rom &rom) : rom(rom)
 {
@@ -322,7 +323,7 @@ bool MP2KScanner::IsValidPlayerTableEntry(size_t pos) const
         return false;
     if (!IsValidRamPointer(rom.ReadU32(pos + 4)))
         return false;
-    if (rom.ReadU16(pos + 8) >= 16)
+    if (rom.ReadU16(pos + 8) > MAX_TRACKS)
         return false;
     if (rom.ReadU16(pos + 10) > 1)
         return false;

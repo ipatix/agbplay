@@ -432,7 +432,8 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
         sinfo.loopPos = rom.ReadU32(samplePos + 8);
         sinfo.endPos = rom.ReadU32(samplePos + 12);
 
-        if (!rom.ValidRange(samplePos, 16 + sinfo.endPos)) {
+        /* Second range interprets Mario Golf samples which have 'negative' length */
+        if (!rom.ValidRange(samplePos, 16 + sinfo.endPos) && !rom.ValidRange(samplePos, 16 + static_cast<uint32_t>(0 - sinfo.endPos) / 2)) {
             Debug::print("Sample Error: Sample data reaches beyond end of file: instrument: [{:08X}]", instrPos);
             return;
         }

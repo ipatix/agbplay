@@ -142,7 +142,11 @@ void TrackviewGUI::update()
     wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)) | A_UNDERLINE);
     if (maxChannels < disp.activeChannels)
         maxChannels = disp.activeChannels;
-    wprintw(winPtr, " - %-*s %3zu/%3zu", width - 24 - 3 - 8, songName.c_str(), disp.activeChannels, maxChannels);
+    wprintw(winPtr, " - %-*s", width - 24 - 3 - 8, songName.c_str());
+    if (disp.players.size() != 0) {
+        const auto &player = disp.players.at(disp.primaryPlayer);
+        mvwprintw(winPtr, 1, width - 32, "bpm: %3u (%6.3fx), chn: %3zu/%3zu", player.bpm, player.bpmFactor, disp.activeChannels, maxChannels);
+    }
 
     for (uint32_t i = 0, th = 0; i < ntrks; i++, th += 2) {
         const auto &player = disp.players.at(disp.primaryPlayer);

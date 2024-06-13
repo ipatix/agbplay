@@ -79,6 +79,11 @@ void SequenceReader::SetSpeedFactor(float speedFactor)
     this->speedFactor = speedFactor;
 }
 
+float SequenceReader::GetSpeedFactor() const
+{
+    return speedFactor;
+}
+
 /*
  * private SequenceReader
  */

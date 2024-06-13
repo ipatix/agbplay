@@ -151,6 +151,7 @@ struct MP2KVisualizerState
     struct PlayerState
     {
         std::vector<TrackState> tracks;
+        float bpmFactor = 1.0f;
         uint16_t bpm = 0;
         uint8_t tracksUsed = 0;
     };

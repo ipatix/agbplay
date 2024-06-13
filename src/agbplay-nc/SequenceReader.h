@@ -22,6 +22,7 @@ public:
     bool EndReached() const;
     void Restart();
     void SetSpeedFactor(float speedFactor);
+    float GetSpeedFactor() const;
 
     static const std::vector<uint32_t> freqLut;
 

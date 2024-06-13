@@ -124,6 +124,8 @@ void MP2KContext::GetVisualizerState(MP2KVisualizerState &visualizerState)
 
         player_dst.tracks.resize(player_src.tracks.size());
         player_dst.tracksUsed = player_src.tracksUsed;
+        player_dst.bpm = player_src.bpm;
+        player_dst.bpmFactor = reader.GetSpeedFactor();
 
         for (size_t trackIdx = 0; trackIdx < player_src.tracks.size(); trackIdx++) {
             MP2KTrack &trk_src = player_src.tracks.at(trackIdx);

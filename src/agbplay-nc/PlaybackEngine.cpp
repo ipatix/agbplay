@@ -87,11 +87,10 @@ void PlaybackEngine::LoadSong(uint16_t songIdx)
         if (playerIdx >= ctx->players.size())
             return;
 
-        const bool playing = ctx->m4aMPlayIsPlaying(playerIdx);
         ctx->m4aMPlayAllStop();
         ctx->m4aSongNumStart(songIdx);
-        if (!playing)
-            ctx->m4aMPlayStop(ctx->primaryPlayer);
+        ctx->m4aMPlayStop(ctx->primaryPlayer);
+        paused = false;
     };
 
     InvokeAsPlayer(func);

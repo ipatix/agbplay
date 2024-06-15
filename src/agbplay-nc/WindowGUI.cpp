@@ -682,7 +682,9 @@ void WindowGUI::loadSong(const SongEntry *entry)
         mplay->LoadSong(0);
         trackUI->SetTitle("0000");
     }
-    updateVisualizerState();
+
+    if (play)
+        mplay->Play();
 }
 
 void WindowGUI::exportLaunch(bool benchmarkOnly, bool separate)

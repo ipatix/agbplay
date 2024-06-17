@@ -10,7 +10,7 @@
 class MP2KPlayer
 {
 public:
-    MP2KPlayer(uint8_t trackLimit, uint8_t playerIdx);
+    MP2KPlayer(const PlayerInfo &playerInfo, uint8_t playerIdx);
     MP2KPlayer(const MP2KPlayer&) = delete;
     MP2KPlayer(MP2KPlayer &&) = default;
     MP2KPlayer& operator=(const MP2KPlayer&) = delete;
@@ -36,4 +36,5 @@ private:
     size_t songHeaderPos = 0;
     size_t bankPos = 0;
     const uint8_t trackLimit;
+    const bool usePriority; // TODO actually implement the usage of this flag
 };

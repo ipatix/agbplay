@@ -67,9 +67,9 @@ int main(int argc, char *argv[])
             fmt::print("      pcm freq: {}\n", r.pcm_freq);
             fmt::print("      pcm channels: {}\n", r.pcm_max_channels);
             fmt::print("      dac config: {}\n", r.dac_config);
-            fmt::print("    player max tracks:\n");
-            for (auto j : r.player_max_tracks)
-                fmt::print("      {}\n", j);
+            fmt::print("    player (num={}) configs:\n", r.player_configs.size());
+            for (auto &j : r.player_configs)
+                fmt::print("      max track={}, use prio={}\n", j.first, j.second);
         }
 
         if (songTableIndex >= scanResults.size()) {
@@ -90,8 +90,12 @@ int main(int argc, char *argv[])
             .songCount = scanResult.song_count,
         };
 
+        PlayerTableInfo playerTableInfo;
+        for (auto &i : scanResult.player_configs)
+            playerTableInfo.push_back({i.first, i.second});
+
         fmt::print("Initialization complete!\n");
-        WindowGUI wgui(songTableInfo, scanResult.player_max_tracks);
+        WindowGUI wgui(songTableInfo, playerTableInfo);
 
         std::chrono::nanoseconds frameTime(1000000000 / 60);
 

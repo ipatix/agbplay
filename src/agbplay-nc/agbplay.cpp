@@ -59,17 +59,17 @@ int main(int argc, char *argv[])
 
         for (size_t i = 0; i < scanResults.size(); i++) {
             auto &r = scanResults.at(i);
-            fmt::print("  - songtable: 0x{:x}\n", r.songtable_pos);
-            fmt::print("    song count: {}\n", r.song_count);
+            fmt::print("  - songtable: 0x{:x}\n", r.songTableInfo.songTablePos);
+            fmt::print("    song count: {}\n", r.songTableInfo.songCount);
             fmt::print("    sound mode:\n");
-            fmt::print("      pcm vol: {}\n", r.pcm_vol);
-            fmt::print("      pcm rev: {}\n", r.pcm_rev);
-            fmt::print("      pcm freq: {}\n", r.pcm_freq);
-            fmt::print("      pcm channels: {}\n", r.pcm_max_channels);
-            fmt::print("      dac config: {}\n", r.dac_config);
-            fmt::print("    player (num={}) configs:\n", r.player_configs.size());
-            for (auto &j : r.player_configs)
-                fmt::print("      max track={}, use prio={}\n", j.first, j.second);
+            fmt::print("      pcm vol: {}\n", r.mp2kSoundMode.vol);
+            fmt::print("      pcm rev: {}\n", r.mp2kSoundMode.rev);
+            fmt::print("      pcm freq: {}\n", r.mp2kSoundMode.freq);
+            fmt::print("      pcm channels: {}\n", r.mp2kSoundMode.maxChannels);
+            fmt::print("      dac config: {}\n", r.mp2kSoundMode.dacConfig);
+            fmt::print("    player table (count={}):\n", r.playerTableInfo.size());
+            for (auto &i : r.playerTableInfo)
+                fmt::print("      max track={}, use prio={}\n", i.maxTracks, i.usePriority);
         }
 
         if (songTableIndex >= scanResults.size()) {
@@ -85,17 +85,8 @@ int main(int argc, char *argv[])
         cfm.SetGameCode(gameCode);
         auto scanResult = scanResults.at(songTableIndex);
 
-        SongTableInfo songTableInfo{
-            .songTablePos = scanResult.songtable_pos,
-            .songCount = scanResult.song_count,
-        };
-
-        PlayerTableInfo playerTableInfo;
-        for (auto &i : scanResult.player_configs)
-            playerTableInfo.push_back({i.first, i.second});
-
         fmt::print("Initialization complete!\n");
-        WindowGUI wgui(songTableInfo, playerTableInfo);
+        WindowGUI wgui(scanResult.songTableInfo, scanResult.playerTableInfo);
 
         std::chrono::nanoseconds frameTime(1000000000 / 60);
 

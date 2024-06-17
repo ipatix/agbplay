@@ -99,7 +99,13 @@ struct SongTableInfo
     const uint16_t songCount;
 };
 
-typedef std::vector<uint8_t> PlayerTableInfo;
+struct PlayerInfo
+{
+    uint8_t maxTracks;
+    uint8_t usePriority;
+};
+
+typedef std::vector<PlayerInfo> PlayerTableInfo;
 
 struct SongInfo
 {

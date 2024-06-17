@@ -4,8 +4,8 @@
 #include "ReverbEffect.h"
 #include "Rom.h" // TODO remove once Rom is deglobalized
 
-MP2KPlayer::MP2KPlayer(uint8_t trackLimit, uint8_t playerIdx)
-    : playerIdx(playerIdx), trackLimit(trackLimit)
+MP2KPlayer::MP2KPlayer(const PlayerInfo &playerInfo, uint8_t playerIdx)
+    : playerIdx(playerIdx), trackLimit(playerInfo.maxTracks), usePriority(playerInfo.usePriority)
 {
     for (uint8_t i = 0; i < trackLimit; i++)
         tracks.emplace_back(i);

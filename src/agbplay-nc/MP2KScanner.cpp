@@ -20,9 +20,9 @@ std::vector<MP2KScanner::Result> MP2KScanner::Scan()
         if (!songtableValid)
             break;
 
-        std::vector<std::pair<uint8_t, bool>> playerConfigs;
+        PlayerTableInfo playerTableInfo;
         size_t playerTablePos;
-        const bool maxTracksValid = FindPlayerTable(songTablePos, playerTablePos, playerConfigs);
+        const bool maxTracksValid = FindPlayerTable(songTablePos, playerTablePos, playerTableInfo);
         if (!maxTracksValid)
             break;
 
@@ -33,14 +33,19 @@ std::vector<MP2KScanner::Result> MP2KScanner::Scan()
             break;
 
         Result result{
-            .pcm_vol = static_cast<uint8_t>((soundMode >> 12) & 0xF),
-            .pcm_rev = static_cast<uint8_t>((soundMode >> 0) & 0xFF),
-            .pcm_freq = static_cast<uint8_t>((soundMode >> 16) & 0xF),
-            .pcm_max_channels = static_cast<uint8_t>((soundMode >> 8) & 0xF),
-            .dac_config = static_cast<uint8_t>((soundMode >> 20) & 0xF),
-            .player_configs = playerConfigs,
-            .songtable_pos = songTablePos,
-            .song_count = songCount,
+            .mp2kSoundMode{
+                .vol = static_cast<uint8_t>((soundMode >> 12) & 0xF),
+                .rev = static_cast<uint8_t>((soundMode >> 0) & 0xFF),
+                .freq = static_cast<uint8_t>((soundMode >> 16) & 0xF),
+                .maxChannels = static_cast<uint8_t>((soundMode >> 8) & 0xF),
+                .dacConfig = static_cast<uint8_t>((soundMode >> 20) & 0xF),
+            },
+            .playerTableInfo = playerTableInfo,
+            .songTableInfo{
+                .songTablePos = songTablePos,
+                .songCount = songCount,
+                .songTableIdx = static_cast<uint8_t>(results.size()),
+            },
         };
 
         results.emplace_back(result);
@@ -88,7 +93,7 @@ bool MP2KScanner::FindSongTable(size_t &findStartPos, size_t &songTablePos, uint
     return false;
 }
 
-bool MP2KScanner::FindPlayerTable(size_t songTablePos, size_t &playerTablePos, std::vector<std::pair<uint8_t, bool>> &playerConfigs) const
+bool MP2KScanner::FindPlayerTable(size_t songTablePos, size_t &playerTablePos, PlayerTableInfo &playerTableInfo) const
 {
     /* The player table is usually located right before the song table.
      * For cases where it is not (e.g. romhacks), the user will have to specify
@@ -140,10 +145,10 @@ bool MP2KScanner::FindPlayerTable(size_t songTablePos, size_t &playerTablePos, s
     musicPlayerCount = musicPlayerCountCandidates.at(candidateIndex);
 
     /* 4. return results */
-    playerConfigs.clear();
+    playerTableInfo.clear();
     for (size_t i = 0; i < musicPlayerCount; i++) {
         const size_t playerPos = playerTableStartPos + i * 12;
-        playerConfigs.push_back({rom.ReadU8(playerPos + 8), rom.ReadU8(playerPos + 10)});
+        playerTableInfo.emplace_back(PlayerInfo{rom.ReadU8(playerPos + 8), rom.ReadU8(playerPos + 10)});
     }
     playerTablePos = playerTableStartPos;
     return true;

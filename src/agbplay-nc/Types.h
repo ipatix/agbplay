@@ -71,6 +71,12 @@ struct SampleInfo
 
 struct MP2KSoundMode
 {
+    static const uint8_t VOL_AUTO = 0xFF;
+    static const uint8_t REV_AUTO = 0x7F;
+    static const uint8_t FREQ_AUTO = 0xFF;
+    static const uint8_t CHN_AUTO = 0xFF;
+    static const uint8_t DAC_AUTO = 0xFF;
+
     const uint8_t vol;
     const uint8_t rev;
     const uint8_t freq;
@@ -95,8 +101,11 @@ struct AgbplaySoundMode
 
 struct SongTableInfo
 {
+    static const size_t POS_AUTO = 0;
+
     const size_t songTablePos;
     const uint16_t songCount;
+    const uint8_t songTableIdx;
 };
 
 struct PlayerInfo
@@ -118,16 +127,6 @@ struct SongInfo
 struct sample {
     float left;
     float right;
-};
-
-struct PlaylistEntry {
-    std::string name;
-    uint16_t id;
-};
-
-struct GameMatch {
-    std::vector<std::string> gameCodes;
-    std::vector<uint8_t> magicBytes;
 };
 
 struct MP2KVisualizerState 

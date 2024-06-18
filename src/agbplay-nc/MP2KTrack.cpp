@@ -17,9 +17,9 @@ void MP2KTrack::Init()
     lastNoteLen = 0;
     reptCount = 0;
     prog = PROG_UNDEFINED; // TODO replace this with an instrument definition like in original MP2K
-    vol = 100;             // TODO is this correct? original uses 0
+    vol = 0;
     mod = 0;
-    bendr = 0;
+    bendr = 2;
     priority = 0;
     lfos = 22;
     lfodl = 0;

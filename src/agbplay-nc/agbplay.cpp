@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
 
         for (size_t i = 0; i < scanResults.size(); i++) {
             auto &r = scanResults.at(i);
-            fmt::print("  - songtable: 0x{:x}\n", r.songTableInfo.songTablePos);
-            fmt::print("    song count: {}\n", r.songTableInfo.songCount);
+            fmt::print("  - songtable: 0x{:x}\n", r.songTableInfo.pos);
+            fmt::print("    song count: {}\n", r.songTableInfo.count);
             fmt::print("    sound mode:\n");
             fmt::print("      pcm vol: {}\n", r.mp2kSoundMode.vol);
             fmt::print("      pcm rev: {}\n", r.mp2kSoundMode.rev);

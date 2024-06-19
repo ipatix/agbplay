@@ -23,9 +23,9 @@ void MP2KContext::m4aSoundMain()
 
 void MP2KContext::m4aSongNumStart(uint16_t songId)
 {
-    if (songId >= songTableInfo.songCount)
-        throw Xcept("Failed to load out of range songId={} (total songCount={})", songId, songTableInfo.songCount);
-    const size_t songPos = rom.ReadAgbPtrToPos(songTableInfo.songTablePos + songId * 8 + 0);
+    if (songId >= songTableInfo.count)
+        throw Xcept("Failed to load out of range songId={} (total count={})", songId, songTableInfo.count);
+    const size_t songPos = rom.ReadAgbPtrToPos(songTableInfo.pos + songId * 8 + 0);
     const uint8_t playerIdx = m4aSongNumPlayerGet(songId);
     primaryPlayer = playerIdx;
     m4aMPlayStart(playerIdx, songPos);
@@ -33,8 +33,8 @@ void MP2KContext::m4aSongNumStart(uint16_t songId)
 
 void MP2KContext::m4aSongNumStop(uint16_t songId)
 {
-    if (songId >= songTableInfo.songCount)
-        throw Xcept("Failed to load out of range songId={} (total songCount={})", songId, songTableInfo.songCount);
+    if (songId >= songTableInfo.count)
+        throw Xcept("Failed to load out of range songId={} (total count={})", songId, songTableInfo.count);
     m4aMPlayStop(m4aSongNumPlayerGet(songId));
 }
 
@@ -94,7 +94,7 @@ void MP2KContext::m4aSoundClear()
 
 uint8_t MP2KContext::m4aSongNumPlayerGet(uint16_t songId) const
 {
-    return rom.ReadU8(songTableInfo.songTablePos + songId * 8 + 4);
+    return rom.ReadU8(songTableInfo.pos + songId * 8 + 4);
 }
 
 bool MP2KContext::m4aMPlayIsPlaying(uint8_t playerIdx) const

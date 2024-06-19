@@ -2,13 +2,14 @@
 
 #include <vector>
 #include <optional>
+#include <filesystem>
 
 #include "Types.h"
 
 struct Profile {
     struct PlaylistEntry {
         std::string name;
-        uint16_t id;
+        uint16_t id = 0;
     };
 
     struct GameMatch {
@@ -26,4 +27,7 @@ struct Profile {
     AgbplaySoundMode agbplaySoundMode;
     GameMatch gameMatch;
     // sound hooks / patches, TODO
+
+    std::filesystem::path path;
+    bool dirty = false;
 };

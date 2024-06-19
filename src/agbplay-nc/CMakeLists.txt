@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 include(FindPkgConfig)
 find_package(PkgConfig REQUIRED)
 find_package(jsoncpp REQUIRED)
+find_package(nlohmann_json REQUIRED)
 find_package(Boost REQUIRED)
 find_package(fmt REQUIRED)
 pkg_check_modules(ncurses REQUIRED IMPORTED_TARGET ncursesw)
@@ -24,6 +25,7 @@ target_link_libraries(agbplay-nc
     JsonCpp::JsonCpp
     Boost::boost
     fmt::fmt
+    nlohmann_json::nlohmann_json
     PkgConfig::sndfile
     PkgConfig::portaudio
     PkgConfig::ncurses

@@ -12,6 +12,7 @@
 #include "ConfigManager.h"
 #include "OS.h"
 #include "MP2KScanner.h"
+#include "ProfileManager.h"
 
 static void usage();
 static void help();
@@ -51,6 +52,12 @@ int main(int argc, char *argv[])
 
         fmt::print("Loading Config...\n");
         cfm.Load();
+
+        fmt::print("Loading Profiles...\n");
+        ProfileManager pm;
+        pm.SetPath(OS::GetLocalConfigDirectory() / "agbplay" / "profiles");
+        pm.LoadProfiles();
+        pm.SaveProfiles();
 
         fmt::print("Scanning for MP2K Engine\n");
         MP2KScanner scanner(Rom::Instance());

@@ -42,9 +42,9 @@ std::vector<MP2KScanner::Result> MP2KScanner::Scan()
             },
             .playerTableInfo = playerTableInfo,
             .songTableInfo{
-                .songTablePos = songTablePos,
-                .songCount = songCount,
-                .songTableIdx = static_cast<uint8_t>(results.size()),
+                .pos = songTablePos,
+                .count = songCount,
+                .tableIdx = static_cast<uint8_t>(results.size()),
             },
         };
 

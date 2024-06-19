@@ -77,35 +77,36 @@ struct MP2KSoundMode
     static const uint8_t CHN_AUTO = 0xFF;
     static const uint8_t DAC_AUTO = 0xFF;
 
-    const uint8_t vol;
-    const uint8_t rev;
-    const uint8_t freq;
-    const uint8_t maxChannels = 0; // currently unused
-    const uint8_t dacConfig = 0; // currently unused
+    uint8_t vol = VOL_AUTO;
+    uint8_t rev = REV_AUTO;
+    uint8_t freq = FREQ_AUTO;
+    uint8_t maxChannels = CHN_AUTO; // currently unused
+    uint8_t dacConfig = DAC_AUTO; // currently unused
 };
 
 struct AgbplaySoundMode
 {
-    const ResamplerType resamplerTypeNormal;
-    const ResamplerType resamplerTypeFixed;
-    const ReverbType reverbType;
-    const CGBPolyphony cgbPolyphony;
-    const uint32_t dmaBufferLen;
-    const int8_t maxLoops;
-    const double padSilenceSecondsStart;
-    const double padSilenceSecondsEnd;
-    const bool accurateCh3Quantization;
-    const bool accurateCh3Volume;
-    const bool emulateCgbSustainBug; // other places may call this 'simulate', should probably use 'emulate' everywhere
+    ResamplerType resamplerTypeNormal = ResamplerType::BLAMP;
+    ResamplerType resamplerTypeFixed = ResamplerType::BLEP;
+    ReverbType reverbType = ReverbType::NORMAL;
+    CGBPolyphony cgbPolyphony = CGBPolyphony::MONO_STRICT;
+    uint32_t dmaBufferLen = 0x630;
+    int8_t maxLoops = 1;
+    double padSilenceSecondsStart = 0.0;
+    double padSilenceSecondsEnd = 0.0;
+    bool accurateCh3Quantization = true;
+    bool accurateCh3Volume = true;
+    bool emulateCgbSustainBug = true; // other places may call this 'simulate', should probably use 'emulate' everywhere
 };
 
 struct SongTableInfo
 {
     static const size_t POS_AUTO = 0;
+    static const uint16_t COUNT_AUTO = 0xFFFF;
 
-    const size_t songTablePos;
-    const uint16_t songCount;
-    const uint8_t songTableIdx;
+    size_t pos = POS_AUTO;
+    uint16_t count = COUNT_AUTO;
+    uint8_t tableIdx = 0;
 };
 
 struct PlayerInfo

@@ -54,7 +54,7 @@ WindowGUI::WindowGUI(const SongTableInfo &songTableInfo, const PlayerTableInfo &
             SONGLIST_XPOS(height, width), true);
 
     // add songs to table
-    for (uint16_t i = 0; i < songTableInfo.songCount; i++) {
+    for (uint16_t i = 0; i < songTableInfo.count; i++) {
         auto songName = fmt::format("{:04}", i);
         songUI->AddSong(SongEntry(songName, i));
     }

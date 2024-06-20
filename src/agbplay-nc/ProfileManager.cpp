@@ -56,6 +56,8 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
     }
 
     json j = json::parse(fileStream);
+    fileStream.close();
+
     Profile p;
 
     p.path = filePath;
@@ -260,10 +262,10 @@ void ProfileManager::SaveProfile(Profile &p)
 
     /* save agbplay sound mode */
     json jasm = json::object();
-    jasm["resamplerTypeNormal"] = p.agbplaySoundMode.resamplerTypeNormal;
-    jasm["resamplerTypeFixed"] = p.agbplaySoundMode.resamplerTypeFixed;
-    jasm["reverbType"] = p.agbplaySoundMode.reverbType;
-    jasm["cgbPolyphony"] = p.agbplaySoundMode.cgbPolyphony;
+    jasm["resamplerTypeNormal"] = res2str(p.agbplaySoundMode.resamplerTypeNormal);
+    jasm["resamplerTypeFixed"] = res2str(p.agbplaySoundMode.resamplerTypeFixed);
+    jasm["reverbType"] = rev2str(p.agbplaySoundMode.reverbType);
+    jasm["cgbPolyphony"] = cgbPoly2str(p.agbplaySoundMode.cgbPolyphony);
     jasm["dmaBufferLen"] = p.agbplaySoundMode.dmaBufferLen;
     jasm["maxLoops"] = p.agbplaySoundMode.maxLoops;
     jasm["padSilenceSecondsStart"] = p.agbplaySoundMode.padSilenceSecondsStart;
@@ -296,6 +298,8 @@ void ProfileManager::SaveProfile(Profile &p)
         const std::string err = strerror(errno);
         throw Xcept("Failed to save file: {}, {}", p.path.string(), err);
     }
+    fileStream << std::setw(2) << j << std::endl;
+    fileStream.close();
 
     p.dirty = false;
 }

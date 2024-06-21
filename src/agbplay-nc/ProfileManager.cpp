@@ -7,6 +7,7 @@
 #include <nlohmann/json.hpp>
 
 #include "Xcept.h"
+#include "Rom.h"
 
 void ProfileManager::SetPath(const std::filesystem::path &baseDir)
 {
@@ -41,6 +42,90 @@ void ProfileManager::SaveProfiles()
     for (Profile &profile : profiles) {
         SaveProfile(profile);
     }
+}
+
+std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfile(const Rom &rom)
+{
+    /* Find all profiles which match the ROM passed.
+     * If only a single match is found, return it.
+     * If multiples are found and if there is a strong match (e.g. magic bytes), return it.
+     * If multiples are found and none is preferred, return them all */
+    const auto gameCode = rom.GetROMCode();
+
+    /* find all matching game codes */
+    std::vector<std::reference_wrapper<Profile>> profilesWithGameCode;
+
+    for (Profile &profile : profiles) {
+        for (const std::string &gameCodeToCheck : profile.gameMatch.gameCodes) {
+            if (gameCodeToCheck == gameCode) {
+                profilesWithGameCode.emplace_back(profile);
+                break;
+            }
+        }
+    }
+
+    /* find all profiles with magic bytes */
+    std::vector<std::reference_wrapper<Profile>> profilesWithMagicBytes;
+
+    for (Profile &profile : profilesWithGameCode) {
+        if (profile.gameMatch.magicBytes.size() != 0)
+            profilesWithMagicBytes.emplace_back(profile);
+    }
+
+    if (profilesWithMagicBytes.size() == 0)
+        return profilesWithGameCode;
+
+    /* find all profiles with matching magic bytes */
+    std::vector<std::reference_wrapper<Profile>> profilesToReturn;
+
+    // probably more complex than necessary, but I want to try a bloom filter today!
+    std::vector<uint8_t> bloomFilter;
+    for (const Profile &profile : profilesWithMagicBytes) {
+        const auto &mb = profile.gameMatch.magicBytes;
+        if (mb.size() > bloomFilter.size())
+            bloomFilter.resize(mb.size(), 0);
+
+        for (size_t i = 0; i < mb.size(); i++)
+            bloomFilter.at(i) |= mb.at(i);
+    }
+
+    for (size_t romIdx = 0; romIdx < rom.Size(); romIdx++) {
+        bool filterMatch = true;
+        const size_t clipSize = rom.Size() - romIdx;
+        for (size_t filtIdx = 0; filtIdx < std::min(bloomFilter.size(), clipSize); filtIdx++) {
+            const auto data = rom.ReadU8(romIdx + filtIdx);
+            if ((data & bloomFilter.at(filtIdx)) != data) {
+                filterMatch = false;
+                break;
+            }
+        }
+
+        if (filterMatch) [[unlikely]] {
+            /* if the bloom filter matched, now check which one actually matched */
+            auto &pwmb = profilesWithMagicBytes;
+            auto filterFunc = [&](Profile &profile){
+                const auto &mb = profile.gameMatch.magicBytes;
+                if (romIdx + mb.size() > rom.Size())
+                    return false;
+                bool exactMatch = true;
+                for (size_t filtIdx = 0; filtIdx < mb.size(); filtIdx++) {
+                    if (rom.ReadU8(romIdx + filtIdx) != mb.at(filtIdx)) {
+                        exactMatch = false;
+                        break;
+                    }
+                }
+                if (exactMatch) {
+                    profilesToReturn.emplace_back(profile);
+                    return true;
+                }
+                return false;
+            };
+
+            pwmb.erase(std::remove_if(pwmb.begin(), pwmb.end(), filterFunc), pwmb.end());
+        }
+    }
+
+    return profilesToReturn;
 }
 
 void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
@@ -180,6 +265,8 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
 
         for (const auto &gameCode : gm["gameCodes"]) {
             if (!gameCode.is_string())
+                continue;
+            if (gameCode.size() != 4)
                 continue;
             p.gameMatch.gameCodes.emplace_back(gameCode);
         }

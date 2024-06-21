@@ -3,7 +3,11 @@
 #include "Profile.h"
 
 #include <filesystem>
+#include <functional>
 #include <vector>
+#include <list>
+
+class Rom;
 
 class ProfileManager {
 public:
@@ -11,6 +15,7 @@ public:
     void Reset();
     void LoadProfiles();
     void SaveProfiles();
+    std::vector<std::reference_wrapper<Profile>> GetProfile(const Rom &rom);
 
 private:
     void LoadProfilesDir(const std::filesystem::path &filePath);
@@ -18,5 +23,8 @@ private:
     void SaveProfile(Profile &profile);
 
     std::filesystem::path baseDir;
-    std::vector<Profile> profiles;
+    std::list<Profile> profiles;
+
+    /* We use std::list instead of std::vector for profiles.
+     * If a new profile is created and inserted, we do not want to invalidate references to existing profiles. */
 };

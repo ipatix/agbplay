@@ -10,15 +10,15 @@
 #include <portaudiocpp/PortAudioCpp.hxx>
 
 #include "Constants.h"
-#include "GameConfig.h"
 #include "Ringbuffer.h"
 #include "LoudnessCalculator.h"
 #include "MP2KContext.h"
+#include "Profile.h"
 
 class PlaybackEngine 
 {
 public:
-    PlaybackEngine(const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo);
+    PlaybackEngine(const Profile &profile);
     PlaybackEngine(const PlaybackEngine&) = delete;
     PlaybackEngine& operator=(const PlaybackEngine&) = delete;
     ~PlaybackEngine();
@@ -69,7 +69,6 @@ private:
 
     std::atomic<bool> hasEnded = false;
 
-    const SongTableInfo &songTableInfo;
-    const PlayerTableInfo &playerTableInfo;
+    const Profile &profile;
     uint16_t songIdx = 0;
 };

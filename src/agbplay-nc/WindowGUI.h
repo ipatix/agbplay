@@ -56,15 +56,15 @@
 #include "TrackviewGUI.h"
 #include "PlaybackEngine.h"
 #include "VUMeterGUI.h"
-#include "ConfigManager.h"
 #include "Types.h"
+#include "Profile.h"
 
 #include <memory>
 
 class WindowGUI 
 {
 public:
-    WindowGUI(const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo);
+    WindowGUI(Profile &profile);
     WindowGUI(const WindowGUI&) = delete;
     WindowGUI& operator=(const WindowGUI&) = delete;
     ~WindowGUI();
@@ -95,7 +95,7 @@ private:
 
     void updateWindowSize();
     void updateVisualizerState();
-    void loadSong(const SongEntry *entry);
+    void loadSong(const Profile::PlaylistEntry &entry);
 
     void exportLaunch(bool benchmarkOnly, bool separate);
     bool exportReady();
@@ -116,8 +116,7 @@ private:
     std::atomic<bool> exportBusy = false;
 
     // other
-    const SongTableInfo &songTableInfo;
-    const PlayerTableInfo &playerTableInfo;
+    Profile &profile;
     MP2KVisualizerState visualizerState;
 
     // ncurses windows

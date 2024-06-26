@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <cassert>
 
-#include "ConfigManager.h"
-
 MP2KContext::MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, const AgbplaySoundMode &agbplaySoundMode, const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo)
     : rom(rom), reader(*this), mixer(*this, STREAM_SAMPLERATE, 1.0f), mp2kSoundMode(mp2kSoundMode), agbplaySoundMode(agbplaySoundMode), songTableInfo(songTableInfo), memaccArea(256)
 {

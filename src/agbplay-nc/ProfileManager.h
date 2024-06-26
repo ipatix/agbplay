@@ -16,7 +16,7 @@ public:
     void LoadProfiles();
     void SaveProfiles();
     std::vector<std::reference_wrapper<Profile>> GetProfile(const Rom &rom);
-    Profile &CreateProfile(const std::string &gameCode);
+    Profile &CreateProfile(const std::string &gameCode, size_t tableIdx);
 
 private:
     void LoadProfileDir(const std::filesystem::path &filePath);

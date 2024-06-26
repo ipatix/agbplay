@@ -85,9 +85,9 @@ bool SonglistGUI::IsLast() const
     return false;
 }
 
-void SonglistGUI::AddSong(SongEntry entry) 
+void SonglistGUI::AddSong(const Profile::PlaylistEntry &entry)
 {
-    songlist.push_back(entry);
+    songlist.emplace_back(entry);
     update();
 }
 
@@ -109,7 +109,7 @@ void SonglistGUI::RemoveSong()
     update();
 }
 
-SongEntry *SonglistGUI::GetSong()
+Profile::PlaylistEntry *SonglistGUI::GetSong()
 {
     if (cursorPos >= songlist.size())
         return nullptr;

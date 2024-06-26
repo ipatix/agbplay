@@ -1,18 +1,18 @@
 #pragma once
 
 #include "SonglistGUI.h"
-#include "GameConfig.h"
+#include "Profile.h"
 
 class PlaylistGUI : public SonglistGUI {
 public:
-    PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos);
+    PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, std::vector<Profile::PlaylistEntry>& playlist);
     ~PlaylistGUI() override;
 
-    void AddSong(SongEntry) override;
+    void AddSong(const Profile::PlaylistEntry &entry) override;
     void RemoveSong() override;
     void ClearSongs() override;
-    SongEntry *GetSong() override;
-    std::vector<bool>& GetTicked();
+    Profile::PlaylistEntry *GetSong() override;
+    const std::vector<bool>& GetTicked() const;
     void Leave() override;
     void Tick();
     void Untick();
@@ -26,6 +26,7 @@ private:
     void scrollDownNoUpdate() override;
     void scrollUpNoUpdate() override;
 
+    std::vector<Profile::PlaylistEntry> &playlist;
     std::vector<bool> ticked;
-    bool dragging;
+    bool dragging = false;
 };

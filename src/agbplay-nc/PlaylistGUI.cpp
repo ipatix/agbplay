@@ -6,18 +6,16 @@
 #include "Util.h"
 #include "Xcept.h"
 #include "Debug.h"
-#include "ConfigManager.h"
 
 /*
  * public
  */
 
-PlaylistGUI::PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
-    : SonglistGUI(height, width, yPos, xPos, false)
+PlaylistGUI::PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, std::vector<Profile::PlaylistEntry>& playlist) 
+    : SonglistGUI(height, width, yPos, xPos, false), playlist(playlist)
 {
     // init
-    ticked.resize(ConfigManager::Instance().GetCfg().GetGameEntries().size(), true);
-    dragging = false;
+    ticked.resize(playlist.size(), true);
     update();
 }
 
@@ -26,70 +24,69 @@ PlaylistGUI::~PlaylistGUI()
 {
 }
 
-void PlaylistGUI::AddSong(SongEntry entry) 
+void PlaylistGUI::AddSong(const Profile::PlaylistEntry &entry)
 {
-    ConfigManager::Instance().GetCfg().GetGameEntries().push_back(entry);
+    playlist.emplace_back(entry);
     ticked.push_back(true);
     update();
 }
 
 void PlaylistGUI::RemoveSong() 
 {
-    GameConfig& cfg = ConfigManager::Instance().GetCfg();
-
-    if (cfg.GetGameEntries().size() == 0)
+    if (playlist.size() == 0)
         return;
 
-    cfg.GetGameEntries().erase(cfg.GetGameEntries().begin() + cursorPos);
+    playlist.erase(playlist.begin() + cursorPos);
     ticked.erase(ticked.begin() + cursorPos);
 
-    if (cursorPos != 0 && cursorPos >= cfg.GetGameEntries().size()) {
+    if (cursorPos != 0 && cursorPos >= playlist.size()) {
         cursorPos--;
     }
 
     update();
 }
 
-void PlaylistGUI::ClearSongs() 
+void PlaylistGUI::ClearSongs()
 {
     viewPos = 0;
     cursorPos = 0;
-    GameConfig& cfg = ConfigManager::Instance().GetCfg();
-    cfg.GetGameEntries().clear();
+    playlist.clear();
     ticked.clear();
     update();
 }
 
-SongEntry *PlaylistGUI::GetSong()
+Profile::PlaylistEntry *PlaylistGUI::GetSong()
 {
-    GameConfig& cfg = ConfigManager::Instance().GetCfg();
-    if (this->cursorPos >= cfg.GetGameEntries().size())
+    if (cursorPos >= playlist.size())
         return nullptr;
-    return &cfg.GetGameEntries()[cursorPos];
+    return &playlist.at(cursorPos);
 }
 
-std::vector<bool>& PlaylistGUI::GetTicked()
+const std::vector<bool>& PlaylistGUI::GetTicked() const
 {
     return ticked;
 }
 
 void PlaylistGUI::Tick() 
 {
-    if (ticked.size() == 0) return;
+    if (ticked.size() == 0)
+        return;
     ticked.at(cursorPos) = true;
     update();
 }
 
 void PlaylistGUI::Untick() 
 {
-    if (ticked.size() == 0) return;
+    if (ticked.size() == 0)
+        return;
     ticked.at(cursorPos) = false;
     update();
 }
 
 void PlaylistGUI::ToggleTick() 
 {
-    if (ticked.size() == 0) return;
+    if (ticked.size() == 0)
+        return;
     ticked.at(cursorPos) = !ticked.at(cursorPos);
     update();
 }
@@ -123,8 +120,6 @@ void PlaylistGUI::Leave()
 
 void PlaylistGUI::update() 
 {
-    //UIMutex.lock();
-    GameConfig& cfg = ConfigManager::Instance().GetCfg();
     std::string bar = "Playlist:";
     bar.resize(contentWidth, ' ');
     wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::WINDOW_FRAME)) | A_REVERSE);
@@ -141,9 +136,9 @@ void PlaylistGUI::update()
         else 
             wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::LIST_ENTRY)));
         std::string songText;
-        if (entry < cfg.GetGameEntries().size()) {
+        if (entry < playlist.size()) {
             songText = (ticked.at(entry)) ? "[x] " : "[ ] ";
-            songText.append(cfg.GetGameEntries()[entry].name);
+            songText.append(playlist.at(entry).name);
         } else {
             songText = "";
         }
@@ -151,17 +146,15 @@ void PlaylistGUI::update()
         mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, songText.c_str());
     }
     wrefresh(winPtr);
-    //UIMutex.unlock();
 }
 
 void PlaylistGUI::scrollDownNoUpdate() 
 {
-    GameConfig& cfg = ConfigManager::Instance().GetCfg();
     uint32_t pcursor = cursorPos;
-    if (cursorPos + 1 >= cfg.GetGameEntries().size())
+    if (cursorPos + 1 >= playlist.size())
         return;
     cursorPos++;
-    if (viewPos + contentHeight < cfg.GetGameEntries().size() && cursorPos > viewPos + contentHeight - 5)
+    if (viewPos + contentHeight < playlist.size() && cursorPos > viewPos + contentHeight - 5)
         viewPos++;
     if (dragging && pcursor != cursorPos)
         swapEntry(pcursor, cursorPos);
@@ -181,11 +174,9 @@ void PlaylistGUI::scrollUpNoUpdate()
 
 void PlaylistGUI::swapEntry(uint32_t a, uint32_t b) 
 {
-    GameConfig& cfg = ConfigManager::Instance().GetCfg();
-    size_t s = cfg.GetGameEntries().size();
-    if (a >= s || b >= s)
+    if (a >= playlist.size() || b >= playlist.size())
         return;
-    std::swap(cfg.GetGameEntries()[a], cfg.GetGameEntries()[b]);
-    std::vector<bool>::swap(ticked[a], ticked[b]);
+    std::swap(playlist.at(a), playlist.at(b));
+    std::vector<bool>::swap(ticked.at(a), ticked.at(b));
     update();
 }

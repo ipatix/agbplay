@@ -17,7 +17,6 @@
 #include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
-#include "ConfigManager.h"
 
 /*
  * set JACK client name
@@ -56,8 +55,8 @@ const std::vector<PaHostApiTypeId> PlaybackEngine::hostApiPriority = {
  * public PlaybackEngine
  */
 
-PlaybackEngine::PlaybackEngine(const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo)
-    : songTableInfo(songTableInfo), playerTableInfo(playerTableInfo)
+PlaybackEngine::PlaybackEngine(const Profile &profile)
+    : profile(profile)
 {
     InitContext();
     ctx->m4aSongNumStart(0);
@@ -253,33 +252,12 @@ void PlaybackEngine::GetVisualizerState(MP2KVisualizerState &visualizerState)
 
 void PlaybackEngine::InitContext()
 {
-    const auto &cm = ConfigManager::Instance();
-    const auto &cfg = cm.GetCfg();
-
-    const MP2KSoundMode mp2kSoundMode{
-        cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()
-    };
-
-    const AgbplaySoundMode agbplaySoundMode{
-        .resamplerTypeNormal = cfg.GetResType(),
-        .resamplerTypeFixed = cfg.GetResTypeFixed(),
-        .reverbType = cfg.GetRevType(),
-        .cgbPolyphony = cm.GetCgbPolyphony(),
-        .dmaBufferLen = cfg.GetRevBufSize(),
-        .maxLoops = cm.GetMaxLoopsPlaylist(),
-        .padSilenceSecondsStart = cm.GetPadSecondsStart(),
-        .padSilenceSecondsEnd = cm.GetPadSecondsEnd(),
-        .accurateCh3Quantization = cfg.GetAccurateCh3Quantization(),
-        .accurateCh3Volume = cfg.GetAccurateCh3Volume(),
-        .emulateCgbSustainBug = cfg.GetSimulateCGBSustainBug(),
-    };
-
     ctx = std::make_unique<MP2KContext>(
         Rom::Instance(),
-        mp2kSoundMode,
-        agbplaySoundMode,
-        songTableInfo,
-        playerTableInfo
+        profile.mp2kSoundModePlayback,
+        profile.agbplaySoundMode,
+        profile.songTableInfoPlayback,
+        profile.playerTablePlayback
     );
 }
 

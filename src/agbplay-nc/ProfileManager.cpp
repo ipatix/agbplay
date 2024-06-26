@@ -126,11 +126,12 @@ std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfile(const Ro
     return profilesToReturn;
 }
 
-Profile &ProfileManager::CreateProfile(const std::string &gameCode)
+Profile &ProfileManager::CreateProfile(const std::string &gameCode, size_t tableIdx)
 {
+    const std::string profileName = fmt::format("{}.{}.json", gameCode, tableIdx);
     auto &profile = profiles.emplace_back();
     profile.gameMatch.gameCodes.emplace_back(gameCode);
-    profile.path = OS::GetLocalConfigDirectory() / "agbplay" / "profiles" / (gameCode + ".json");
+    profile.path = OS::GetLocalConfigDirectory() / "agbplay" / "profiles" / profileName;
     profile.dirty = true;
     return profile;
 }

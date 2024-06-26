@@ -18,8 +18,8 @@
 
 #define KEY_TAB 9
 
-WindowGUI::WindowGUI(const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo)
-    : songTableInfo(songTableInfo), playerTableInfo(playerTableInfo)
+WindowGUI::WindowGUI(Profile &profile)
+    : profile(profile)
 {
     // init ncurses stuff
     this->containerWin = initscr();
@@ -54,9 +54,10 @@ WindowGUI::WindowGUI(const SongTableInfo &songTableInfo, const PlayerTableInfo &
             SONGLIST_XPOS(height, width), true);
 
     // add songs to table
-    for (uint16_t i = 0; i < songTableInfo.count; i++) {
+    assert(profile.songTableInfoPlayback.count != SongTableInfo::COUNT_AUTO);
+    for (uint16_t i = 0; i < profile.songTableInfoPlayback.count; i++) {
         auto songName = fmt::format("{:04}", i);
-        songUI->AddSong(SongEntry(songName, i));
+        songUI->AddSong(Profile::PlaylistEntry{songName, i});
     }
     songUI->Enter();
 
@@ -64,7 +65,8 @@ WindowGUI::WindowGUI(const SongTableInfo &songTableInfo, const PlayerTableInfo &
             PLAYLIST_HEIGHT(height, width),
             PLAYLIST_WIDTH(height, width),
             PLAYLIST_YPOS(height, width),
-            PLAYLIST_XPOS(height, width));
+            PLAYLIST_XPOS(height, width),
+            profile.playlist);
 
     titleUI = std::make_unique<TitlebarGUI>(
             TITLEBAR_HEIGHT(height, width),
@@ -77,7 +79,7 @@ WindowGUI::WindowGUI(const SongTableInfo &songTableInfo, const PlayerTableInfo &
             ROMVIEW_WIDTH(height, width),
             ROMVIEW_YPOS(height, width),
             ROMVIEW_XPOS(height, width),
-            songTableInfo);
+            profile.songTableInfoPlayback);
 
     trackUI = std::make_unique<TrackviewGUI>(
             TRACKVIEW_HEIGHT(height, width),
@@ -92,9 +94,10 @@ WindowGUI::WindowGUI(const SongTableInfo &songTableInfo, const PlayerTableInfo &
             VUMETER_XPOS(height, width));
 
     mplay = std::make_unique<PlaybackEngine>(
-        songTableInfo,
-        playerTableInfo
+        profile
     );
+
+    profile.dirty = true;
     trackUI->SetTitle("0000");
 }
 
@@ -181,8 +184,8 @@ bool WindowGUI::Handle()
             case 'n':
                 playUI->Leave();
                 rename();
-                if (SongEntry *entry = playUI->GetSong(); entry != nullptr)
-                    trackUI->SetTitle(entry->GetName());
+                if (auto *entry = playUI->GetSong(); entry != nullptr)
+                    trackUI->SetTitle(entry->name);
                 trackUI->ForceUpdate();
                 playUI->Enter();
                 break;
@@ -208,7 +211,7 @@ bool WindowGUI::Handle()
                 tutti();
                 break;
             case 'f':
-                ConfigManager::Instance().Save();
+                // TODO save profile
                 break;
             case '!':
                 songInfo();
@@ -222,7 +225,7 @@ bool WindowGUI::Handle()
                     break;
 
                 Debug::print("Exiting...");
-                ConfigManager::Instance().Save();
+                // TODO save profile
                 mplay->Stop();
                 return false;
         } // end key handling switch
@@ -342,15 +345,15 @@ void WindowGUI::cycleFocus()
             songUI->Leave();
             cursorl = PLAYLIST;
             playUI->Enter();
-            if (SongEntry *entry = playUI->GetSong(); entry != nullptr)
-                loadSong(entry);
+            if (auto *entry = playUI->GetSong(); entry != nullptr)
+                loadSong(*entry);
             break;
         case PLAYLIST:
             playUI->Leave();
             cursorl = SONGLIST;
             songUI->Enter();
-            if (SongEntry *entry = songUI->GetSong(); entry != nullptr)
-                loadSong(entry);
+            if (auto *entry = songUI->GetSong(); entry != nullptr)
+                loadSong(*entry);
             break;
         default:
             break;
@@ -397,14 +400,14 @@ void WindowGUI::scrollDown()
     switch (cursorl) {
         case SONGLIST:
             songUI->ScrollDown();
-            if (SongEntry *entry = songUI->GetSong(); entry != nullptr)
-                loadSong(entry);
+            if (auto *entry = songUI->GetSong(); entry != nullptr)
+                loadSong(*entry);
             break;
         case PLAYLIST:
             playUI->ScrollDown();
             if (!playUI->IsDragging()) {
-                if (SongEntry *entry = playUI->GetSong(); entry != nullptr)
-                    loadSong(entry);
+                if (auto *entry = playUI->GetSong(); entry != nullptr)
+                    loadSong(*entry);
             }
             break;
         case TRACKS_SONGLIST:
@@ -421,15 +424,15 @@ void WindowGUI::scrollUp()
     switch (cursorl) {
         case SONGLIST:
             songUI->ScrollUp();
-            if (SongEntry *entry = songUI->GetSong(); entry != nullptr)
-                loadSong(entry);
+            if (auto *entry = songUI->GetSong(); entry != nullptr)
+                loadSong(*entry);
             break;
         case PLAYLIST:
             playUI->ScrollUp();
             if (playUI->IsDragging())
                 break;
-            if (SongEntry *entry = playUI->GetSong(); entry != nullptr)
-                loadSong(entry);
+            if (auto *entry = playUI->GetSong(); entry != nullptr)
+                loadSong(*entry);
             break;
         case TRACKS_SONGLIST:
         case TRACKS_PLAYLIST:
@@ -457,15 +460,15 @@ void WindowGUI::pageDown()
     switch (cursorl) {
         case SONGLIST:
             songUI->PageDown();
-            if (SongEntry *entry = songUI->GetSong(); entry != nullptr)
-                loadSong(entry);
+            if (auto *entry = songUI->GetSong(); entry != nullptr)
+                loadSong(*entry);
             break;
         case PLAYLIST:
             playUI->PageDown();
             if (playUI->IsDragging())
                 break;
-            if (SongEntry *entry = playUI->GetSong(); entry != nullptr)
-                loadSong(entry);
+            if (auto *entry = playUI->GetSong(); entry != nullptr)
+                loadSong(*entry);
             break;
         case TRACKS_SONGLIST:
         case TRACKS_PLAYLIST:
@@ -481,15 +484,15 @@ void WindowGUI::pageUp()
     switch (cursorl) {
         case SONGLIST:
             songUI->PageUp();
-            if (SongEntry *entry = songUI->GetSong(); entry != nullptr)
-                loadSong(entry);
+            if (auto *entry = songUI->GetSong(); entry != nullptr)
+                loadSong(*entry);
             break;
         case PLAYLIST:
             playUI->PageUp();
             if (playUI->IsDragging())
                 break;
-            if (SongEntry *entry = playUI->GetSong(); entry != nullptr)
-                loadSong(entry);
+            if (auto *entry = playUI->GetSong(); entry != nullptr)
+                loadSong(*entry);
             break;
         case TRACKS_SONGLIST:
         case TRACKS_PLAYLIST:
@@ -502,7 +505,7 @@ void WindowGUI::pageUp()
 
 void WindowGUI::songInfo()
 {
-    SongEntry *entry;
+    Profile::PlaylistEntry *entry;
 
     if (cursorl == SONGLIST) {
         entry = songUI->GetSong();
@@ -520,7 +523,7 @@ void WindowGUI::songInfo()
     SongInfo sinfo = mplay->GetSongInfo();
 
     Debug::print("Song Info: num={} header=0x{:X} voicetable=0x{:X} reverb={} priority={}",
-            static_cast<int>(entry->GetUID()),
+            entry->id,
             sinfo.songHeaderPos,
             sinfo.voiceTablePos,
             sinfo.reverb,
@@ -546,7 +549,7 @@ void WindowGUI::add()
     if (cursorl != SONGLIST) 
         return;
 
-    SongEntry *entry = songUI->GetSong();
+    auto *entry = songUI->GetSong();
     if (entry != nullptr)
             playUI->AddSong(*entry);
 }
@@ -556,8 +559,8 @@ void WindowGUI::del()
     if (cursorl != PLAYLIST) 
         return;
     playUI->RemoveSong();
-    if (SongEntry *entry = playUI->GetSong(); entry != nullptr)
-        loadSong(entry);
+    if (auto *entry = playUI->GetSong(); entry != nullptr)
+        loadSong(*entry);
 }
 
 void WindowGUI::mute()
@@ -591,7 +594,7 @@ void WindowGUI::rename()
     if (cursorl != PLAYLIST) 
         return;
 
-    SongEntry *ent = playUI->GetSong();
+    auto *ent = playUI->GetSong();
     if (ent == nullptr)
         return;
 
@@ -673,15 +676,10 @@ void WindowGUI::updateVisualizerState()
     trackUI->SetState(visualizerState);
 }
 
-void WindowGUI::loadSong(const SongEntry *entry)
+void WindowGUI::loadSong(const Profile::PlaylistEntry &entry)
 {
-    if (entry) {
-        mplay->LoadSong(entry->GetUID());
-        trackUI->SetTitle(entry->GetName());
-    } else {
-        mplay->LoadSong(0);
-        trackUI->SetTitle("0000");
-    }
+    mplay->LoadSong(entry.id);
+    trackUI->SetTitle(entry.name);
 
     if (play)
         mplay->Play();
@@ -689,26 +687,27 @@ void WindowGUI::loadSong(const SongEntry *entry)
 
 void WindowGUI::exportLaunch(bool benchmarkOnly, bool separate)
 {
-    const auto& cfgEntries = ConfigManager::Instance().GetCfg().GetGameEntries();
     const auto& ticked = playUI->GetTicked();
-    assert(cfgEntries.size() == ticked.size());
+    assert(profile.playlist.size() == ticked.size());
 
-    // we have to pass a copy of the song list to the other thread so that
-    // the list doesn't get destroyed on the fly
-    std::vector<SongEntry> entries;
-    for (size_t i = 0; i < cfgEntries.size(); i++) {
+    /* We have to pass a copy of the profile to the other thread to that we do not
+     * get race conditions when modifying the profile e.g. in the playlist editor. */
+
+    Profile profileToExport = profile;
+    profileToExport.playlist.clear();
+    for (size_t i = 0; i < profile.playlist.size(); i++) {
         if (ticked[i])
-            entries.emplace_back(cfgEntries[i]);
+            profileToExport.playlist.emplace_back(profile.playlist[i]);
     }
 
     exportBusy.store(true);
 
-    exportThread = std::make_unique<std::thread>([&](std::vector<SongEntry> tEntries, bool tBenchmarkOnly, bool tSeparate) {
-            SoundExporter se(songTableInfo, playerTableInfo, tBenchmarkOnly, tSeparate);
-            se.Export(tEntries);
+    exportThread = std::make_unique<std::thread>([this](Profile profile, bool tBenchmarkOnly, bool tSeparate) {
+            SoundExporter se(profile, tBenchmarkOnly, tSeparate);
+            se.Export();
             exportBusy.store(false);
         },
-        entries,
+        profileToExport,
         benchmarkOnly,
         separate
     );

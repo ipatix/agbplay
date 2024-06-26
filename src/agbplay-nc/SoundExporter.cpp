@@ -12,7 +12,6 @@
 #include "Xcept.h"
 #include "Constants.h"
 #include "Debug.h"
-#include "ConfigManager.h"
 #include "MP2KContext.h"
 #include "OS.h"
 
@@ -20,15 +19,15 @@
  * public SoundExporter
  */
 
-SoundExporter::SoundExporter(const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo, bool benchmarkOnly, bool seperate)
-: songTableInfo(songTableInfo), playerTableInfo(playerTableInfo), benchmarkOnly(benchmarkOnly), seperate(seperate)
+SoundExporter::SoundExporter(const Profile &profile, bool benchmarkOnly, bool seperate)
+: profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
 {
 }
 
-void SoundExporter::Export(const std::vector<SongEntry>& entries)
+void SoundExporter::Export()
 {
     /* create directories for file export */
-    std::filesystem::path dir = ConfigManager::Instance().GetWavOutputDir();
+    std::filesystem::path dir = OS::GetMusicDirectory() / "agbplay"; // TODO de-hard-code this path
     if (std::filesystem::exists(dir)) {
         if (!std::filesystem::is_directory(dir)) {
             throw Xcept("Output directory exists but isn't a dir");
@@ -46,14 +45,14 @@ void SoundExporter::Export(const std::vector<SongEntry>& entries)
         OS::LowerThreadPriority();
         while (true) {
             size_t i = currentSong++;   // atomic ++
-            if (i >= entries.size())
+            if (i >= profile.playlist.size())
                 return;
 
-            std::string fname = entries[i].name;
+            std::string fname = profile.playlist.at(i).name;
             boost::replace_all(fname, "/", "_");
-            Debug::print("{:3}% - Rendering to file: \"{}\"", (i + 1) * 100 / entries.size(), fname);
+            Debug::print("{:3}% - Rendering to file: \"{}\"", (i + 1) * 100 / profile.playlist.size(), fname);
             const auto fileName = std::format("{}/{:03d} - {}", dir.string(), i + 1, fname);
-            totalBlocksRendered += exportSong(fileName, entries[i].GetUID());
+            totalBlocksRendered += exportSong(fileName, profile.playlist.at(i).id);
         }
     };
 
@@ -74,11 +73,11 @@ void SoundExporter::Export(const std::vector<SongEntry>& entries)
 
     /* report finished progress */
     if (std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count() == 0) {
-        Debug::print("Successfully wrote {} files", entries.size());
+        Debug::print("Successfully wrote {} files", profile.playlist.size());
     } else {
         size_t secondsTotal = static_cast<size_t>(std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count());
         size_t blocksPerSecond = totalBlocksRendered / secondsTotal;
-        Debug::print("Successfully wrote {} files at {} blocks per second ({} seconds total)", entries.size(), blocksPerSecond, secondsTotal);
+        Debug::print("Successfully wrote {} files at {} blocks per second ({} seconds total)", profile.playlist.size(), blocksPerSecond, secondsTotal);
     }
 }
 
@@ -97,33 +96,12 @@ void SoundExporter::writeSilence(SNDFILE *ofile, double seconds)
 
 size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t uid)
 {
-    const auto &cm = ConfigManager::Instance();
-    const auto &cfg = cm.GetCfg();
-
-    const MP2KSoundMode mp2kSoundMode{
-        cfg.GetPCMVol(), cfg.GetEngineRev(), cfg.GetEngineFreq()
-    };
-
-    const AgbplaySoundMode agbplaySoundMode{
-        .resamplerTypeNormal = cfg.GetResType(),
-        .resamplerTypeFixed = cfg.GetResTypeFixed(),
-        .reverbType = cfg.GetRevType(),
-        .cgbPolyphony = cm.GetCgbPolyphony(),
-        .dmaBufferLen = cfg.GetRevBufSize(),
-        .maxLoops = cm.GetMaxLoopsExport(),
-        .padSilenceSecondsStart = cm.GetPadSecondsStart(),
-        .padSilenceSecondsEnd = cm.GetPadSecondsEnd(),
-        .accurateCh3Quantization = cfg.GetAccurateCh3Quantization(),
-        .accurateCh3Volume = cfg.GetAccurateCh3Volume(),
-        .emulateCgbSustainBug = cfg.GetSimulateCGBSustainBug(),
-    };
-    
     MP2KContext ctx(
         Rom::Instance(),
-        mp2kSoundMode,
-        agbplaySoundMode,
-        songTableInfo,
-        playerTableInfo
+        profile.mp2kSoundModePlayback,
+        profile.agbplaySoundMode,
+        profile.songTableInfoPlayback,
+        profile.playerTablePlayback
     );
 
     ctx.m4aSongNumStart(uid);
@@ -132,8 +110,8 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     size_t blocksRendered = 0;
     size_t nBlocks = ctx.mixer.GetSamplesPerBuffer();
     size_t nTracks = ctx.players.at(playerIdx).tracks.size();
-    double padSecondsStart = ConfigManager::Instance().GetPadSecondsStart();
-    double padSecondsEnd = ConfigManager::Instance().GetPadSecondsEnd();
+    const double padSecondsStart = profile.agbplaySoundMode.padSilenceSecondsStart;
+    const double padSecondsEnd = profile.agbplaySoundMode.padSilenceSecondsEnd;
 
     if (!benchmarkOnly) 
     {

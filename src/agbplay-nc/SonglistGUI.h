@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "CursesWin.h"
-#include "SongEntry.h"
+#include "Profile.h"
 
 class SonglistGUI : public CursesWin 
 {
@@ -13,10 +13,10 @@ public:
     SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, bool upd);
     virtual ~SonglistGUI() override;
     void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;
-    virtual void AddSong(SongEntry song);
+    virtual void AddSong(const Profile::PlaylistEntry &entry);
     virtual void RemoveSong();
     virtual void ClearSongs();
-    virtual SongEntry *GetSong();
+    virtual Profile::PlaylistEntry *GetSong();
     void Enter();
     virtual void Leave();
     void ScrollDown();
@@ -35,5 +35,5 @@ protected:
     uint32_t contentWidth;
     bool cursorVisible;
 private:
-    std::vector<SongEntry> songlist;
+    std::vector<Profile::PlaylistEntry> songlist;
 };

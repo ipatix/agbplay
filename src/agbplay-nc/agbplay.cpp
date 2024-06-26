@@ -9,7 +9,6 @@
 #include "Debug.h"
 #include "WindowGUI.h"
 #include "Xcept.h"
-#include "ConfigManager.h"
 #include "OS.h"
 #include "MP2KScanner.h"
 #include "ProfileManager.h"
@@ -34,15 +33,11 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
     }
     try {
-        ConfigManager &cfm = ConfigManager::Instance();
         setlocale(LC_ALL, "");
 
         portaudio::AutoSystem paSystem;
         fmt::print("Loading ROM...\n");
         Rom::CreateInstance(argv[1]);
-
-        fmt::print("Loading Config...\n");
-        cfm.Load();
 
         fmt::print("Loading Profiles...\n");
         ProfileManager pm;
@@ -101,7 +96,7 @@ int main(int argc, char *argv[])
             }
 
             if (!profileExists) {
-                Profile &p = profileCandidates.emplace_back(pm.CreateProfile(Rom::Instance().GetROMCode()));
+                Profile &p = profileCandidates.emplace_back(pm.CreateProfile(Rom::Instance().GetROMCode(), tableIdx));
                 p.songTableInfoConfig.tableIdx = static_cast<uint8_t>(tableIdx);
                 p.ApplyScanToPlayback(
                     scanResult.songTableInfo,
@@ -142,17 +137,9 @@ int main(int argc, char *argv[])
             } while (i >= profileCandidates.size());
             profileIdx = i;
         }
-        pm.SaveProfiles();
 
-        std::string gameCode = Rom::Instance().GetROMCode();
-        const size_t songTableIndex = 0;
-        if (songTableIndex > 0)
-            gameCode = fmt::format("{}:{}", gameCode, songTableIndex);
-        cfm.SetGameCode(gameCode);
-        auto scanResult = scanResults.at(songTableIndex);
-
-        fmt::print("Initialization complete!\n");
-        WindowGUI wgui(scanResult.songTableInfo, scanResult.playerTableInfo);
+        fmt::print("Creating GUI!\n");
+        WindowGUI wgui(profileCandidates.at(profileIdx));
 
         std::chrono::nanoseconds frameTime(1000000000 / 60);
 
@@ -167,6 +154,8 @@ int main(int argc, char *argv[])
                 lastTime = newTime;
             }
         }
+
+        pm.SaveProfiles();
     } catch (const std::exception& e) {
         echo();
         endwin();

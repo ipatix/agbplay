@@ -136,7 +136,7 @@ void MP2KContext::GetVisualizerState(MP2KVisualizerState &visualizerState)
             trk_src.loudnessCalculator.GetLoudness(volLeft, volRight);
 
             trk_dst.trackPtr = static_cast<uint32_t>(trk_src.pos);
-            trk_dst.isCalling = trk_src.reptCount > 0;
+            trk_dst.isCalling = trk_src.patternLevel > 0;
             trk_dst.isMuted = trk_src.muted;
             trk_dst.vol = trk_src.vol;
             trk_dst.mod = trk_src.mod;

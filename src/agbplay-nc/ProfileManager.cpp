@@ -8,11 +8,7 @@
 
 #include "Xcept.h"
 #include "Rom.h"
-
-void ProfileManager::SetPath(const std::filesystem::path &baseDir)
-{
-    this->baseDir = baseDir;
-}
+#include "OS.h"
 
 void ProfileManager::Reset()
 {
@@ -21,17 +17,19 @@ void ProfileManager::Reset()
 
 void ProfileManager::LoadProfiles()
 {
-    LoadProfilesDir(baseDir);
+    const auto configDir = OS::GetLocalConfigDirectory();
+    LoadProfileDir(configDir / "agbplay" / "profiles");
+    LoadProfileDir(configDir / "agbplay" / "profiles-user");
 }
 
-void ProfileManager::LoadProfilesDir(const std::filesystem::path &dir)
+void ProfileManager::LoadProfileDir(const std::filesystem::path &dir)
 {
     if (!std::filesystem::is_directory(dir))
         throw std::invalid_argument(fmt::format("ProfileManager: Profile directory is not a directory: {}", dir.string()));
 
     for (const auto &dirEntry : std::filesystem::directory_iterator(dir)) {
         if (dirEntry.is_directory())
-            LoadProfilesDir(dirEntry.path());
+            LoadProfileDir(dirEntry.path());
         else if (dirEntry.path().extension() == ".json")
             LoadProfile(dirEntry.path());
     }
@@ -126,6 +124,15 @@ std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfile(const Ro
     }
 
     return profilesToReturn;
+}
+
+Profile &ProfileManager::CreateProfile(const std::string &gameCode)
+{
+    auto &profile = profiles.emplace_back();
+    profile.gameMatch.gameCodes.emplace_back(gameCode);
+    profile.path = OS::GetLocalConfigDirectory() / "agbplay" / "profiles" / (gameCode + ".json");
+    profile.dirty = true;
+    return profile;
 }
 
 void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
@@ -234,9 +241,9 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
         // p.agbplaySoundMode is default initialized
         const auto &sm = j["agbplaySoundMode"];
         if (sm.contains("resamplerTypeNormal") && sm["resamplerTypeNormal"].is_string())
-            p.agbplaySoundMode.resamplerTypeNormal = str2res(sm["samplerTypeNormal"]);
+            p.agbplaySoundMode.resamplerTypeNormal = str2res(sm["resamplerTypeNormal"]);
         if (sm.contains("resamplerTypeFixed") && sm["resamplerTypeFixed"].is_string())
-            p.agbplaySoundMode.resamplerTypeFixed = str2res(sm["samplerTypeFixed"]);
+            p.agbplaySoundMode.resamplerTypeFixed = str2res(sm["resamplerTypeFixed"]);
         if (sm.contains("reverbType") && sm["reverbType"].is_string())
             p.agbplaySoundMode.reverbType = str2rev(sm["reverbType"]);
         if (sm.contains("cgbPolyphony") && sm["cgbPolyphony"].is_string())
@@ -266,9 +273,9 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
         for (const auto &gameCode : gm["gameCodes"]) {
             if (!gameCode.is_string())
                 continue;
-            if (gameCode.size() != 4)
+            if (std::string(gameCode).size() != 4)
                 continue;
-            p.gameMatch.gameCodes.emplace_back(gameCode);
+            p.gameMatch.gameCodes.emplace_back(std::string(gameCode));
         }
 
         if (p.gameMatch.gameCodes.size() == 0)
@@ -283,6 +290,12 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
     } else {
         throw Xcept("Cannot parse profile: {}, missing field: gameMatch", filePath.string());
     }
+
+    /* load description */
+    if (j.contains("description") && j["description"].is_string()) {
+        p.description = j["description"];
+    }
+
 
     profiles.push_back(std::move(p));
 }
@@ -376,6 +389,10 @@ void ProfileManager::SaveProfile(Profile &p)
         jgm["magicBytes"] = std::move(jmb);
     }
     j["gameMatch"] = jgm;
+
+    /* save description */
+    if (p.description.size() > 0)
+        j["description"] = p.description;
 
     /* save JSON to disk */
     std::ofstream fileStream(p.path);

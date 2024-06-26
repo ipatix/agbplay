@@ -91,9 +91,9 @@ struct AgbplaySoundMode
     ReverbType reverbType = ReverbType::NORMAL;
     CGBPolyphony cgbPolyphony = CGBPolyphony::MONO_STRICT;
     uint32_t dmaBufferLen = 0x630;
-    int8_t maxLoops = 1;
-    double padSilenceSecondsStart = 0.0;
-    double padSilenceSecondsEnd = 0.0;
+    int8_t maxLoops = 1; // <-- TODO maybe move this to global config
+    double padSilenceSecondsStart = 0.0; // <-- TODO maybe move this to global config
+    double padSilenceSecondsEnd = 0.0;   // <-- TODO maybe move this to global config
     bool accurateCh3Quantization = true;
     bool accurateCh3Volume = true;
     bool emulateCgbSustainBug = true; // other places may call this 'simulate', should probably use 'emulate' everywhere

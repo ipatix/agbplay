@@ -211,6 +211,7 @@ bool WindowGUI::Handle()
                 tutti();
                 break;
             case 'f':
+                Debug::print("Manual save is currently unimplemented");
                 // TODO save profile
                 break;
             case '!':

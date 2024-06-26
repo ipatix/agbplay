@@ -25,22 +25,13 @@ int main(int argc, char *argv[])
         std::cout << "Debug Init failed" << std::endl;
         return EXIT_FAILURE;
     }
-    if (argc != 2 && argc != 3) {
+    if (argc != 2) {
         usage();
         return EXIT_FAILURE;
     }
     if (!strcmp("--help", argv[1])) {
         help();
         return EXIT_SUCCESS;
-    }
-    unsigned long songTableIndex = 0;
-    if (argc == 3) {
-      try {
-        songTableIndex = std::stoul(argv[2]);
-      } catch (std::exception& e) {
-        usage();
-        return EXIT_FAILURE;
-      }
     }
     try {
         ConfigManager &cfm = ConfigManager::Instance();
@@ -55,9 +46,7 @@ int main(int argc, char *argv[])
 
         fmt::print("Loading Profiles...\n");
         ProfileManager pm;
-        pm.SetPath(OS::GetLocalConfigDirectory() / "agbplay" / "profiles");
         pm.LoadProfiles();
-        pm.SaveProfiles();
 
         fmt::print("Scanning for MP2K Engine\n");
         MP2KScanner scanner(Rom::Instance());
@@ -79,14 +68,84 @@ int main(int argc, char *argv[])
                 fmt::print("      max track={}, use prio={}\n", i.maxTracks, i.usePriority);
         }
 
-        if (songTableIndex >= scanResults.size()) {
-            if (songTableIndex == 0)
-                throw Xcept("Unable to find Songtable");
-            else
-                throw Xcept("Songtable index out of range");
+        fmt::print("Opening profile...\n");
+        auto profileCandidates = pm.GetProfile(Rom::Instance());
+
+        if (scanResults.size() == 0 && profileCandidates.size() == 0) {
+            throw Xcept("Scanner failed to find songtable and no profile with manual songtable found.\n");
         }
 
+        for (size_t tableIdx = 0; tableIdx < scanResults.size(); tableIdx++) {
+            auto &scanResult = scanResults.at(tableIdx);
+            bool profileExists = false;
+            for (Profile &profileCandidate : profileCandidates) {
+                if (profileCandidate.songTableInfoConfig.pos != SongTableInfo::POS_AUTO) {
+                    if (profileCandidate.songTableInfoConfig.count == SongTableInfo::COUNT_AUTO)
+                        throw Xcept("Cannot load profile with manual songtable but no song count");
+                    profileCandidate.ApplyScanToPlayback(
+                        SongTableInfo{},
+                        PlayerTableInfo{},
+                        MP2KSoundMode{}
+                    );
+                    continue;
+                }
+                if (profileCandidate.songTableInfoConfig.tableIdx == tableIdx) {
+                    profileCandidate.ApplyScanToPlayback(
+                        scanResult.songTableInfo,
+                        scanResult.playerTableInfo,
+                        scanResult.mp2kSoundMode
+                    );
+                    profileExists = true;
+                    break;
+                }
+            }
+
+            if (!profileExists) {
+                Profile &p = profileCandidates.emplace_back(pm.CreateProfile(Rom::Instance().GetROMCode()));
+                p.songTableInfoConfig.tableIdx = static_cast<uint8_t>(tableIdx);
+                p.ApplyScanToPlayback(
+                    scanResult.songTableInfo,
+                    scanResult.playerTableInfo,
+                    scanResult.mp2kSoundMode
+                );
+            }
+        }
+
+        assert(profileCandidates.size() >= 1);
+        size_t profileIdx = 0;
+        if (profileCandidates.size() > 1) {
+            fmt::print("Found multiple matching profiles, please select profile to load:\n");
+            for (size_t i = 0; i < profileCandidates.size(); i++) {
+                Profile &p = profileCandidates.at(i);
+                std::string d = p.description;
+                if (d.size() == 0)
+                    d = "<no description>";
+                if (p.songTableInfoConfig.pos != SongTableInfo::POS_AUTO)
+                    fmt::print(" [{}]:\n  file: {}\n  descrpiption: {}\n  tablePos=0x{:X}\n", i, p.path.string(), d, p.songTableInfoConfig.pos);
+                else
+                    fmt::print(" [{}]:\n  file: {}\n  descrpiption: {}\n  tableIdx={}\n", i, p.path.string(), d, p.songTableInfoConfig.tableIdx);
+            }
+            size_t i;
+            do {
+                std::string istr;
+                std::cout << "Specify number of listed profiles to load: " << std::flush;
+                std::cin >> istr;
+                if (std::cin.eof()) {
+                    std::cout << std::endl;
+                    throw Xcept("Cannot load profile: No profile number specified");
+                }
+                try {
+                    i = std::stoul(istr);
+                } catch (...) {
+                    i = std::numeric_limits<size_t>::max();
+                }
+            } while (i >= profileCandidates.size());
+            profileIdx = i;
+        }
+        pm.SaveProfiles();
+
         std::string gameCode = Rom::Instance().GetROMCode();
+        const size_t songTableIndex = 0;
         if (songTableIndex > 0)
             gameCode = fmt::format("{}:{}", gameCode, songTableIndex);
         cfm.SetGameCode(gameCode);

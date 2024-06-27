@@ -40,6 +40,12 @@ void MP2KContext::m4aMPlayStart(uint8_t playerIdx, size_t songPos)
 {
     MP2KPlayer &player = players.at(playerIdx);
 
+    if (player.usePriority && player.GetSongHeaderPos() != 0 && songPos != 0 && player.enabled) {
+        /* If priority of current song is higher than new song, do not start the song. */
+        if (player.GetPriority() > rom.ReadU8(songPos + 2))
+            return;
+    }
+
     for (MP2KTrack &trk : player.tracks)
         trk.Stop();
 
@@ -49,11 +55,11 @@ void MP2KContext::m4aMPlayStart(uint8_t playerIdx, size_t songPos)
     mixer.ResetFade();
 
     uint32_t fixedModeRate = reader.freqLut.at(mp2kSoundMode.freq - 1);
-    uint8_t reverb = 0;
-    if (player.GetReverb() & 0x80)
-        reverb = player.GetReverb() & 0x7F;
-    else if (mp2kSoundMode.rev & 0x80)
-        reverb = mp2kSoundMode.rev & 0x7F;
+    uint8_t reverb = player.GetReverb();
+    if (reverb)
+        reverb = reverb & 0x7F;
+    else
+        reverb = 0;
     float pcmMasterVolume = static_cast<float>(mp2kSoundMode.vol + 1) / 16.0f;
 
     // TODO we should not need to init all mixer parameters, only reverb?

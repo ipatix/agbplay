@@ -1,6 +1,11 @@
-.PHONY: all
+.PHONY: all clean
 
-all:
+all: release
+
+clean:
+	rm -rf build build_dbg
+
+release:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
 	cmake --build build -j$$(nproc)
 

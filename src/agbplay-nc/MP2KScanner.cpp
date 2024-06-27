@@ -308,6 +308,9 @@ bool MP2KScanner::IsPosReferenced(const std::vector<size_t> &poss, size_t &index
 
 bool MP2KScanner::IsValidSongTableEntry(size_t pos) const
 {
+    if (!rom.ValidRange(pos, 8))
+        return false;
+
     /* 1. check if pointer to song is valid */
     if (!rom.ValidPointer(rom.ReadU32(pos + 0)))
         return false;

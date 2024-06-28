@@ -21,6 +21,8 @@ struct MP2KContext {
 
     /* original API functions */
     void m4aSoundMain();
+    void m4aSoundMode(uint32_t mode);
+    void m4aSoundModeReverb(uint8_t reverb);
     void m4aSongNumStart(uint16_t songId);
     void m4aSongNumStop(uint16_t songId);
     void m4aMPlayStart(uint8_t playerIdx, size_t songPos);

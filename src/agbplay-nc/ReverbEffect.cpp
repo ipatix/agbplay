@@ -13,8 +13,8 @@
 ReverbEffect::ReverbEffect(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers)
     : reverbBuffer((streamRate / AGB_FPS) * numAgbBuffers, sample{0.0f, 0.0f})
 {
-    this->intensity = intensity / 128.0f;
-    size_t bufferLen = streamRate / AGB_FPS;
+    SetLevel(intensity);
+    const size_t bufferLen = streamRate / AGB_FPS;
     bufferPos = 0;
     bufferPos2 = bufferLen;
 }
@@ -31,6 +31,11 @@ void ReverbEffect::ProcessData(sample *buffer, size_t numSamples)
         buffer += (numSamples - left);
         numSamples = left;
     }
+}
+
+void ReverbEffect::SetLevel(uint8_t level)
+{
+    intensity = level / 128.0f;
 }
 
 std::unique_ptr<ReverbEffect> ReverbEffect::MakeReverb(ReverbType reverbType, uint8_t intensity, size_t sampleRate, uint8_t numDmaBuffers)

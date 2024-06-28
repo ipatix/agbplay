@@ -1,3 +1,4 @@
+#include <array>
 #include <cmath>
 #include <cassert>
 #include <algorithm>
@@ -787,12 +788,20 @@ void NoiseChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
 
     updateVolFade();
 
+    if (numSamples == 0)
+        return;
+
+    static const std::array<float, 4> noiseFreqs{
+        32768.0f, 65536.0f, 131072.0f, 262144.0f,
+    };
+    const float noiseFreq = noiseFreqs[ctx.mp2kSoundMode.dacConfig % noiseFreqs.size()];
+
     VolumeFade vol = getVol();
     float lVolStep = (vol.toVolLeft - vol.fromVolLeft) * args.samplesPerBufferInv;
     float rVolStep = (vol.toVolRight - vol.fromVolRight) * args.samplesPerBufferInv;
     float lVol = vol.fromVolLeft;
     float rVol = vol.fromVolRight;
-    float interStep = freq / NOISE_SAMPLING_FREQ;
+    float interStep = freq / noiseFreq;
 
     float outBuffer[numSamples];
 
@@ -803,7 +812,7 @@ void NoiseChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     rcd.cbdata = this;
 
     srs.Process(outBuffer, numSamples,
-            NOISE_SAMPLING_FREQ / float(STREAM_SAMPLERATE),
+            noiseFreq / float(STREAM_SAMPLERATE),
             Resampler::ResamplerChainSampleFetchCB, &rcd);
 
     size_t i = 0;

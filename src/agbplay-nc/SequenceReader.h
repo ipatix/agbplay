@@ -24,8 +24,6 @@ public:
     void SetSpeedFactor(float speedFactor);
     float GetSpeedFactor() const;
 
-    static const std::vector<uint32_t> freqLut;
-
 private:
     static const std::map<uint8_t, int8_t> delayLut;
     static const std::map<uint8_t, int8_t> noteLut;

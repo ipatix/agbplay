@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cassert>
 
@@ -16,22 +17,41 @@ SoundMixer::SoundMixer(MP2KContext& ctx, uint32_t sampleRate, float masterVolume
 {
 }
 
-void SoundMixer::Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVolume, ReverbType rtype)
+void SoundMixer::UpdateReverb()
 {
-    // TODO with access to ctx, rtype is an unnecessary parameter
-    this->fixedModeRate = fixedModeRate;
-    this->samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
-    this->pcmMasterVolume = pcmMasterVolume;
+    for (MP2KPlayer &player : ctx.players) {
+        for (MP2KTrack &trk : player.tracks) {
+            trk.reverb->SetLevel(ctx.mp2kSoundMode.rev & 0x7F);
+        }
+    }
+}
+
+void SoundMixer::UpdateFixedModeRate()
+{
+    static std::array<uint32_t, 16> rateTable{
+        0, 5734, 7884, 10512,
+        13379, 15768, 18157, 21024,
+        26758, 31536, 36314, 40137,
+        42048, 0, 0, 0,
+    };
+
+    fixedModeRate = rateTable[ctx.mp2kSoundMode.freq % rateTable.size()];
+
+    samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
 
     const uint8_t numDmaBuffers = std::max(
         static_cast<uint8_t>(2),
         static_cast<uint8_t>(ctx.agbplaySoundMode.dmaBufferLen / (fixedModeRate / AGB_FPS))
     );
 
-    // TODO add for-loop for multiple players
     for (MP2KPlayer &player : ctx.players) {
         for (MP2KTrack &trk : player.tracks) {
-            trk.reverb = ReverbEffect::MakeReverb(rtype, reverb, sampleRate, numDmaBuffers);
+            trk.reverb = ReverbEffect::MakeReverb(
+                ctx.agbplaySoundMode.reverbType,
+                ctx.mp2kSoundMode.rev & 0x7F,
+                sampleRate,
+                numDmaBuffers
+            );
         }
     }
 }
@@ -51,7 +71,7 @@ void SoundMixer::Process()
 
     /* 2. prepare arguments for mixing */
     MixingArgs margs;
-    margs.vol = pcmMasterVolume;
+    margs.vol = static_cast<float>((ctx.mp2kSoundMode.vol + 1) / 16.0f);
     margs.fixedModeRate = fixedModeRate;
     margs.sampleRateInv = 1.0f / static_cast<float>(sampleRate);
     margs.samplesPerBufferInv= 1.0f / static_cast<float>(samplesPerBuffer);

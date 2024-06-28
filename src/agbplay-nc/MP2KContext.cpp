@@ -10,12 +10,51 @@ MP2KContext::MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, con
 
     for (size_t i = 0; i < playerTableInfo.size(); i++)
         players.emplace_back(playerTableInfo.at(i), static_cast<uint8_t>(i));
+
+    mixer.UpdateFixedModeRate();
+    mixer.UpdateReverb();
 }
 
 void MP2KContext::m4aSoundMain()
 {
     reader.Process();
     mixer.Process();
+}
+
+void MP2KContext::m4aSoundMode(uint32_t mode)
+{
+    const uint8_t reverb = (mode >> 0) & 0xFF;
+    if (reverb & 0x80) {
+        mp2kSoundMode.rev = reverb;
+        mixer.UpdateReverb();
+    }
+
+    //const uint8_t channels = (mode >> 8) & 0xF;
+    //if (channels != 0)
+    //    ; // there is no channel limit in agbplay
+
+    const uint8_t masterVol = (mode >> 12) & 0xF;
+    if (masterVol != 0) {
+        mp2kSoundMode.vol = masterVol;
+    }
+
+    const uint8_t freq = (mode >> 16) & 0xF;
+    if (freq != 0) {
+        mp2kSoundMode.freq = freq;
+        mixer.UpdateFixedModeRate();
+    }
+
+    const uint8_t dac = (mode >> 20) & 0xF;
+    if (dac != 0)
+        mp2kSoundMode.dacConfig = dac;
+}
+
+void MP2KContext::m4aSoundModeReverb(uint8_t reverb)
+{
+    if (reverb & 0x80) {
+        mp2kSoundMode.rev = reverb;
+        mixer.UpdateReverb();
+    }
 }
 
 void MP2KContext::m4aSongNumStart(uint16_t songId)
@@ -52,16 +91,9 @@ void MP2KContext::m4aMPlayStart(uint8_t playerIdx, size_t songPos)
     reader.Restart();
     mixer.ResetFade();
 
-    uint32_t fixedModeRate = reader.freqLut.at(mp2kSoundMode.freq - 1);
-    uint8_t reverb = player.GetReverb();
-    if (reverb)
-        reverb = reverb & 0x7F;
-    else
-        reverb = 0;
-    float pcmMasterVolume = static_cast<float>(mp2kSoundMode.vol + 1) / 16.0f;
-
-    // TODO we should not need to init all mixer parameters, only reverb?
-    mixer.Init(fixedModeRate, reverb, pcmMasterVolume, agbplaySoundMode.reverbType);
+    const uint8_t reverb = player.GetReverb();
+    if (reverb & 0x80)
+        m4aSoundModeReverb(reverb);
 }
 
 void MP2KContext::m4aMPlayStop(uint8_t playerIdx)

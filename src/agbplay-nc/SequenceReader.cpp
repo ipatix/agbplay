@@ -16,12 +16,6 @@
  * SequenceReader data
  */
 
-const std::vector<uint32_t> SequenceReader::freqLut = {
-    5734, 7884, 10512, 13379,
-    15768, 18157, 21024, 26758,
-    31536, 36314, 40137, 42048
-};
-
 const std::map<uint8_t, int8_t> SequenceReader::delayLut = {
     {0x80,0 },
     {0x81,1 }, {0x82,2 }, {0x83,3 }, {0x84,4 }, {0x85,5 }, {0x86,6 }, {0x87,7 }, {0x88,8 },

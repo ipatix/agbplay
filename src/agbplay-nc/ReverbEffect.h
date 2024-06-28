@@ -15,6 +15,7 @@ public:
     ReverbEffect(uint8_t intesity, size_t streamRate, uint8_t numAgbBuffers);
     virtual ~ReverbEffect();
     void ProcessData(sample *buffer, size_t numSamples);
+    void SetLevel(uint8_t level);
 
     static std::unique_ptr<ReverbEffect> MakeReverb(ReverbType reverbType, uint8_t intensity, size_t sampleRate, uint8_t numDmaBuffers);
 protected:

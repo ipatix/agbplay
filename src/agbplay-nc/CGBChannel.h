@@ -7,8 +7,6 @@
 #include "Types.h"
 #include "MP2KChn.h"
 
-#define NOISE_SAMPLING_FREQ 65536.0f
-
 struct MP2KContext;
 struct MP2KTrack;
 

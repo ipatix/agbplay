@@ -20,7 +20,8 @@ public:
     SoundMixer(const SoundMixer&) = delete;
     SoundMixer& operator=(const SoundMixer&) = delete;
 
-    void Init(uint32_t fixedModeRate, uint8_t reverb, float pcmMasterVolume, ReverbType rtype);
+    void UpdateReverb();
+    void UpdateFixedModeRate();
 
     void Process();
     size_t GetSamplesPerBuffer() const;
@@ -40,7 +41,6 @@ private:
     // volume control related stuff
 
     float masterVolume;
-    float pcmMasterVolume = masterVolume;
     float fadePos = 1.0f;
     float fadeStepPerMicroframe = 0.0f;
     size_t fadeMicroframesLeft = 0;

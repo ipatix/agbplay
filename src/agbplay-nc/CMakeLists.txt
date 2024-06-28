@@ -4,7 +4,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 include(FindPkgConfig)
 find_package(PkgConfig REQUIRED)
-find_package(jsoncpp REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(Boost REQUIRED)
 find_package(fmt REQUIRED)
@@ -22,7 +21,6 @@ add_executable(agbplay-nc ${AGBPLAY_NC_SOURCES})
 target_compile_options(agbplay-nc PRIVATE -Wall -Wextra -Wconversion)
 target_include_directories(agbplay-nc PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
 target_link_libraries(agbplay-nc
-    JsonCpp::JsonCpp
     Boost::boost
     fmt::fmt
     nlohmann_json::nlohmann_json

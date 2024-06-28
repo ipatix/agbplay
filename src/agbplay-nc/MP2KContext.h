@@ -37,7 +37,6 @@ struct MP2KContext {
     bool m4aMPlayIsPlaying(uint8_t playerIdx) const;
 
     bool HasEnded() const;
-    size_t GetCurInterFrame() const;
     void GetVisualizerState(MP2KVisualizerState &visualizerState);
 
     const Rom& rom;
@@ -58,6 +57,5 @@ struct MP2KContext {
     std::list<WaveChannel> waveChannels;
     std::list<NoiseChannel> noiseChannels;
 
-    size_t curInterFrame = 0;
     uint8_t primaryPlayer = 0; // <-- this is only used for visualization, perhaps move outside from here
 };

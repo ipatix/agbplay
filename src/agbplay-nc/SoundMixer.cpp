@@ -55,7 +55,6 @@ void SoundMixer::Process()
     margs.fixedModeRate = fixedModeRate;
     margs.sampleRateInv = 1.0f / static_cast<float>(sampleRate);
     margs.samplesPerBufferInv= 1.0f / static_cast<float>(samplesPerBuffer);
-    margs.curInterFrame = ctx.GetCurInterFrame();
 
     /* 3. mix channels which are affected by reverb (PCM only) */
     auto mixFunc = [&](auto &channels) {

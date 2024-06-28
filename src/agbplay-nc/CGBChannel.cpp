@@ -608,9 +608,6 @@ void WaveChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     if (envState == EnvState::DEAD)
         return;
 
-    //if (note.trackIdx == 6)
-    //    Debug::print("this=%p time=%f", this, (double)args.curInterFrame / (INTERFRAMES * AGB_FPS));
-
     updateVolFade();
 
     if (numSamples == 0)

@@ -16,7 +16,6 @@ void MP2KContext::m4aSoundMain()
 {
     reader.Process();
     mixer.Process();
-    curInterFrame++;
 }
 
 void MP2KContext::m4aSongNumStart(uint16_t songId)
@@ -49,7 +48,6 @@ void MP2KContext::m4aMPlayStart(uint8_t playerIdx, size_t songPos)
     for (MP2KTrack &trk : player.tracks)
         trk.Stop();
 
-    curInterFrame = 0;
     player.Init(songPos);
     reader.Restart();
     mixer.ResetFade();
@@ -109,11 +107,6 @@ bool MP2KContext::m4aMPlayIsPlaying(uint8_t playerIdx) const
 bool MP2KContext::HasEnded() const
 {
     return reader.EndReached() && mixer.IsFadeDone();
-}
-
-size_t MP2KContext::GetCurInterFrame() const
-{
-    return curInterFrame;
 }
 
 void MP2KContext::GetVisualizerState(MP2KVisualizerState &visualizerState)

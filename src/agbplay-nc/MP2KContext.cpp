@@ -48,7 +48,7 @@ void MP2KContext::m4aMPlayStart(uint8_t playerIdx, size_t songPos)
     for (MP2KTrack &trk : player.tracks)
         trk.Stop();
 
-    player.Init(songPos);
+    player.Init(rom, songPos);
     reader.Restart();
     mixer.ResetFade();
 

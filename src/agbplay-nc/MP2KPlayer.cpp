@@ -9,15 +9,11 @@ MP2KPlayer::MP2KPlayer(const PlayerInfo &playerInfo, uint8_t playerIdx)
 {
     for (uint8_t i = 0; i < trackLimit; i++)
         tracks.emplace_back(i);
-    Init(0);
 }
 
-void MP2KPlayer::Init(size_t songHeaderPos)
+void MP2KPlayer::Init(const Rom &rom, size_t songHeaderPos)
 {
-    Rom& rom = Rom::Instance();
-
     this->songHeaderPos = songHeaderPos;
-
 
     if (songHeaderPos != 0) {
         // read song header
@@ -47,11 +43,6 @@ void MP2KPlayer::Init(size_t songHeaderPos)
     bpmStack = 0;
     bpm = 150;
     tickCount = 0;
-}
-
-void MP2KPlayer::Reset()
-{
-    Init(songHeaderPos);
 }
 
 size_t MP2KPlayer::GetSoundBankPos() const

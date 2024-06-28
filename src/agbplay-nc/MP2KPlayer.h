@@ -7,6 +7,8 @@
 #include "Constants.h"
 #include "MP2KTrack.h"
 
+class Rom;
+
 class MP2KPlayer
 {
 public:
@@ -15,8 +17,7 @@ public:
     MP2KPlayer(MP2KPlayer &&) = default;
     MP2KPlayer& operator=(const MP2KPlayer&) = delete;
 
-    void Init(size_t songHeaderPos);
-    void Reset();
+    void Init(const Rom &rom, size_t songHeaderPos);
 
     std::vector<MP2KTrack> tracks;
 

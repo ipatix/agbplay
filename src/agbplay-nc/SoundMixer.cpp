@@ -87,7 +87,7 @@ void SoundMixer::Process()
     // TODO add player for-loop for multiple players
     for (MP2KPlayer &player : ctx.players) {
         for (MP2KTrack &trk : player.tracks) {
-            trk.reverb->ProcessData(trk.audioBuffer.data(), samplesPerBuffer);
+            trk.reverb->Process(trk.audioBuffer);
         }
     }
 

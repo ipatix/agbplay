@@ -23,13 +23,13 @@ ReverbEffect::~ReverbEffect()
 {
 }
 
-void ReverbEffect::ProcessData(sample *buffer, size_t numSamples)
+void ReverbEffect::Process(std::span<sample> buffer)
 {
-    while (numSamples > 0)
+    while (buffer.size() > 0)
     {
-        size_t left = processInternal(buffer, numSamples);
-        buffer += (numSamples - left);
-        numSamples = left;
+        // TODO change the semantics of processInternal to return 'processed' instead of 'left' samples
+        const size_t left = processInternal(buffer);
+        buffer = buffer.subspan(buffer.size() - left);
     }
 }
 
@@ -76,11 +76,10 @@ size_t ReverbEffect::getBlocksPerBuffer() const
     return reverbBuffer.size();
 }
 
-size_t ReverbEffect::processInternal(sample *buffer, size_t numSamples)
+size_t ReverbEffect::processInternal(std::span<sample> buffer)
 {
-    assert(numSamples > 0);
     std::vector<sample>& rbuf = reverbBuffer;
-    size_t count = std::min(std::min(getBlocksPerBuffer() - bufferPos2, getBlocksPerBuffer() - bufferPos), numSamples);
+    const size_t count = std::min(std::min(getBlocksPerBuffer() - bufferPos2, getBlocksPerBuffer() - bufferPos), buffer.size());
     bool reset = false, reset2 = false;
     if (getBlocksPerBuffer() - bufferPos == count) {
         reset = true;
@@ -88,19 +87,17 @@ size_t ReverbEffect::processInternal(sample *buffer, size_t numSamples)
     if (getBlocksPerBuffer() - bufferPos2 == count) {
         reset2 = true;
     } 
-    size_t c = count;
-    do {
-        float rev = (rbuf[bufferPos].left + rbuf[bufferPos].right + 
+    for (size_t i = 0; i < count; i++) {
+        const float rev = (rbuf[bufferPos].left + rbuf[bufferPos].right + 
                 rbuf[bufferPos2].left + rbuf[bufferPos2].right) * intensity * (1.0f / 4.0f);
-        rbuf[bufferPos].left  = buffer->left  += rev;
-        rbuf[bufferPos].right = buffer->right += rev;
-        buffer++;
+        rbuf[bufferPos].left  = buffer[i].left  += rev;
+        rbuf[bufferPos].right = buffer[i].right += rev;
         bufferPos++;
         bufferPos2++;
-    } while (--c > 0);
+    }
     if (reset2) bufferPos2 = 0;
     if (reset) bufferPos = 0;
-    return numSamples - count;
+    return buffer.size() - count;
 }
 
 /*
@@ -123,12 +120,12 @@ size_t ReverbGS1::getBlocksPerGsBuffer() const
     return gsBuffer.size();
 }
 
-size_t ReverbGS1::processInternal(sample *buffer, size_t numSamples)
+size_t ReverbGS1::processInternal(std::span<sample> buffer)
 {
     std::vector<sample>& rbuf = reverbBuffer;
     const size_t bPerBuf = getBlocksPerBuffer();
     const size_t bPerGsBuf = getBlocksPerGsBuffer();
-    size_t count = std::min(std::min(bPerBuf - bufferPos, bPerGsBuf - bufferPos2), numSamples);
+    size_t count = std::min(std::min(bPerBuf - bufferPos, bPerGsBuf - bufferPos2), buffer.size());
     bool reset = false, resetGS = false;
 
     if (count == bPerBuf - bufferPos)
@@ -136,32 +133,29 @@ size_t ReverbGS1::processInternal(sample *buffer, size_t numSamples)
     if (count == bPerGsBuf - bufferPos2)
         resetGS = true;
 
-    size_t c = count;
-    do {
-        float mixL = buffer->left  + gsBuffer[bufferPos2].left;
-        float mixR = buffer->right + gsBuffer[bufferPos2].right;
+    for (size_t i = 0; i < count; i++) {
+        const float mixL = buffer[i].left  + gsBuffer[bufferPos2].left;
+        const float mixR = buffer[i].right + gsBuffer[bufferPos2].right;
 
-        float lA = rbuf[bufferPos].left;
-        float rA = rbuf[bufferPos].right;
+        const float lA = rbuf[bufferPos].left;
+        const float rA = rbuf[bufferPos].right;
 
-        buffer->left  = rbuf[bufferPos].left  = mixL;
-        buffer->right = rbuf[bufferPos].right = mixR;
+        buffer[i].left  = rbuf[bufferPos].left  = mixL;
+        buffer[i].right = rbuf[bufferPos].right = mixR;
 
-        float lRMix = 0.25f * mixL + 0.25f * rA;
-        float rRMix = 0.25f * mixR + 0.25f * lA;
+        const float lRMix = 0.25f * mixL + 0.25f * rA;
+        const float rRMix = 0.25f * mixR + 0.25f * lA;
 
         gsBuffer[bufferPos2].left  = lRMix;
         gsBuffer[bufferPos2].right = rRMix;
 
-        buffer++;
-
         bufferPos++;
         bufferPos2++;
-    } while (--c > 0);
+    }
 
     if (resetGS) bufferPos2 = 0;
     if (reset) bufferPos = 0;
-    return numSamples - count;
+    return buffer.size() - count;
 }
 
 /*
@@ -184,13 +178,12 @@ ReverbGS2::~ReverbGS2()
 {
 }
 
-size_t ReverbGS2::processInternal(sample *buffer, size_t numSamples)
+size_t ReverbGS2::processInternal(std::span<sample> buffer)
 {
-    assert(numSamples > 0);
     std::vector<sample>& rbuf = reverbBuffer;
     size_t count = std::min(
             std::min(getBlocksPerBuffer() - bufferPos2, getBlocksPerBuffer() - bufferPos), 
-            std::min(numSamples, gs2Buffer.size() - gs2Pos)
+            std::min(buffer.size(), gs2Buffer.size() - gs2Pos)
             );
     bool reset = false, reset2 = false, resetgs2 = false;
 
@@ -204,36 +197,33 @@ size_t ReverbGS2::processInternal(sample *buffer, size_t numSamples)
         resetgs2 = true;
     }
 
-    size_t c = count;
-    do {
-        float mixL = buffer->left  + gs2Buffer[gs2Pos].left;
-        float mixR = buffer->right + gs2Buffer[gs2Pos].right;
+    for (size_t i = 0; i < count; i++) {
+        const float mixL = buffer[i].left  + gs2Buffer[gs2Pos].left;
+        const float mixR = buffer[i].right + gs2Buffer[gs2Pos].right;
 
-        float lA = rbuf[bufferPos].left;
-        float rA = rbuf[bufferPos].right;
+        const float lA = rbuf[bufferPos].left;
+        const float rA = rbuf[bufferPos].right;
 
-        buffer->left  = rbuf[bufferPos].left  = mixL;
-        buffer->right = rbuf[bufferPos].right = mixR;
+        buffer[i].left  = rbuf[bufferPos].left  = mixL;
+        buffer[i].right = rbuf[bufferPos].right = mixR;
 
-        float lRMix = lA * rPrimFac + rA * rSecFac;
-        float rRMix = rA * rPrimFac + lA * rSecFac;
+        const float lRMix = lA * rPrimFac + rA * rSecFac;
+        const float rRMix = rA * rPrimFac + lA * rSecFac;
 
-        float lB = rbuf[bufferPos2].right * 0.25f;
-        float rB = mixR * 0.25f;
+        const float lB = rbuf[bufferPos2].right * 0.25f;
+        const float rB = mixR * 0.25f;
 
         gs2Buffer[gs2Pos].left  = lRMix + lB;
         gs2Buffer[gs2Pos].right = rRMix + rB;
 
-        buffer++;
-
         bufferPos++;
         bufferPos2++;
         gs2Pos++;
-    } while (--c > 0);
+    }
     if (reset2) bufferPos2 = 0;
     if (reset) bufferPos = 0;
     if (resetgs2) gs2Pos = 0;
-    return numSamples - count;
+    return buffer.size() - count;
 }
 
 /*
@@ -249,11 +239,10 @@ ReverbTest::~ReverbTest()
 {
 }
 
-size_t ReverbTest::processInternal(sample *buffer, size_t numSamples)
+size_t ReverbTest::processInternal(std::span<sample> buffer)
 {
-    assert(numSamples > 0);
     std::vector<sample>& rbuf = reverbBuffer;
-    size_t count = std::min(std::min(getBlocksPerBuffer() - bufferPos, getBlocksPerBuffer() - bufferPos2), numSamples);
+    size_t count = std::min(std::min(getBlocksPerBuffer() - bufferPos, getBlocksPerBuffer() - bufferPos2), buffer.size());
     bool reset = false, reset2 = false;
     if (getBlocksPerBuffer() - bufferPos2 == count) {
         reset2 = true;
@@ -261,11 +250,10 @@ size_t ReverbTest::processInternal(sample *buffer, size_t numSamples)
     if (getBlocksPerBuffer() - bufferPos == count) {
         reset = true;
     }
-    size_t c = count;
-    do {
+    for (size_t i = 0; i < count; i++) {
         const float g = 0.8f;
-        float input_l = buffer->left;
-        float input_r = buffer->right;
+        float input_l = buffer[i].left;
+        float input_r = buffer[i].right;
 
         float feedback_l = rbuf[bufferPos].left;
         float feedback_r = rbuf[bufferPos].right;
@@ -276,9 +264,8 @@ size_t ReverbTest::processInternal(sample *buffer, size_t numSamples)
         float output_l = -g * new_feedback_l + feedback_l;
         float output_r = -g * new_feedback_r + feedback_r;
 
-        buffer->left  = output_l;
-        buffer->right = output_r;
-        buffer++;
+        buffer[i].left  = output_l;
+        buffer[i].right = output_r;
 
         rbuf[bufferPos].left  = -new_feedback_l;
         rbuf[bufferPos].right = -new_feedback_r;
@@ -304,14 +291,14 @@ size_t ReverbTest::processInternal(sample *buffer, size_t numSamples)
            float r_left = in_delay_1_r * (4.0f / 8.0f) + in_delay_2_l * (4.0f / 8.0f);
            float r_right = -in_delay_1_l * (4.0f / 8.0f) - in_delay_2_r * (4.0f / 8.0f);
 
-           rbuf[bufferPos * 2] = *buffer++ += r_left;
-           rbuf[bufferPos * 2 + 1] = *buffer++ += r_right;
+           rbuf[bufferPos * 2] = buffer[i].left += r_left;
+           rbuf[bufferPos * 2 + 1] = buffer[i].right += r_right;
            */
 
         bufferPos++;
         bufferPos2++;
-    } while (--c > 0);
+    }
     if (reset2) bufferPos2 = 0;
     if (reset) bufferPos = 0;
-    return numSamples - count;
+    return buffer.size() - count;
 }

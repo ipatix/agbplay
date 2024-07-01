@@ -259,7 +259,7 @@ float SincResampler::fast_sinf(float t)
 
 float SincResampler::fast_cosf(float t)
 {
-    t = fabs(t);
+    t = std::abs(t);
     t *= float(double(LUT_SIZE) / (2.0 * M_PI));
     uint32_t left_index = static_cast<uint32_t>(t);
     float fraction = t - static_cast<float>(left_index);
@@ -270,7 +270,7 @@ float SincResampler::fast_cosf(float t)
 
 float SincResampler::fast_sincf(float t)
 {
-    t = fabs(t);
+    t = std::abs(t);
     assert(t <= SINC_WINDOW_SIZE);
     t *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));
     uint32_t left_index = static_cast<uint32_t>(t);
@@ -285,7 +285,7 @@ float SincResampler::window_func(float t)
     assert(t <= +float(SINC_WINDOW_SIZE));
     //return 0.42659f - 0.49656f * cosf(2.0f * PI_F * t / float(SINC_WINDOW_SIZE - 1)) +
     //    0.076849f * cosf(4.0f * PI_F * t / float(SINC_WINDOW_SIZE - 1));
-    t = fabs(t);
+    t = std::abs(t);
     t *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));
     uint32_t left_index = static_cast<uint32_t>(t);
     float fraction = t - static_cast<float>(left_index);
@@ -381,7 +381,7 @@ static const std::vector<float> Si_lut = []() {
 float BlepResampler::fast_Si(float t)
 {
     float signed_t = t;
-    t = fabs(t);
+    t = std::abs(t);
     t = std::min(t, float(SINC_WINDOW_SIZE));
     t *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));
     uint32_t left_index = static_cast<uint32_t>(t);
@@ -480,7 +480,7 @@ static const std::vector<float> Ti_lut = []() {
 
 float BlampResampler::fast_Ti(float t)
 {
-    t = fabs(t);
+    t = std::abs(t);
     float ct = t;
     ct = std::min(ct, float(SINC_WINDOW_SIZE));
     ct *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));

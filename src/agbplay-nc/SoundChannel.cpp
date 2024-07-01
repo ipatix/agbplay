@@ -56,17 +56,17 @@ SoundChannel::SoundChannel(const MP2KContext &ctx, MP2KTrack *track, SampleInfo 
     this->shiftMPTcompressed = 0x38;
 }
 
-void SoundChannel::Process(sample *buffer, size_t numSamples, const MixingArgs& args)
+void SoundChannel::Process(std::span<sample> buffer, const MixingArgs& args)
 {
     if (envState == EnvState::DEAD)
         return;
     stepEnvelope();
     if (envState == EnvState::DEAD)
         return;
-    if (numSamples == 0)
+    if (buffer.size() == 0)
         return;
 
-    float samplesPerBufferInv = 1.0f / float(numSamples);
+    const float samplesPerBufferInv = 1.0f / float(buffer.size());
 
     VolumeFade vol = getVol();
     vol.fromVolLeft *= args.vol;
@@ -89,14 +89,14 @@ void SoundChannel::Process(sample *buffer, size_t numSamples, const MixingArgs& 
         cargs.interStep /= 64.f; // different scale for GS
         // switch by GS type
         if (sInfo.samplePtr[1] == 0) {
-            processModPulse(buffer, numSamples, cargs, samplesPerBufferInv);
+            processModPulse(buffer, cargs, samplesPerBufferInv);
         } else if (sInfo.samplePtr[1] == 1) {
-            processSaw(buffer, numSamples, cargs);
+            processSaw(buffer, cargs);
         } else {
-            processTri(buffer, numSamples, cargs);
+            processTri(buffer, cargs);
         }
     } else {
-        processNormal(buffer, numSamples, cargs);
+        processNormal(buffer, cargs);
     }
     updateVolFade();
 }
@@ -254,33 +254,30 @@ void SoundChannel::updateVolFade()
  * private SoundChannel
  */
 
-void SoundChannel::processNormal(sample *buffer, size_t numSamples, ProcArgs& cargs) {
-    if (numSamples == 0)
+void SoundChannel::processNormal(std::span<sample> buffer, ProcArgs& cargs) {
+    if (buffer.size() == 0)
         return;
-    float outBuffer[numSamples];
+    float outBuffer[buffer.size()];
 
     bool running;
     if (this->isMPTcompressed) {
-        running = rs->Process(outBuffer, numSamples, cargs.interStep, sampleFetchCallbackMPTDecomp, this);
+        running = rs->Process(outBuffer, buffer.size(), cargs.interStep, sampleFetchCallbackMPTDecomp, this);
     } else {
-        running = rs->Process(outBuffer, numSamples, cargs.interStep, sampleFetchCallback, this);
+        running = rs->Process(outBuffer, buffer.size(), cargs.interStep, sampleFetchCallback, this);
     }
 
-    size_t i = 0;
-    do {
-        float samp = outBuffer[i++];
-
-        buffer->left  += samp * cargs.lVol;
-        buffer->right += samp * cargs.rVol;
-        buffer++;
+    for (size_t i = 0; i < buffer.size(); i++) {
+        const float samp = outBuffer[i];
+        buffer[i].left  += samp * cargs.lVol;
+        buffer[i].right += samp * cargs.rVol;
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
-    } while (--numSamples > 0);
+    }
     if (!running)
         Kill();
 }
 
-void SoundChannel::processModPulse(sample *buffer, size_t numSamples, ProcArgs& cargs, float nBlocksReciprocal)
+void SoundChannel::processModPulse(std::span<sample> buffer, ProcArgs& cargs, float nBlocksReciprocal)
 {
 #define DUTY_BASE 2
 #define DUTY_STEP 3
@@ -314,14 +311,13 @@ void SoundChannel::processModPulse(sample *buffer, size_t numSamples, ProcArgs& 
 #undef DEPTH
 #undef INIT_DUTY
 
-    do {
+    for (size_t i = 0; i < buffer.size(); i++) {
         float baseSamp = interPos < fThreshold ? 0.5f : -0.5f;
         // correct dc offset
         baseSamp += 0.5f - fThreshold;
         fThreshold += threshStep;
-        buffer->left  += baseSamp * cargs.lVol;
-        buffer->right += baseSamp * cargs.rVol;
-        buffer++;
+        buffer[i].left  += baseSamp * cargs.lVol;
+        buffer[i].right += baseSamp * cargs.rVol;
 
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
@@ -329,14 +325,14 @@ void SoundChannel::processModPulse(sample *buffer, size_t numSamples, ProcArgs& 
         interPos += cargs.interStep;
         // this below might glitch for too high frequencies, which usually shouldn't be used anyway
         if (interPos >= 1.0f) interPos -= 1.0f;
-    } while (--numSamples > 0);
+    }
 }
 
-void SoundChannel::processSaw(sample *buffer, size_t numSamples, ProcArgs& cargs)
+void SoundChannel::processSaw(std::span<sample> buffer, ProcArgs& cargs)
 {
     const uint32_t fix = 0x70;
 
-    do {
+    for (size_t i = 0; i < buffer.size(); i++) {
         /*
          * Sorry that the baseSamp calculation looks ugly.
          * For accuracy it's a 1 to 1 translation of the original assembly code
@@ -349,20 +345,19 @@ void SoundChannel::processSaw(sample *buffer, size_t numSamples, ProcArgs& cargs
         uint32_t var3 = var1 - (var2 >> 27);
         pos = var3 + uint32_t(int32_t(pos) >> 1);
 
-        float baseSamp = float((int32_t)pos) / 256.0f;
+        const float baseSamp = float((int32_t)pos) / 256.0f;
 
-        buffer->left  += baseSamp * cargs.lVol;
-        buffer->right += baseSamp * cargs.rVol;
-        buffer++;
+        buffer[i].left  += baseSamp * cargs.lVol;
+        buffer[i].right += baseSamp * cargs.rVol;
 
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
-    } while (--numSamples > 0);
+    }
 }
 
-void SoundChannel::processTri(sample *buffer, size_t numSamples, ProcArgs& cargs)
+void SoundChannel::processTri(std::span<sample> buffer, ProcArgs& cargs)
 {
-    do {
+    for (size_t i = 0; i < buffer.size(); i++) {
         interPos += cargs.interStep;
         if (interPos >= 1.0f) interPos -= 1.0f;
         float baseSamp;
@@ -372,13 +367,12 @@ void SoundChannel::processTri(sample *buffer, size_t numSamples, ProcArgs& cargs
             baseSamp = 3.0f - (4.0f * interPos);
         }
 
-        buffer->left  += baseSamp * cargs.lVol;
-        buffer->right += baseSamp * cargs.rVol;
-        buffer++;
+        buffer[i].left  += baseSamp * cargs.lVol;
+        buffer[i].right += baseSamp * cargs.rVol;
 
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
-    } while (--numSamples > 0);
+    }
 }
 
 bool SoundChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)

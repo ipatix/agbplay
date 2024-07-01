@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <memory>
+#include <span>
 
 #include "Types.h"
 #include "MP2KChn.h"
@@ -18,7 +19,7 @@ public:
     CGBChannel& operator=(const CGBChannel&) = delete;
     virtual ~CGBChannel() = default;
 
-    virtual void Process(sample *buffer, size_t numSamples, MixingArgs& args) = 0;
+    virtual void Process(std::span<sample> buffer, MixingArgs& args) = 0;
     void SetVol(uint16_t vol, int16_t pan);
     void Release() noexcept override;
     void Release(bool fastRelease) noexcept;
@@ -62,7 +63,7 @@ public:
     SquareChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep);
 
     void SetPitch(int16_t pitch) override;
-    void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
+    void Process(std::span<sample> buffer, MixingArgs& args) override;
 private:
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
 
@@ -88,7 +89,7 @@ public:
     WaveChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep);
 
     void SetPitch(int16_t pitch) override;
-    void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
+    void Process(std::span<sample> buffer, MixingArgs& args) override;
 private:
     bool IsChn3() const override;
     VolumeFade getVol() const;
@@ -106,7 +107,7 @@ public:
     NoiseChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note);
 
     void SetPitch(int16_t pitch) override;
-    void Process(sample *buffer, size_t numSamples, MixingArgs& args) override;
+    void Process(std::span<sample> buffer, MixingArgs& args) override;
 private:
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
     SincResampler srs;

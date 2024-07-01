@@ -392,7 +392,7 @@ void SquareChannel::SetPitch(int16_t pitch)
     }
 }
 
-void SquareChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
+void SquareChannel::Process(std::span<sample> buffer, MixingArgs& args)
 {
     if (envState == EnvState::DEAD)
         return;
@@ -402,7 +402,7 @@ void SquareChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
 
     updateVolFade();
 
-    if (numSamples == 0)
+    if (buffer.size() == 0)
         return;
 
     VolumeFade vol = getVol();
@@ -421,19 +421,17 @@ void SquareChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
         interStep = freq * args.sampleRateInv;
     }
 
-    float outBuffer[numSamples];
+    float outBuffer[buffer.size()];
 
-    rs->Process(outBuffer, numSamples, interStep, sampleFetchCallback, this);
+    rs->Process(outBuffer, buffer.size(), interStep, sampleFetchCallback, this);
 
-    size_t i = 0;
-    do {
-        float samp = outBuffer[i++];
-        buffer->left  += samp * lVol;
-        buffer->right += samp * rVol;
-        buffer++;
+    for (size_t i = 0; i < buffer.size(); i++) {
+        const float samp = outBuffer[i];
+        buffer[i].left  += samp * lVol;
+        buffer[i].right += samp * rVol;
         lVol += lVolStep;
         rVol += rVolStep;
-    } while (--numSamples > 0);
+    }
 
     if (sweepEnabled) {
         assert(sweepStartCount >= 0);
@@ -603,7 +601,7 @@ void WaveChannel::SetPitch(int16_t pitch)
         powf(2.0f, float(note.midiKeyPitch - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
-void WaveChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
+void WaveChannel::Process(std::span<sample> buffer, MixingArgs& args)
 {
     stepEnvelope();
     if (envState == EnvState::DEAD)
@@ -611,7 +609,7 @@ void WaveChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
 
     updateVolFade();
 
-    if (numSamples == 0)
+    if (buffer.size() == 0)
         return;
     VolumeFade vol = getVol();
 
@@ -621,19 +619,17 @@ void WaveChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     float rVol = vol.fromVolRight;
     float interStep = freq * args.sampleRateInv;
 
-    float outBuffer[numSamples];
+    float outBuffer[buffer.size()];
 
-    rs->Process(outBuffer, numSamples, interStep, sampleFetchCallback, this);
+    rs->Process(outBuffer, buffer.size(), interStep, sampleFetchCallback, this);
 
-    size_t i = 0;
-    do {
-        float samp = outBuffer[i++];
-        buffer->left  += samp * lVol;
-        buffer->right += samp * rVol;
-        buffer++;
+    for (size_t i = 0; i < buffer.size(); i++) {
+        float samp = outBuffer[i];
+        buffer[i].left  += samp * lVol;
+        buffer[i].right += samp * rVol;
         lVol += lVolStep;
         rVol += rVolStep;
-    } while (--numSamples > 0);
+    }
 }
 
 bool WaveChannel::IsChn3() const
@@ -780,7 +776,7 @@ void NoiseChannel::SetPitch(int16_t pitch)
     freq = std::max(4.5714f, noisefreq);
 }
 
-void NoiseChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
+void NoiseChannel::Process(std::span<sample> buffer, MixingArgs& args)
 {
     stepEnvelope();
     if (envState == EnvState::DEAD)
@@ -788,7 +784,7 @@ void NoiseChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
 
     updateVolFade();
 
-    if (numSamples == 0)
+    if (buffer.size() == 0)
         return;
 
     static const std::array<float, 4> noiseFreqs{
@@ -803,7 +799,7 @@ void NoiseChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     float rVol = vol.fromVolRight;
     float interStep = freq / noiseFreq;
 
-    float outBuffer[numSamples];
+    float outBuffer[buffer.size()];
 
     Resampler::ResamplerChainData rcd;
     rcd._this = rs.get();
@@ -811,19 +807,17 @@ void NoiseChannel::Process(sample *buffer, size_t numSamples, MixingArgs& args)
     rcd.cbPtr = sampleFetchCallback;
     rcd.cbdata = this;
 
-    srs.Process(outBuffer, numSamples,
+    srs.Process(outBuffer, buffer.size(),
             noiseFreq / float(STREAM_SAMPLERATE),
             Resampler::ResamplerChainSampleFetchCB, &rcd);
 
-    size_t i = 0;
-    do {
-        float samp = outBuffer[i++];
-        buffer->left  += samp * lVol;
-        buffer->right += samp * rVol;
-        buffer++;
+    for (size_t i = 0; i < buffer.size(); i++) {
+        const float samp = outBuffer[i];
+        buffer[i].left  += samp * lVol;
+        buffer[i].right += samp * rVol;
         lVol += lVolStep;
         rVol += rVolStep;
-    } while (--numSamples > 0);
+    }
 }
 
 bool NoiseChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)

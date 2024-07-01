@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <memory>
+#include <span>
 
 #include "Types.h"
 #include "MP2KChn.h"
@@ -25,7 +26,7 @@ public:
     SoundChannel(const SoundChannel&) = delete;
     SoundChannel& operator=(const SoundChannel&) = delete;
 
-    void Process(sample *buffer, size_t numSamples, const MixingArgs& args);
+    void Process(std::span<sample> buffer, const MixingArgs& args);
     void SetVol(uint16_t vol, int16_t pan);
     void Release() noexcept override;
     bool IsReleasing() const noexcept;
@@ -35,10 +36,10 @@ private:
     void stepEnvelope();
     void updateVolFade();
     VolumeFade getVol() const;
-    void processNormal(sample *buffer, size_t numSamples, ProcArgs& cargs);
-    void processModPulse(sample *buffer, size_t numSamples, ProcArgs& cargs, float nBlocksReciprocal);
-    void processSaw(sample *buffer, size_t numSamples, ProcArgs& cargs);
-    void processTri(sample *buffer, size_t numSamples, ProcArgs& cargs);
+    void processNormal(std::span<sample> buffer, ProcArgs& cargs);
+    void processModPulse(std::span<sample> buffer, ProcArgs& cargs, float nBlocksReciprocal);
+    void processSaw(std::span<sample> buffer, ProcArgs& cargs);
+    void processTri(std::span<sample> buffer, ProcArgs& cargs);
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
     static bool sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequires, void *cbdata);
 

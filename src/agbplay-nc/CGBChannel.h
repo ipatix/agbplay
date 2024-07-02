@@ -65,7 +65,7 @@ public:
     void SetPitch(int16_t pitch) override;
     void Process(std::span<sample> buffer, MixingArgs& args) override;
 private:
-    static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
+    bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired);
 
     static bool isSweepEnabled(uint8_t sweep);
     static bool isSweepAscending(uint8_t sweep);
@@ -93,7 +93,7 @@ public:
 private:
     bool IsChn3() const override;
     VolumeFade getVol() const;
-    static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
+    bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired);
     float dcCorrection100;
     float dcCorrection75;
     float dcCorrection50;
@@ -109,7 +109,7 @@ public:
     void SetPitch(int16_t pitch) override;
     void Process(std::span<sample> buffer, MixingArgs& args) override;
 private:
-    static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
+    bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired);
     SincResampler srs;
     uint16_t noiseState;
     uint16_t noiseLfsrMask;

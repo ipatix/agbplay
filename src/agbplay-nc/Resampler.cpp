@@ -8,22 +8,8 @@ Resampler::~Resampler()
 {
 }
 
-bool Resampler::ResamplerChainSampleFetchCB(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
-{
-    if (fetchBuffer.size() >= samplesRequired)
-        return true;
-    ResamplerChainData *chainData = static_cast<ResamplerChainData *>(cbdata);
-    size_t samplesToFetch = samplesRequired - fetchBuffer.size();
-    size_t i = fetchBuffer.size();
-    fetchBuffer.resize(samplesRequired);
-
-    return chainData->_this->Process({&fetchBuffer[i], samplesToFetch},
-            chainData->phaseInc, chainData->cbPtr, chainData->cbdata);
-}
-
 NearestResampler::NearestResampler()
 {
-    Reset();
 }
 
 NearestResampler::~NearestResampler()
@@ -36,7 +22,7 @@ void NearestResampler::Reset()
     phase = 0.0f;
 }
 
-bool NearestResampler::Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
+bool NearestResampler::Process(std::span<float> buffer, float phaseInc, const FetchCallback &fetchCallback)
 {
     if (buffer.size() == 0)
         return true;
@@ -44,7 +30,7 @@ bool NearestResampler::Process(std::span<float> buffer, float phaseInc, res_data
     size_t samplesRequired = size_t(phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
-    bool result = cbPtr(fetchBuffer, samplesRequired, cbdata);
+    bool result = fetchCallback(fetchBuffer, samplesRequired);
 
     size_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
@@ -76,7 +62,7 @@ void LinearResampler::Reset()
     phase = 0.0f;
 }
 
-bool LinearResampler::Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
+bool LinearResampler::Process(std::span<float> buffer, float phaseInc, const FetchCallback &fetchCallback)
 {
     if (buffer.size() == 0)
         return true;
@@ -87,7 +73,7 @@ bool LinearResampler::Process(std::span<float> buffer, float phaseInc, res_data_
     samplesRequired += 1;
     // fetch one more for linear interpolation
     samplesRequired += 1;
-    bool result = cbPtr(fetchBuffer, samplesRequired, cbdata);
+    bool result = fetchCallback(fetchBuffer, samplesRequired);
 
     size_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
@@ -137,7 +123,7 @@ void SincResampler::Reset()
     phase = 0.0f;
 }
 
-bool SincResampler::Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
+bool SincResampler::Process(std::span<float> buffer, float phaseInc, const FetchCallback &fetchCallback)
 {
     if (buffer.size()== 0)
         return true;
@@ -148,7 +134,7 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, res_data_fe
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
     samplesRequired += SINC_WINDOW_SIZE * 2;
-    bool result = cbPtr(fetchBuffer, samplesRequired, cbdata);
+    bool result = fetchCallback(fetchBuffer, samplesRequired);
 
     float sincStep = phaseInc > SINC_FILT_THRESH ? SINC_FILT_THRESH / phaseInc : 1.00f;
     //float sincStep = 1.0;
@@ -305,7 +291,7 @@ void BlepResampler::Reset()
     phase = 0.0f;
 }
 
-bool BlepResampler::Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
+bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const FetchCallback &fetchCallback)
 {
     if (buffer.size() == 0)
         return true;
@@ -316,7 +302,7 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, res_data_fe
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
     samplesRequired += SINC_WINDOW_SIZE * 2;
-    bool result = cbPtr(fetchBuffer, samplesRequired, cbdata);
+    bool result = fetchCallback(fetchBuffer, samplesRequired);
 
     float sincStep = SINC_FILT_THRESH / phaseInc;
 
@@ -403,7 +389,7 @@ void BlampResampler::Reset()
     phase = 0.0f;
 }
 
-bool BlampResampler::Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
+bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const FetchCallback &fetchCallback)
 {
     if (buffer.size() == 0)
         return true;
@@ -414,7 +400,7 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, res_data_f
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
     samplesRequired += SINC_WINDOW_SIZE * 2;
-    bool result = cbPtr(fetchBuffer, samplesRequired, cbdata);
+    bool result = fetchCallback(fetchBuffer, samplesRequired);
 
     float sincStep = SINC_FILT_THRESH / phaseInc;
     size_t fi = 0;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <span>
 
 /* 
  * res_data_fetch_cb fetches samplesRequired samples to fetchBuffer
@@ -13,7 +14,7 @@ typedef bool (*res_data_fetch_cb)(std::vector<float>& fetchBuffer, size_t sample
 class Resampler {
 public:
     // return value false by Process signals the "end of stream"
-    virtual bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) = 0;
+    virtual bool Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) = 0;
     virtual void Reset() = 0;
     virtual ~Resampler();
     static bool ResamplerChainSampleFetchCB(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
@@ -34,7 +35,7 @@ class NearestResampler : public Resampler {
 public:
     NearestResampler();
     ~NearestResampler() override;
-    bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+    bool Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
     void Reset() override;
 };
 
@@ -42,7 +43,7 @@ class LinearResampler : public Resampler {
 public:
     LinearResampler();
     ~LinearResampler() override;
-    bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+    bool Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
     void Reset() override;
 };
 
@@ -50,7 +51,7 @@ class SincResampler : public Resampler {
 public:
     SincResampler();
     ~SincResampler() override;
-    bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+    bool Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
     void Reset() override;
 private:
     static float fast_sinf(float t);
@@ -63,7 +64,7 @@ class BlepResampler : public Resampler {
 public:
     BlepResampler();
     ~BlepResampler() override;
-    bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+    bool Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
     void Reset() override;
 private:
     static float fast_Si(float t);
@@ -73,7 +74,7 @@ class BlampResampler : public Resampler {
 public:
     BlampResampler();
     ~BlampResampler() override;
-    bool Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
+    bool Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata) override;
     void Reset() override;
 private:
     static float fast_Ti(float t);

@@ -261,9 +261,9 @@ void SoundChannel::processNormal(std::span<sample> buffer, ProcArgs& cargs) {
 
     bool running;
     if (this->isMPTcompressed) {
-        running = rs->Process(outBuffer, buffer.size(), cargs.interStep, sampleFetchCallbackMPTDecomp, this);
+        running = rs->Process({outBuffer, buffer.size()}, cargs.interStep, sampleFetchCallbackMPTDecomp, this);
     } else {
-        running = rs->Process(outBuffer, buffer.size(), cargs.interStep, sampleFetchCallback, this);
+        running = rs->Process({outBuffer, buffer.size()}, cargs.interStep, sampleFetchCallback, this);
     }
 
     for (size_t i = 0; i < buffer.size(); i++) {

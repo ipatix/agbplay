@@ -17,7 +17,7 @@ bool Resampler::ResamplerChainSampleFetchCB(std::vector<float>& fetchBuffer, siz
     size_t i = fetchBuffer.size();
     fetchBuffer.resize(samplesRequired);
 
-    return chainData->_this->Process(&fetchBuffer[i], samplesToFetch,
+    return chainData->_this->Process({&fetchBuffer[i], samplesToFetch},
             chainData->phaseInc, chainData->cbPtr, chainData->cbdata);
 }
 
@@ -36,29 +36,27 @@ void NearestResampler::Reset()
     phase = 0.0f;
 }
 
-bool NearestResampler::Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
+bool NearestResampler::Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
 {
-    if (numBlocks == 0)
+    if (buffer.size() == 0)
         return true;
 
-    size_t samplesRequired = size_t(phase + phaseInc * static_cast<float>(numBlocks));
+    size_t samplesRequired = size_t(phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
     bool result = cbPtr(fetchBuffer, samplesRequired, cbdata);
 
-    int i = 0;
-    do {
-        float sample = fetchBuffer[i];
+    size_t fi = 0;
+    for (size_t i = 0; i < buffer.size(); i++) {
+        buffer[i] = fetchBuffer[fi];
         phase += phaseInc;
         int istep = static_cast<int>(phase);
         phase -= static_cast<float>(istep);
-        i += istep;
+        fi += istep;
+    }
 
-        *outData++ = sample;
-    } while (--numBlocks > 0);
-
-    // remove first i elements from the fetch buffer since they are no longer needed
-    fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + i);
+    // remove first fi elements from the fetch buffer since they are no longer needed
+    fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
     return result;
 }
@@ -78,34 +76,32 @@ void LinearResampler::Reset()
     phase = 0.0f;
 }
 
-bool LinearResampler::Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
+bool LinearResampler::Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
 {
-    if (numBlocks == 0)
+    if (buffer.size() == 0)
         return true;
 
     size_t samplesRequired = static_cast<size_t>(
-            phase + phaseInc * static_cast<float>(numBlocks));
+            phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
     // fetch one more for linear interpolation
     samplesRequired += 1;
     bool result = cbPtr(fetchBuffer, samplesRequired, cbdata);
 
-    int i = 0;
-    do {
-        float a = fetchBuffer[i];
-        float b = fetchBuffer[i+1];
-        float sample = a + phase * (b - a);
+    size_t fi = 0;
+    for (size_t i = 0; i < buffer.size(); i++) {
+        float a = fetchBuffer[fi];
+        float b = fetchBuffer[fi+1];
+        buffer[i] = a + phase * (b - a);
         phase += phaseInc;
         int istep = static_cast<int>(phase);
         phase -= static_cast<float>(istep);
-        i += istep;
+        fi += istep;
+    }
 
-        *outData++ = sample;
-    } while (--numBlocks > 0);
-
-    // remove first i elements from the fetch buffer since they are no longer needed
-    fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + i);
+    // remove first fi elements from the fetch buffer since they are no longer needed
+    fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
     return result;
 }
@@ -141,13 +137,13 @@ void SincResampler::Reset()
     phase = 0.0f;
 }
 
-bool SincResampler::Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
+bool SincResampler::Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
 {
-    if (numBlocks == 0)
+    if (buffer.size()== 0)
         return true;
 
     size_t samplesRequired = static_cast<size_t>(
-            phase + phaseInc * static_cast<float>(numBlocks));
+            phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
@@ -159,8 +155,8 @@ bool SincResampler::Process(float *outData, size_t numBlocks, float phaseInc, re
 
     //_print_debug("phaseInc=%f sincStep=%f", phaseInc, sincStep);
 
-    int i = 0;
-    do {
+    size_t fi = 0;
+    for (size_t i = 0; i < buffer.size(); i++) {
         float sampleSum = 0.0f;
         float kernelSum = 0.0f;
         for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi++) {
@@ -172,22 +168,22 @@ bool SincResampler::Process(float *outData, size_t numBlocks, float phaseInc, re
             //float s = triangle(sincIndex);
             //float w = 1.0f;
             float kernel = s * w;
-            sampleSum += kernel * fetchBuffer[i + wi + SINC_WINDOW_SIZE - 1];
+            sampleSum += kernel * fetchBuffer[fi + wi + SINC_WINDOW_SIZE - 1];
             kernelSum += kernel;
-            //_print_debug("s=%f w=%f fetchBuffer[i + wi]=%f", s, w, fetchBuffer[i + wi]);
+            //_print_debug("s=%f w=%f fetchBuffer[fi + wi]=%f", s, w, fetchBuffer[fi + wi]);
         }
         //_print_debug("sum=%f", sum);
         phase += phaseInc;
         int istep = static_cast<int>(phase);
         phase -= static_cast<float>(istep);
-        i += istep;
+        fi += istep;
 
-        *outData++ = sampleSum / kernelSum;
+        buffer[i] = sampleSum / kernelSum;
         //*outData++ = sampleSum;
         //_print_debug("kernel sum: %f\n", kernelSum);
-    } while (--numBlocks > 0);
-    // remove first i elements from the fetch buffer since they are no longer needed
-    fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + i);
+    }
+    // remove first fi elements from the fetch buffer since they are no longer needed
+    fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
     return result;
 }
@@ -309,13 +305,13 @@ void BlepResampler::Reset()
     phase = 0.0f;
 }
 
-bool BlepResampler::Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
+bool BlepResampler::Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
 {
-    if (numBlocks == 0)
+    if (buffer.size() == 0)
         return true;
 
     size_t samplesRequired = static_cast<size_t>(
-            phase + phaseInc * static_cast<float>(numBlocks));
+            phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
@@ -324,8 +320,8 @@ bool BlepResampler::Process(float *outData, size_t numBlocks, float phaseInc, re
 
     float sincStep = SINC_FILT_THRESH / phaseInc;
 
-    int i = 0;
-    do {
+    size_t fi = 0;
+    for (size_t i = 0; i < buffer.size(); i++) {
         float sampleSum = 0.0f;
         float kernelSum = 0.0f;
         for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi++) {
@@ -334,20 +330,20 @@ bool BlepResampler::Process(float *outData, size_t numBlocks, float phaseInc, re
             float sl = fast_Si(SiIndexLeft);
             float sr = fast_Si(SiIndexRight);
             float kernel = sr - sl;
-            sampleSum += kernel * fetchBuffer[i + wi + SINC_WINDOW_SIZE - 1];
+            sampleSum += kernel * fetchBuffer[fi + wi + SINC_WINDOW_SIZE - 1];
             kernelSum += kernel;
         }
         phase += phaseInc;
         int istep = static_cast<int>(phase);
         phase -= static_cast<float>(istep);
-        i += istep;
+        fi += istep;
 
-        *outData++ = sampleSum / kernelSum;
+        buffer[i] = sampleSum / kernelSum;
         //*outData++ = sampleSum;
         //_print_debug("kernel sum: %f\n", kernelSum);
-    } while (--numBlocks > 0);
+    }
     // remove first i elements from the fetch buffer since they are no longer needed
-    fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + i);
+    fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
     return result;
 }
@@ -407,13 +403,13 @@ void BlampResampler::Reset()
     phase = 0.0f;
 }
 
-bool BlampResampler::Process(float *outData, size_t numBlocks, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
+bool BlampResampler::Process(std::span<float> buffer, float phaseInc, res_data_fetch_cb cbPtr, void *cbdata)
 {
-    if (numBlocks == 0)
+    if (buffer.size() == 0)
         return true;
 
     size_t samplesRequired = static_cast<size_t>(
-            phase + phaseInc * static_cast<float>(numBlocks));
+            phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
@@ -421,8 +417,8 @@ bool BlampResampler::Process(float *outData, size_t numBlocks, float phaseInc, r
     bool result = cbPtr(fetchBuffer, samplesRequired, cbdata);
 
     float sincStep = SINC_FILT_THRESH / phaseInc;
-    int i = 0;
-    do {
+    size_t fi = 0;
+    for (size_t i = 0; i < buffer.size(); i++) {
         float sampleSum = 0.0f;
         float kernelSum = 0.0f;
         for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi++) {
@@ -433,18 +429,18 @@ bool BlampResampler::Process(float *outData, size_t numBlocks, float phaseInc, r
             float sm = fast_Ti(TiIndexMiddle);
             float sr = fast_Ti(TiIndexRight);
             float kernel = sr - 2.0f * sm + sl;
-            sampleSum += kernel * fetchBuffer[i + wi + SINC_WINDOW_SIZE - 1];
+            sampleSum += kernel * fetchBuffer[fi + wi + SINC_WINDOW_SIZE - 1];
             kernelSum += kernel;
         }
         phase += phaseInc;
         int istep = static_cast<int>(phase);
         phase -= static_cast<float>(istep);
-        i += istep;
+        fi += istep;
 
-        *outData++ = sampleSum / kernelSum;
-    } while (--numBlocks > 0);
+        buffer[i] = sampleSum / kernelSum;
+    }
     // remove first i elements from the fetch buffer since they are no longer needed
-    fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + i);
+    fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
     return result;
 }

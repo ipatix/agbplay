@@ -40,8 +40,8 @@ private:
     void processModPulse(std::span<sample> buffer, ProcArgs& cargs, float samplesPerBufferInv);
     void processSaw(std::span<sample> buffer, ProcArgs& cargs);
     void processTri(std::span<sample> buffer, ProcArgs& cargs);
-    static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);
-    static bool sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequires, void *cbdata);
+    bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired);
+    bool sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequires);
 
     const MP2KContext &ctx;
     SampleInfo sInfo;

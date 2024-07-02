@@ -261,9 +261,11 @@ void SoundChannel::processNormal(std::span<sample> buffer, ProcArgs& cargs) {
 
     bool running;
     if (this->isMPTcompressed) {
-        running = rs->Process({outBuffer, buffer.size()}, cargs.interStep, sampleFetchCallbackMPTDecomp, this);
+        FetchCallback cb = std::bind(&SoundChannel::sampleFetchCallbackMPTDecomp, this, std::placeholders::_1, std::placeholders::_2);
+        running = rs->Process({outBuffer, buffer.size()}, cargs.interStep, cb);
     } else {
-        running = rs->Process({outBuffer, buffer.size()}, cargs.interStep, sampleFetchCallback, this);
+        FetchCallback cb = std::bind(&SoundChannel::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
+        running = rs->Process({outBuffer, buffer.size()}, cargs.interStep, cb);
     }
 
     for (size_t i = 0; i < buffer.size(); i++) {
@@ -375,27 +377,26 @@ void SoundChannel::processTri(std::span<sample> buffer, ProcArgs& cargs)
     }
 }
 
-bool SoundChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
+bool SoundChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;
-    SoundChannel *_this = static_cast<SoundChannel *>(cbdata);
     size_t samplesToFetch = samplesRequired - fetchBuffer.size();
     size_t i = fetchBuffer.size();
     fetchBuffer.resize(samplesRequired);
 
     do {
-        size_t samplesTilLoop = _this->sInfo.endPos - _this->pos;
+        size_t samplesTilLoop = sInfo.endPos - pos;
         size_t thisFetch = std::min(samplesTilLoop, samplesToFetch);
 
         samplesToFetch -= thisFetch;
         do {
-            fetchBuffer[i++] = float(_this->sInfo.samplePtr[_this->pos++]) / 128.0f;
+            fetchBuffer[i++] = float(sInfo.samplePtr[pos++]) / 128.0f;
         } while (--thisFetch > 0);
 
-        if (_this->pos >= _this->sInfo.endPos) {
-            if (_this->sInfo.loopEnabled) {
-                _this->pos = _this->sInfo.loopPos;
+        if (pos >= sInfo.endPos) {
+            if (sInfo.loopEnabled) {
+                pos = sInfo.loopPos;
             } else {
                 std::fill(fetchBuffer.begin() + i, fetchBuffer.end(), 0.0f);
                 return false;
@@ -405,26 +406,25 @@ bool SoundChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t s
     return true;
 }
 
-bool SoundChannel::sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
+bool SoundChannel::sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;
-    SoundChannel *_this = static_cast<SoundChannel *>(cbdata);
     size_t samplesToFetch = samplesRequired - fetchBuffer.size();
     size_t i = fetchBuffer.size();
     fetchBuffer.resize(samplesRequired);
 
     do {
-        size_t samplesTilLoop = _this->sInfo.endPos - _this->pos;
+        size_t samplesTilLoop = sInfo.endPos - pos;
         size_t thisFetch = std::min(samplesTilLoop, samplesToFetch);
 
         samplesToFetch -= thisFetch;
         do {
             // once again, I just took over the assembly implementation
             // there is probably plenty of room to make this nicer, but it at least works for now
-            bool loNibble = _this->pos & 1;
-            uint32_t samplePos = _this->pos++ >> 1u;
-            int8_t data = _this->sInfo.samplePtr[samplePos];
+            bool loNibble = pos & 1;
+            uint32_t samplePos = pos++ >> 1u;
+            int8_t data = sInfo.samplePtr[samplePos];
 
             // 4 bit nibble is shifted up to bit 31..28
             int32_t nibble;
@@ -434,20 +434,20 @@ bool SoundChannel::sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer,
                 nibble = (int32_t(data) << 24) & 0xF0000000;
 
             // in the ARM ASM you can easily just shift by more than 31, but this does not work on x86/C++
-            if (_this->shiftMPTcompressed <= 63) {
-                int32_t actualShift = (int32_t)(_this->shiftMPTcompressed >> 1u);
-                _this->levelMPTcompressed = int16_t(_this->levelMPTcompressed + (nibble >> actualShift));
+            if (shiftMPTcompressed <= 63) {
+                int32_t actualShift = (int32_t)(shiftMPTcompressed >> 1u);
+                levelMPTcompressed = int16_t(levelMPTcompressed + (nibble >> actualShift));
             }
 
             if (nibble & 0x80000000)
                 nibble = -nibble;
-            _this->shiftMPTcompressed = uint8_t(_this->shiftMPTcompressed + 4);
-            _this->shiftMPTcompressed = uint8_t((uint32_t)_this->shiftMPTcompressed - ((uint32_t)nibble >> 28u));
+            shiftMPTcompressed = uint8_t(shiftMPTcompressed + 4);
+            shiftMPTcompressed = uint8_t((uint32_t)shiftMPTcompressed - ((uint32_t)nibble >> 28u));
 
-            fetchBuffer[i++] = float(_this->levelMPTcompressed) / 128.0f;
+            fetchBuffer[i++] = float(levelMPTcompressed) / 128.0f;
         } while (--thisFetch > 0);
 
-        if (_this->pos >= _this->sInfo.endPos) {
+        if (pos >= sInfo.endPos) {
             // MPT compressed sample cannot loop
             std::fill(fetchBuffer.begin() + i, fetchBuffer.end(), 0.0f);
             return false;

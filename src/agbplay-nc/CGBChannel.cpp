@@ -424,7 +424,8 @@ void SquareChannel::Process(std::span<sample> buffer, MixingArgs& args)
     // TODO use a global scratch buffer instead
     float outBuffer[buffer.size()];
 
-    rs->Process({outBuffer, buffer.size()}, interStep, sampleFetchCallback, this);
+    FetchCallback cb = std::bind(&SquareChannel::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
+    rs->Process({outBuffer, buffer.size()}, interStep, cb);
 
     for (size_t i = 0; i < buffer.size(); i++) {
         const float samp = outBuffer[i];
@@ -450,18 +451,17 @@ void SquareChannel::Process(std::span<sample> buffer, MixingArgs& args)
     }
 }
 
-bool SquareChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
+bool SquareChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;
-    SquareChannel *_this = static_cast<SquareChannel *>(cbdata);
     size_t samplesToFetch = samplesRequired - fetchBuffer.size();
     size_t i = fetchBuffer.size();
     fetchBuffer.resize(samplesRequired);
 
     do {
-        fetchBuffer[i++] = _this->pat[_this->pos++];
-        _this->pos %= 8;
+        fetchBuffer[i++] = pat[pos++];
+        pos %= 8;
     } while (--samplesToFetch > 0);
     return true;
 }
@@ -622,10 +622,11 @@ void WaveChannel::Process(std::span<sample> buffer, MixingArgs& args)
 
     float outBuffer[buffer.size()];
 
-    rs->Process({outBuffer, buffer.size()}, interStep, sampleFetchCallback, this);
+    FetchCallback cb = std::bind(&WaveChannel::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
+    rs->Process({outBuffer, buffer.size()}, interStep, cb);
 
     for (size_t i = 0; i < buffer.size(); i++) {
-        float samp = outBuffer[i];
+        const float samp = outBuffer[i];
         buffer[i].left  += samp * lVol;
         buffer[i].right += samp * rVol;
         lVol += lVolStep;
@@ -666,43 +667,42 @@ VolumeFade WaveChannel::getVol() const
     return retval;
 }
 
-bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
+bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;
-    WaveChannel *_this = static_cast<WaveChannel *>(cbdata);
     size_t samplesToFetch = samplesRequired - fetchBuffer.size();
     size_t i = fetchBuffer.size();
     fetchBuffer.resize(samplesRequired);
 
-    if (_this->ctx.agbplaySoundMode.accurateCh3Quantization) {
+    if (ctx.agbplaySoundMode.accurateCh3Quantization) {
         /* WARNING; VERY UGLY AND HACKY */
-        VolumeFade fade = _this->getVol();
+        VolumeFade fade = getVol();
         const float fromVol = std::max(fade.fromVolLeft, fade.fromVolRight);
         const float toVol = std::max(fade.toVolLeft, fade.toVolRight);
         /* I'm not entirely certain whether the hardware uses arithmetic shifts or logic shifts (with bias).
          * Using logic shifts for now, hopefully works good enough... */
-        auto mapFunc = [_this](float x, float& compensationScale, float& dcCorrection, uint32_t& shiftA, uint32_t& shiftB) {
+        auto mapFunc = [this](float x, float& compensationScale, float& dcCorrection, uint32_t& shiftA, uint32_t& shiftB) {
             if (x < 6.0f / 32.0f) {
                 shiftA = 2;
                 shiftB = 4;
                 compensationScale = 4.0f;
-                dcCorrection = _this->dcCorrection25;
+                dcCorrection = dcCorrection25;
             } else if (x < 10.0f / 32.0f) {
                 shiftA = 1;
                 shiftB = 4;
                 compensationScale = 2.0f;
-                dcCorrection = _this->dcCorrection50;
+                dcCorrection = dcCorrection50;
             } else if (x < 14.0f / 32.0f) {
                 shiftA = 1;
                 shiftB = 2;
                 compensationScale = 4.0f / 3.0f;
-                dcCorrection = _this->dcCorrection75;
+                dcCorrection = dcCorrection75;
             } else {
                 shiftA = 0;
                 shiftB = 4;
                 compensationScale = 1.0f;
-                dcCorrection = _this->dcCorrection100;
+                dcCorrection = dcCorrection100;
             }
         };
         uint32_t shiftAFrom, shiftATo, shiftBFrom, shiftBTo;
@@ -716,12 +716,12 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
         float t = 0.0f;
         float t_inc = 1.0f / static_cast<float>(samplesToFetch);
         while (samplesToFetch-- > 0) {
-            uint32_t pos = (_this->pos++) % 32;
+            const uint32_t pos = (this->pos++) % 32;
             uint8_t nibble;
             if (pos % 2 == 0)
-                nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] >> 4u);
+                nibble = static_cast<uint8_t>(wavePtr[pos / 2] >> 4u);
             else
-                nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] & 0xF);
+                nibble = static_cast<uint8_t>(wavePtr[pos / 2] & 0xF);
             float sampleFrom = (static_cast<float>((nibble >> shiftAFrom) + (nibble >> shiftBFrom)) + dcCorrectionFrom) * compensationScaleFrom;
             float sampleTo   = (static_cast<float>((nibble >> shiftATo  ) + (nibble >> shiftBTo  )) + dcCorrectionTo  ) * compensationScaleTo;
             float sample = (sampleFrom + t * (sampleTo - sampleFrom)) * (1.0f / 16.0f);
@@ -730,13 +730,13 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
         }
     } else {
         while (samplesToFetch-- > 0) {
-            uint32_t pos = (_this->pos++) % 32;
+            const uint32_t pos = (this->pos++) % 32;
             uint8_t nibble;
             if (pos % 2 == 0)
-                nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] >> 4u);
+                nibble = static_cast<uint8_t>(wavePtr[pos / 2] >> 4u);
             else
-                nibble = static_cast<uint8_t>(_this->wavePtr[pos / 2] & 0xF);
-            float sample = nibble * (1.0f / 16.0f) + _this->dcCorrection100;
+                nibble = static_cast<uint8_t>(wavePtr[pos / 2] & 0xF);
+            float sample = nibble * (1.0f / 16.0f) + dcCorrection100;
             fetchBuffer[i++] = sample;
         }
     }
@@ -802,15 +802,22 @@ void NoiseChannel::Process(std::span<sample> buffer, MixingArgs& args)
 
     float outBuffer[buffer.size()];
 
-    Resampler::ResamplerChainData rcd;
-    rcd._this = rs.get();
-    rcd.phaseInc = interStep;
-    rcd.cbPtr = sampleFetchCallback;
-    rcd.cbdata = this;
+    /* In order to get accurate noise sound like on hardware, we first nearest-neighbour/zero-order-hold
+     * interpolate the generated noise to whatever is the current DAC PWM rate.
+     * After that, we use the bandlimited sinc resampler to convert this to our actual output rate to
+     * avoid aliasing.
+     * Accordingly, we need to perform two resampling steps, thus the somewhat confusing lambda. */
+    FetchCallback cbSinc = [this, interStep](std::vector<float> &fetchBuffer, size_t samplesRequired) {
+        if (fetchBuffer.size() >= samplesRequired)
+            return true;
+        const size_t samplesToFetch = samplesRequired - fetchBuffer.size();
+        const size_t i = fetchBuffer.size();
+        fetchBuffer.resize(samplesRequired);
+        FetchCallback cbNearest = std::bind(&NoiseChannel::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
+        return rs->Process({&fetchBuffer[i], samplesToFetch}, interStep, cbNearest);
+    };
 
-    srs.Process({outBuffer, buffer.size()},
-            noiseFreq / float(STREAM_SAMPLERATE),
-            Resampler::ResamplerChainSampleFetchCB, &rcd);
+    srs.Process({outBuffer, buffer.size()}, noiseFreq / float(STREAM_SAMPLERATE), cbSinc);
 
     for (size_t i = 0; i < buffer.size(); i++) {
         const float samp = outBuffer[i];
@@ -821,24 +828,23 @@ void NoiseChannel::Process(std::span<sample> buffer, MixingArgs& args)
     }
 }
 
-bool NoiseChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata)
+bool NoiseChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;
-    NoiseChannel *_this = static_cast<NoiseChannel *>(cbdata);
     size_t samplesToFetch = samplesRequired - fetchBuffer.size();
     size_t i = fetchBuffer.size();
     fetchBuffer.resize(samplesRequired);
 
     do {
         float sample;
-        if (_this->noiseState & 1) {
+        if (noiseState & 1) {
             sample = 0.5f;
-            _this->noiseState >>= 1;
-            _this->noiseState ^= _this->noiseLfsrMask;
+            noiseState >>= 1;
+            noiseState ^= noiseLfsrMask;
         } else {
             sample = -0.5f;
-            _this->noiseState >>= 1;
+            noiseState >>= 1;
         }
         fetchBuffer[i++] = sample;
     } while (--samplesToFetch > 0);

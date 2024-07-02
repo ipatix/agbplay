@@ -277,7 +277,7 @@ void SoundChannel::processNormal(std::span<sample> buffer, ProcArgs& cargs) {
         Kill();
 }
 
-void SoundChannel::processModPulse(std::span<sample> buffer, ProcArgs& cargs, float nBlocksReciprocal)
+void SoundChannel::processModPulse(std::span<sample> buffer, ProcArgs& cargs, float samplesPerBufferInv)
 {
 #define DUTY_BASE 2
 #define DUTY_STEP 3
@@ -304,7 +304,7 @@ void SoundChannel::processModPulse(std::span<sample> buffer, ProcArgs& cargs, fl
 
     float deltaThresh = toThresh - fromThresh;
     float baseThresh = fromThresh + (deltaThresh * (float(envInterStep) * (1.0f / float(INTERFRAMES))));
-    float threshStep = deltaThresh * (1.0f / float(INTERFRAMES)) * nBlocksReciprocal;
+    float threshStep = deltaThresh * (1.0f / float(INTERFRAMES)) * samplesPerBufferInv;
     float fThreshold = baseThresh;
 #undef DUTY_BASE
 #undef DUTY_STEP

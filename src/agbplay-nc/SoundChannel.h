@@ -37,7 +37,7 @@ private:
     void updateVolFade();
     VolumeFade getVol() const;
     void processNormal(std::span<sample> buffer, ProcArgs& cargs);
-    void processModPulse(std::span<sample> buffer, ProcArgs& cargs, float nBlocksReciprocal);
+    void processModPulse(std::span<sample> buffer, ProcArgs& cargs, float samplesPerBufferInv);
     void processSaw(std::span<sample> buffer, ProcArgs& cargs);
     void processTri(std::span<sample> buffer, ProcArgs& cargs);
     static bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired, void *cbdata);

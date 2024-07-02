@@ -421,9 +421,10 @@ void SquareChannel::Process(std::span<sample> buffer, MixingArgs& args)
         interStep = freq * args.sampleRateInv;
     }
 
+    // TODO use a global scratch buffer instead
     float outBuffer[buffer.size()];
 
-    rs->Process(outBuffer, buffer.size(), interStep, sampleFetchCallback, this);
+    rs->Process({outBuffer, buffer.size()}, interStep, sampleFetchCallback, this);
 
     for (size_t i = 0; i < buffer.size(); i++) {
         const float samp = outBuffer[i];
@@ -621,7 +622,7 @@ void WaveChannel::Process(std::span<sample> buffer, MixingArgs& args)
 
     float outBuffer[buffer.size()];
 
-    rs->Process(outBuffer, buffer.size(), interStep, sampleFetchCallback, this);
+    rs->Process({outBuffer, buffer.size()}, interStep, sampleFetchCallback, this);
 
     for (size_t i = 0; i < buffer.size(); i++) {
         float samp = outBuffer[i];
@@ -807,7 +808,7 @@ void NoiseChannel::Process(std::span<sample> buffer, MixingArgs& args)
     rcd.cbPtr = sampleFetchCallback;
     rcd.cbdata = this;
 
-    srs.Process(outBuffer, buffer.size(),
+    srs.Process({outBuffer, buffer.size()},
             noiseFreq / float(STREAM_SAMPLERATE),
             Resampler::ResamplerChainSampleFetchCB, &rcd);
 

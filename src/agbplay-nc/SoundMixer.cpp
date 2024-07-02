@@ -13,7 +13,7 @@
  */
 
 SoundMixer::SoundMixer(MP2KContext& ctx, uint32_t sampleRate, float masterVolume)
-    : ctx(ctx), sampleRate(sampleRate), masterVolume(masterVolume)
+    : ctx(ctx), sampleRate(sampleRate), masterVolume(masterVolume), scratchBuffer(samplesPerBuffer)
 {
 }
 
@@ -36,8 +36,6 @@ void SoundMixer::UpdateFixedModeRate()
     };
 
     fixedModeRate = rateTable[ctx.mp2kSoundMode.freq % rateTable.size()];
-
-    samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
 
     const uint8_t numDmaBuffers = std::max(
         static_cast<uint8_t>(2),

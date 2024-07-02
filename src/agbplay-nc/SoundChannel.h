@@ -22,7 +22,7 @@ private:
         float interStep;
     };
 public:
-    SoundChannel(const MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed);
+    SoundChannel(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed);
     SoundChannel(const SoundChannel&) = delete;
     SoundChannel& operator=(const SoundChannel&) = delete;
 
@@ -43,7 +43,7 @@ private:
     bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired);
     bool sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequires);
 
-    const MP2KContext &ctx;
+    MP2KContext &ctx;
     SampleInfo sInfo;
     bool fixed;
     bool isGS;              // is Golden Sun synth

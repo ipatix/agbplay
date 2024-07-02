@@ -13,7 +13,7 @@
  * public SoundChannel
  */
 
-SoundChannel::SoundChannel(const MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
+SoundChannel::SoundChannel(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
     : MP2KChn(track, note, env), ctx(ctx), sInfo(sInfo), fixed(fixed) 
 {
     const ResamplerType t = fixed ? ctx.agbplaySoundMode.resamplerTypeFixed : ctx.agbplaySoundMode.resamplerTypeNormal;
@@ -257,19 +257,19 @@ void SoundChannel::updateVolFade()
 void SoundChannel::processNormal(std::span<sample> buffer, ProcArgs& cargs) {
     if (buffer.size() == 0)
         return;
-    float outBuffer[buffer.size()];
+    assert(ctx.mixer.scratchBuffer.size() == buffer.size());
 
     bool running;
     if (this->isMPTcompressed) {
         FetchCallback cb = std::bind(&SoundChannel::sampleFetchCallbackMPTDecomp, this, std::placeholders::_1, std::placeholders::_2);
-        running = rs->Process({outBuffer, buffer.size()}, cargs.interStep, cb);
+        running = rs->Process(ctx.mixer.scratchBuffer, cargs.interStep, cb);
     } else {
         FetchCallback cb = std::bind(&SoundChannel::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
-        running = rs->Process({outBuffer, buffer.size()}, cargs.interStep, cb);
+        running = rs->Process(ctx.mixer.scratchBuffer, cargs.interStep, cb);
     }
 
     for (size_t i = 0; i < buffer.size(); i++) {
-        const float samp = outBuffer[i];
+        const float samp = ctx.mixer.scratchBuffer[i];
         buffer[i].left  += samp * cargs.lVol;
         buffer[i].right += samp * cargs.rVol;
         cargs.lVol += cargs.lVolStep;

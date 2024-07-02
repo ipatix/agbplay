@@ -14,7 +14,7 @@ struct MP2KTrack;
 class CGBChannel : public MP2KChn
 {
 public: 
-    CGBChannel(const MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, bool useStairstep = false);
+    CGBChannel(MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, bool useStairstep = false);
     CGBChannel(const CGBChannel&) = delete;
     CGBChannel& operator=(const CGBChannel&) = delete;
     virtual ~CGBChannel() = default;
@@ -37,7 +37,7 @@ protected:
     static float timer2freq(float timer);
     static float freq2timer(float freq);
 
-    const MP2KContext &ctx;
+    MP2KContext &ctx;
     enum class Pan { LEFT, CENTER, RIGHT };
     const bool useStairstep;
     bool fastRelease = false;
@@ -60,7 +60,7 @@ protected:
 class SquareChannel : public CGBChannel
 {
 public:
-    SquareChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep);
+    SquareChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep);
 
     void SetPitch(int16_t pitch) override;
     void Process(std::span<sample> buffer, MixingArgs& args) override;
@@ -86,7 +86,7 @@ private:
 class WaveChannel : public CGBChannel
 {
 public:
-    WaveChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep);
+    WaveChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep);
 
     void SetPitch(int16_t pitch) override;
     void Process(std::span<sample> buffer, MixingArgs& args) override;
@@ -104,7 +104,7 @@ private:
 class NoiseChannel : public CGBChannel
 {
 public:
-    NoiseChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note);
+    NoiseChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note);
 
     void SetPitch(int16_t pitch) override;
     void Process(std::span<sample> buffer, MixingArgs& args) override;

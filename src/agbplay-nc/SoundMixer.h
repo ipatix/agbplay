@@ -34,14 +34,17 @@ public:
 private:
     MP2KContext& ctx;
 
-    uint32_t sampleRate;
+    const uint32_t sampleRate;
     uint32_t fixedModeRate = 13379;
-    size_t samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
+    const size_t samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
 
     // volume control related stuff
 
-    float masterVolume;
+    const float masterVolume;
     float fadePos = 1.0f;
     float fadeStepPerMicroframe = 0.0f;
     size_t fadeMicroframesLeft = 0;
+
+public:
+    std::vector<float> scratchBuffer;
 };

@@ -15,7 +15,7 @@
  * public CGBChannel
  */
 
-CGBChannel::CGBChannel(const MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, bool useStairstep)
+CGBChannel::CGBChannel(MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, bool useStairstep)
     : MP2KChn(track, note, env), ctx(ctx), useStairstep(useStairstep)
 {
     this->env.att &= 0x7;
@@ -357,7 +357,7 @@ void CGBChannel::applyVol()
  * public SquareChannel
  */
 
-SquareChannel::SquareChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep)
+SquareChannel::SquareChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep)
     : CGBChannel(ctx, track, env, note)
       , sweep(sweep)
       , sweepEnabled(isSweepEnabled(sweep))
@@ -421,14 +421,12 @@ void SquareChannel::Process(std::span<sample> buffer, MixingArgs& args)
         interStep = freq * args.sampleRateInv;
     }
 
-    // TODO use a global scratch buffer instead
-    float outBuffer[buffer.size()];
-
+    assert(buffer.size() == ctx.mixer.scratchBuffer.size());
     FetchCallback cb = std::bind(&SquareChannel::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
-    rs->Process({outBuffer, buffer.size()}, interStep, cb);
+    rs->Process(ctx.mixer.scratchBuffer, interStep, cb);
 
     for (size_t i = 0; i < buffer.size(); i++) {
-        const float samp = outBuffer[i];
+        const float samp = ctx.mixer.scratchBuffer[i];
         buffer[i].left  += samp * lVol;
         buffer[i].right += samp * rVol;
         lVol += lVolStep;
@@ -535,7 +533,7 @@ uint8_t SquareChannel::sweepTime(uint8_t sweep)
  * public WaveChannel
  */
 
-WaveChannel::WaveChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep)
+WaveChannel::WaveChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep)
     : CGBChannel(ctx, track, env, note, useStairstep)
 {
     static const uint8_t dummyWave[16] = {0};
@@ -620,13 +618,12 @@ void WaveChannel::Process(std::span<sample> buffer, MixingArgs& args)
     float rVol = vol.fromVolRight;
     float interStep = freq * args.sampleRateInv;
 
-    float outBuffer[buffer.size()];
-
+    assert(ctx.mixer.scratchBuffer.size() == buffer.size());
     FetchCallback cb = std::bind(&WaveChannel::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
-    rs->Process({outBuffer, buffer.size()}, interStep, cb);
+    rs->Process(ctx.mixer.scratchBuffer, interStep, cb);
 
     for (size_t i = 0; i < buffer.size(); i++) {
-        const float samp = outBuffer[i];
+        const float samp = ctx.mixer.scratchBuffer[i];
         buffer[i].left  += samp * lVol;
         buffer[i].right += samp * rVol;
         lVol += lVolStep;
@@ -748,7 +745,7 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
  * public NoiseChannel
  */
 
-NoiseChannel::NoiseChannel(const MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note)
+NoiseChannel::NoiseChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note)
     : CGBChannel(ctx, track, env, note)
 {
     this->rs = std::make_unique<NearestResampler>();
@@ -800,8 +797,7 @@ void NoiseChannel::Process(std::span<sample> buffer, MixingArgs& args)
     float rVol = vol.fromVolRight;
     float interStep = freq / noiseFreq;
 
-    float outBuffer[buffer.size()];
-
+    assert(ctx.mixer.scratchBuffer.size() == buffer.size());
     /* In order to get accurate noise sound like on hardware, we first nearest-neighbour/zero-order-hold
      * interpolate the generated noise to whatever is the current DAC PWM rate.
      * After that, we use the bandlimited sinc resampler to convert this to our actual output rate to
@@ -817,10 +813,10 @@ void NoiseChannel::Process(std::span<sample> buffer, MixingArgs& args)
         return rs->Process({&fetchBuffer[i], samplesToFetch}, interStep, cbNearest);
     };
 
-    srs.Process({outBuffer, buffer.size()}, noiseFreq / float(STREAM_SAMPLERATE), cbSinc);
+    srs.Process(ctx.mixer.scratchBuffer, noiseFreq / float(STREAM_SAMPLERATE), cbSinc);
 
     for (size_t i = 0; i < buffer.size(); i++) {
-        const float samp = outBuffer[i];
+        const float samp = ctx.mixer.scratchBuffer[i];
         buffer[i].left  += samp * lVol;
         buffer[i].right += samp * rVol;
         lVol += lVolStep;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <span>
 
 #include "Types.h"
 
@@ -12,7 +13,7 @@ public:
     LoudnessCalculator(LoudnessCalculator&&) = default;
     LoudnessCalculator& operator=(const LoudnessCalculator&) = delete;
 
-    void CalcLoudness(const sample *audio, size_t numSamples);
+    void CalcLoudness(std::span<const sample> buffer);
     void GetLoudness(float& lVol, float& rVol);
     void Reset();
 private:

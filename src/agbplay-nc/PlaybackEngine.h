@@ -10,7 +10,6 @@
 #include <portaudiocpp/PortAudioCpp.hxx>
 
 #include "Constants.h"
-#include "Ringbuffer.h"
 #include "LoudnessCalculator.h"
 #include "MP2KContext.h"
 #include "Profile.h"
@@ -44,6 +43,8 @@ private:
     static int audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,
             const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags,
             void *userData);
+    void AudioBufferPut(std::span<sample> buffer);
+    void AudioBufferGet(std::span<sample> buffer);
 
     void portaudioOpen();
     void portaudioClose();
@@ -54,7 +55,6 @@ private:
     uint32_t speedFactor = 64;
     bool paused = false;
     std::unique_ptr<MP2KContext> ctx;
-    Ringbuffer rBuf{STREAM_BUF_SIZE};
 
     MP2KVisualizerState visualizerStatePlayer;
     MP2KVisualizerState visualizerStateObserver;
@@ -68,6 +68,11 @@ private:
     std::atomic<bool> playerThreadQuit = false;
 
     std::atomic<bool> hasEnded = false;
+
+    std::vector<sample> outputBuffer;
+    std::mutex outputBufferMutex;
+    std::condition_variable outputBufferReady;
+    bool outputBufferValid = false;
 
     const Profile &profile;
     uint16_t songIdx = 0;

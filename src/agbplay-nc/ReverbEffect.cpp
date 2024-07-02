@@ -27,8 +27,8 @@ void ReverbEffect::Process(std::span<sample> buffer)
 {
     while (buffer.size() > 0)
     {
-        // TODO change the semantics of processInternal to return 'processed' instead of 'left' samples
-        const size_t left = processInternal(buffer);
+        // TODO change the semantics of ProcessInternal to return 'processed' instead of 'left' samples
+        const size_t left = ProcessInternal(buffer);
         buffer = buffer.subspan(buffer.size() - left);
     }
 }
@@ -71,20 +71,15 @@ std::unique_ptr<ReverbEffect> ReverbEffect::MakeReverb(ReverbType reverbType, ui
  * protected ReverbEffect
  */
 
-size_t ReverbEffect::getBlocksPerBuffer() const
-{
-    return reverbBuffer.size();
-}
-
-size_t ReverbEffect::processInternal(std::span<sample> buffer)
+size_t ReverbEffect::ProcessInternal(std::span<sample> buffer)
 {
     std::vector<sample>& rbuf = reverbBuffer;
-    const size_t count = std::min(std::min(getBlocksPerBuffer() - bufferPos2, getBlocksPerBuffer() - bufferPos), buffer.size());
+    const size_t count = std::min(std::min(reverbBuffer.size() - bufferPos2, reverbBuffer.size() - bufferPos), buffer.size());
     bool reset = false, reset2 = false;
-    if (getBlocksPerBuffer() - bufferPos == count) {
+    if (reverbBuffer.size() - bufferPos == count) {
         reset = true;
     }
-    if (getBlocksPerBuffer() - bufferPos2 == count) {
+    if (reverbBuffer.size() - bufferPos2 == count) {
         reset2 = true;
     } 
     for (size_t i = 0; i < count; i++) {
@@ -115,22 +110,15 @@ ReverbGS1::~ReverbGS1()
 {
 }
 
-size_t ReverbGS1::getBlocksPerGsBuffer() const
-{
-    return gsBuffer.size();
-}
-
-size_t ReverbGS1::processInternal(std::span<sample> buffer)
+size_t ReverbGS1::ProcessInternal(std::span<sample> buffer)
 {
     std::vector<sample>& rbuf = reverbBuffer;
-    const size_t bPerBuf = getBlocksPerBuffer();
-    const size_t bPerGsBuf = getBlocksPerGsBuffer();
-    size_t count = std::min(std::min(bPerBuf - bufferPos, bPerGsBuf - bufferPos2), buffer.size());
+    size_t count = std::min(std::min(reverbBuffer.size() - bufferPos, gsBuffer.size() - bufferPos2), buffer.size());
     bool reset = false, resetGS = false;
 
-    if (count == bPerBuf - bufferPos)
+    if (count == reverbBuffer.size() - bufferPos)
         reset = true;
-    if (count == bPerGsBuf - bufferPos2)
+    if (count == gsBuffer.size() - bufferPos2)
         resetGS = true;
 
     for (size_t i = 0; i < count; i++) {
@@ -168,7 +156,7 @@ ReverbGS2::ReverbGS2(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers
     gs2Buffer(streamRate / AGB_FPS, sample{0.0f, 0.0f})
 {
     // equivalent to the offset of -0xB0 samples for a 0x210 buffer size
-    bufferPos2 = getBlocksPerBuffer() - (gs2Buffer.size() / 3);
+    bufferPos2 = reverbBuffer.size() - (gs2Buffer.size() / 3);
     gs2Pos = 0;
     this->rPrimFac = rPrimFac;
     this->rSecFac = rSecFac;
@@ -178,19 +166,19 @@ ReverbGS2::~ReverbGS2()
 {
 }
 
-size_t ReverbGS2::processInternal(std::span<sample> buffer)
+size_t ReverbGS2::ProcessInternal(std::span<sample> buffer)
 {
     std::vector<sample>& rbuf = reverbBuffer;
     size_t count = std::min(
-            std::min(getBlocksPerBuffer() - bufferPos2, getBlocksPerBuffer() - bufferPos), 
+            std::min(reverbBuffer.size() - bufferPos2, reverbBuffer.size() - bufferPos), 
             std::min(buffer.size(), gs2Buffer.size() - gs2Pos)
             );
     bool reset = false, reset2 = false, resetgs2 = false;
 
-    if (getBlocksPerBuffer() - bufferPos2 == count) {
+    if (reverbBuffer.size() - bufferPos2 == count) {
         reset2 = true;
     } 
-    if (getBlocksPerBuffer() - bufferPos == count) {
+    if (reverbBuffer.size() - bufferPos == count) {
         reset = true;
     }
     if ((gs2Buffer.size() / 2) - gs2Pos == count) {
@@ -239,15 +227,15 @@ ReverbTest::~ReverbTest()
 {
 }
 
-size_t ReverbTest::processInternal(std::span<sample> buffer)
+size_t ReverbTest::ProcessInternal(std::span<sample> buffer)
 {
     std::vector<sample>& rbuf = reverbBuffer;
-    size_t count = std::min(std::min(getBlocksPerBuffer() - bufferPos, getBlocksPerBuffer() - bufferPos2), buffer.size());
+    size_t count = std::min(std::min(reverbBuffer.size() - bufferPos, reverbBuffer.size() - bufferPos2), buffer.size());
     bool reset = false, reset2 = false;
-    if (getBlocksPerBuffer() - bufferPos2 == count) {
+    if (reverbBuffer.size() - bufferPos2 == count) {
         reset2 = true;
     }
-    if (getBlocksPerBuffer() - bufferPos == count) {
+    if (reverbBuffer.size() - bufferPos == count) {
         reset = true;
     }
     for (size_t i = 0; i < count; i++) {

@@ -24,6 +24,8 @@ struct MP2KContext {
     void m4aSoundMode(uint32_t mode);
     void m4aSoundModeReverb(uint8_t reverb);
     void m4aSongNumStart(uint16_t songId);
+    void m4aSongNumStartOrChange(uint16_t songId);
+    void m4aSongNumStartOrContinue(uint16_t songId);
     void m4aSongNumStop(uint16_t songId);
     void m4aMPlayStart(uint8_t playerIdx, size_t songPos);
     void m4aMPlayStop(uint8_t playerIdx);

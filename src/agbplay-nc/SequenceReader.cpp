@@ -84,7 +84,7 @@ float SequenceReader::GetSpeedFactor() const
 
 bool SequenceReader::PlayerMain(MP2KPlayer &player)
 {
-    if (!player.enabled)
+    if (!player.playing || player.finished)
         return false;
 
     // TODO implement player based fadeout
@@ -97,14 +97,16 @@ bool SequenceReader::PlayerMain(MP2KPlayer &player)
 
         player.tickCount++;
         player.bpmStack -= BPM_PER_FRAME * INTERFRAMES;
-        if (!playing)
-            player.enabled = false;
+        if (!playing) {
+            player.finished = true;
+            player.playing = false;
+        }
     }
 
     for (MP2KTrack &trk : player.tracks)
         TrackVolPitchMain(trk);
 
-    return player.enabled;
+    return player.playing;
 }
 
 bool SequenceReader::TrackMain(MP2KPlayer &player, MP2KTrack &trk)

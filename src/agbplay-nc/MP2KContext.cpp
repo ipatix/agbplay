@@ -67,6 +67,35 @@ void MP2KContext::m4aSongNumStart(uint16_t songId)
     m4aMPlayStart(playerIdx, songPos);
 }
 
+void MP2KContext::m4aSongNumStartOrChange(uint16_t songId)
+{
+    if (songId >= songTableInfo.count)
+        throw Xcept("Failed to load out of range songId={} (total count={})", songId, songTableInfo.count);
+    const size_t songPos = rom.ReadAgbPtrToPos(songTableInfo.pos + songId * 8 + 0);
+    const uint8_t playerIdx = m4aSongNumPlayerGet(songId);
+    auto &player = players.at(playerIdx);
+    primaryPlayer = playerIdx;
+
+    if (songPos != player.GetSongHeaderPos() || player.finished || !player.playing) {
+        m4aMPlayStart(playerIdx, songPos);
+    }
+}
+
+void MP2KContext::m4aSongNumStartOrContinue(uint16_t songId)
+{
+    if (songId >= songTableInfo.count)
+        throw Xcept("Failed to load out of range songId={} (total count={})", songId, songTableInfo.count);
+    const size_t songPos = rom.ReadAgbPtrToPos(songTableInfo.pos + songId * 8 + 0);
+    const uint8_t playerIdx = m4aSongNumPlayerGet(songId);
+    auto &player = players.at(playerIdx);
+    primaryPlayer = playerIdx;
+
+    if (songPos != player.GetSongHeaderPos() || player.finished)
+        m4aMPlayStart(playerIdx, songPos);
+    else if (!player.playing)
+        m4aMPlayContinue(playerIdx);
+}
+
 void MP2KContext::m4aSongNumStop(uint16_t songId)
 {
     if (songId >= songTableInfo.count)
@@ -78,7 +107,7 @@ void MP2KContext::m4aMPlayStart(uint8_t playerIdx, size_t songPos)
 {
     MP2KPlayer &player = players.at(playerIdx);
 
-    if (player.usePriority && player.GetSongHeaderPos() != 0 && songPos != 0 && player.enabled) {
+    if (player.usePriority && player.GetSongHeaderPos() != 0 && songPos != 0 && player.playing) {
         /* If priority of current song is higher than new song, do not start the song. */
         if (player.GetPriority() > rom.ReadU8(songPos + 2))
             return;
@@ -100,7 +129,7 @@ void MP2KContext::m4aMPlayStop(uint8_t playerIdx)
 {
     MP2KPlayer &player = players.at(playerIdx);
 
-    player.enabled = false;
+    player.playing = false;
 
     for (MP2KTrack &trk : player.tracks)
         trk.Stop();
@@ -114,7 +143,7 @@ void MP2KContext::m4aMPlayAllStop()
 
 void MP2KContext::m4aMPlayContinue(uint8_t playerIdx)
 {
-    players.at(playerIdx).enabled = true;
+    players.at(playerIdx).playing = true;
 }
 
 void MP2KContext::m4aSoundClear()
@@ -133,7 +162,7 @@ uint8_t MP2KContext::m4aSongNumPlayerGet(uint16_t songId) const
 
 bool MP2KContext::m4aMPlayIsPlaying(uint8_t playerIdx) const
 {
-    return players.at(playerIdx).enabled;
+    return players.at(playerIdx).playing;
 }
 
 bool MP2KContext::HasEnded() const

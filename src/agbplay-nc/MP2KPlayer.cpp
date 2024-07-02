@@ -29,10 +29,12 @@ void MP2KPlayer::Init(const Rom &rom, size_t songHeaderPos)
         for (size_t i = 0; i < tracksUsed; i++)
             tracks.at(i).Init(rom.ReadAgbPtrToPos(songHeaderPos + 8 + 4 * i));
 
-        enabled = true;
+        playing = true;
+        finished = tracksUsed == 0;
     } else {
         tracksUsed = 0;
-        enabled = false;
+        playing = false;
+        finished = true;
     }
 
     // reset rest of the tracks

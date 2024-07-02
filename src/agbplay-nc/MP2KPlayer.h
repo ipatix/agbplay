@@ -27,7 +27,8 @@ public:
     uint16_t bpm = 0;
     const uint8_t playerIdx;
     const bool usePriority;
-    bool enabled = false;
+    bool playing = false;
+    bool finished = true;
     uint8_t tracksUsed = 0;
     uint8_t reverb = 0;
 

@@ -152,14 +152,14 @@ size_t ReverbGS1::ProcessInternal(std::span<sample> buffer)
 
 ReverbGS2::ReverbGS2(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers,
         float rPrimFac, float rSecFac)
-    : ReverbEffect(intensity, streamRate, numAgbBuffers), 
-    gs2Buffer(streamRate / AGB_FPS, sample{0.0f, 0.0f})
+    : ReverbEffect(intensity, streamRate, numAgbBuffers),
+    gs2Buffer(streamRate / AGB_FPS, sample{0.0f, 0.0f}),
+    gs2Pos(0),
+    rPrimFac(rPrimFac),
+    rSecFac(rSecFac)
 {
     // equivalent to the offset of -0xB0 samples for a 0x210 buffer size
     bufferPos2 = reverbBuffer.size() - (gs2Buffer.size() / 3);
-    gs2Pos = 0;
-    this->rPrimFac = rPrimFac;
-    this->rSecFac = rSecFac;
 }
 
 ReverbGS2::~ReverbGS2()

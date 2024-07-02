@@ -160,7 +160,7 @@ void MP2KContext::GetVisualizerState(MP2KVisualizerState &visualizerState)
             MP2KTrack &trk_src = player_src.tracks.at(trackIdx);
             auto &trk_dst = player_dst.tracks.at(trackIdx);
 
-            trk_src.loudnessCalculator.CalcLoudness(trk_src.audioBuffer.data(), trk_src.audioBuffer.size());
+            trk_src.loudnessCalculator.CalcLoudness(trk_src.audioBuffer);
             float volLeft, volRight;
             trk_src.loudnessCalculator.GetLoudness(volLeft, volRight);
 
@@ -179,6 +179,6 @@ void MP2KContext::GetVisualizerState(MP2KVisualizerState &visualizerState)
         }
     }
 
-    masterLoudnessCalculator.CalcLoudness(masterAudioBuffer.data(), masterAudioBuffer.size());
+    masterLoudnessCalculator.CalcLoudness(masterAudioBuffer);
     masterLoudnessCalculator.GetLoudness(visualizerState.masterVolLeft, visualizerState.masterVolRight);
 }

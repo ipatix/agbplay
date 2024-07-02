@@ -10,12 +10,11 @@ LoudnessCalculator::LoudnessCalculator(const float lowpassFreq)
 {
 }
 
-void LoudnessCalculator::CalcLoudness(const sample *audio, size_t numSamples)
+void LoudnessCalculator::CalcLoudness(std::span<const sample> buffer)
 {
-    for (size_t i = 0; i < numSamples; i++) {
-        float l = audio->left;
-        float r = audio->right;
-        audio++;
+    for (size_t i = 0; i < buffer.size(); i++) {
+        float l = buffer[i].left;
+        float r = buffer[i].right;
         assert(!std::isnan(l) && !std::isnan(r));
         assert(!std::isinf(l) && !std::isinf(r));
         l *= l;

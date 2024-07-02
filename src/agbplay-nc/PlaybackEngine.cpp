@@ -59,6 +59,7 @@ PlaybackEngine::PlaybackEngine(const Profile &profile)
     : profile(profile)
 {
     InitContext();
+    outputBuffer.resize(ctx->mixer.GetSamplesPerBuffer(), {0.0f, 0.0f});
     ctx->m4aSongNumStart(0);
     ctx->m4aSongNumStop(0);
     portaudioOpen();
@@ -271,7 +272,7 @@ void PlaybackEngine::threadWorker()
 
         if (paused) {
             /* Silence output buffer. */
-            rBuf.Put(silenceBuffer.data(), silenceBuffer.size());
+            AudioBufferPut(silenceBuffer);
         } else {
             /* Run sound engine. */
             ctx->m4aSoundMain();
@@ -279,7 +280,7 @@ void PlaybackEngine::threadWorker()
 
             /* Write audio data to portaudio ringbuffer. */
             assert(ctx->masterAudioBuffer.size() == ctx->mixer.GetSamplesPerBuffer());
-            rBuf.Put(ctx->masterAudioBuffer.data(), ctx->masterAudioBuffer.size());
+            AudioBufferPut(ctx->masterAudioBuffer);
         }
 
         /* Stop all players after loop fadeout (or end). */
@@ -288,9 +289,6 @@ void PlaybackEngine::threadWorker()
             hasEnded = true;
         }
     }
-
-    // flush buffer
-    rBuf.Clear();
 }
 
 void PlaybackEngine::updateVisualizerState()
@@ -342,9 +340,43 @@ int PlaybackEngine::audioCallback(const void *inputBuffer, void *outputBuffer, s
     (void)inputBuffer;
     (void)timeInfo;
     (void)statusFlags;
-    Ringbuffer *rBuf = (Ringbuffer *)userData;
-    rBuf->Take((sample *)outputBuffer, framesPerBuffer);
-    return 0;
+    PlaybackEngine *_this = static_cast<PlaybackEngine *>(userData);
+    _this->AudioBufferGet({static_cast<sample *>(outputBuffer), framesPerBuffer});
+    return paContinue;
+}
+
+void PlaybackEngine::AudioBufferPut(std::span<sample> buffer)
+{
+    std::unique_lock l(outputBufferMutex);
+    while (outputBufferValid)
+        outputBufferReady.wait(l);
+
+    assert(buffer.size() == outputBuffer.size());
+    std::copy_n(buffer.begin(), std::min(buffer.size(), outputBuffer.size()), outputBuffer.begin());
+    outputBufferValid = true;
+}
+
+void PlaybackEngine::AudioBufferGet(std::span<sample> buffer)
+{
+    /* We want to avoid long durations where the audio thread (i.e. this thread)
+     * would block for extended periods of time. Unless the rendering thread runs seriosly behind,
+     * we should usually not get the situation where we cannot aqcuire the lock (and thus cause drops) */
+    std::unique_lock l(outputBufferMutex, std::try_to_lock);
+    if (!l.owns_lock())
+        return;
+
+    if (!outputBufferValid) {
+        std::fill(buffer.begin(), buffer.end(), sample{0.0f, 0.0f});
+        return;
+    }
+
+    /* If portaudio should have a fault and the requested buffer size mismatches, raise an assert failure,
+     * but in case that is not available, just crop the buffer otherwise. */
+    assert(buffer.size() == outputBuffer.size());
+    std::copy_n(outputBuffer.begin(), std::min(buffer.size(), outputBuffer.size()), buffer.begin());
+
+    outputBufferValid = false;
+    outputBufferReady.notify_one();
 }
 
 void PlaybackEngine::portaudioOpen()
@@ -396,7 +428,7 @@ void PlaybackEngine::portaudioOpen()
             portaudio::DirectionSpecificStreamParameters::null(),
             outPars,
             ctx->mixer.GetSampleRate(),
-            paFramesPerBufferUnspecified,
+            ctx->mixer.GetSamplesPerBuffer(),
             paNoFlag
         );
 
@@ -404,7 +436,7 @@ void PlaybackEngine::portaudioOpen()
             audioStream.open(
                 pars,
                 audioCallback,
-                static_cast<void *>(&rBuf)
+                static_cast<void *>(this)
             );
 
             audioStream.start();

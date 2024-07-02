@@ -122,6 +122,7 @@ struct SongInfo
     size_t voiceTablePos;
     uint8_t reverb;
     uint8_t priority;
+    uint8_t playerIdx;
 };
 
 struct sample {

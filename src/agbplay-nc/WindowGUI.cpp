@@ -523,12 +523,14 @@ void WindowGUI::songInfo()
 
     SongInfo sinfo = mplay->GetSongInfo();
 
-    Debug::print("Song Info: num={} header=0x{:X} voicetable=0x{:X} reverb={} priority={}",
+    Debug::print("Song Info: num={} header=0x{:X} voicetable=0x{:X} reverbSet={} reverbLevel={} priority={} playerIdx={}",
             entry->id,
             sinfo.songHeaderPos,
             sinfo.voiceTablePos,
-            sinfo.reverb,
-            sinfo.priority
+            sinfo.reverb >> 7,
+            sinfo.reverb & 0x7F,
+            sinfo.priority,
+            sinfo.playerIdx
     );
 }
 

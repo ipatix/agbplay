@@ -231,6 +231,7 @@ SongInfo PlaybackEngine::GetSongInfo()
         songInfo.voiceTablePos = player.GetSoundBankPos();
         songInfo.reverb = player.GetReverb();
         songInfo.priority = player.GetPriority();
+        songInfo.playerIdx = player.playerIdx;
     };
 
     InvokeAsPlayer(func);

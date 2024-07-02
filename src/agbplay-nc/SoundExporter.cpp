@@ -39,7 +39,7 @@ void SoundExporter::Export()
 
     /* setup export thread worker function */
     std::atomic<size_t> currentSong = 0;
-    std::atomic<size_t> totalBlocksRendered = 0;
+    std::atomic<size_t> totalSamplesRendered = 0;
 
     std::function<void(void)> threadFunc = [&]() {
         OS::LowerThreadPriority();
@@ -52,7 +52,7 @@ void SoundExporter::Export()
             boost::replace_all(fname, "/", "_");
             Debug::print("{:3}% - Rendering to file: \"{}\"", (i + 1) * 100 / profile.playlist.size(), fname);
             const auto fileName = std::format("{}/{:03d} - {}", dir.string(), i + 1, fname);
-            totalBlocksRendered += exportSong(fileName, profile.playlist.at(i).id);
+            totalSamplesRendered += exportSong(fileName, profile.playlist.at(i).id);
         }
     };
 
@@ -76,8 +76,8 @@ void SoundExporter::Export()
         Debug::print("Successfully wrote {} files", profile.playlist.size());
     } else {
         size_t secondsTotal = static_cast<size_t>(std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count());
-        size_t blocksPerSecond = totalBlocksRendered / secondsTotal;
-        Debug::print("Successfully wrote {} files at {} blocks per second ({} seconds total)", profile.playlist.size(), blocksPerSecond, secondsTotal);
+        size_t samplesPerSecond = totalSamplesRendered / secondsTotal;
+        Debug::print("Successfully wrote {} files at {} samples per second ({} seconds total)", profile.playlist.size(), samplesPerSecond, secondsTotal);
     }
 }
 
@@ -107,8 +107,8 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
     ctx.m4aSongNumStart(uid);
 
     const uint8_t playerIdx = ctx.m4aSongNumPlayerGet(uid);
-    size_t blocksRendered = 0;
-    size_t nBlocks = ctx.mixer.GetSamplesPerBuffer();
+    size_t samplesRendered = 0;
+    size_t samplesPerBuffer = ctx.mixer.GetSamplesPerBuffer();
     size_t nTracks = ctx.players.at(playerIdx).tracks.size();
     const double padSecondsStart = profile.agbplaySoundMode.padSilenceSecondsStart;
     const double padSecondsEnd = profile.agbplaySoundMode.padSilenceSecondsEnd;
@@ -148,10 +148,10 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
                         continue;
                     sf_count_t processed = 0;
                     do {
-                        processed += sf_writef_float(ofiles[i], &ctx.players.at(playerIdx).tracks.at(i).audioBuffer[processed].left, sf_count_t(nBlocks) - processed);
-                    } while (processed < sf_count_t(nBlocks));
+                        processed += sf_writef_float(ofiles[i], &ctx.players.at(playerIdx).tracks.at(i).audioBuffer[processed].left, sf_count_t(samplesPerBuffer) - processed);
+                    } while (processed < sf_count_t(samplesPerBuffer));
                 }
-                blocksRendered += nBlocks;
+                samplesRendered += samplesPerBuffer;
             }
 
             for (SNDFILE *& i : ofiles)
@@ -184,9 +184,9 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
 
                 sf_count_t processed = 0;
                 do {
-                    processed += sf_writef_float(ofile, &ctx.masterAudioBuffer[processed].left, sf_count_t(nBlocks) - processed);
-                } while (processed < sf_count_t(nBlocks));
-                blocksRendered += nBlocks;
+                    processed += sf_writef_float(ofile, &ctx.masterAudioBuffer[processed].left, sf_count_t(samplesPerBuffer) - processed);
+                } while (processed < sf_count_t(samplesPerBuffer));
+                samplesRendered += samplesPerBuffer;
             }
 
             writeSilence(ofile, padSecondsEnd);
@@ -201,10 +201,10 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
         while (true)
         {
             ctx.m4aSoundMain();
-            blocksRendered += nBlocks;
+            samplesRendered += samplesPerBuffer;
             if (ctx.HasEnded())
                 break;
         }
     }
-    return blocksRendered;
+    return samplesRendered;
 }

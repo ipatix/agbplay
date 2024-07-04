@@ -2,14 +2,14 @@
 *.obj
 *.gba
 *.sav
-wav
-wav/
-gba_games
+/wav
+/wav/
+/gba_games
 DEBUG
 _DEBUG
 _DEBUG.txt
 a.out
-agbplay
+/agbplay
 agbplay.exe*
 sappy.txt
 log
@@ -18,6 +18,6 @@ cygportaudio-2.dll
 gmon.out
 analysis*
 perf.data
-build
-build_dbg
+/build
+/build_dbg
 .vscode

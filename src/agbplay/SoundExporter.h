@@ -1,14 +1,14 @@
 #pragma once
 
-#include <sndfile.h>
 #include <string>
 #include <vector>
 #include <cstdint>
 #include <filesystem>
 
-#include "ConsoleGUI.h"
 #include "Profile.h"
 #include "SoundData.h"
+
+struct sf_private_tag;
 
 class SoundExporter
 {
@@ -19,7 +19,7 @@ public:
 
     void Export();
 private:
-    static void writeSilence(SNDFILE *ofile, double seconds);
+    static void writeSilence(sf_private_tag *ofile, double seconds);
     size_t exportSong(const std::filesystem::path& fileName, uint16_t uid);
 
     const Profile &profile;

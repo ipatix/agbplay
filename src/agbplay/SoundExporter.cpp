@@ -6,6 +6,7 @@
 #include <atomic>
 #include <thread>
 #include <mutex>
+#include <sndfile.h>
 
 #include "SoundExporter.h"
 #include "Util.h"

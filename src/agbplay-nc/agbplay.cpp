@@ -64,47 +64,7 @@ int main(int argc, char *argv[])
         }
 
         fmt::print("Opening profile...\n");
-        auto profileCandidates = pm.GetProfile(Rom::Instance());
-
-        if (scanResults.size() == 0 && profileCandidates.size() == 0) {
-            throw Xcept("Scanner failed to find songtable and no profile with manual songtable found.\n");
-        }
-
-        for (size_t tableIdx = 0; tableIdx < scanResults.size(); tableIdx++) {
-            auto &scanResult = scanResults.at(tableIdx);
-            bool profileExists = false;
-            for (Profile &profileCandidate : profileCandidates) {
-                if (profileCandidate.songTableInfoConfig.pos != SongTableInfo::POS_AUTO) {
-                    if (profileCandidate.songTableInfoConfig.count == SongTableInfo::COUNT_AUTO)
-                        throw Xcept("Cannot load profile with manual songtable but no song count");
-                    profileCandidate.ApplyScanToPlayback(
-                        SongTableInfo{},
-                        PlayerTableInfo{},
-                        MP2KSoundMode{}
-                    );
-                    continue;
-                }
-                if (profileCandidate.songTableInfoConfig.tableIdx == tableIdx) {
-                    profileCandidate.ApplyScanToPlayback(
-                        scanResult.songTableInfo,
-                        scanResult.playerTableInfo,
-                        scanResult.mp2kSoundMode
-                    );
-                    profileExists = true;
-                    break;
-                }
-            }
-
-            if (!profileExists) {
-                Profile &p = profileCandidates.emplace_back(pm.CreateProfile(Rom::Instance().GetROMCode(), tableIdx));
-                p.songTableInfoConfig.tableIdx = static_cast<uint8_t>(tableIdx);
-                p.ApplyScanToPlayback(
-                    scanResult.songTableInfo,
-                    scanResult.playerTableInfo,
-                    scanResult.mp2kSoundMode
-                );
-            }
-        }
+        auto profileCandidates = pm.GetProfiles(Rom::Instance(), scanResults);
 
         assert(profileCandidates.size() >= 1);
         size_t profileIdx = 0;

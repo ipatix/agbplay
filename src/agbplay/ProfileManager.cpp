@@ -9,6 +9,7 @@
 #include "Xcept.h"
 #include "Rom.h"
 #include "OS.h"
+#include "MP2KScanner.h"
 
 void ProfileManager::Reset()
 {
@@ -20,6 +21,49 @@ void ProfileManager::LoadProfiles()
     const auto configDir = OS::GetLocalConfigDirectory();
     LoadProfileDir(configDir / "agbplay" / "profiles");
     LoadProfileDir(configDir / "agbplay" / "profiles-user");
+}
+
+void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std::reference_wrapper<Profile>> &profiles, const std::vector<MP2KScanner::Result> scanResults)
+{
+    if (scanResults.size() == 0 && profiles.size() == 0) {
+        throw Xcept("Scanner failed to find songtable and no profile with manual songtable found.\n");
+    }
+
+    for (size_t tableIdx = 0; tableIdx < scanResults.size(); tableIdx++) {
+        auto &scanResult = scanResults.at(tableIdx);
+        bool profileExists = false;
+        for (Profile &profileCandidate : profiles) {
+            if (profileCandidate.songTableInfoConfig.pos != SongTableInfo::POS_AUTO) {
+                if (profileCandidate.songTableInfoConfig.count == SongTableInfo::COUNT_AUTO)
+                    throw Xcept("Cannot load profile with manual songtable but no song count");
+                profileCandidate.ApplyScanToPlayback(
+                    SongTableInfo{},
+                    PlayerTableInfo{},
+                    MP2KSoundMode{}
+                );
+                continue;
+            }
+            if (profileCandidate.songTableInfoConfig.tableIdx == tableIdx) {
+                profileCandidate.ApplyScanToPlayback(
+                    scanResult.songTableInfo,
+                    scanResult.playerTableInfo,
+                    scanResult.mp2kSoundMode
+                );
+                profileExists = true;
+                break;
+            }
+        }
+
+        if (!profileExists) {
+            Profile &p = profiles.emplace_back(CreateProfile(rom.GetROMCode(), tableIdx));
+            p.songTableInfoConfig.tableIdx = static_cast<uint8_t>(tableIdx);
+            p.ApplyScanToPlayback(
+                scanResult.songTableInfo,
+                scanResult.playerTableInfo,
+                scanResult.mp2kSoundMode
+            );
+        }
+    }
 }
 
 void ProfileManager::LoadProfileDir(const std::filesystem::path &dir)
@@ -42,7 +86,7 @@ void ProfileManager::SaveProfiles()
     }
 }
 
-std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfile(const Rom &rom)
+std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfiles(const Rom &rom, const std::vector<MP2KScanner::Result> scanResults)
 {
     /* Find all profiles which match the ROM passed.
      * If only a single match is found, return it.
@@ -70,8 +114,10 @@ std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfile(const Ro
             profilesWithMagicBytes.emplace_back(profile);
     }
 
-    if (profilesWithMagicBytes.size() == 0)
+    if (profilesWithMagicBytes.size() == 0) {
+        ApplyScanResultsToProfiles(rom, profilesWithGameCode, scanResults);
         return profilesWithGameCode;
+    }
 
     /* find all profiles with matching magic bytes */
     std::vector<std::reference_wrapper<Profile>> profilesToReturn;
@@ -123,6 +169,7 @@ std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfile(const Ro
         }
     }
 
+    ApplyScanResultsToProfiles(rom, profilesToReturn, scanResults);
     return profilesToReturn;
 }
 

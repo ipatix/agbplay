@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Profile.h"
+#include "MP2KScanner.h"
 
 #include <filesystem>
 #include <functional>
@@ -15,10 +16,11 @@ public:
     void Reset();
     void LoadProfiles();
     void SaveProfiles();
-    std::vector<std::reference_wrapper<Profile>> GetProfile(const Rom &rom);
+    std::vector<std::reference_wrapper<Profile>> GetProfiles(const Rom &rom, const std::vector<MP2KScanner::Result> scanResults);
     Profile &CreateProfile(const std::string &gameCode, size_t tableIdx);
 
 private:
+    void ApplyScanResultsToProfiles(const Rom &rom, std::vector<std::reference_wrapper<Profile>> &profiles, const std::vector<MP2KScanner::Result> scanResults);
     void LoadProfileDir(const std::filesystem::path &filePath);
     void LoadProfile(const std::filesystem::path &filePath);
     void SaveProfile(Profile &profile);

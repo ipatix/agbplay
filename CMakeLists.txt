@@ -4,3 +4,4 @@ project(agbplay VERSION 1.0.0)
 
 add_subdirectory("src/agbplay")
 add_subdirectory("src/agbplay-nc")
+add_subdirectory("src/agbplay-gui")

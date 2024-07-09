@@ -17,7 +17,10 @@ public:
     ~MainWindow();
 
 private:
-    void Setup();
+    void SetupMenuBar();
+    void SetupToolBar();
+    void SetupWidgets();
+    void SetupStatusBar();
 
     /* central container */
     QWidget containerCentral{this};

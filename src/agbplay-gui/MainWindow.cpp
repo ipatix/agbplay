@@ -10,19 +10,19 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    Setup();
+    SetupMenuBar();
+    SetupToolBar();
+    SetupWidgets();
+    SetupStatusBar();
 }
 
 MainWindow::~MainWindow()
 {
 }
 
-void MainWindow::Setup()
+void MainWindow::SetupMenuBar()
 {
-    /* Status Bar */
-    statusBar()->showMessage("HELLO");
-
-    /* Menu Bar - File */
+    /* File */
     QMenu *fileMenu = menuBar()->addMenu("File");
     QAction *fileOpenAction = fileMenu->addAction("Open");
     fileMenu->addSeparator();
@@ -30,11 +30,11 @@ void MainWindow::Setup()
     connect(fileQuitAction, &QAction::triggered, [this](bool) { close(); });
     fileQuitAction->setMenuRole(QAction::QuitRole);
 
-    /* Menu Bar - Edit */
+    /* Edit */
     QMenu *editMenu = menuBar()->addMenu("Edit");
     QAction *editPreferences = editMenu->addAction("Global Preferences");
 
-    /* Menu Bar - Profile */
+    /* Profile */
     QMenu *profileMenu = menuBar()->addMenu("Profile");
     QAction *profileSelect = profileMenu->addAction("Load Profile");
     profileSelect->setEnabled(false);
@@ -49,16 +49,24 @@ void MainWindow::Setup()
     profileMenu->addSeparator();
     QAction *profileDirectory = profileMenu->addAction("Open User Profile Directory");
 
-    /* Menu Bar - Help */
+    /* Help */
     QMenu *helpMenu = menuBar()->addMenu("Help");
     QAction *helpSaveLog = helpMenu->addAction("Save Log");
+    helpMenu->addSeparator();
     QAction *helpAboutAction = helpMenu->addAction("About");
     connect(helpAboutAction, &QAction::triggered, [this](bool) {
         QMessageBox mbox(QMessageBox::Icon::Information, "TEST", "TEST 2", QMessageBox::Ok, this);
         mbox.exec();
     });
     helpAboutAction->setMenuRole(QAction::AboutRole);
+}
 
+void MainWindow::SetupToolBar()
+{
+}
+
+void MainWindow::SetupWidgets()
+{
     /* 1. Create containers. */
     containerCentralLayout.addWidget(&containerLeft);
     containerCentralLayout.addWidget(&containerRight);
@@ -90,4 +98,9 @@ void MainWindow::Setup()
     logWidget.setText("hello");
 
     centralWidget()->show();
+}
+
+void MainWindow::SetupStatusBar()
+{
+    statusBar()->showMessage("HELLO");
 }

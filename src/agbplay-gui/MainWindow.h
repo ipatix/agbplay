@@ -5,6 +5,8 @@
 #include <QTableView>
 #include <QTextEdit>
 
+#include "SonglistWidget.h"
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -16,9 +18,32 @@ public:
 private:
     void Setup();
 
-    QListView *listViewSonglist = nullptr;
-    QListView *listViewPlaylist = nullptr;
-    QTableView *tableViewStatus = nullptr;
-    QTableView *tableViewInfo = nullptr;
-    QTextEdit *textEditLog = nullptr;
+    /* central container */
+    QWidget containerCentral{this};
+    QHBoxLayout containerCentralLayout{&containerCentral};
+
+    /* .left container */
+    QWidget containerLeft{&containerCentral};
+    QVBoxLayout containerLeftLayout{&containerLeft};
+
+    /* ..song widgets */
+    SonglistWidget songlistWidget{&containerLeft};
+    SonglistWidget playlistWidget{&containerLeft};
+
+    /* .right container */
+    QWidget containerRight{&containerCentral};
+    QVBoxLayout containerRightLayout{&containerRight};
+
+    /* ..status-info + log container */
+    QWidget containerStatusInfo{&containerRight};
+    QHBoxLayout containerStatusInfoLayout{&containerStatusInfo};
+
+    /* ...status widget */
+    QTextEdit statusWidget{&containerStatusInfo};
+
+    /* ...info widget */
+    QTextEdit infoWidget{&containerStatusInfo};
+
+    /* ..log widget */
+    QTextEdit logWidget{&containerRight};
 };

@@ -37,42 +37,34 @@ void MainWindow::Setup()
     helpAboutAction->setMenuRole(QAction::AboutRole);
 
     /* 1. Create containers. */
-    QVBoxLayout *vbox = nullptr;
-    QHBoxLayout *hbox = nullptr;
-    QWidget *containerCentral = new QWidget(this);
-    QWidget *containerLeft = new QWidget(containerCentral);
-    QWidget *containerRight = new QWidget(containerCentral);
-    QWidget *containerStatusInfo = new QWidget(containerRight);
-    hbox = new QHBoxLayout(containerCentral);
-    hbox->addWidget(containerLeft);
-    hbox->addWidget(containerRight);
-    hbox->setStretch(0, 1);
-    hbox->setStretch(1, 5);
-    setCentralWidget(containerCentral);
+    containerCentralLayout.addWidget(&containerLeft);
+    containerCentralLayout.addWidget(&containerRight);
+    containerCentralLayout.setStretch(0, 1);
+    containerCentralLayout.setStretch(1, 5);
+    containerCentralLayout.setContentsMargins(0, 0, 0, 0);
+    setCentralWidget(&containerCentral);
 
     /* 2. Create songlist and playlist. */
-    vbox = new QVBoxLayout(containerLeft);
-    listViewSonglist = new QListView(containerLeft);
-    listViewPlaylist = new QListView(containerLeft);
-    vbox->addWidget(listViewSonglist);
-    vbox->addWidget(listViewPlaylist);
+    containerLeftLayout.addWidget(&songlistWidget);
+    containerLeftLayout.addWidget(&playlistWidget);
+    containerLeftLayout.setContentsMargins(0, 0, 0, 0);
 
     /* 3. Create rom info and main status view. */
-    hbox = new QHBoxLayout(containerStatusInfo);
-    tableViewStatus = new QTableView(containerStatusInfo);
-    tableViewInfo = new QTableView(containerStatusInfo);
-    hbox->addWidget(tableViewStatus);
-    hbox->addWidget(tableViewInfo);
-    hbox->setStretch(0, 5);
-    hbox->setStretch(1, 1);
+    containerStatusInfoLayout.addWidget(&statusWidget);
+    containerStatusInfoLayout.addWidget(&infoWidget);
+    containerStatusInfoLayout.setStretch(0, 5);
+    containerStatusInfoLayout.setStretch(1, 1);
+    containerStatusInfoLayout.setContentsMargins(0, 0, 0, 0);
 
     /* 4. Create log */
-    vbox = new QVBoxLayout(containerRight);
-    textEditLog = new QTextEdit(containerRight);
-    vbox->addWidget(containerStatusInfo);
-    vbox->addWidget(textEditLog);
-    vbox->setStretch(0, 5);
-    vbox->setStretch(1, 1);
+    containerRightLayout.addWidget(&containerStatusInfo);
+    containerRightLayout.addWidget(&logWidget);
+    containerRightLayout.setStretch(0, 5);
+    containerRightLayout.setStretch(1, 1);
+    containerRightLayout.setContentsMargins(0, 0, 0, 0);
+    logWidget.setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
+    logWidget.setFont(QFont("Monospace"));
+    logWidget.setText("hello");
 
     centralWidget()->show();
 }

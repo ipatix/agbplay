@@ -22,13 +22,36 @@ void MainWindow::Setup()
     /* Status Bar */
     statusBar()->showMessage("HELLO");
 
-    /* Menu Bar */
+    /* Menu Bar - File */
     QMenu *fileMenu = menuBar()->addMenu("File");
     QAction *fileOpenAction = fileMenu->addAction("Open");
+    fileMenu->addSeparator();
     QAction *fileQuitAction = fileMenu->addAction("Quit");
     connect(fileQuitAction, &QAction::triggered, [this](bool) { close(); });
     fileQuitAction->setMenuRole(QAction::QuitRole);
+
+    /* Menu Bar - Edit */
+    QMenu *editMenu = menuBar()->addMenu("Edit");
+    QAction *editPreferences = editMenu->addAction("Global Preferences");
+
+    /* Menu Bar - Profile */
+    QMenu *profileMenu = menuBar()->addMenu("Profile");
+    QAction *profileSelect = profileMenu->addAction("Load Profile");
+    profileSelect->setEnabled(false);
+    QAction *profileCreate = profileMenu->addAction("Create New Profile");
+    profileCreate->setEnabled(false);
+    QAction *profileDuplicate = profileMenu->addAction("Duplicate Current Profile");
+    profileDuplicate->setEnabled(false);
+    QAction *profileDelete = profileMenu->addAction("Delete Current Profile");
+    profileDelete->setEnabled(false);
+    QAction *profileSettings = profileMenu->addAction("Profile Settings");
+    profileSettings->setEnabled(false);
+    profileMenu->addSeparator();
+    QAction *profileDirectory = profileMenu->addAction("Open User Profile Directory");
+
+    /* Menu Bar - Help */
     QMenu *helpMenu = menuBar()->addMenu("Help");
+    QAction *helpSaveLog = helpMenu->addAction("Save Log");
     QAction *helpAboutAction = helpMenu->addAction("About");
     connect(helpAboutAction, &QAction::triggered, [this](bool) {
         QMessageBox mbox(QMessageBox::Icon::Information, "TEST", "TEST 2", QMessageBox::Ok, this);

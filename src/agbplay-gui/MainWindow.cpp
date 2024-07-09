@@ -24,15 +24,20 @@ void MainWindow::SetupMenuBar()
 {
     /* File */
     QMenu *fileMenu = menuBar()->addMenu("File");
-    QAction *fileOpenAction = fileMenu->addAction("Open");
+    QAction *fileOpenRom = fileMenu->addAction("Open ROM");
+    fileOpenRom->setIcon(QIcon(":/icons/open-rom.ico"));
+    QAction *fileOpenGSF = fileMenu->addAction("Open GSF");
+    fileOpenGSF->setIcon(QIcon(":/icons/open-gsf.ico"));
     fileMenu->addSeparator();
-    QAction *fileQuitAction = fileMenu->addAction("Quit");
-    connect(fileQuitAction, &QAction::triggered, [this](bool) { close(); });
-    fileQuitAction->setMenuRole(QAction::QuitRole);
+    QAction *fileQuit = fileMenu->addAction("Quit");
+    fileQuit->setIcon(QIcon(":/icons/exit.ico"));
+    connect(fileQuit, &QAction::triggered, [this](bool) { close(); });
+    fileQuit->setMenuRole(QAction::QuitRole);
 
     /* Edit */
     QMenu *editMenu = menuBar()->addMenu("Edit");
     QAction *editPreferences = editMenu->addAction("Global Preferences");
+    editPreferences->setIcon(QIcon(":/icons/preferences.ico"));
 
     /* Profile */
     QMenu *profileMenu = menuBar()->addMenu("Profile");
@@ -44,8 +49,11 @@ void MainWindow::SetupMenuBar()
     profileDuplicate->setEnabled(false);
     QAction *profileDelete = profileMenu->addAction("Delete Current Profile");
     profileDelete->setEnabled(false);
+    profileMenu->addSeparator();
     QAction *profileSettings = profileMenu->addAction("Profile Settings");
     profileSettings->setEnabled(false);
+    QAction *profileMinigsfImport = profileMenu->addAction("Import GSF Playlist");
+    profileMinigsfImport->setEnabled(false);
     profileMenu->addSeparator();
     QAction *profileDirectory = profileMenu->addAction("Open User Profile Directory");
 
@@ -63,6 +71,7 @@ void MainWindow::SetupMenuBar()
 
 void MainWindow::SetupToolBar()
 {
+    QToolBar *toolBar = addToolBar("HAHAHAA");
 }
 
 void MainWindow::SetupWidgets()

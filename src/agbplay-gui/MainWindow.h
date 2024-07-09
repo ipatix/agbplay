@@ -6,6 +6,7 @@
 #include <QTextEdit>
 
 #include "SonglistWidget.h"
+#include "RominfoWidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -27,8 +28,8 @@ private:
     QVBoxLayout containerLeftLayout{&containerLeft};
 
     /* ..song widgets */
-    SonglistWidget songlistWidget{&containerLeft};
-    SonglistWidget playlistWidget{&containerLeft};
+    SonglistWidget songlistWidget{"Songlist", &containerLeft};
+    SonglistWidget playlistWidget{"Playlist", &containerLeft};
 
     /* .right container */
     QWidget containerRight{&containerCentral};
@@ -42,7 +43,7 @@ private:
     QTextEdit statusWidget{&containerStatusInfo};
 
     /* ...info widget */
-    QTextEdit infoWidget{&containerStatusInfo};
+    RominfoWidget infoWidget{&containerStatusInfo};
 
     /* ..log widget */
     QTextEdit logWidget{&containerRight};

@@ -10,7 +10,7 @@ class SonglistWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit SonglistWidget(QWidget *parent = nullptr);
+    explicit SonglistWidget(const QString &titleString, QWidget *parent = nullptr);
     ~SonglistWidget() override;
 
 private:

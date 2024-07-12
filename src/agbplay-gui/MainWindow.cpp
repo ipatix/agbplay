@@ -42,26 +42,35 @@ void MainWindow::SetupMenuBar()
     /* Profile */
     QMenu *profileMenu = menuBar()->addMenu("Profile");
     QAction *profileSelect = profileMenu->addAction("Load Profile");
+    profileSelect->setIcon(QIcon(":/icons/profile-select.ico"));
     profileSelect->setEnabled(false);
     QAction *profileCreate = profileMenu->addAction("Create New Profile");
+    profileCreate->setIcon(QIcon(":/icons/profile-create.ico"));
     profileCreate->setEnabled(false);
     QAction *profileDuplicate = profileMenu->addAction("Duplicate Current Profile");
+    profileDuplicate->setIcon(QIcon(":/icons/profile-duplicate.ico"));
     profileDuplicate->setEnabled(false);
     QAction *profileDelete = profileMenu->addAction("Delete Current Profile");
+    profileDelete->setIcon(QIcon(":/icons/profile-delete.ico"));
     profileDelete->setEnabled(false);
     profileMenu->addSeparator();
     QAction *profileSettings = profileMenu->addAction("Profile Settings");
+    profileSettings->setIcon(QIcon(":/icons/profile-settings.ico"));
     profileSettings->setEnabled(false);
     QAction *profileMinigsfImport = profileMenu->addAction("Import GSF Playlist");
+    profileMinigsfImport->setIcon(QIcon(":/icons/profile-import-minigsf.ico"));
     profileMinigsfImport->setEnabled(false);
     profileMenu->addSeparator();
     QAction *profileDirectory = profileMenu->addAction("Open User Profile Directory");
+    profileDirectory->setIcon(QIcon(":/icons/profile-open-folder.ico"));
 
     /* Help */
     QMenu *helpMenu = menuBar()->addMenu("Help");
     QAction *helpSaveLog = helpMenu->addAction("Save Log");
+    helpSaveLog->setIcon(QIcon(":/icons/save-log.ico"));
     helpMenu->addSeparator();
     QAction *helpAboutAction = helpMenu->addAction("About");
+    helpAboutAction->setIcon(QIcon(":/icons/about.ico"));
     connect(helpAboutAction, &QAction::triggered, [this](bool) {
         QMessageBox mbox(QMessageBox::Icon::Information, "TEST", "TEST 2", QMessageBox::Ok, this);
         mbox.exec();

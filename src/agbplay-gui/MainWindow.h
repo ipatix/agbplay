@@ -4,6 +4,7 @@
 #include <QListView>
 #include <QTableView>
 #include <QTextEdit>
+#include <QPushButton>
 
 #include "SonglistWidget.h"
 #include "RominfoWidget.h"
@@ -21,6 +22,11 @@ private:
     void SetupToolBar();
     void SetupWidgets();
     void SetupStatusBar();
+
+    /* menu bar */
+    QPushButton pauseButton{this};
+    QPushButton playButton{this};
+    QPushButton stopButton{this};
 
     /* central container */
     QWidget containerCentral{this};

@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QTextEdit>
+#include <QToolBar>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -86,6 +87,13 @@ void MainWindow::SetupMenuBar()
 void MainWindow::SetupToolBar()
 {
     QToolBar *toolBar = addToolBar("HAHAHAA");
+    stopButton.setIcon(QIcon(":/icons/playback-stop.ico"));
+    toolBar->addWidget(&stopButton);
+    playButton.setIcon(QIcon(":/icons/playback-play.ico"));
+    toolBar->addWidget(&playButton);
+    pauseButton.setIcon(QIcon(":/icons/playback-pause.ico"));
+    toolBar->addWidget(&pauseButton);
+    toolBar->addSeparator();
 }
 
 void MainWindow::SetupWidgets()

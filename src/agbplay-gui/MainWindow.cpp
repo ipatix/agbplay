@@ -29,6 +29,11 @@ void MainWindow::SetupMenuBar()
     QAction *fileOpenGSF = fileMenu->addAction("Open GSF");
     fileOpenGSF->setIcon(QIcon(":/icons/open-gsf.ico"));
     fileMenu->addSeparator();
+    QAction *exportAudio = fileMenu->addAction("Export Audio");
+    exportAudio->setIcon(QIcon(":/icons/export-audio.ico"));
+    QAction *exportMidi = fileMenu->addAction("Export MIDI");
+    exportMidi->setIcon(QIcon(":/icons/export-midi.ico"));
+    fileMenu->addSeparator();
     QAction *fileQuit = fileMenu->addAction("Quit");
     fileQuit->setIcon(QIcon(":/icons/exit.ico"));
     connect(fileQuit, &QAction::triggered, [this](bool) { close(); });

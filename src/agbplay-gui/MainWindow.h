@@ -8,6 +8,7 @@
 
 #include "SonglistWidget.h"
 #include "RominfoWidget.h"
+#include "VUMeterWidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -27,6 +28,7 @@ private:
     QPushButton pauseButton{this};
     QPushButton playButton{this};
     QPushButton stopButton{this};
+    VUMeterWidget vuMeter{128, 32, this};
 
     /* central container */
     QWidget containerCentral{this};

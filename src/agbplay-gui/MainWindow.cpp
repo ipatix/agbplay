@@ -88,12 +88,22 @@ void MainWindow::SetupToolBar()
 {
     QToolBar *toolBar = addToolBar("HAHAHAA");
     stopButton.setIcon(QIcon(":/icons/playback-stop.ico"));
+    stopButton.setFixedSize(32, 32);
+    stopButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&stopButton);
     playButton.setIcon(QIcon(":/icons/playback-play.ico"));
+    playButton.setFixedSize(32, 32);
+    playButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&playButton);
     pauseButton.setIcon(QIcon(":/icons/playback-pause.ico"));
+    pauseButton.setFixedSize(32, 32);
+    pauseButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&pauseButton);
     toolBar->addSeparator();
+    toolBar->addWidget(&vuMeter);
+
+    /* test */
+    vuMeter.SetLevel(0.8f, 0.9f, 1.0f, 1.1f);
 }
 
 void MainWindow::SetupWidgets()

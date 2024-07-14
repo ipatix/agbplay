@@ -131,6 +131,7 @@ void MainWindow::SetupWidgets()
     containerStatusInfoSplitter.addWidget(&infoWidget);
     containerStatusInfoSplitter.setStretchFactor(0, 5);
     containerStatusInfoSplitter.setStretchFactor(1, 1);
+    infoWidget.setMaximumWidth(250);
 
     /* 4. Create log */
     containerRightLayout.addWidget(&containerRightSplitter);
@@ -150,4 +151,12 @@ void MainWindow::SetupWidgets()
 void MainWindow::SetupStatusBar()
 {
     statusBar()->showMessage("HELLO");
+    statusBar()->addPermanentWidget(&progressBar);
+    progressBar.setMaximumHeight(16);
+    progressBar.setMinimumHeight(16);
+    progressBar.setMaximumWidth(128);
+    progressBar.setMinimumWidth(128);
+    progressBar.setRange(0, 100);
+    progressBar.setValue(20);
+    progressBar.hide(); // progress bar is only shown on demand
 }

@@ -6,6 +6,7 @@
 #include <QTextEdit>
 #include <QPushButton>
 #include <QSplitter>
+#include <QProgressBar>
 
 #include "SonglistWidget.h"
 #include "RominfoWidget.h"
@@ -62,4 +63,7 @@ private:
 
     /* ..log widget */
     QTextEdit logWidget{&containerRight};
+
+    /* status bar */
+    QProgressBar progressBar;
 };

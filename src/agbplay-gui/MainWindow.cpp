@@ -109,11 +109,13 @@ void MainWindow::SetupToolBar()
 void MainWindow::SetupWidgets()
 {
     /* 1. Create containers. */
-    containerCentralLayout.addWidget(&containerLeft);
-    containerCentralLayout.addWidget(&containerRight);
-    containerCentralLayout.setStretch(0, 1);
-    containerCentralLayout.setStretch(1, 5);
+    containerCentralLayout.addWidget(&containerCentralSplitter);
     containerCentralLayout.setContentsMargins(0, 0, 0, 0);
+    containerCentralSplitter.setChildrenCollapsible(false);
+    containerCentralSplitter.addWidget(&containerLeft);
+    containerCentralSplitter.addWidget(&containerRight);
+    containerCentralSplitter.setStretchFactor(0, 1);
+    containerCentralSplitter.setStretchFactor(1, 4);
     setCentralWidget(&containerCentral);
 
     /* 2. Create songlist and playlist. */
@@ -122,17 +124,21 @@ void MainWindow::SetupWidgets()
     containerLeftLayout.setContentsMargins(0, 0, 0, 0);
 
     /* 3. Create rom info and main status view. */
-    containerStatusInfoLayout.addWidget(&statusWidget);
-    containerStatusInfoLayout.addWidget(&infoWidget);
-    containerStatusInfoLayout.setStretch(0, 5);
-    containerStatusInfoLayout.setStretch(1, 1);
+    containerStatusInfoLayout.addWidget(&containerStatusInfoSplitter);
     containerStatusInfoLayout.setContentsMargins(0, 0, 0, 0);
+    containerStatusInfoSplitter.setChildrenCollapsible(false);
+    containerStatusInfoSplitter.addWidget(&statusWidget);
+    containerStatusInfoSplitter.addWidget(&infoWidget);
+    containerStatusInfoSplitter.setStretchFactor(0, 5);
+    containerStatusInfoSplitter.setStretchFactor(1, 1);
 
     /* 4. Create log */
-    containerRightLayout.addWidget(&containerStatusInfo);
-    containerRightLayout.addWidget(&logWidget);
-    containerRightLayout.setStretch(0, 5);
-    containerRightLayout.setStretch(1, 1);
+    containerRightLayout.addWidget(&containerRightSplitter);
+    containerRightSplitter.setChildrenCollapsible(false);
+    containerRightSplitter.addWidget(&containerStatusInfo);
+    containerRightSplitter.addWidget(&logWidget);
+    containerRightSplitter.setStretchFactor(0, 5);
+    containerRightSplitter.setStretchFactor(1, 1);
     containerRightLayout.setContentsMargins(0, 0, 0, 0);
     logWidget.setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
     logWidget.setFont(QFont("Monospace"));

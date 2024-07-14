@@ -5,6 +5,7 @@
 #include <QTableView>
 #include <QTextEdit>
 #include <QPushButton>
+#include <QSplitter>
 
 #include "SonglistWidget.h"
 #include "RominfoWidget.h"
@@ -33,6 +34,7 @@ private:
     /* central container */
     QWidget containerCentral{this};
     QHBoxLayout containerCentralLayout{&containerCentral};
+    QSplitter containerCentralSplitter{Qt::Horizontal, &containerCentral};
 
     /* .left container */
     QWidget containerLeft{&containerCentral};
@@ -45,10 +47,12 @@ private:
     /* .right container */
     QWidget containerRight{&containerCentral};
     QVBoxLayout containerRightLayout{&containerRight};
+    QSplitter containerRightSplitter{Qt::Vertical, &containerRight};
 
     /* ..status-info + log container */
     QWidget containerStatusInfo{&containerRight};
     QHBoxLayout containerStatusInfoLayout{&containerStatusInfo};
+    QSplitter containerStatusInfoSplitter{Qt::Horizontal, &containerStatusInfo};
 
     /* ...status widget */
     QTextEdit statusWidget{&containerStatusInfo};

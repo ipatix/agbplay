@@ -11,6 +11,7 @@
 #include "SonglistWidget.h"
 #include "RominfoWidget.h"
 #include "VUMeterWidget.h"
+#include "StatusWidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -56,7 +57,7 @@ private:
     QSplitter containerStatusInfoSplitter{Qt::Horizontal, &containerStatusInfo};
 
     /* ...status widget */
-    QTextEdit statusWidget{&containerStatusInfo};
+    StatusWidget statusWidget{&containerStatusInfo};
 
     /* ...info widget */
     RominfoWidget infoWidget{&containerStatusInfo};

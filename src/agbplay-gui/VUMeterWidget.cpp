@@ -133,6 +133,26 @@ void VUMeterWidget::paintEvent(QPaintEvent *paintEvent)
     drawPeak(lVURect, dbPeakLeft);
     drawPeak(rVURect, dbPeakRight);
 
+    /* draw scale */
+    for (auto point : DB_POINTS) {
+        const int x = calcWidth(static_cast<float>(point));
+        const int lx = x + lVURect.left();
+        const int rx = x + rVURect.left();
+        const int lyt = lVURect.top();
+        const int lyb = lVURect.top() + lVURect.height() / 3;
+        const int ryt = rVURect.bottom() - rVURect.height() / 3;
+        const int ryb = rVURect.bottom();
+        painter.fillRect(QRect(QPoint(lx, lyt), QPoint(lx, lyb)), QColor(255, 255, 255));
+        painter.fillRect(QRect(QPoint(rx, ryt), QPoint(rx, ryb)), QColor(255, 255, 255));
+
+        const QRect labelRect(lx - 8, height() / 2 - 8, 16, 16);
+        painter.setPen(QColor(255, 255, 255));
+        QFont font;
+        font.setPointSize(7);
+        painter.setFont(font);
+        painter.drawText(labelRect, Qt::AlignCenter, QString::number(point));
+    }
+
     /* draw border */
     QFrame::paintEvent(paintEvent);
 }

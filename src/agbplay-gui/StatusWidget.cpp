@@ -152,8 +152,15 @@ TrackWidget::TrackWidget(QWidget *parent)
     layout.addWidget(&keyboardWidget, 1, 2);
     layout.addWidget(&vuBarWidget, 0, 2);
     layout.setContentsMargins(0, 0, 0, 0);
+    layout.setHorizontalSpacing(0);
+    layout.setVerticalSpacing(0);
 
-    vuBarWidget.setLevel(0.9f, 1.0f);
+    vuBarLayout.addWidget(&vuBarWidgetLeft);
+    vuBarLayout.addWidget(&vuBarWidgetRight);
+    vuBarLayout.setContentsMargins(0, 0, 0, 0);
+    vuBarLayout.setSpacing(0);
+    vuBarWidgetLeft.setLevel(0.9f, 1.0f);
+    vuBarWidgetRight.setLevel(0.9f, 1.0f);
 }
 
 TrackWidget::~TrackWidget()

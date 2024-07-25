@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QWidget>
+#include <QFrame>
 #include <QLinearGradient>
 
-class VUBarWidget : public QWidget
+class VUBarWidget : public QFrame
 {
     Q_OBJECT
 

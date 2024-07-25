@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QGridLayout>
 #include <QPushButton>
 #include <QLabel>
@@ -55,7 +56,11 @@ private:
     QPushButton muteButton{this};
     QPushButton soloButton{this};
     KeyboardWidget keyboardWidget{this};
-    VUBarWidget vuBarWidget{VUBarWidget::Orientation::Right, true, -36.0f, 3.0f, this};
+
+    QWidget vuBarWidget{this};
+    QHBoxLayout vuBarLayout{&vuBarWidget};
+    VUBarWidget vuBarWidgetLeft{VUBarWidget::Orientation::Left, true, -36.0f, 3.0f, &vuBarWidget};
+    VUBarWidget vuBarWidgetRight{VUBarWidget::Orientation::Right, true, -36.0f, 3.0f, &vuBarWidget};
 };
 
 class StatusWidget : public QWidget

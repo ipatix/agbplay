@@ -3,7 +3,7 @@
 #include <QPainter>
 
 VUBarWidget::VUBarWidget(Orientation orientation, bool logScale, float dbStart, float dbEnd, QWidget *parent)
-    : QWidget(parent), orientation(orientation), logScale(logScale), dbStart(dbStart), dbEnd(dbEnd)
+    : QFrame(parent), orientation(orientation), logScale(logScale), dbStart(dbStart), dbEnd(dbEnd)
 {
     barGradient.setColorAt(0.0f, QColor(0, 200, 0));
     barGradient.setColorAt(0.5f, QColor(200, 200, 0));
@@ -11,6 +11,9 @@ VUBarWidget::VUBarWidget(Orientation orientation, bool logScale, float dbStart, 
     peakGradient.setColorAt(0.0f, QColor(0, 255, 0));
     peakGradient.setColorAt(0.5f, QColor(200, 255, 0));
     peakGradient.setColorAt(1.0f, QColor(255, 0, 0));
+
+    setFrameStyle(QFrame::Sunken | QFrame::Panel);
+    setLineWidth(1);
 }
 
 VUBarWidget::~VUBarWidget()
@@ -26,8 +29,6 @@ void VUBarWidget::setLevel(float rms, float peak)
 
 void VUBarWidget::paintEvent(QPaintEvent *paintEvent)
 {
-    (void)paintEvent;
-
     int offsetRms, offsetPeak;
     if (logScale) {
         offsetRms = offsetOfLog(levelRms);
@@ -39,33 +40,37 @@ void VUBarWidget::paintEvent(QPaintEvent *paintEvent)
 
     QPainter painter(this);
 
+    QRect r = contentsRect();
+
     int cr, cp;
     switch (orientation) {
     case Orientation::Left:
         cr = width() - offsetRms;
         cp = width() - offsetPeak;
-        painter.fillRect(QRect(QPoint(cr, rect().top()), rect().bottomRight()), barGradient);
-        painter.fillRect(QRect(QPoint(cp, rect().top()), QPoint(cp, rect().bottom())), peakGradient);
+        painter.fillRect(QRect(QPoint(cr, r.top()), r.bottomRight()), barGradient);
+        painter.fillRect(QRect(QPoint(cp, r.top()), QPoint(cp, r.bottom())), peakGradient);
         break;
     case Orientation::Up:
         cr = height() - offsetRms;
         cp = height() - offsetPeak;
-        painter.fillRect(QRect(QPoint(rect().left(), cr), rect().bottomRight()), barGradient);
-        painter.fillRect(QRect(QPoint(rect().left(), cp), QPoint(rect().right(), cp)), peakGradient);
+        painter.fillRect(QRect(QPoint(r.left(), cr), r.bottomRight()), barGradient);
+        painter.fillRect(QRect(QPoint(r.left(), cp), QPoint(r.right(), cp)), peakGradient);
         break;
     case Orientation::Right:
         cr = offsetRms;
         cp = offsetPeak;
-        painter.fillRect(QRect(rect().topLeft(), QPoint(cr, rect().bottom())), barGradient);
-        painter.fillRect(QRect(QPoint(cp, rect().top()), QPoint(cp, rect().bottom())), peakGradient);
+        painter.fillRect(QRect(r.topLeft(), QPoint(cr, r.bottom())), barGradient);
+        painter.fillRect(QRect(QPoint(cp, r.top()), QPoint(cp, r.bottom())), peakGradient);
         break;
     case Orientation::Down:
         cr = offsetRms;
         cp = offsetPeak;
-        painter.fillRect(QRect(rect().topLeft(), QPoint(rect().right(), cr)), barGradient);
-        painter.fillRect(QRect(QPoint(rect().left(), cp), QPoint(rect().right(), cp)), peakGradient);
+        painter.fillRect(QRect(r.topLeft(), QPoint(r.right(), cr)), barGradient);
+        painter.fillRect(QRect(QPoint(r.left(), cp), QPoint(r.right(), cp)), peakGradient);
         break;
     }
+
+    QFrame::paintEvent(paintEvent);
 }
 
 void VUBarWidget::resizeEvent(QResizeEvent *resizeEvent)

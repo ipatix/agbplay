@@ -28,6 +28,12 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
     static const std::array<uint8_t, 7> W_KEY_TABLE{ 0, 2, 4, 5, 7, 9, 11 };
     static const std::array<uint8_t, 5> B_KEY_TABLE{ 1, 3, 6, 8, 10 };
 
+    static const QColor b = QColor(0, 0, 0);
+    static const QColor w = QColor(255, 255, 255);
+    static const QColor pressed = QColor(255, 0, 255);
+    static const QColor midc = QColor(150, 150, 150);
+    static const QColor c = QColor(200, 200, 200);
+
     for (int octave = 0; octave < 11; octave++) {
         const QRect octaveRect(octave * OCTAVE_WIDTH, 0, OCTAVE_WIDTH, height());
 
@@ -35,7 +41,7 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
             if (octave == 10 && wkey == 5) {
                 /* draw final line */
                 const int x = octaveRect.left() + wkey * WHITE_KEY_WIDTH;
-                painter.drawLine(QPoint(x, octaveRect.top()), QPoint(x, octaveRect.bottom()));
+                painter.fillRect(QRect(QPoint(x, octaveRect.top()), QPoint(x, octaveRect.bottom())), QColor(Qt::black));
                 break;
             }
 
@@ -53,18 +59,22 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
                 )
             );
 
-            /* Draw key only with top, left, and bottom border lines. The right border line will
-             * be implicitly drawn by the next key. */
-            painter.drawLine(keyRect.topLeft(), keyRect.bottomLeft());
-            painter.drawLine(keyRect.bottomLeft(), keyRect.bottomRight());
-            painter.drawLine(keyRect.topLeft(), keyRect.topRight());
-
             QColor col;
             if (keysPressed[key])
-                col = QColor(255, 0, 255);
+                col = pressed;
+            else if (key == 60)
+                col = midc;
+            else if (wkey == 0)
+                col = c;
             else
-                col = QColor(255, 255, 255);
-            painter.fillRect(keyRect.marginsRemoved(QMargins(1, 1, 0, 1)), col);
+                col = w;
+            painter.fillRect(keyRect, col);
+
+            /* Draw key only with top, left, and bottom border lines. The right border line will
+             * be implicitly drawn by the next key. */
+            painter.fillRect(QRect(keyRect.topLeft(), keyRect.bottomLeft()), b);
+            painter.fillRect(QRect(keyRect.bottomLeft(), keyRect.bottomRight()), b);
+            painter.fillRect(QRect(keyRect.topLeft(), keyRect.topRight()), b);
         }
 
         for (int bkey = 0; bkey < 5; bkey++) {
@@ -91,16 +101,17 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
                 )
             );
 
-            painter.drawLine(keyRect.topLeft(), keyRect.bottomLeft());
-            painter.drawLine(keyRect.bottomLeft(), keyRect.bottomRight());
-            painter.drawLine(keyRect.bottomRight(), keyRect.topRight());
-
             QColor col;
             if (keysPressed[key])
                 col = QColor(255, 0, 255);
             else
                 col = QColor(20, 20, 20);
-            painter.fillRect(keyRect.marginsRemoved(QMargins(1, 1, 1, 1)), col);
+            painter.fillRect(keyRect, col);
+
+            painter.fillRect(QRect(keyRect.topLeft(), keyRect.bottomLeft()), b);
+            painter.fillRect(QRect(keyRect.bottomLeft(), keyRect.bottomRight()), b);
+            painter.fillRect(QRect(keyRect.topRight(), keyRect.bottomRight()), b);
+            painter.fillRect(QRect(keyRect.topLeft(), keyRect.topRight()), b);
         }
     }
 }

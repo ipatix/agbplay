@@ -19,6 +19,7 @@ public:
     ~VUBarWidget() override;
 
     void setLevel(float rms, float peak);
+    int offsetOfLevel(float level) const;
 
 private:
     void paintEvent(QPaintEvent *paintEvent) override;

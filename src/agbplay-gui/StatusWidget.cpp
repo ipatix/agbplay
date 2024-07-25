@@ -160,7 +160,11 @@ TrackWidget::TrackWidget(QWidget *parent)
     vuBarLayout.setContentsMargins(0, 0, 0, 0);
     vuBarLayout.setSpacing(0);
     vuBarWidgetLeft.setLevel(0.9f, 1.0f);
+    vuBarWidgetLeft.setFrameStyle(QFrame::Sunken | QFrame::Panel);
+    vuBarWidgetLeft.setLineWidth(1);
     vuBarWidgetRight.setLevel(0.9f, 1.0f);
+    vuBarWidgetRight.setFrameStyle(QFrame::Sunken | QFrame::Panel);
+    vuBarWidgetRight.setLineWidth(1);
 }
 
 TrackWidget::~TrackWidget()

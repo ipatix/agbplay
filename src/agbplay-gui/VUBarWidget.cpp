@@ -11,9 +11,6 @@ VUBarWidget::VUBarWidget(Orientation orientation, bool logScale, float dbStart, 
     peakGradient.setColorAt(0.0f, QColor(0, 255, 0));
     peakGradient.setColorAt(0.5f, QColor(200, 255, 0));
     peakGradient.setColorAt(1.0f, QColor(255, 0, 0));
-
-    setFrameStyle(QFrame::Sunken | QFrame::Panel);
-    setLineWidth(1);
 }
 
 VUBarWidget::~VUBarWidget()
@@ -25,6 +22,13 @@ void VUBarWidget::setLevel(float rms, float peak)
     levelRms = rms;
     levelPeak = peak;
     update();
+}
+
+int VUBarWidget::offsetOfLevel(float level) const
+{
+    if (logScale)
+        return offsetOfLog(level);
+    return offsetOfLinear(level);
 }
 
 void VUBarWidget::paintEvent(QPaintEvent *paintEvent)

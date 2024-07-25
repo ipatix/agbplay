@@ -1,6 +1,10 @@
 #pragma once
 
 #include <QFrame>
+#include <QGridLayout>
+#include <QLabel>
+
+#include "VUBarWidget.h"
 
 class VUMeterWidget : public QFrame
 {
@@ -14,8 +18,9 @@ public:
 private:
     void paintEvent(QPaintEvent *paintEvent) override;
 
-    float rmsLeft = 0.0f;
-    float rmsRight = 0.0f;
-    float peakLeft = 0.0f;
-    float peakRight = 0.0f;
+    QGridLayout layout{this};
+    QLabel leftLabel{this};
+    QLabel rightLabel{this};
+    VUBarWidget leftBarWidget{VUBarWidget::Orientation::Right, true, -36.0f, 6.0f, this};
+    VUBarWidget rightBarWidget{VUBarWidget::Orientation::Right, true, -36.0f, 6.0f, this};
 };

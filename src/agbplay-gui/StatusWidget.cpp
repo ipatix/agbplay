@@ -149,8 +149,11 @@ TrackWidget::TrackWidget(QWidget *parent)
     layout.addWidget(&trackNoLabel, 0, 0);
     layout.addWidget(&muteButton, 1, 1);
     layout.addWidget(&soloButton, 1, 0);
-    layout.addWidget(&keyboardWidget, 0, 2);
+    layout.addWidget(&keyboardWidget, 1, 2);
+    layout.addWidget(&vuBarWidget, 0, 2);
     layout.setContentsMargins(0, 0, 0, 0);
+
+    vuBarWidget.setLevel(0.9f, 1.0f);
 }
 
 TrackWidget::~TrackWidget()

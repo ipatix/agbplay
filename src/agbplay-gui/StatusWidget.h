@@ -9,6 +9,8 @@
 #include <array>
 #include <bitset>
 
+#include "VUBarWidget.h"
+
 class KeyboardWidget : public QWidget
 {
     Q_OBJECT
@@ -53,6 +55,7 @@ private:
     QPushButton muteButton{this};
     QPushButton soloButton{this};
     KeyboardWidget keyboardWidget{this};
+    VUBarWidget vuBarWidget{VUBarWidget::Orientation::Right, true, -36.0f, 3.0f, this};
 };
 
 class StatusWidget : public QWidget

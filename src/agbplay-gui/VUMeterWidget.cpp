@@ -5,9 +5,11 @@
 #include <algorithm>
 
 VUMeterWidget::VUMeterWidget(int width, int height, QWidget *parent)
-    : QWidget(parent)
+    : QFrame(parent)
 {
     setFixedSize(width, height);
+    setFrameStyle(QFrame::Sunken | QFrame::Panel);
+    setLineWidth(1);
 }
 
 VUMeterWidget::~VUMeterWidget()
@@ -25,8 +27,6 @@ void VUMeterWidget::SetLevel(float rmsLeft, float rmsRight, float peakLeft, floa
 
 void VUMeterWidget::paintEvent(QPaintEvent *paintEvent)
 {
-    (void)paintEvent;
-
     QPainter painter(this);
 
     const int LETTER_WIDTH = 12;
@@ -34,8 +34,7 @@ void VUMeterWidget::paintEvent(QPaintEvent *paintEvent)
     const int DB_RIGHT = 6;
     const std::array DB_POINTS = { -24, -12, 0 };
 
-    const QRect borderRect(QPoint(0, 0), QPoint(width()-1, height()-1));
-    const QRect bgRect(borderRect.marginsRemoved(QMargins(1, 1, 1, 1)));
+    const QRect bgRect(contentsRect());
     const QRect lLabelRect(
         bgRect.topLeft(),
         QSize(LETTER_WIDTH, bgRect.height()/2-2)
@@ -60,14 +59,6 @@ void VUMeterWidget::paintEvent(QPaintEvent *paintEvent)
         rLabelRect.topRight() + QPoint(2, 0),
         QPoint(bgRect.right(), rLabelRect.bottom())
     );
-
-    /* draw border */
-    painter.setPen(QColor(20, 20, 20));
-    painter.drawLine(borderRect.topLeft(), borderRect.bottomLeft());
-    painter.drawLine(borderRect.topLeft(), borderRect.topRight());
-    painter.setPen(QColor(200, 200, 200));
-    painter.drawLine(borderRect.topRight() + QPoint(0, 1), borderRect.bottomRight());
-    painter.drawLine(borderRect.bottomLeft() + QPoint(1, 0), borderRect.bottomRight());
 
     /* draw background */
     painter.fillRect(bgRect, QColor(10, 10, 10));
@@ -119,21 +110,29 @@ void VUMeterWidget::paintEvent(QPaintEvent *paintEvent)
         if (widthPeak < 0)
             return;
 
+        QColor col;
+
         if (peak < -6.0f) {
-            painter.setPen(QColor(0, 255, 0));
+            col = QColor(0, 255, 0);
         } else if (peak < 0.0f) {
             const float t = std::clamp((peak + 6.0f) / 6.0f, 0.0f, 1.0f);
-            painter.setPen(QColor(static_cast<int>(t * 255.0f), static_cast<int>((1.0f - t) * 255.0f), 0));
+            col = QColor(static_cast<int>(t * 255.0f), static_cast<int>((1.0f - t) * 255.0f), 0);
         } else {
-            painter.setPen(QColor(255, 0, 0));
+            col = QColor(255, 0, 0);
         }
 
-        painter.drawLine(
-            QPoint(rect.left() + widthPeak, rect.top()),
-            QPoint(rect.left() + widthPeak, rect.bottom())
+        painter.fillRect(
+            QRect(
+                QPoint(rect.left() + widthPeak, rect.top()),
+                QPoint(rect.left() + widthPeak, rect.bottom())
+            ),
+            col
         );
     };
 
     drawPeak(lVURect, dbPeakLeft);
     drawPeak(rVURect, dbPeakRight);
+
+    /* draw border */
+    QFrame::paintEvent(paintEvent);
 }

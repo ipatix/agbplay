@@ -1,8 +1,8 @@
 #pragma once
 
-#include <QWidget>
+#include <QFrame>
 
-class VUMeterWidget : public QWidget
+class VUMeterWidget : public QFrame
 {
     Q_OBJECT
 

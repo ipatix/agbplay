@@ -139,21 +139,24 @@ TrackWidget::TrackWidget(QWidget *parent)
 {
     setMinimumHeight(32);
 
-    QPalette pal;
-    pal.setColor(QPalette::Window, QColor(80, 80, 80));
-    setPalette(pal);
-    setAutoFillBackground(true);
-
-    trackNoLabel.setText("X");
+    trackNoLabel.setText("Id");
     trackNoLabel.setAlignment(Qt::AlignCenter);
-    layout.addWidget(&trackNoLabel, 0, 0);
-    layout.addWidget(&muteButton, 1, 1);
-    layout.addWidget(&soloButton, 1, 0);
-    layout.addWidget(&keyboardWidget, 1, 2);
-    layout.addWidget(&vuBarWidget, 0, 2);
+    layout.addWidget(&separatorLine, 0, 0, 1, -1);
+    separatorLine.setFrameStyle(QFrame::Raised | QFrame::HLine);
+    separatorLine.setLineWidth(2);
+    separatorLine.setMidLineWidth(2);
+    layout.addWidget(&trackNoLabel, 1, 0);
+    layout.addWidget(&muteButton, 2, 1);
+    layout.addWidget(&soloButton, 2, 0);
+    layout.addLayout(&vuBarKeyboardLayout, 1, 2, 2, 1);
     layout.setContentsMargins(0, 0, 0, 0);
     layout.setHorizontalSpacing(0);
     layout.setVerticalSpacing(0);
+
+    vuBarKeyboardLayout.addWidget(&vuBarWidget);
+    vuBarKeyboardLayout.addWidget(&keyboardWidget);
+    vuBarKeyboardLayout.setContentsMargins(0, 0, 0, 0);
+    vuBarKeyboardLayout.setSpacing(0);
 
     vuBarLayout.addWidget(&vuBarWidgetLeft);
     vuBarLayout.addWidget(&vuBarWidgetRight);
@@ -162,9 +165,11 @@ TrackWidget::TrackWidget(QWidget *parent)
     vuBarWidgetLeft.setLevel(0.9f, 1.0f);
     vuBarWidgetLeft.setFrameStyle(QFrame::Sunken | QFrame::Panel);
     vuBarWidgetLeft.setLineWidth(1);
+    vuBarWidgetLeft.setStyleSheet("QFrame {background-color: #0a0a0a};");
     vuBarWidgetRight.setLevel(0.9f, 1.0f);
     vuBarWidgetRight.setFrameStyle(QFrame::Sunken | QFrame::Panel);
     vuBarWidgetRight.setLineWidth(1);
+    vuBarWidgetRight.setStyleSheet("QFrame {background-color: #0a0a0a};");
 }
 
 TrackWidget::~TrackWidget()
@@ -182,7 +187,6 @@ StatusWidget::StatusWidget(QWidget *parent)
         trackWidgets.at(i).setParent(this);
         layout.addWidget(&trackWidgets.at(i));
     }
-
 }
 
 StatusWidget::~StatusWidget()

@@ -52,6 +52,7 @@ public:
 private:
     QGridLayout layout{this};
 
+    QFrame separatorLine{this};
     QLabel trackNoLabel{this};
     QPushButton muteButton{this};
     QPushButton soloButton{this};
@@ -59,8 +60,9 @@ private:
 
     QWidget vuBarWidget{this};
     QHBoxLayout vuBarLayout{&vuBarWidget};
-    VUBarWidget vuBarWidgetLeft{VUBarWidget::Orientation::Left, true, -36.0f, 3.0f, &vuBarWidget};
-    VUBarWidget vuBarWidgetRight{VUBarWidget::Orientation::Right, true, -36.0f, 3.0f, &vuBarWidget};
+    VUBarWidget vuBarWidgetLeft{VUBarWidget::Orientation::Left, false, -36.0f, 3.0f, &vuBarWidget};
+    VUBarWidget vuBarWidgetRight{VUBarWidget::Orientation::Right, false, -36.0f, 3.0f, &vuBarWidget};
+    QVBoxLayout vuBarKeyboardLayout;
 };
 
 class StatusWidget : public QWidget

@@ -127,10 +127,13 @@ void MainWindow::SetupWidgets()
     containerStatusInfoLayout.addWidget(&containerStatusInfoSplitter);
     containerStatusInfoLayout.setContentsMargins(0, 0, 0, 0);
     containerStatusInfoSplitter.setChildrenCollapsible(false);
-    containerStatusInfoSplitter.addWidget(&statusWidget);
+    containerStatusInfoSplitter.addWidget(&statusWidgetScrollArea);
     containerStatusInfoSplitter.addWidget(&infoWidget);
     containerStatusInfoSplitter.setStretchFactor(0, 5);
     containerStatusInfoSplitter.setStretchFactor(1, 1);
+    statusWidgetScrollArea.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    statusWidgetScrollArea.setWidgetResizable(true);
+    statusWidgetScrollArea.setWidget(&statusWidget);
     infoWidget.setMaximumWidth(250);
 
     /* 4. Create log */

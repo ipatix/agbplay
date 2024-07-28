@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QSplitter>
 #include <QProgressBar>
+#include <QScrollArea>
 
 #include "SonglistWidget.h"
 #include "RominfoWidget.h"
@@ -57,7 +58,8 @@ private:
     QSplitter containerStatusInfoSplitter{Qt::Horizontal, &containerStatusInfo};
 
     /* ...status widget */
-    StatusWidget statusWidget{&containerStatusInfo};
+    QScrollArea statusWidgetScrollArea{&containerStatusInfo};
+    StatusWidget statusWidget{&statusWidgetScrollArea};
 
     /* ...info widget */
     RominfoWidget infoWidget{&containerStatusInfo};

@@ -134,21 +134,30 @@ void SongWidget::paintEvent(QPaintEvent *paintEvent)
     painter.fillRect(contentsRect(), QColor(255, 0, 255));
 }
 
-TrackWidget::TrackWidget(QWidget *parent)
+TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     : QWidget(parent)
 {
-    setMinimumHeight(32);
+    setFixedHeight(36);
 
-    trackNoLabel.setText("Id");
+    //setStyleSheet("QWidget {background-color: #202020};");
+    QPalette pal;
+    pal.setColor(QPalette::Window, QColor(0x20, 0x20, 0x20));
+    setPalette(pal);
+    setAutoFillBackground(true);
+
+    trackNoLabel.setText(QString::number(trackNo));
     trackNoLabel.setAlignment(Qt::AlignCenter);
+    trackNoLabel.setStyleSheet("QLabel {color: #FFFFFF; font-family: \"Monospace\";};");
     layout.addWidget(&separatorLine, 0, 0, 1, -1);
     separatorLine.setFrameStyle(QFrame::Raised | QFrame::HLine);
     separatorLine.setLineWidth(2);
     separatorLine.setMidLineWidth(2);
-    layout.addWidget(&trackNoLabel, 1, 0);
-    layout.addWidget(&muteButton, 2, 1);
-    layout.addWidget(&soloButton, 2, 0);
-    layout.addLayout(&vuBarKeyboardLayout, 1, 2, 2, 1);
+    layout.addWidget(&trackNoLabel, 1, 1);
+    layout.addWidget(&muteButton, 2, 2);
+    layout.addWidget(&soloButton, 2, 1);
+    layout.addLayout(&vuBarKeyboardLayout, 1, 3, 2, 1);
+    layout.setColumnStretch(0, 1);
+    layout.setColumnStretch(4, 1);
     layout.setContentsMargins(0, 0, 0, 0);
     layout.setHorizontalSpacing(0);
     layout.setVerticalSpacing(0);
@@ -163,13 +172,13 @@ TrackWidget::TrackWidget(QWidget *parent)
     vuBarLayout.setContentsMargins(0, 0, 0, 0);
     vuBarLayout.setSpacing(0);
     vuBarWidgetLeft.setLevel(0.9f, 1.0f);
-    vuBarWidgetLeft.setFrameStyle(QFrame::Sunken | QFrame::Panel);
-    vuBarWidgetLeft.setLineWidth(1);
-    vuBarWidgetLeft.setStyleSheet("QFrame {background-color: #0a0a0a};");
+    //vuBarWidgetLeft.setFrameStyle(QFrame::Sunken | QFrame::Panel);
+    //vuBarWidgetLeft.setLineWidth(1);
+    vuBarWidgetLeft.setFixedHeight(8);
     vuBarWidgetRight.setLevel(0.9f, 1.0f);
-    vuBarWidgetRight.setFrameStyle(QFrame::Sunken | QFrame::Panel);
-    vuBarWidgetRight.setLineWidth(1);
-    vuBarWidgetRight.setStyleSheet("QFrame {background-color: #0a0a0a};");
+    //vuBarWidgetRight.setFrameStyle(QFrame::Sunken | QFrame::Panel);
+    //vuBarWidgetRight.setLineWidth(1);
+    vuBarWidgetRight.setFixedHeight(8);
 }
 
 TrackWidget::~TrackWidget()
@@ -183,9 +192,9 @@ StatusWidget::StatusWidget(QWidget *parent)
     layout.setContentsMargins(0, 0, 0, 0);
     layout.setSpacing(0);
 
-    for (size_t i = 0; i < trackWidgets.size(); i++) {
-        trackWidgets.at(i).setParent(this);
-        layout.addWidget(&trackWidgets.at(i));
+    for (size_t i = 0; i < 16; i++) {
+        trackWidgets.push_back(new TrackWidget(i, this));
+        layout.addWidget(trackWidgets.at(i));
     }
 }
 

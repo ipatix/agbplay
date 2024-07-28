@@ -46,7 +46,7 @@ class TrackWidget : public QWidget
     Q_OBJECT
 
 public:
-    TrackWidget(QWidget *parent = nullptr);
+    TrackWidget(size_t trackNo, QWidget *parent = nullptr);
     ~TrackWidget() override;
 
 private:
@@ -79,5 +79,5 @@ private:
 
     SongWidget songWidget{this};
     // TODO use constant MAX_TRACKS instead of 16
-    std::array<TrackWidget, 16> trackWidgets;
+    std::vector<TrackWidget *> trackWidgets;
 };

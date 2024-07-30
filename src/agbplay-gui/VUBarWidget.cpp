@@ -49,14 +49,14 @@ void VUBarWidget::paintEvent(QPaintEvent *paintEvent)
     int cr, cp;
     switch (orientation) {
     case Orientation::Left:
-        cr = width() - offsetRms;
-        cp = width() - offsetPeak;
+        cr = r.width() - 1 - offsetRms;
+        cp = r.width() - 1 - offsetPeak;
         painter.fillRect(QRect(QPoint(cr, r.top()), r.bottomRight()), barGradient);
         painter.fillRect(QRect(QPoint(cp, r.top()), QPoint(cp, r.bottom())), peakGradient);
         break;
     case Orientation::Up:
-        cr = height() - offsetRms;
-        cp = height() - offsetPeak;
+        cr = r.height() - 1 - offsetRms;
+        cp = r.height() - 1 - offsetPeak;
         painter.fillRect(QRect(QPoint(r.left(), cr), r.bottomRight()), barGradient);
         painter.fillRect(QRect(QPoint(r.left(), cp), QPoint(r.right(), cp)), peakGradient);
         break;

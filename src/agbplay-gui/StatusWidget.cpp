@@ -138,8 +138,19 @@ enum {
     COL_PADL = 0,
     COL_LABEL,
     COL_SPACE1,
-    COL_BUTTONS,
+    COL_BUTTONS1,
+    COL_BUTTONS2,
     COL_SPACE2,
+    COL_INST,
+    COL_SPACE3,
+    COL_VOL,
+    COL_SPACE4,
+    COL_PAN,
+    COL_SPACE5,
+    COL_MOD,
+    COL_SPACE6,
+    COL_PITCH,
+    COL_SPACE7,
     COL_KEYS,
     COL_PADR
 };
@@ -155,11 +166,11 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     layout.setColumnStretch(COL_PADL, 1);
 
     /* Label */
+    trackNoLabel.setFixedSize(24, 32);
     trackNoLabel.setPalette(labelUnmutedPalette);
     trackNoLabel.setAutoFillBackground(true);
     trackNoLabel.setText(QString::number(trackNo));
     trackNoLabel.setAlignment(Qt::AlignCenter);
-    trackNoLabel.setFixedSize(24, 32);
     trackNoLabel.setLineWidth(1);
     trackNoLabel.setMidLineWidth(1);
     trackNoLabel.setFrameStyle(QFrame::Box | QFrame::Raised);
@@ -173,21 +184,94 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     muteButton.setFixedSize(16, 16);
     muteButton.setStyleSheet("QPushButton {background-color: #CC0000;};");
     muteButton.setText("M");
-    layout.addWidget(&muteButton, 1, COL_BUTTONS);
+    layout.addWidget(&muteButton, 1, COL_BUTTONS1);
 
     soloButton.setFixedSize(16, 16);
     soloButton.setStyleSheet("QPushButton {background-color: #00CC00;};");
     soloButton.setText("S");
-    layout.addWidget(&soloButton, 2, COL_BUTTONS);
+    layout.addWidget(&soloButton, 2, COL_BUTTONS1);
 
-    //harmonyButton.setFixedSize(16, 16);
-    //harmonyButton.setStyleSheet("QPushButton {background-color: #00CCCC;};");
-    //harmonyButton.setText("H");
-    //layout.addWidget(&harmonyButton, 1, 2);
+    harmonyButton.setFixedSize(16, 16);
+    harmonyButton.setStyleSheet("QPushButton {background-color: #00AAAA;};");
+    harmonyButton.setText("H");
+    layout.addWidget(&harmonyButton, 1, COL_BUTTONS2);
     
     /* Spacer */
     layout.setColumnStretch(COL_SPACE2, 0);
     layout.setColumnMinimumWidth(COL_SPACE2, 2);
+
+    /* Labels */
+    posLabel.setFixedSize(64, 16);
+    posLabel.setPalette(posPalette);
+    posLabel.setFont(labelMonospaceFont);
+    posLabel.setText("0x0000000");
+    posLabel.setAlignment(Qt::AlignRight);
+    layout.addWidget(&posLabel, 1, COL_INST, 1, 5);
+
+    restLabel.setFixedSize(20, 16);
+    restLabel.setPalette(restPalette);
+    restLabel.setFont(labelFont);
+    restLabel.setText("0");
+    restLabel.setAlignment(Qt::AlignRight);
+    layout.addWidget(&restLabel, 1, COL_MOD);
+
+    voiceTypeLabel.setFixedSize(35, 16);
+    voiceTypeLabel.setPalette(voiceTypePalette);
+    voiceTypeLabel.setFont(labelFont);
+    voiceTypeLabel.setText("NONE");
+    voiceTypeLabel.setAlignment(Qt::AlignRight);
+    layout.addWidget(&voiceTypeLabel, 1, COL_PITCH);
+
+    instNoLabel.setFixedSize(20, 16);
+    instNoLabel.setPalette(instNoPalette);
+    instNoLabel.setFont(labelFont);
+    instNoLabel.setText("0");
+    instNoLabel.setAlignment(Qt::AlignRight);
+    layout.addWidget(&instNoLabel, 2, COL_INST);
+
+    layout.setColumnStretch(COL_SPACE3, 0);
+    layout.setColumnMinimumWidth(COL_SPACE3, 2);
+
+    volLabel.setFixedSize(20, 16);
+    volLabel.setPalette(volPalette);
+    volLabel.setFont(labelFont);
+    volLabel.setText("0");
+    volLabel.setAlignment(Qt::AlignRight);
+    layout.addWidget(&volLabel, 2, COL_VOL);
+
+    layout.setColumnStretch(COL_SPACE4, 0);
+    layout.setColumnMinimumWidth(COL_SPACE4, 2);
+
+    panLabel.setFixedSize(20, 16);
+    panLabel.setPalette(panPalette);
+    panLabel.setFont(labelFont);
+    panLabel.setText("C");
+    panLabel.setAlignment(Qt::AlignRight);
+    layout.addWidget(&panLabel, 2, COL_PAN);
+
+    layout.setColumnStretch(COL_SPACE5, 0);
+    layout.setColumnMinimumWidth(COL_SPACE5, 2);
+
+    modLabel.setFixedSize(20, 16);
+    modLabel.setPalette(modPalette);
+    modLabel.setFont(labelFont);
+    modLabel.setText("0");
+    modLabel.setAlignment(Qt::AlignRight);
+    layout.addWidget(&modLabel, 2, COL_MOD);
+
+    layout.setColumnStretch(COL_SPACE6, 0);
+    layout.setColumnMinimumWidth(COL_SPACE6, 2);
+
+    pitchLabel.setFixedSize(35, 16);
+    pitchLabel.setPalette(pitchPalette);
+    pitchLabel.setFont(labelFont);
+    pitchLabel.setText("00000");
+    pitchLabel.setAlignment(Qt::AlignRight);
+    layout.addWidget(&pitchLabel, 2, COL_PITCH);
+
+    /* Spacer */
+    layout.setColumnStretch(COL_SPACE5, 0);
+    layout.setColumnMinimumWidth(COL_SPACE7, 10);
 
     /* Keyboard and VU bars */
     layout.addLayout(&vuBarKeyboardLayout, 1, COL_KEYS, 2, 1);
@@ -234,6 +318,67 @@ const QPalette TrackWidget::labelMutedPalette = []() {
     pal.setColor(QPalette::Mid, QColor("#f44a4a"));
     pal.setColor(QPalette::Dark, QColor("#920000"));
     return pal;
+}();
+
+const QPalette TrackWidget::posPalette = []() {
+    QPalette pal;
+    pal.setColor(QPalette::WindowText, QColor("#27b927"));
+    return pal;
+}();
+
+const QPalette TrackWidget::restPalette = []() {
+    QPalette pal;
+    pal.setColor(QPalette::WindowText, QColor("#ff2121"));
+    return pal;
+}();
+
+const QPalette TrackWidget::voiceTypePalette = []() {
+    QPalette pal;
+    pal.setColor(QPalette::WindowText, QColor("#e7c900"));
+    return pal;
+}();
+
+const QPalette TrackWidget::instNoPalette = []() {
+    QPalette pal;
+    pal.setColor(QPalette::WindowText, QColor("#e762bc"));
+    return pal;
+}();
+
+const QPalette TrackWidget::volPalette = []() {
+    QPalette pal;
+    pal.setColor(QPalette::WindowText, QColor("#2ac642"));
+    return pal;
+}();
+
+const QPalette TrackWidget::panPalette = []() {
+    QPalette pal;
+    pal.setColor(QPalette::WindowText, QColor("#e67920"));
+    return pal;
+}();
+
+const QPalette TrackWidget::modPalette = []() {
+    QPalette pal;
+    pal.setColor(QPalette::WindowText, QColor("#00d0db"));
+    return pal;
+}();
+
+const QPalette TrackWidget::pitchPalette = []() {
+    QPalette pal;
+    pal.setColor(QPalette::WindowText, QColor("#b800e7"));
+    return pal;
+}();
+
+const QFont TrackWidget::labelFont = []() {
+    QFont font;
+    font.setPointSize(8);
+    return font;
+}();
+
+const QFont TrackWidget::labelMonospaceFont = []() {
+    QFont font;
+    font.setPointSize(8);
+    font.setFixedPitch(true);
+    return font;
 }();
 
 StatusWidget::StatusWidget(QWidget *parent)

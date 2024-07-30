@@ -6,6 +6,7 @@
 #include <QGridLayout>
 #include <QPushButton>
 #include <QLabel>
+#include <QFont>
 #include <QPalette>
 
 #include <array>
@@ -56,7 +57,15 @@ private:
     QLabel trackNoLabel{this};
     QPushButton muteButton{this};
     QPushButton soloButton{this};
-    //QPushButton harmonyButton{this};
+    QPushButton harmonyButton{this};
+    QLabel posLabel{this};
+    QLabel restLabel{this};
+    QLabel voiceTypeLabel{this};
+    QLabel instNoLabel{this};
+    QLabel volLabel{this};
+    QLabel panLabel{this};
+    QLabel modLabel{this};
+    QLabel pitchLabel{this};
     KeyboardWidget keyboardWidget{this};
 
     QWidget vuBarWidget{this};
@@ -67,6 +76,17 @@ private:
 
     static const QPalette labelUnmutedPalette;
     static const QPalette labelMutedPalette;
+
+    static const QPalette posPalette;
+    static const QPalette restPalette;
+    static const QPalette voiceTypePalette;
+    static const QPalette instNoPalette;
+    static const QPalette volPalette;
+    static const QPalette panPalette;
+    static const QPalette modPalette;
+    static const QPalette pitchPalette;
+    static const QFont labelFont;
+    static const QFont labelMonospaceFont;
 };
 
 class StatusWidget : public QWidget

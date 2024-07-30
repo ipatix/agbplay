@@ -6,6 +6,7 @@
 #include <QGridLayout>
 #include <QPushButton>
 #include <QLabel>
+#include <QPalette>
 
 #include <array>
 #include <bitset>
@@ -52,10 +53,10 @@ public:
 private:
     QGridLayout layout{this};
 
-    QFrame separatorLine{this};
     QLabel trackNoLabel{this};
     QPushButton muteButton{this};
     QPushButton soloButton{this};
+    //QPushButton harmonyButton{this};
     KeyboardWidget keyboardWidget{this};
 
     QWidget vuBarWidget{this};
@@ -63,6 +64,9 @@ private:
     VUBarWidget vuBarWidgetLeft{VUBarWidget::Orientation::Left, false, -36.0f, 3.0f, &vuBarWidget};
     VUBarWidget vuBarWidgetRight{VUBarWidget::Orientation::Right, false, -36.0f, 3.0f, &vuBarWidget};
     QVBoxLayout vuBarKeyboardLayout;
+
+    static const QPalette labelUnmutedPalette;
+    static const QPalette labelMutedPalette;
 };
 
 class StatusWidget : public QWidget

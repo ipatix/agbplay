@@ -134,30 +134,63 @@ void SongWidget::paintEvent(QPaintEvent *paintEvent)
     painter.fillRect(contentsRect(), QColor(255, 0, 255));
 }
 
+enum {
+    COL_PADL = 0,
+    COL_LABEL,
+    COL_SPACE1,
+    COL_BUTTONS,
+    COL_SPACE2,
+    COL_KEYS,
+    COL_PADR
+};
+
 TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     : QWidget(parent)
 {
     setFixedHeight(36);
 
-    //setStyleSheet("QWidget {background-color: #202020};");
-    QPalette pal;
-    pal.setColor(QPalette::Window, QColor(0x20, 0x20, 0x20));
-    setPalette(pal);
-    setAutoFillBackground(true);
+    layout.setRowMinimumHeight(0, 4);
+    layout.setRowStretch(0, 0);
 
+    layout.setColumnStretch(COL_PADL, 1);
+
+    /* Label */
+    trackNoLabel.setPalette(labelUnmutedPalette);
+    trackNoLabel.setAutoFillBackground(true);
     trackNoLabel.setText(QString::number(trackNo));
     trackNoLabel.setAlignment(Qt::AlignCenter);
-    trackNoLabel.setStyleSheet("QLabel {color: #FFFFFF; font-family: \"Monospace\";};");
-    layout.addWidget(&separatorLine, 0, 0, 1, -1);
-    separatorLine.setFrameStyle(QFrame::Raised | QFrame::HLine);
-    separatorLine.setLineWidth(2);
-    separatorLine.setMidLineWidth(2);
-    layout.addWidget(&trackNoLabel, 1, 1);
-    layout.addWidget(&muteButton, 2, 2);
-    layout.addWidget(&soloButton, 2, 1);
-    layout.addLayout(&vuBarKeyboardLayout, 1, 3, 2, 1);
-    layout.setColumnStretch(0, 1);
-    layout.setColumnStretch(4, 1);
+    trackNoLabel.setFixedSize(24, 32);
+    trackNoLabel.setLineWidth(1);
+    trackNoLabel.setMidLineWidth(1);
+    trackNoLabel.setFrameStyle(QFrame::Box | QFrame::Raised);
+    layout.addWidget(&trackNoLabel, 1, COL_LABEL, 2, 1);
+
+    /* Spacer */
+    layout.setColumnStretch(COL_SPACE1, 0);
+    layout.setColumnMinimumWidth(COL_SPACE1, 2);
+
+    /* Buttons */
+    muteButton.setFixedSize(16, 16);
+    muteButton.setStyleSheet("QPushButton {background-color: #CC0000;};");
+    muteButton.setText("M");
+    layout.addWidget(&muteButton, 1, COL_BUTTONS);
+
+    soloButton.setFixedSize(16, 16);
+    soloButton.setStyleSheet("QPushButton {background-color: #00CC00;};");
+    soloButton.setText("S");
+    layout.addWidget(&soloButton, 2, COL_BUTTONS);
+
+    //harmonyButton.setFixedSize(16, 16);
+    //harmonyButton.setStyleSheet("QPushButton {background-color: #00CCCC;};");
+    //harmonyButton.setText("H");
+    //layout.addWidget(&harmonyButton, 1, 2);
+    
+    /* Spacer */
+    layout.setColumnStretch(COL_SPACE2, 0);
+    layout.setColumnMinimumWidth(COL_SPACE2, 2);
+
+    /* Keyboard and VU bars */
+    layout.addLayout(&vuBarKeyboardLayout, 1, COL_KEYS, 2, 1);
     layout.setContentsMargins(0, 0, 0, 0);
     layout.setHorizontalSpacing(0);
     layout.setVerticalSpacing(0);
@@ -172,18 +205,36 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     vuBarLayout.setContentsMargins(0, 0, 0, 0);
     vuBarLayout.setSpacing(0);
     vuBarWidgetLeft.setLevel(0.9f, 1.0f);
-    //vuBarWidgetLeft.setFrameStyle(QFrame::Sunken | QFrame::Panel);
-    //vuBarWidgetLeft.setLineWidth(1);
     vuBarWidgetLeft.setFixedHeight(8);
     vuBarWidgetRight.setLevel(0.9f, 1.0f);
-    //vuBarWidgetRight.setFrameStyle(QFrame::Sunken | QFrame::Panel);
-    //vuBarWidgetRight.setLineWidth(1);
     vuBarWidgetRight.setFixedHeight(8);
+
+    layout.setColumnStretch(COL_PADR, 1);
 }
 
 TrackWidget::~TrackWidget()
 {
 }
+
+const QPalette TrackWidget::labelUnmutedPalette = []() {
+    QPalette pal;
+    pal.setColor(QPalette::Window, QColor("#173917"));
+    pal.setColor(QPalette::WindowText, QColor(255, 255, 255));
+    pal.setColor(QPalette::Light, QColor("#6ffd6f"));
+    pal.setColor(QPalette::Mid, QColor("#4af44a"));
+    pal.setColor(QPalette::Dark, QColor("#009200"));
+    return pal;
+}();
+
+const QPalette TrackWidget::labelMutedPalette = []() {
+    QPalette pal;
+    pal.setColor(QPalette::Window, QColor("#391717"));
+    pal.setColor(QPalette::WindowText, QColor(255, 255, 255));
+    pal.setColor(QPalette::Light, QColor("#fd6f6f"));
+    pal.setColor(QPalette::Mid, QColor("#f44a4a"));
+    pal.setColor(QPalette::Dark, QColor("#920000"));
+    return pal;
+}();
 
 StatusWidget::StatusWidget(QWidget *parent)
     : QWidget(parent)
@@ -191,6 +242,11 @@ StatusWidget::StatusWidget(QWidget *parent)
     layout.addWidget(&songWidget);
     layout.setContentsMargins(0, 0, 0, 0);
     layout.setSpacing(0);
+
+    QPalette pal;
+    pal.setColor(QPalette::Window, QColor(20, 20, 20));
+    setPalette(pal);
+    setAutoFillBackground(true);
 
     for (size_t i = 0; i < 16; i++) {
         trackWidgets.push_back(new TrackWidget(i, this));

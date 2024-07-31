@@ -2,6 +2,15 @@
 
 #include <QPainter>
 
+ChordLabelWidget::ChordLabelWidget(QWidget *parent)
+    : QFrame(parent)
+{
+}
+
+ChordLabelWidget::~ChordLabelWidget()
+{
+}
+
 KeyboardWidget::KeyboardWidget(QWidget *parent)
     : QWidget(parent)
 {
@@ -11,6 +20,12 @@ KeyboardWidget::KeyboardWidget(QWidget *parent)
 
 KeyboardWidget::~KeyboardWidget()
 {
+}
+
+void KeyboardWidget::setMuted(bool muted)
+{
+    this->muted = muted;
+    update();
 }
 
 void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
@@ -29,9 +44,11 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
     static const std::array<uint8_t, 5> B_KEY_TABLE{ 1, 3, 6, 8, 10 };
 
     static const QColor b = QColor(0, 0, 0);
+    static const QColor bk = QColor(20, 20, 20);
     static const QColor w = QColor(255, 255, 255);
     static const QColor pressed = QColor(255, 0, 255);
-    static const QColor midc = QColor(150, 150, 150);
+    static const QColor pressedMuted = QColor(100, 100, 100);
+    static const QColor midc = QColor(160, 160, 160);
     static const QColor c = QColor(200, 200, 200);
 
     for (int octave = 0; octave < 11; octave++) {
@@ -61,7 +78,7 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
 
             QColor col;
             if (keysPressed[key])
-                col = pressed;
+                col = muted ? pressedMuted : pressed;
             else if (key == 60)
                 col = midc;
             else if (wkey == 0)
@@ -103,9 +120,9 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
 
             QColor col;
             if (keysPressed[key])
-                col = QColor(255, 0, 255);
+                col = muted ? pressedMuted : pressed;
             else
-                col = QColor(20, 20, 20);
+                col = bk;
             painter.fillRect(keyRect, col);
 
             painter.fillRect(QRect(keyRect.topLeft(), keyRect.bottomLeft()), b);
@@ -119,41 +136,72 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
 SongWidget::SongWidget(QWidget *parent)
     : QWidget(parent)
 {
-    setMinimumHeight(32);
+    setFixedHeight(32);
+
+    layout.setColumnStretch(COL_PADL, 1);
+    layout.setColumnStretch(COL_SPACE1, 0);
+    layout.setColumnMinimumWidth(COL_SPACE1, 10);
+    layout.setColumnStretch(COL_SPACE2, 0);
+    layout.setColumnMinimumWidth(COL_SPACE2, 10);
+    layout.setColumnStretch(COL_SPACE3, 0);
+    layout.setColumnMinimumWidth(COL_SPACE3, 2);
+    layout.setColumnStretch(COL_SPACE4, 0);
+    layout.setColumnMinimumWidth(COL_SPACE4, 2);
+    layout.setColumnStretch(COL_PADR, 1);
+
+    QPalette labelPal;
+    labelPal.setColor(QPalette::WindowText, QColor(255, 255, 255));
+
+    QFont titleFont;
+    titleFont.setUnderline(true);
+    titleLabel.setFixedSize(160, 16);
+    titleLabel.setFont(titleFont);
+    titleLabel.setText("0000 - Test Title AAA");
+    titleLabel.setPalette(labelPal);
+    titleLabel.setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layout.addWidget(&titleLabel, 0, COL_TITLE, 1, 5);
+
+    bpmLabel.setFixedSize(50, 16);
+    bpmLabel.setText("0 BPM");
+    bpmLabel.setPalette(labelPal);
+    bpmLabel.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    layout.addWidget(&bpmLabel, 1, COL_TITLE);
+
+    chnLabel.setFixedSize(60, 16);
+    chnLabel.setText("0/0 Chn");
+    chnLabel.setPalette(labelPal);
+    chnLabel.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    layout.addWidget(&chnLabel, 1, COL_CHN);
+
+    timeLabel.setFixedSize(30, 16);
+    timeLabel.setText("00:00");
+    timeLabel.setPalette(labelPal);
+    timeLabel.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    layout.addWidget(&timeLabel, 1, COL_TIME);
+
+    keyboardWidget.setFixedHeight(32);
+    layout.addWidget(&keyboardWidget, 0, COL_KEYBOARD, 2, 1);
+
+    QFont font;
+    font.setPointSize(18);
+    QPalette chordPal;
+    chordPal.setColor(QPalette::WindowText, QColor("#37dcdc"));
+    chordLabel.setFixedSize(128, 32);
+    chordLabel.setText("C Maj 7");
+    chordLabel.setPalette(labelPal);
+    chordLabel.setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    chordLabel.setFont(font);
+    chordLabel.setFrameStyle(QFrame::Panel | QFrame::Plain);
+    layout.addWidget(&chordLabel, 0, COL_CHORD, 2, 1);
+
+    layout.setHorizontalSpacing(0);
+    layout.setVerticalSpacing(0);
+    layout.setContentsMargins(0, 0, 0, 0);
 }
 
 SongWidget::~SongWidget()
 {
 }
-
-void SongWidget::paintEvent(QPaintEvent *paintEvent)
-{
-    (void)paintEvent;
-
-    QPainter painter{this};
-    painter.fillRect(contentsRect(), QColor(255, 0, 255));
-}
-
-enum {
-    COL_PADL = 0,
-    COL_LABEL,
-    COL_SPACE1,
-    COL_BUTTONS1,
-    COL_BUTTONS2,
-    COL_SPACE2,
-    COL_INST,
-    COL_SPACE3,
-    COL_VOL,
-    COL_SPACE4,
-    COL_PAN,
-    COL_SPACE5,
-    COL_MOD,
-    COL_SPACE6,
-    COL_PITCH,
-    COL_SPACE7,
-    COL_KEYS,
-    COL_PADR
-};
 
 TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     : QWidget(parent)
@@ -165,9 +213,10 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
 
     layout.setColumnStretch(COL_PADL, 1);
 
+    setAudible(true);
+
     /* Label */
     trackNoLabel.setFixedSize(24, 32);
-    trackNoLabel.setPalette(labelUnmutedPalette);
     trackNoLabel.setAutoFillBackground(true);
     trackNoLabel.setText(QString::number(trackNo));
     trackNoLabel.setAlignment(Qt::AlignCenter);
@@ -178,23 +227,29 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
 
     /* Spacer */
     layout.setColumnStretch(COL_SPACE1, 0);
-    layout.setColumnMinimumWidth(COL_SPACE1, 2);
+    layout.setColumnMinimumWidth(COL_SPACE1, 6);
 
     /* Buttons */
+    connect(&muteButton, &QAbstractButton::clicked, [this](bool) { setMuted(!isMuted()); });
     muteButton.setFixedSize(16, 16);
-    muteButton.setStyleSheet("QPushButton {background-color: #CC0000;};");
     muteButton.setText("M");
+    muteButton.setToolTip("Mute/Unmute Track");
+    setMuted(false);
     layout.addWidget(&muteButton, 1, COL_BUTTONS1);
 
+    connect(&soloButton, &QAbstractButton::clicked, [this](bool) { setSolo(!isSolo()); });
     soloButton.setFixedSize(16, 16);
-    soloButton.setStyleSheet("QPushButton {background-color: #00CC00;};");
     soloButton.setText("S");
+    soloButton.setToolTip("Solo/De-solo Track");
+    setSolo(false);
     layout.addWidget(&soloButton, 2, COL_BUTTONS1);
 
-    harmonyButton.setFixedSize(16, 16);
-    harmonyButton.setStyleSheet("QPushButton {background-color: #00AAAA;};");
-    harmonyButton.setText("H");
-    layout.addWidget(&harmonyButton, 1, COL_BUTTONS2);
+    connect(&analyzerButton, &QAbstractButton::clicked, [this](bool) { setAnalyzer(!isAnalyzing()); });
+    analyzerButton.setFixedSize(16, 16);
+    analyzerButton.setText("A");
+    analyzerButton.setToolTip("Enable/Disable Chord Analyzer");
+    setAnalyzer(false);
+    layout.addWidget(&analyzerButton, 1, COL_BUTTONS2);
     
     /* Spacer */
     layout.setColumnStretch(COL_SPACE2, 0);
@@ -202,30 +257,30 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
 
     /* Labels */
     posLabel.setFixedSize(64, 16);
-    posLabel.setPalette(posPalette);
     posLabel.setFont(labelMonospaceFont);
     posLabel.setText("0x0000000");
+    posLabel.setToolTip("Track Position");
     posLabel.setAlignment(Qt::AlignRight);
     layout.addWidget(&posLabel, 1, COL_INST, 1, 5);
 
     restLabel.setFixedSize(20, 16);
-    restLabel.setPalette(restPalette);
     restLabel.setFont(labelFont);
     restLabel.setText("0");
+    restLabel.setToolTip("Note Rest");
     restLabel.setAlignment(Qt::AlignRight);
     layout.addWidget(&restLabel, 1, COL_MOD);
 
     voiceTypeLabel.setFixedSize(35, 16);
-    voiceTypeLabel.setPalette(voiceTypePalette);
     voiceTypeLabel.setFont(labelFont);
     voiceTypeLabel.setText("NONE");
+    voiceTypeLabel.setToolTip("Voice Type");
     voiceTypeLabel.setAlignment(Qt::AlignRight);
     layout.addWidget(&voiceTypeLabel, 1, COL_PITCH);
 
     instNoLabel.setFixedSize(20, 16);
-    instNoLabel.setPalette(instNoPalette);
     instNoLabel.setFont(labelFont);
     instNoLabel.setText("0");
+    instNoLabel.setToolTip("Instrument Number");
     instNoLabel.setAlignment(Qt::AlignRight);
     layout.addWidget(&instNoLabel, 2, COL_INST);
 
@@ -233,9 +288,9 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     layout.setColumnMinimumWidth(COL_SPACE3, 2);
 
     volLabel.setFixedSize(20, 16);
-    volLabel.setPalette(volPalette);
     volLabel.setFont(labelFont);
     volLabel.setText("0");
+    volLabel.setToolTip("Volume");
     volLabel.setAlignment(Qt::AlignRight);
     layout.addWidget(&volLabel, 2, COL_VOL);
 
@@ -243,9 +298,9 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     layout.setColumnMinimumWidth(COL_SPACE4, 2);
 
     panLabel.setFixedSize(20, 16);
-    panLabel.setPalette(panPalette);
     panLabel.setFont(labelFont);
     panLabel.setText("C");
+    panLabel.setToolTip("Pan");
     panLabel.setAlignment(Qt::AlignRight);
     layout.addWidget(&panLabel, 2, COL_PAN);
 
@@ -253,9 +308,9 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     layout.setColumnMinimumWidth(COL_SPACE5, 2);
 
     modLabel.setFixedSize(20, 16);
-    modLabel.setPalette(modPalette);
     modLabel.setFont(labelFont);
     modLabel.setText("0");
+    modLabel.setToolTip("LFO Modulation");
     modLabel.setAlignment(Qt::AlignRight);
     layout.addWidget(&modLabel, 2, COL_MOD);
 
@@ -263,9 +318,9 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     layout.setColumnMinimumWidth(COL_SPACE6, 2);
 
     pitchLabel.setFixedSize(35, 16);
-    pitchLabel.setPalette(pitchPalette);
     pitchLabel.setFont(labelFont);
-    pitchLabel.setText("00000");
+    pitchLabel.setText("0");
+    pitchLabel.setToolTip("Final Pitch");
     pitchLabel.setAlignment(Qt::AlignRight);
     layout.addWidget(&pitchLabel, 2, COL_PITCH);
 
@@ -300,6 +355,89 @@ TrackWidget::~TrackWidget()
 {
 }
 
+void TrackWidget::setMuted(bool muted)
+{
+    this->muted = muted;
+
+    if (muted) {
+        setSolo(false);
+        muteButton.setStyleSheet("QPushButton {background-color: #CC0000;};");
+    } else {
+        muteButton.setStyleSheet("QPushButton {background-color: #606060;};");
+    }
+
+    emit muteOrSoloChanged();
+}
+
+bool TrackWidget::isMuted() const
+{
+    return muted;
+}
+
+void TrackWidget::setSolo(bool solo)
+{
+    this->solo = solo;
+
+    if (solo) {
+        setMuted(false);
+        soloButton.setStyleSheet("QPushButton {background-color: #00CC00;};");
+    } else {
+        soloButton.setStyleSheet("QPushButton {background-color: #606060;};");
+    }
+
+    emit muteOrSoloChanged();
+}
+
+bool TrackWidget::isSolo() const
+{
+    return solo;
+}
+
+void TrackWidget::setAnalyzer(bool analyzer)
+{
+    this->analyzer = analyzer;
+
+    if (analyzer) {
+        analyzerButton.setStyleSheet("QPushButton {background-color: #00AAAA;};");
+    } else {
+        analyzerButton.setStyleSheet("QPushButton {background-color: #606060;};");
+    }
+}
+
+bool TrackWidget::isAnalyzing() const
+{
+    return analyzer;
+}
+
+void TrackWidget::setAudible(bool audible)
+{
+    if (audible) {
+        trackNoLabel.setPalette(labelUnmutedPalette);
+        posLabel.setPalette(posPalette);
+        restLabel.setPalette(restPalette);
+        voiceTypeLabel.setPalette(voiceTypePalette);
+        instNoLabel.setPalette(instNoPalette);
+        volLabel.setPalette(volPalette);
+        panLabel.setPalette(panPalette);
+        modLabel.setPalette(modPalette);
+        pitchLabel.setPalette(pitchPalette);
+    } else {
+        trackNoLabel.setPalette(labelMutedPalette);
+        posLabel.setPalette(mutedLabelPalette);
+        restLabel.setPalette(mutedLabelPalette);
+        voiceTypeLabel.setPalette(mutedLabelPalette);
+        instNoLabel.setPalette(mutedLabelPalette);
+        volLabel.setPalette(mutedLabelPalette);
+        panLabel.setPalette(mutedLabelPalette);
+        modLabel.setPalette(mutedLabelPalette);
+        pitchLabel.setPalette(mutedLabelPalette);
+    }
+
+    keyboardWidget.setMuted(!audible);
+    vuBarWidgetLeft.setMuted(!audible);
+    vuBarWidgetRight.setMuted(!audible);
+}
+
 const QPalette TrackWidget::labelUnmutedPalette = []() {
     QPalette pal;
     pal.setColor(QPalette::Window, QColor("#173917"));
@@ -317,6 +455,12 @@ const QPalette TrackWidget::labelMutedPalette = []() {
     pal.setColor(QPalette::Light, QColor("#fd6f6f"));
     pal.setColor(QPalette::Mid, QColor("#f44a4a"));
     pal.setColor(QPalette::Dark, QColor("#920000"));
+    return pal;
+}();
+
+const QPalette TrackWidget::mutedLabelPalette = []() {
+    QPalette pal;
+    pal.setColor(QPalette::WindowText, QColor("#a0a0a0"));
     return pal;
 }();
 
@@ -384,21 +528,62 @@ const QFont TrackWidget::labelMonospaceFont = []() {
 StatusWidget::StatusWidget(QWidget *parent)
     : QWidget(parent)
 {
-    layout.addWidget(&songWidget);
     layout.setContentsMargins(0, 0, 0, 0);
     layout.setSpacing(0);
+
+    layout.addSpacing(2);
+
+    layout.addWidget(&songWidget);
 
     QPalette pal;
     pal.setColor(QPalette::Window, QColor(20, 20, 20));
     setPalette(pal);
     setAutoFillBackground(true);
 
+    layout.addSpacing(2);
+
+    QPalette linePal;
+    linePal.setColor(QPalette::WindowText, QColor(10, 240, 10));
+    hlineWidget.setPalette(linePal);
+    hlineWidget.setFrameStyle(QFrame::HLine | QFrame::Plain);
+    hlineWidget.setLineWidth(0);
+    hlineWidget.setMidLineWidth(1);
+    layout.addWidget(&hlineWidget);
+
     for (size_t i = 0; i < 16; i++) {
         trackWidgets.push_back(new TrackWidget(i, this));
         layout.addWidget(trackWidgets.at(i));
+        connect(trackWidgets.at(i), &TrackWidget::muteOrSoloChanged, this, &StatusWidget::muteOrSoloChanged);
     }
+
+    layout.addStretch(1);
 }
 
 StatusWidget::~StatusWidget()
 {
+}
+
+void StatusWidget::muteOrSoloChanged()
+{
+    bool isSoloActive = false;
+    for (const TrackWidget *trackWidget : trackWidgets) {
+        if (!trackWidget->isVisible())
+            continue;
+
+        if (trackWidget->isSolo()) {
+            isSoloActive = true;
+            break;
+        }
+    }
+
+    for (TrackWidget *trackWidget : trackWidgets) {
+        if (!trackWidget->isVisible())
+            continue;
+
+        if (isSoloActive) {
+            trackWidget->setAudible(trackWidget->isSolo());
+        } else {
+            trackWidget->setAudible(!trackWidget->isMuted());
+        }
+    }
 }

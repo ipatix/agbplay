@@ -14,6 +14,15 @@
 
 #include "VUBarWidget.h"
 
+class ChordLabelWidget : public QFrame
+{
+    Q_OBJECT
+
+public:
+    ChordLabelWidget(QWidget *parent = nullptr);
+    ~ChordLabelWidget() override;
+};
+
 class KeyboardWidget : public QWidget
 {
     Q_OBJECT
@@ -22,6 +31,8 @@ public:
     KeyboardWidget(QWidget *parent = nullptr);
     ~KeyboardWidget() override;
 
+    void setMuted(bool muted);
+
 private:
     void paintEvent(QPaintEvent *paintEvent) override;
 
@@ -29,6 +40,8 @@ private:
     const int BLACK_KEY_WIDTH = 5;
     const int OCTAVE_WIDTH = WHITE_KEY_WIDTH * 7; // 7 white keys per octave
     const int KEYBOARD_WIDTH = 10 * 7 * WHITE_KEY_WIDTH + 5 * WHITE_KEY_WIDTH + 1;
+
+    bool muted = false;
 };
 
 class SongWidget : public QWidget
@@ -40,7 +53,28 @@ public:
     ~SongWidget() override;
 
 private:
-    void paintEvent(QPaintEvent *paintEvent) override;
+    QGridLayout layout{this};
+
+    QLabel titleLabel{this};
+    QLabel bpmLabel{this};
+    QLabel chnLabel{this};
+    QLabel timeLabel{this};
+    KeyboardWidget keyboardWidget{this};
+    QLabel chordLabel{this};
+
+    enum {
+        COL_PADL,
+        COL_TITLE,
+        COL_SPACE1,
+        COL_CHN,
+        COL_SPACE2,
+        COL_TIME,
+        COL_SPACE3,
+        COL_KEYBOARD,
+        COL_SPACE4,
+        COL_CHORD,
+        COL_PADR,
+    };
 };
 
 class TrackWidget : public QWidget
@@ -51,13 +85,21 @@ public:
     TrackWidget(size_t trackNo, QWidget *parent = nullptr);
     ~TrackWidget() override;
 
+    void setMuted(bool muted);
+    bool isMuted() const;
+    void setSolo(bool solo);
+    bool isSolo() const;
+    void setAnalyzer(bool analyzer);
+    bool isAnalyzing() const;
+    void setAudible(bool audible);
+
 private:
     QGridLayout layout{this};
 
     QLabel trackNoLabel{this};
     QPushButton muteButton{this};
     QPushButton soloButton{this};
-    QPushButton harmonyButton{this};
+    QPushButton analyzerButton{this};
     QLabel posLabel{this};
     QLabel restLabel{this};
     QLabel voiceTypeLabel{this};
@@ -77,6 +119,7 @@ private:
     static const QPalette labelUnmutedPalette;
     static const QPalette labelMutedPalette;
 
+    static const QPalette mutedLabelPalette;
     static const QPalette posPalette;
     static const QPalette restPalette;
     static const QPalette voiceTypePalette;
@@ -87,6 +130,34 @@ private:
     static const QPalette pitchPalette;
     static const QFont labelFont;
     static const QFont labelMonospaceFont;
+
+    bool muted = false;
+    bool solo = false;
+    bool analyzer = false;
+
+    enum {
+        COL_PADL = 0,
+        COL_LABEL,
+        COL_SPACE1,
+        COL_BUTTONS1,
+        COL_BUTTONS2,
+        COL_SPACE2,
+        COL_INST,
+        COL_SPACE3,
+        COL_VOL,
+        COL_SPACE4,
+        COL_PAN,
+        COL_SPACE5,
+        COL_MOD,
+        COL_SPACE6,
+        COL_PITCH,
+        COL_SPACE7,
+        COL_KEYS,
+        COL_PADR,
+    };
+
+signals:
+    void muteOrSoloChanged();
 };
 
 class StatusWidget : public QWidget
@@ -98,10 +169,12 @@ public:
     ~StatusWidget() override;
 
 private:
+    void muteOrSoloChanged();
 
     QVBoxLayout layout{this};
 
     SongWidget songWidget{this};
+    QFrame hlineWidget{this};
     // TODO use constant MAX_TRACKS instead of 16
     std::vector<TrackWidget *> trackWidgets;
 };

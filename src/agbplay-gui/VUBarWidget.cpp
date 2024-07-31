@@ -5,16 +5,26 @@
 VUBarWidget::VUBarWidget(Orientation orientation, bool logScale, float dbStart, float dbEnd, QWidget *parent)
     : QFrame(parent), orientation(orientation), logScale(logScale), dbStart(dbStart), dbEnd(dbEnd)
 {
-    barGradient.setColorAt(0.0f, QColor(0, 200, 0));
-    barGradient.setColorAt(0.5f, QColor(200, 200, 0));
-    barGradient.setColorAt(1.0f, QColor(200, 0, 0));
-    peakGradient.setColorAt(0.0f, QColor(0, 255, 0));
-    peakGradient.setColorAt(0.5f, QColor(200, 255, 0));
-    peakGradient.setColorAt(1.0f, QColor(255, 0, 0));
+    barGradientNormal.setColorAt(0.0f, QColor(0, 200, 0));
+    barGradientNormal.setColorAt(0.5f, QColor(200, 200, 0));
+    barGradientNormal.setColorAt(1.0f, QColor(200, 0, 0));
+    barGradientMuted.setColorAt(0.0f, QColor(180, 180, 180));
+    barGradientMuted.setColorAt(1.0f, QColor(80, 80, 80));
+    peakGradientNormal.setColorAt(0.0f, QColor(0, 255, 0));
+    peakGradientNormal.setColorAt(0.5f, QColor(200, 255, 0));
+    peakGradientNormal.setColorAt(1.0f, QColor(255, 0, 0));
+    peakGradientMuted.setColorAt(0.0f, QColor(255, 255, 255));
+    peakGradientMuted.setColorAt(1.0f, QColor(120, 120, 120));
 }
 
 VUBarWidget::~VUBarWidget()
 {
+}
+
+void VUBarWidget::setMuted(bool muted)
+{
+    this->muted = muted;
+    update();
 }
 
 void VUBarWidget::setLevel(float rms, float peak)
@@ -45,6 +55,9 @@ void VUBarWidget::paintEvent(QPaintEvent *paintEvent)
     QPainter painter(this);
 
     QRect r = contentsRect();
+
+    const QLinearGradient &barGradient = muted ? barGradientMuted : barGradientNormal;
+    const QLinearGradient &peakGradient = muted ? peakGradientMuted : peakGradientNormal;
 
     int cr, cp;
     switch (orientation) {
@@ -101,28 +114,44 @@ void VUBarWidget::updateGradient()
 
     switch (orientation) {
     case Orientation::Left:
-        barGradient.setStart(barLen - offsetGreen, 0.0f);
-        barGradient.setFinalStop(barLen - offsetRed, 0.0f);
-        peakGradient.setStart(barLen - offsetGreen, 0.0f);
-        peakGradient.setFinalStop(barLen - offsetRed, 0.0f);
+        barGradientNormal.setStart(barLen - offsetGreen, 0.0f);
+        barGradientNormal.setFinalStop(barLen - offsetRed, 0.0f);
+        barGradientMuted.setStart(barLen - offsetGreen, 0.0f);
+        barGradientMuted.setFinalStop(barLen - offsetRed, 0.0f);
+        peakGradientNormal.setStart(barLen - offsetGreen, 0.0f);
+        peakGradientNormal.setFinalStop(barLen - offsetRed, 0.0f);
+        peakGradientMuted.setStart(barLen - offsetGreen, 0.0f);
+        peakGradientMuted.setFinalStop(barLen - offsetRed, 0.0f);
         break;
     case Orientation::Up:
-        barGradient.setStart(0.0f, barLen - offsetGreen);
-        barGradient.setFinalStop(0.0f, barLen - offsetRed);
-        peakGradient.setStart(0.0f, barLen - offsetGreen);
-        peakGradient.setFinalStop(0.0f, barLen - offsetRed);
+        barGradientNormal.setStart(0.0f, barLen - offsetGreen);
+        barGradientNormal.setFinalStop(0.0f, barLen - offsetRed);
+        barGradientMuted.setStart(0.0f, barLen - offsetGreen);
+        barGradientMuted.setFinalStop(0.0f, barLen - offsetRed);
+        peakGradientNormal.setStart(0.0f, barLen - offsetGreen);
+        peakGradientNormal.setFinalStop(0.0f, barLen - offsetRed);
+        peakGradientMuted.setStart(0.0f, barLen - offsetGreen);
+        peakGradientMuted.setFinalStop(0.0f, barLen - offsetRed);
         break;
     case Orientation::Right:
-        barGradient.setStart(offsetGreen, 0.0f);
-        barGradient.setFinalStop(offsetRed, 0.0f);
-        peakGradient.setStart(offsetGreen, 0.0f);
-        peakGradient.setFinalStop(offsetRed, 0.0f);
+        barGradientNormal.setStart(offsetGreen, 0.0f);
+        barGradientNormal.setFinalStop(offsetRed, 0.0f);
+        barGradientMuted.setStart(offsetGreen, 0.0f);
+        barGradientMuted.setFinalStop(offsetRed, 0.0f);
+        peakGradientNormal.setStart(offsetGreen, 0.0f);
+        peakGradientNormal.setFinalStop(offsetRed, 0.0f);
+        peakGradientMuted.setStart(offsetGreen, 0.0f);
+        peakGradientMuted.setFinalStop(offsetRed, 0.0f);
         break;
     case Orientation::Down:
-        barGradient.setStart(0.0f, offsetGreen);
-        barGradient.setFinalStop(0.0f, offsetRed);
-        peakGradient.setStart(0.0f, offsetGreen);
-        peakGradient.setFinalStop(0.0f, offsetRed);
+        barGradientNormal.setStart(0.0f, offsetGreen);
+        barGradientNormal.setFinalStop(0.0f, offsetRed);
+        barGradientMuted.setStart(0.0f, offsetGreen);
+        barGradientMuted.setFinalStop(0.0f, offsetRed);
+        peakGradientNormal.setStart(0.0f, offsetGreen);
+        peakGradientNormal.setFinalStop(0.0f, offsetRed);
+        peakGradientMuted.setStart(0.0f, offsetGreen);
+        peakGradientMuted.setFinalStop(0.0f, offsetRed);
         break;
     }
 }

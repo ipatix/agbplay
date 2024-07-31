@@ -13,6 +13,7 @@
 #include <bitset>
 
 #include "VUBarWidget.h"
+#include "KeyboardWidget.h"
 
 class ChordLabelWidget : public QFrame
 {
@@ -23,27 +24,6 @@ public:
     ~ChordLabelWidget() override;
 };
 
-class KeyboardWidget : public QWidget
-{
-    Q_OBJECT
-
-public:
-    KeyboardWidget(QWidget *parent = nullptr);
-    ~KeyboardWidget() override;
-
-    void setMuted(bool muted);
-
-private:
-    void paintEvent(QPaintEvent *paintEvent) override;
-
-    const int WHITE_KEY_WIDTH = 6;
-    const int BLACK_KEY_WIDTH = 5;
-    const int OCTAVE_WIDTH = WHITE_KEY_WIDTH * 7; // 7 white keys per octave
-    const int KEYBOARD_WIDTH = 10 * 7 * WHITE_KEY_WIDTH + 5 * WHITE_KEY_WIDTH + 1;
-
-    bool muted = false;
-};
-
 class SongWidget : public QWidget
 {
     Q_OBJECT
@@ -51,6 +31,8 @@ class SongWidget : public QWidget
 public:
     SongWidget(QWidget *parent = nullptr);
     ~SongWidget() override;
+
+    void setPressed(const std::bitset<128> &pressed);
 
 private:
     QGridLayout layout{this};
@@ -92,8 +74,12 @@ public:
     void setAnalyzer(bool analyzer);
     bool isAnalyzing() const;
     void setAudible(bool audible);
+    const std::bitset<128> getPressed() const;
+    void setPressed(const std::bitset<128> &pressed);
 
 private:
+    void updateAnalyzer();
+
     QGridLayout layout{this};
 
     QLabel trackNoLabel{this};
@@ -158,6 +144,7 @@ private:
 
 signals:
     void muteOrSoloChanged();
+    void analyzerChanged();
 };
 
 class StatusWidget : public QWidget
@@ -169,7 +156,8 @@ public:
     ~StatusWidget() override;
 
 private:
-    void muteOrSoloChanged();
+    void updateMuteOrSolo();
+    void updateAnalyzer();
 
     QVBoxLayout layout{this};
 

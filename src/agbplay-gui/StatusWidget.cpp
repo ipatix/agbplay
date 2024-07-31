@@ -11,128 +11,6 @@ ChordLabelWidget::~ChordLabelWidget()
 {
 }
 
-KeyboardWidget::KeyboardWidget(QWidget *parent)
-    : QWidget(parent)
-{
-    setFixedHeight(24);
-    setFixedWidth(KEYBOARD_WIDTH);
-}
-
-KeyboardWidget::~KeyboardWidget()
-{
-}
-
-void KeyboardWidget::setMuted(bool muted)
-{
-    this->muted = muted;
-    update();
-}
-
-void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
-{
-    (void)paintEvent;
-
-    QPainter painter{this};
-
-    // TODO use the actual state instead of dummy array
-    static std::bitset<128> keysPressed;
-    keysPressed[4] = true;
-    keysPressed[7] = true;
-    keysPressed[8] = true;
-
-    static const std::array<uint8_t, 7> W_KEY_TABLE{ 0, 2, 4, 5, 7, 9, 11 };
-    static const std::array<uint8_t, 5> B_KEY_TABLE{ 1, 3, 6, 8, 10 };
-
-    static const QColor b = QColor(0, 0, 0);
-    static const QColor bk = QColor(20, 20, 20);
-    static const QColor w = QColor(255, 255, 255);
-    static const QColor pressed = QColor(255, 0, 255);
-    static const QColor pressedMuted = QColor(100, 100, 100);
-    static const QColor midc = QColor(160, 160, 160);
-    static const QColor c = QColor(200, 200, 200);
-
-    for (int octave = 0; octave < 11; octave++) {
-        const QRect octaveRect(octave * OCTAVE_WIDTH, 0, OCTAVE_WIDTH, height());
-
-        for (int wkey = 0; wkey < 7; wkey++) {
-            if (octave == 10 && wkey == 5) {
-                /* draw final line */
-                const int x = octaveRect.left() + wkey * WHITE_KEY_WIDTH;
-                painter.fillRect(QRect(QPoint(x, octaveRect.top()), QPoint(x, octaveRect.bottom())), QColor(Qt::black));
-                break;
-            }
-
-            const int key = octave * 12 + W_KEY_TABLE[wkey];
-            assert(key < 128);
-
-            const QRect keyRect(
-                QPoint(
-                    octaveRect.left() + wkey * WHITE_KEY_WIDTH,
-                    octaveRect.top()
-                ),
-                QSize(
-                    WHITE_KEY_WIDTH,
-                    octaveRect.height()
-                )
-            );
-
-            QColor col;
-            if (keysPressed[key])
-                col = muted ? pressedMuted : pressed;
-            else if (key == 60)
-                col = midc;
-            else if (wkey == 0)
-                col = c;
-            else
-                col = w;
-            painter.fillRect(keyRect, col);
-
-            /* Draw key only with top, left, and bottom border lines. The right border line will
-             * be implicitly drawn by the next key. */
-            painter.fillRect(QRect(keyRect.topLeft(), keyRect.bottomLeft()), b);
-            painter.fillRect(QRect(keyRect.bottomLeft(), keyRect.bottomRight()), b);
-            painter.fillRect(QRect(keyRect.topLeft(), keyRect.topRight()), b);
-        }
-
-        for (int bkey = 0; bkey < 5; bkey++) {
-            if (octave == 10 && bkey == 3)
-                break;
-
-            const int key = octave * 12 + B_KEY_TABLE[bkey];
-            assert(key < 128);
-
-            const int BLACK_L_HALF = BLACK_KEY_WIDTH / 2;
-
-            int keyWOff = 1;
-            if (bkey >= 2)
-                keyWOff += 1;
-
-            const QRect keyRect(
-                QPoint(
-                    octaveRect.left() + (bkey + keyWOff) * WHITE_KEY_WIDTH - BLACK_L_HALF,
-                    octaveRect.top()
-                ),
-                QSize(
-                    BLACK_KEY_WIDTH,
-                    octaveRect.height() * 6 / 10
-                )
-            );
-
-            QColor col;
-            if (keysPressed[key])
-                col = muted ? pressedMuted : pressed;
-            else
-                col = bk;
-            painter.fillRect(keyRect, col);
-
-            painter.fillRect(QRect(keyRect.topLeft(), keyRect.bottomLeft()), b);
-            painter.fillRect(QRect(keyRect.bottomLeft(), keyRect.bottomRight()), b);
-            painter.fillRect(QRect(keyRect.topRight(), keyRect.bottomRight()), b);
-            painter.fillRect(QRect(keyRect.topLeft(), keyRect.topRight()), b);
-        }
-    }
-}
-
 SongWidget::SongWidget(QWidget *parent)
     : QWidget(parent)
 {
@@ -180,6 +58,7 @@ SongWidget::SongWidget(QWidget *parent)
     layout.addWidget(&timeLabel, 1, COL_TIME);
 
     keyboardWidget.setFixedHeight(32);
+    keyboardWidget.setPressedColor(QColor(0, 220, 220));
     layout.addWidget(&keyboardWidget, 0, COL_KEYBOARD, 2, 1);
 
     QFont font;
@@ -201,6 +80,11 @@ SongWidget::SongWidget(QWidget *parent)
 
 SongWidget::~SongWidget()
 {
+}
+
+void SongWidget::setPressed(const std::bitset<128> &pressed)
+{
+    keyboardWidget.setPressedKeys(pressed);
 }
 
 TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
@@ -349,6 +233,8 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     vuBarWidgetRight.setFixedHeight(8);
 
     layout.setColumnStretch(COL_PADR, 1);
+
+    connect(&keyboardWidget, &KeyboardWidget::pressedChanged, this, &TrackWidget::updateAnalyzer);
 }
 
 TrackWidget::~TrackWidget()
@@ -395,13 +281,19 @@ bool TrackWidget::isSolo() const
 
 void TrackWidget::setAnalyzer(bool analyzer)
 {
+    const bool analyzerChanged = this->analyzer != analyzer;
     this->analyzer = analyzer;
 
     if (analyzer) {
         analyzerButton.setStyleSheet("QPushButton {background-color: #00AAAA;};");
+        keyboardWidget.setPressedColor(QColor(0, 220, 220));
     } else {
         analyzerButton.setStyleSheet("QPushButton {background-color: #606060;};");
+        keyboardWidget.setPressedColor(QColor(255, 0, 255));
     }
+
+    if (analyzerChanged)
+        updateAnalyzer();
 }
 
 bool TrackWidget::isAnalyzing() const
@@ -436,6 +328,21 @@ void TrackWidget::setAudible(bool audible)
     keyboardWidget.setMuted(!audible);
     vuBarWidgetLeft.setMuted(!audible);
     vuBarWidgetRight.setMuted(!audible);
+}
+
+const std::bitset<128> TrackWidget::getPressed() const
+{
+    return keyboardWidget.getPressedKeys();
+}
+
+void TrackWidget::setPressed(const std::bitset<128> &pressed)
+{
+    keyboardWidget.setPressedKeys(pressed);
+}
+
+void TrackWidget::updateAnalyzer()
+{
+    emit analyzerChanged();
 }
 
 const QPalette TrackWidget::labelUnmutedPalette = []() {
@@ -553,7 +460,8 @@ StatusWidget::StatusWidget(QWidget *parent)
     for (size_t i = 0; i < 16; i++) {
         trackWidgets.push_back(new TrackWidget(i, this));
         layout.addWidget(trackWidgets.at(i));
-        connect(trackWidgets.at(i), &TrackWidget::muteOrSoloChanged, this, &StatusWidget::muteOrSoloChanged);
+        connect(trackWidgets.at(i), &TrackWidget::muteOrSoloChanged, this, &StatusWidget::updateMuteOrSolo);
+        connect(trackWidgets.at(i), &TrackWidget::analyzerChanged, this, &StatusWidget::updateAnalyzer);
     }
 
     layout.addStretch(1);
@@ -563,7 +471,7 @@ StatusWidget::~StatusWidget()
 {
 }
 
-void StatusWidget::muteOrSoloChanged()
+void StatusWidget::updateMuteOrSolo()
 {
     bool isSoloActive = false;
     for (const TrackWidget *trackWidget : trackWidgets) {
@@ -586,4 +494,19 @@ void StatusWidget::muteOrSoloChanged()
             trackWidget->setAudible(!trackWidget->isMuted());
         }
     }
+}
+
+void StatusWidget::updateAnalyzer()
+{
+    std::bitset<128> pressed;
+
+    for (const TrackWidget *trackWidget : trackWidgets) {
+        if (!trackWidget->isVisible())
+            continue;
+
+        if (trackWidget->isAnalyzing())
+            pressed |= trackWidget->getPressed();
+    }
+
+    songWidget.setPressed(pressed);
 }

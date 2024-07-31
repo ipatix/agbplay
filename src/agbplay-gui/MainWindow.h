@@ -32,6 +32,8 @@ private:
     QPushButton pauseButton{this};
     QPushButton playButton{this};
     QPushButton stopButton{this};
+    QPushButton prevButton{this};
+    QPushButton nextButton{this};
     VUMeterWidget vuMeter{128, 32, this};
 
     /* central container */

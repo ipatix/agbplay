@@ -6,8 +6,10 @@
         <file>icons/export-midi.ico</file>
         <file>icons/open-gsf.ico</file>
         <file>icons/open-rom.ico</file>
+        <file>icons/playback-next.ico</file>
         <file>icons/playback-pause.ico</file>
         <file>icons/playback-play.ico</file>
+        <file>icons/playback-previous.ico</file>
         <file>icons/playback-stop.ico</file>
         <file>icons/preferences.ico</file>
         <file>icons/profile-create.ico</file>

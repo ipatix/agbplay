@@ -99,6 +99,14 @@ void MainWindow::SetupToolBar()
     pauseButton.setFixedSize(32, 32);
     pauseButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&pauseButton);
+    prevButton.setIcon(QIcon(":/icons/playback-previous.ico"));
+    prevButton.setFixedSize(32, 32);
+    prevButton.setIconSize(QSize(32, 32));
+    toolBar->addWidget(&prevButton);
+    nextButton.setIcon(QIcon(":/icons/playback-next.ico"));
+    nextButton.setFixedSize(32, 32);
+    nextButton.setIconSize(QSize(32, 32));
+    toolBar->addWidget(&nextButton);
     toolBar->addSeparator();
     toolBar->addWidget(&vuMeter);
 

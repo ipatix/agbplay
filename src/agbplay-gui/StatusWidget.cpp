@@ -154,7 +154,7 @@ SongWidget::SongWidget(QWidget *parent)
 
     QFont titleFont;
     titleFont.setUnderline(true);
-    titleLabel.setFixedSize(160, 16);
+    titleLabel.setFixedSize(170, 16);
     titleLabel.setFont(titleFont);
     titleLabel.setText("0000 - Test Title AAA");
     titleLabel.setPalette(labelPal);
@@ -167,8 +167,8 @@ SongWidget::SongWidget(QWidget *parent)
     bpmLabel.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     layout.addWidget(&bpmLabel, 1, COL_TITLE);
 
-    chnLabel.setFixedSize(60, 16);
-    chnLabel.setText("0/0 Chn");
+    chnLabel.setFixedSize(70, 16);
+    chnLabel.setText("100/100 Chn");
     chnLabel.setPalette(labelPal);
     chnLabel.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     layout.addWidget(&chnLabel, 1, COL_CHN);

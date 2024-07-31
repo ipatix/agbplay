@@ -14,6 +14,8 @@
 #include "VUMeterWidget.h"
 #include "StatusWidget.h"
 
+class Profile;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -27,6 +29,8 @@ private:
     void SetupToolBar();
     void SetupWidgets();
     void SetupStatusBar();
+
+    void LoadGame();
 
     /* menu bar */
     QPushButton pauseButton{this};
@@ -71,4 +75,8 @@ private:
 
     /* status bar */
     QProgressBar progressBar;
+
+    /* MP2K Objects */
+    // TODO replace with smart pointer, requires changes in ProfileManager
+    Profile *profile = nullptr;
 };

@@ -7,6 +7,9 @@
 #include <QHBoxLayout>
 #include <QTextEdit>
 #include <QToolBar>
+#include <QFileDialog>
+
+#include "Profile.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -25,18 +28,27 @@ void MainWindow::SetupMenuBar()
 {
     /* File */
     QMenu *fileMenu = menuBar()->addMenu("File");
+
     QAction *fileOpenRom = fileMenu->addAction("Open ROM");
     fileOpenRom->setIcon(QIcon(":/icons/open-rom.ico"));
+    connect(fileOpenRom, &QAction::triggered, [this](bool){ LoadGame(); });
+
     QAction *fileOpenGSF = fileMenu->addAction("Open GSF");
     fileOpenGSF->setIcon(QIcon(":/icons/open-gsf.ico"));
+
     fileMenu->addSeparator();
+
     QAction *exportAudio = fileMenu->addAction("Export Audio");
     exportAudio->setIcon(QIcon(":/icons/export-audio.ico"));
+
     QAction *exportMidi = fileMenu->addAction("Export MIDI");
     exportMidi->setIcon(QIcon(":/icons/export-midi.ico"));
+
     fileMenu->addSeparator();
+
     QAction *fileQuit = fileMenu->addAction("Quit");
     fileQuit->setIcon(QIcon(":/icons/exit.ico"));
+
     connect(fileQuit, &QAction::triggered, [this](bool) { close(); });
     fileQuit->setMenuRole(QAction::QuitRole);
 
@@ -161,7 +173,7 @@ void MainWindow::SetupWidgets()
 
 void MainWindow::SetupStatusBar()
 {
-    statusBar()->showMessage("HELLO");
+    statusBar()->showMessage("No game loaded");
     statusBar()->addPermanentWidget(&progressBar);
     progressBar.setMaximumHeight(16);
     progressBar.setMinimumHeight(16);
@@ -170,4 +182,19 @@ void MainWindow::SetupStatusBar()
     progressBar.setRange(0, 100);
     progressBar.setValue(20);
     progressBar.hide(); // progress bar is only shown on demand
+}
+
+void MainWindow::LoadGame()
+{
+    QFileDialog fileDialog(this);
+    fileDialog.setFileMode(QFileDialog::ExistingFile);
+    fileDialog.setNameFilter("GBA-ROMs (*.gba *.zip);;GSF-Lib (*.gsflib *.zip)");
+
+    if (!fileDialog.exec())
+        return;
+
+    assert(dialog.selectedFiles().size() == 1);
+
+    QMessageBox mbox(QMessageBox::Icon::Information, "Title Bar", fileDialog.selectedFiles().at(0), QMessageBox::Ok, this);
+    mbox.exec();
 }

@@ -208,17 +208,20 @@ void MainWindow::LoadGame()
     MP2KScanner scanner(Rom::Instance());
     auto scanResults = scanner.Scan();
     auto profileCandidates = pm->GetProfiles(Rom::Instance(), scanResults);
-    // TODO add error handling via exceptions
+    // TODO add error handling via exceptions, this needs distinct exception types in libagbplay
 
-    SelectProfileDialog profileDialog;
-    for (const Profile &profile : profileCandidates)
-        profileDialog.addToSelectionDialog(profile);
+    if (profileCandidates.size() > 1) {
+        SelectProfileDialog profileDialog;
+        for (const Profile &profile : profileCandidates)
+            profileDialog.addToSelectionDialog(profile);
 
-    if (!profileDialog.exec())
-        return;
+        if (!profileDialog.exec())
+            return;
 
-    assert(profileDialog.selectedProfile() >= 0);
+        assert(profileDialog.selectedProfile() >= 0);
 
-    QMessageBox mbox(QMessageBox::Icon::Information, "SUCCESS", QString::fromStdString(fmt::format("Selected Profile: {}", profileDialog.selectedProfile())), QMessageBox::Ok, this);
-    mbox.exec();
+        profile = &profileCandidates.at(profileDialog.selectedProfile()).get();
+    } else {
+        profile = &profileCandidates.at(0).get();
+    }
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <QMainWindow>
 #include <QListView>
 #include <QTableView>
@@ -14,6 +16,7 @@
 #include "VUMeterWidget.h"
 #include "StatusWidget.h"
 
+class ProfileManager;
 class Profile;
 
 class MainWindow : public QMainWindow
@@ -77,6 +80,7 @@ private:
     QProgressBar progressBar;
 
     /* MP2K Objects */
+    std::unique_ptr<ProfileManager> pm;
     // TODO replace with smart pointer, requires changes in ProfileManager
     Profile *profile = nullptr;
 };

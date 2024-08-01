@@ -9,7 +9,10 @@
 #include <QToolBar>
 #include <QFileDialog>
 
-#include "Profile.h"
+#include "SelectProfileDialog.h"
+
+#include "ProfileManager.h"
+#include "Rom.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -18,6 +21,9 @@ MainWindow::MainWindow(QWidget *parent)
     SetupToolBar();
     SetupWidgets();
     SetupStatusBar();
+
+    pm = std::make_unique<ProfileManager>();
+    pm->LoadProfiles();
 }
 
 MainWindow::~MainWindow()
@@ -193,8 +199,26 @@ void MainWindow::LoadGame()
     if (!fileDialog.exec())
         return;
 
-    assert(dialog.selectedFiles().size() == 1);
+    assert(fileDialog.selectedFiles().size() == 1);
 
-    QMessageBox mbox(QMessageBox::Icon::Information, "Title Bar", fileDialog.selectedFiles().at(0), QMessageBox::Ok, this);
+    /* In the future we should stop ALL background threads in order to not mess things up
+     * when loading a new ROM. */
+    Rom::CreateInstance(fileDialog.selectedFiles().at(0).toStdWString());
+
+    MP2KScanner scanner(Rom::Instance());
+    auto scanResults = scanner.Scan();
+    auto profileCandidates = pm->GetProfiles(Rom::Instance(), scanResults);
+    // TODO add error handling via exceptions
+
+    SelectProfileDialog profileDialog;
+    for (const Profile &profile : profileCandidates)
+        profileDialog.addToSelectionDialog(profile);
+
+    if (!profileDialog.exec())
+        return;
+
+    assert(profileDialog.selectedProfile() >= 0);
+
+    QMessageBox mbox(QMessageBox::Icon::Information, "SUCCESS", QString::fromStdString(fmt::format("Selected Profile: {}", profileDialog.selectedProfile())), QMessageBox::Ok, this);
     mbox.exec();
 }

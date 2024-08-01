@@ -1,9 +1,12 @@
 #pragma once
 
 #include <QWidget>
-#include <QListView>
+#include <QListWidget>
 #include <QLabel>
 #include <QHBoxLayout>
+
+#include <cstdint>
+#include <vector>
 
 class SonglistWidget : public QWidget
 {
@@ -13,8 +16,11 @@ public:
     explicit SonglistWidget(const QString &titleString, QWidget *parent = nullptr);
     ~SonglistWidget() override;
 
+    void AddSong(const std::string &name, uint16_t id);
+    void RemoveSong();
+
 private:
     QVBoxLayout layout{this};
-    QListView songList{this};
+    QListWidget listWidget{this};
     QLabel title{this};
 };

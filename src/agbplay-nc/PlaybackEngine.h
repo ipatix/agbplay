@@ -9,7 +9,6 @@
 #include <memory>
 #include <portaudiocpp/PortAudioCpp.hxx>
 
-#include "Constants.h"
 #include "MP2KContext.h"
 #include "Profile.h"
 

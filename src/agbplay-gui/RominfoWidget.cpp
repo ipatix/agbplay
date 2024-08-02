@@ -17,6 +17,8 @@ RominfoWidget::RominfoWidget(QWidget *parent)
     songCountLineEdit.setReadOnly(true);
     layout.addWidget(&spacer);
     spacer.setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+
+    setMinimumWidth(130);
 }
 
 RominfoWidget::~RominfoWidget()

@@ -53,8 +53,8 @@ private:
     QVBoxLayout containerLeftLayout{&containerLeft};
 
     /* ..song widgets */
-    SonglistWidget songlistWidget{"Songlist", &containerLeft};
-    SonglistWidget playlistWidget{"Playlist", &containerLeft};
+    SonglistWidget songlistWidget{"Songlist", false, &containerLeft};
+    SonglistWidget playlistWidget{"Playlist", true, &containerLeft};
 
     /* .right container */
     QWidget containerRight{&containerCentral};

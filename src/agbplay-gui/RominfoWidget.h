@@ -14,7 +14,6 @@ public:
     explicit RominfoWidget(QWidget *parent = nullptr);
     ~RominfoWidget() override;
 
-private:
     QVBoxLayout layout{this};
 
     QLabel romNameLabel{"ROM Name", this};

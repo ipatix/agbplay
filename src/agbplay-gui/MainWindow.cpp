@@ -9,6 +9,8 @@
 #include <QToolBar>
 #include <QFileDialog>
 
+#include <fmt/core.h>
+
 #include "SelectProfileDialog.h"
 
 #include "ProfileManager.h"
@@ -224,4 +226,20 @@ void MainWindow::LoadGame()
     } else {
         profile = &profileCandidates.at(0).get();
     }
+
+    songlistWidget.Clear();
+    for (uint16_t i = 0; i < profile->songTableInfoPlayback.count; i++) {
+        auto songName = fmt::format("{:04}", i);
+        songlistWidget.AddSong(songName, i);
+    }
+
+    playlistWidget.Clear();
+    for (size_t i = 0; i < profile->playlist.size(); i++) {
+        playlistWidget.AddSong(profile->playlist.at(i).name, profile->playlist.at(i).id);
+    }
+
+    infoWidget.romNameLineEdit.setText(QString::fromStdString(Rom::Instance().ReadString(0xA0, 12)));
+    infoWidget.romCodeLineEdit.setText(QString::fromStdString(Rom::Instance().ReadString(0xAc, 4)));
+    infoWidget.songTableLineEdit.setText(QString::fromStdString(fmt::format("0x{:X}", profile->songTableInfoPlayback.pos)));
+    infoWidget.songCountLineEdit.setText(QString::number(profile->songTableInfoPlayback.count));
 }

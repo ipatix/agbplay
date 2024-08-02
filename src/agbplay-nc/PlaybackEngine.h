@@ -10,7 +10,6 @@
 #include <portaudiocpp/PortAudioCpp.hxx>
 
 #include "Constants.h"
-#include "LoudnessCalculator.h"
 #include "MP2KContext.h"
 #include "Profile.h"
 

@@ -25,7 +25,7 @@ SongWidget::SongWidget(QWidget *parent)
     titleLabel.setFont(titleFont);
     titleLabel.setText("0000 - Test Title AAA");
     titleLabel.setPalette(labelPal);
-    titleLabel.setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    titleLabel.setAlignment(Qt::AlignCenter);
     layout.addWidget(&titleLabel, 0, COL_TITLE, 1, 5);
 
     bpmLabel.setFixedSize(50, 16);

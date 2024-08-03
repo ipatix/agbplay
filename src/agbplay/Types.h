@@ -139,6 +139,8 @@ struct MP2KVisualizerState
     struct TrackState
     {
         uint32_t trackPtr = 0;
+        float envLFloat = 0.0f;
+        float envRFloat = 0.0f;
         bool isCalling = false;
         bool isMuted = false;
         uint8_t vol = 100;              // range 0 to 127

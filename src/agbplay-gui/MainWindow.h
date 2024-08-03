@@ -10,6 +10,7 @@
 #include <QSplitter>
 #include <QProgressBar>
 #include <QScrollArea>
+#include <QTimer>
 
 #include "SonglistWidget.h"
 #include "RominfoWidget.h"
@@ -19,6 +20,7 @@
 class PlaybackEngine;
 class ProfileManager;
 class Profile;
+struct MP2KVisualizerState;
 
 class MainWindow : public QMainWindow
 {
@@ -40,6 +42,8 @@ private:
     void LoadSong(const std::string &title, uint16_t id);
 
     void LoadGame();
+
+    void StatusUpdate();
 
     /* menu bar */
     QPushButton pauseButton{this};
@@ -86,10 +90,12 @@ private:
     QProgressBar progressBar;
 
     /* MP2K Objects */
+    QTimer statusUpdateTimer{this};
     std::unique_ptr<ProfileManager> pm;
     // TODO replace with smart pointer, requires changes in ProfileManager
     Profile *profile = nullptr;
     std::unique_ptr<PlaybackEngine> playbackEngine;
+    std::unique_ptr<MP2KVisualizerState> visualizerState;
 
     bool playing = false;
     bool playlistFocus = false;

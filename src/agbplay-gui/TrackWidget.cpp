@@ -140,9 +140,7 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     vuBarLayout.addWidget(&vuBarWidgetRight);
     vuBarLayout.setContentsMargins(0, 0, 0, 0);
     vuBarLayout.setSpacing(0);
-    vuBarWidgetLeft.setLevel(0.9f, 1.0f);
     vuBarWidgetLeft.setFixedHeight(8);
-    vuBarWidgetRight.setLevel(0.9f, 1.0f);
     vuBarWidgetRight.setFixedHeight(8);
 
     layout.setColumnStretch(COL_PADR, 1);

@@ -201,6 +201,8 @@ void MP2KContext::GetVisualizerState(MP2KVisualizerState &visualizerState)
             trk_dst.prog = trk_src.prog;
             trk_dst.pan = trk_src.pan;
             trk_dst.pitch = trk_src.pitch;
+            trk_dst.envLFloat = volLeft;
+            trk_dst.envRFloat = volRight;
             trk_dst.envL = uint8_t(std::clamp<uint32_t>(uint32_t(volLeft * 768.f), 0, 255));
             trk_dst.envR = uint8_t(std::clamp<uint32_t>(uint32_t(volRight * 768.f), 0, 255));
             trk_dst.delay = std::max<uint8_t>(0, static_cast<uint8_t>(trk_src.delay));

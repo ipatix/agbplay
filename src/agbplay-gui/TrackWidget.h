@@ -30,9 +30,6 @@ public:
     const std::bitset<128> getPressed() const;
     void setPressed(const std::bitset<128> &pressed);
 
-private:
-    void updateAnalyzer();
-
     QGridLayout layout{this};
 
     QLabel trackNoLabel{this};
@@ -54,6 +51,9 @@ private:
     VUBarWidget vuBarWidgetLeft{VUBarWidget::Orientation::Left, false, -36.0f, 3.0f, &vuBarWidget};
     VUBarWidget vuBarWidgetRight{VUBarWidget::Orientation::Right, false, -36.0f, 3.0f, &vuBarWidget};
     QVBoxLayout vuBarKeyboardLayout;
+
+private:
+    void updateAnalyzer();
 
     static const QPalette labelUnmutedPalette;
     static const QPalette labelMutedPalette;

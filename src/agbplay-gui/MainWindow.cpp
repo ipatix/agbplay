@@ -27,6 +27,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     pm = std::make_unique<ProfileManager>();
     pm->LoadProfiles();
+    connect(&statusUpdateTimer, &QTimer::timeout, this, &MainWindow::StatusUpdate);
+    statusUpdateTimer.setTimerType(Qt::PreciseTimer);
+    statusUpdateTimer.setInterval(16);
+    statusUpdateTimer.start();
 }
 
 MainWindow::~MainWindow()
@@ -139,9 +143,6 @@ void MainWindow::SetupToolBar()
     toolBar->addSeparator();
 
     toolBar->addWidget(&vuMeter);
-
-    /* test */
-    vuMeter.SetLevel(0.8f, 0.9f, 1.0f, 1.1f);
 }
 
 void MainWindow::SetupWidgets()
@@ -308,4 +309,15 @@ void MainWindow::LoadGame()
     infoWidget.songCountLineEdit.setText(QString::number(profile->songTableInfoPlayback.count));
 
     playbackEngine = std::make_unique<PlaybackEngine>(*profile);
+    visualizerState = std::make_unique<MP2KVisualizerState>();
+}
+
+void MainWindow::StatusUpdate()
+{
+    if (!playbackEngine || !visualizerState)
+        return;
+
+    playbackEngine->GetVisualizerState(*visualizerState);
+    vuMeter.SetLevel(visualizerState->masterVolLeft, visualizerState->masterVolRight, 1.0f, 1.0f);
+    statusWidget.setVisualizerState(*visualizerState);
 }

@@ -15,6 +15,7 @@
 
 #include "ProfileManager.h"
 #include "Rom.h"
+#include "PlaybackEngine.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -111,23 +112,32 @@ void MainWindow::SetupToolBar()
     stopButton.setFixedSize(32, 32);
     stopButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&stopButton);
+    connect(&stopButton, &QAbstractButton::clicked, [this](bool) { Stop(); });
+
     playButton.setIcon(QIcon(":/icons/playback-play.ico"));
     playButton.setFixedSize(32, 32);
     playButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&playButton);
+    connect(&playButton, &QAbstractButton::clicked, [this](bool) { Play(); });
+
     pauseButton.setIcon(QIcon(":/icons/playback-pause.ico"));
     pauseButton.setFixedSize(32, 32);
     pauseButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&pauseButton);
+    connect(&pauseButton, &QAbstractButton::clicked, [this](bool) { Pause(); });
+
     prevButton.setIcon(QIcon(":/icons/playback-previous.ico"));
     prevButton.setFixedSize(32, 32);
     prevButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&prevButton);
+
     nextButton.setIcon(QIcon(":/icons/playback-next.ico"));
     nextButton.setFixedSize(32, 32);
     nextButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&nextButton);
+
     toolBar->addSeparator();
+
     toolBar->addWidget(&vuMeter);
 
     /* test */
@@ -148,7 +158,23 @@ void MainWindow::SetupWidgets()
 
     /* 2. Create songlist and playlist. */
     containerLeftLayout.addWidget(&songlistWidget);
+    connect(&songlistWidget.listWidget, &QAbstractItemView::doubleClicked, [this](const QModelIndex &index) {
+            const QListWidgetItem *item = songlistWidget.listWidget.item(index.row());
+            assert(item);
+            if (!item)
+                return;
+            playlistFocus = false;
+            LoadSong(item->text().toStdString(), static_cast<uint16_t>(item->data(Qt::UserRole).toUInt()));
+    });
     containerLeftLayout.addWidget(&playlistWidget);
+    connect(&playlistWidget.listWidget, &QAbstractItemView::doubleClicked, [this](const QModelIndex &index) {
+            const QListWidgetItem *item = playlistWidget.listWidget.item(index.row());
+            assert(item);
+            if (!item)
+                return;
+            playlistFocus = true;
+            LoadSong(item->text().toStdString(), static_cast<uint16_t>(item->data(Qt::UserRole).toUInt()));
+    });
     containerLeftLayout.setContentsMargins(0, 0, 0, 0);
 
     /* 3. Create rom info and main status view. */
@@ -190,6 +216,44 @@ void MainWindow::SetupStatusBar()
     progressBar.setRange(0, 100);
     progressBar.setValue(20);
     progressBar.hide(); // progress bar is only shown on demand
+}
+
+void MainWindow::Play()
+{
+    if (!playbackEngine)
+        return;
+
+    playbackEngine->Play();
+    playing = true;
+}
+
+void MainWindow::Pause()
+{
+    if (!playbackEngine)
+        return;
+
+    playing = playbackEngine->Pause();
+}
+
+void MainWindow::Stop()
+{
+    if (!playbackEngine)
+        return;
+
+    playbackEngine->Stop();
+    playing = false;
+}
+
+void MainWindow::LoadSong(const std::string &title, uint16_t id)
+{
+    if (!playbackEngine)
+        return;
+
+    playbackEngine->LoadSong(id);
+    statusWidget.songWidget.titleLabel.setText(QString::fromStdString(fmt::format("{} - {}", id, title)));
+
+    if (playing)
+        playbackEngine->Play();
 }
 
 void MainWindow::LoadGame()
@@ -242,4 +306,6 @@ void MainWindow::LoadGame()
     infoWidget.romCodeLineEdit.setText(QString::fromStdString(Rom::Instance().ReadString(0xAc, 4)));
     infoWidget.songTableLineEdit.setText(QString::fromStdString(fmt::format("0x{:X}", profile->songTableInfoPlayback.pos)));
     infoWidget.songCountLineEdit.setText(QString::number(profile->songTableInfoPlayback.count));
+
+    playbackEngine = std::make_unique<PlaybackEngine>(*profile);
 }

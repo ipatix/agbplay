@@ -24,11 +24,11 @@ public:
     void SetPlayState(bool playing);
     void SetEditable(bool editable);
 
-private:
     QVBoxLayout layout{this};
     QListWidget listWidget{this};
     QLabel title{this};
 
+private:
     size_t selectedSong = 0;
     bool playing = false;
     const bool editable = false;

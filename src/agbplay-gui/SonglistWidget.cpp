@@ -4,6 +4,8 @@ SonglistWidget::SonglistWidget(const QString &titleString, bool editable, QWidge
     : QWidget(parent), editable(editable), playIcon(":/icons/playlist-play.ico"), stopIcon(":/icons/playlist-stop.ico")
 {
     setMinimumWidth(150);
+    if (editable)
+        listWidget.setDragDropMode(QAbstractItemView::InternalMove);
     layout.setContentsMargins(5, 5, 0, 0);
     layout.addWidget(&title);
     layout.addWidget(&listWidget);
@@ -31,14 +33,15 @@ void SonglistWidget::AddSong(const std::string &name, uint16_t id)
             item->setIcon(playing ? playIcon : stopIcon);
         }
 
-        if (editable)
-            item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemNeverHasChildren);
-        else
-            item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemNeverHasChildren);
+        //const auto flags = Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemNeverHasChildren;
+        //if (editable)
+        //    item->setFlags(flags | Qt::ItemIsDropEnabled);
+        //else
+        //    item->setFlags(flags);
 
         item->setCheckState(Qt::Checked);
         item->setText(QString::fromStdString(name)); // TODO make name a wstring to avoid character loss on Windows
-        item->setData(Qt::UserRole, id);
+        item->setData(Qt::UserRole, static_cast<unsigned int>(id));
         item->setToolTip("Click checkbox in order to mark song for bulk export");
     } catch (...) {
         delete item;

@@ -32,13 +32,15 @@ public:
     StatusWidget(QWidget *parent = nullptr);
     ~StatusWidget() override;
 
+    void setTitle(const std::string &title, uint16_t id);
+
+    QVBoxLayout layout{this};
+    SongWidget songWidget{this};
+
 private:
     void updateMuteOrSolo();
     void updateAnalyzer();
 
-    QVBoxLayout layout{this};
-
-    SongWidget songWidget{this};
     QFrame hlineWidget{this};
     // TODO use constant MAX_TRACKS instead of 16
     std::vector<TrackWidget *> trackWidgets;

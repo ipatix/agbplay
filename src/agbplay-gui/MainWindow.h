@@ -16,6 +16,7 @@
 #include "VUMeterWidget.h"
 #include "StatusWidget.h"
 
+class PlaybackEngine;
 class ProfileManager;
 class Profile;
 
@@ -32,6 +33,11 @@ private:
     void SetupToolBar();
     void SetupWidgets();
     void SetupStatusBar();
+
+    void Play();
+    void Pause();
+    void Stop();
+    void LoadSong(const std::string &title, uint16_t id);
 
     void LoadGame();
 
@@ -83,4 +89,8 @@ private:
     std::unique_ptr<ProfileManager> pm;
     // TODO replace with smart pointer, requires changes in ProfileManager
     Profile *profile = nullptr;
+    std::unique_ptr<PlaybackEngine> playbackEngine;
+
+    bool playing = false;
+    bool playlistFocus = false;
 };

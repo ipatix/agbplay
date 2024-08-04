@@ -268,8 +268,9 @@ void MainWindow::LoadGame()
 
     assert(fileDialog.selectedFiles().size() == 1);
 
-    /* In the future we should stop ALL background threads in order to not mess things up
-     * when loading a new ROM. */
+    profile = nullptr;
+    playbackEngine.reset();
+
     Rom::CreateInstance(fileDialog.selectedFiles().at(0).toStdWString());
 
     MP2KScanner scanner(Rom::Instance());

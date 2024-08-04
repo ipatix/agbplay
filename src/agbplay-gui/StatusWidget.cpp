@@ -45,6 +45,7 @@ StatusWidget::StatusWidget(QWidget *parent)
         layout.addWidget(trackWidgets.at(i));
         connect(trackWidgets.at(i), &TrackWidget::muteOrSoloChanged, this, &StatusWidget::updateMuteOrSolo);
         connect(trackWidgets.at(i), &TrackWidget::analyzerChanged, this, &StatusWidget::updateAnalyzer);
+        trackWidgets.at(i)->setVisible(false);
     }
 
     layout.addStretch(1);

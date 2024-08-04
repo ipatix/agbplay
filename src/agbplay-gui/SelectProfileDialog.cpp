@@ -98,7 +98,11 @@ void SelectProfileDialog::ok(bool)
         }
     }
 
-    QMessageBox mbox(QMessageBox::Icon::Critical, "Please select profile", "No profile selected. Please try again.", QMessageBox::Ok, this);
+    if (selected < 0) {
+        QMessageBox mbox(QMessageBox::Icon::Critical, "Please select profile", "No profile selected. Please try again.", QMessageBox::Ok, this);
+        mbox.exec();
+        return;
+    }
 
     done(QDialog::Accepted);
 }

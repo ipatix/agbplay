@@ -169,6 +169,7 @@ void MainWindow::SetupWidgets()
             playlistFocus = false;
             LoadSong(item->text().toStdString(), static_cast<uint16_t>(item->data(Qt::UserRole).toUInt()));
             songlistWidget.SelectSong(index.row());
+            Play();
     });
     containerLeftLayout.addWidget(&playlistWidget);
     connect(&playlistWidget.listWidget, &QAbstractItemView::doubleClicked, [this](const QModelIndex &index) {
@@ -179,6 +180,7 @@ void MainWindow::SetupWidgets()
             playlistFocus = true;
             LoadSong(item->text().toStdString(), static_cast<uint16_t>(item->data(Qt::UserRole).toUInt()));
             playlistWidget.SelectSong(index.row());
+            Play();
     });
     containerLeftLayout.setContentsMargins(0, 0, 0, 0);
 
@@ -230,6 +232,11 @@ void MainWindow::Play()
 
     playbackEngine->Play();
     playing = true;
+
+    if (playlistFocus)
+        playlistWidget.SetPlayState(true);
+    else
+        songlistWidget.SetPlayState(true);
 }
 
 void MainWindow::Pause()
@@ -247,6 +254,11 @@ void MainWindow::Stop()
 
     playbackEngine->Stop();
     playing = false;
+
+    if (playlistFocus)
+        playlistWidget.SetPlayState(false);
+    else
+        songlistWidget.SetPlayState(false);
 }
 
 void MainWindow::AdvanceSong(int indexDelta)
@@ -265,8 +277,7 @@ void MainWindow::AdvanceSong(int indexDelta)
         return;
 
     if (newItem == nullptr) {
-        playing = false;
-        listWidget.SetPlayState(false);
+        Stop();
     } else {
         listWidget.SelectSong(newIndex);
         LoadSong(newItem->text().toStdString(), static_cast<uint16_t>(newItem->data(Qt::UserRole).toUInt()));

@@ -25,6 +25,10 @@ public:
     void SelectSong(int index);
     int GetSelectedSong() const;
 
+private:
+    bool eventFilter(QObject *object, QEvent *event);
+
+public:
     QVBoxLayout layout{this};
     QListWidget listWidget{this};
     QLabel title{this};

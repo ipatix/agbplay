@@ -1,5 +1,7 @@
 #include "SonglistWidget.h"
 
+#include <QEvent>
+
 SonglistWidget::SonglistWidget(const QString &titleString, bool editable, QWidget *parent)
     : QWidget(parent), editable(editable), playIcon(":/icons/playlist-play.ico"), stopIcon(":/icons/playlist-stop.ico")
 {
@@ -11,6 +13,8 @@ SonglistWidget::SonglistWidget(const QString &titleString, bool editable, QWidge
     layout.addWidget(&listWidget);
     title.setText(titleString);
     listWidget.setUniformItemSizes(true);
+
+    listWidget.installEventFilter(this);
 }
 
 SonglistWidget::~SonglistWidget()
@@ -76,4 +80,45 @@ void SonglistWidget::SelectSong(int index)
 int SonglistWidget::GetSelectedSong() const
 {
     return selectedSong;
+}
+
+bool SonglistWidget::eventFilter(QObject *object, QEvent *event)
+{
+    /* WARNING: I DO NOT KNOW WHAT I AM DOING.
+     * Since there is apparently no signal for drag and dropping in the QListWidget,
+     * we need a different way to detect when entries are moved, so that the currently
+     * selected index can be updated and still remain valid.
+     *
+     * The only way I see is waiting for a ChildRemoved event
+     * (I assume the floating item during drag&drop, which can then
+     * trigger the validatio of the 'selectedSong' variable. */
+    if (object != &listWidget)
+        return false;
+
+    if (event->type() != QEvent::ChildRemoved)
+        return false;
+
+    QListWidgetItem *item = listWidget.item(selectedSong);
+    if (!item)
+        return false;
+
+    if (item->icon().isNull()) {
+        /* If item is no longer the selected one, search for the first item with icon
+         * and choose it as the new selected one. */
+        for (int i = 0; i < listWidget.count(); i++) {
+            QListWidgetItem *item = listWidget.item(i);
+            if (!item)
+                continue;
+            if (!item->icon().isNull()) {
+                selectedSong = i;
+                return false;
+            }
+        }
+
+        /* This case should not occur. At the same time it should not be fatal, but may
+         * cause wrong icons to appear in the UI. */
+        assert(false);
+    }
+
+    return false;
 }

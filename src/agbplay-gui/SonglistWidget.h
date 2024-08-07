@@ -22,14 +22,15 @@ public:
     void AddSong(const std::string &name, uint16_t id);
     void RemoveSong();
     void SetPlayState(bool playing);
-    void SetEditable(bool editable);
+    void SelectSong(int index);
+    int GetSelectedSong() const;
 
     QVBoxLayout layout{this};
     QListWidget listWidget{this};
     QLabel title{this};
 
 private:
-    size_t selectedSong = 0;
+    int selectedSong = 0;
     bool playing = false;
     const bool editable = false;
 

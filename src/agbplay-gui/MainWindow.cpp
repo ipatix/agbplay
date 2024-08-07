@@ -134,11 +134,13 @@ void MainWindow::SetupToolBar()
     prevButton.setFixedSize(32, 32);
     prevButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&prevButton);
+    connect(&prevButton, &QAbstractButton::clicked, [this](bool) { AdvanceSong(-1); });
 
     nextButton.setIcon(QIcon(":/icons/playback-next.ico"));
     nextButton.setFixedSize(32, 32);
     nextButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&nextButton);
+    connect(&nextButton, &QAbstractButton::clicked, [this](bool) { AdvanceSong(1); });
 
     toolBar->addSeparator();
 
@@ -166,6 +168,7 @@ void MainWindow::SetupWidgets()
                 return;
             playlistFocus = false;
             LoadSong(item->text().toStdString(), static_cast<uint16_t>(item->data(Qt::UserRole).toUInt()));
+            songlistWidget.SelectSong(index.row());
     });
     containerLeftLayout.addWidget(&playlistWidget);
     connect(&playlistWidget.listWidget, &QAbstractItemView::doubleClicked, [this](const QModelIndex &index) {
@@ -175,6 +178,7 @@ void MainWindow::SetupWidgets()
                 return;
             playlistFocus = true;
             LoadSong(item->text().toStdString(), static_cast<uint16_t>(item->data(Qt::UserRole).toUInt()));
+            playlistWidget.SelectSong(index.row());
     });
     containerLeftLayout.setContentsMargins(0, 0, 0, 0);
 
@@ -245,6 +249,30 @@ void MainWindow::Stop()
     playing = false;
 }
 
+void MainWindow::AdvanceSong(int indexDelta)
+{
+    if (!playbackEngine)
+        return;
+
+    SonglistWidget &listWidget = playlistFocus ? playlistWidget : songlistWidget;
+    const int oldIndex = listWidget.GetSelectedSong();
+    const int newIndex = oldIndex + indexDelta;
+
+    QListWidgetItem *oldItem = listWidget.listWidget.item(oldIndex);
+    QListWidgetItem *newItem = listWidget.listWidget.item(newIndex);
+
+    if (oldItem == nullptr)
+        return;
+
+    if (newItem == nullptr) {
+        playing = false;
+        listWidget.SetPlayState(false);
+    } else {
+        listWidget.SelectSong(newIndex);
+        LoadSong(newItem->text().toStdString(), static_cast<uint16_t>(newItem->data(Qt::UserRole).toUInt()));
+    }
+}
+
 void MainWindow::LoadSong(const std::string &title, uint16_t id)
 {
     if (!playbackEngine)
@@ -252,6 +280,14 @@ void MainWindow::LoadSong(const std::string &title, uint16_t id)
 
     playbackEngine->LoadSong(id);
     statusWidget.songWidget.titleLabel.setText(QString::fromStdString(fmt::format("{} - {}", id, title)));
+
+    if (playlistFocus) {
+        songlistWidget.SetPlayState(false);
+        playlistWidget.SetPlayState(playing);
+    } else {
+        songlistWidget.SetPlayState(playing);
+        playlistWidget.SetPlayState(false);
+    }
 
     if (playing)
         playbackEngine->Play();

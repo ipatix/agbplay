@@ -39,6 +39,7 @@ private:
     void Play();
     void Pause();
     void Stop();
+    void AdvanceSong(int indexDelta);
     void LoadSong(const std::string &title, uint16_t id);
 
     void LoadGame();

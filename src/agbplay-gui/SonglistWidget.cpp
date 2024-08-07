@@ -56,3 +56,24 @@ void SonglistWidget::SetPlayState(bool playing)
     if (QListWidgetItem *item = listWidget.item(static_cast<int>(selectedSong)); item != nullptr)
         item->setIcon(playing ? playIcon : stopIcon);
 }
+
+void SonglistWidget::SelectSong(int index)
+{
+    if (index == selectedSong)
+        return;
+
+    if (QListWidgetItem *item = listWidget.item(selectedSong); item != nullptr)
+        item->setIcon(QIcon());
+
+    if (QListWidgetItem *item = listWidget.item(index); item != nullptr) {
+        item->setIcon(playing ? playIcon : stopIcon);
+        listWidget.setCurrentRow(index);
+    }
+
+    selectedSong = index;
+}
+
+int SonglistWidget::GetSelectedSong() const
+{
+    return selectedSong;
+}

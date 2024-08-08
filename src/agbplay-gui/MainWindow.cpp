@@ -337,6 +337,7 @@ void MainWindow::LoadGame()
 
     assert(fileDialog.selectedFiles().size() == 1);
 
+    Stop();
     profile = nullptr;
     playbackEngine.reset();
 

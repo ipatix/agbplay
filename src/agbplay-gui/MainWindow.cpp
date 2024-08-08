@@ -115,18 +115,22 @@ void MainWindow::SetupToolBar()
     stopButton.setIcon(QIcon(":/icons/playback-stop.ico"));
     stopButton.setFixedSize(32, 32);
     stopButton.setIconSize(QSize(32, 32));
+    stopButton.setCheckable(true);
+    stopButton.setChecked(true);
     toolBar->addWidget(&stopButton);
     connect(&stopButton, &QAbstractButton::clicked, [this](bool) { Stop(); });
 
     playButton.setIcon(QIcon(":/icons/playback-play.ico"));
     playButton.setFixedSize(32, 32);
     playButton.setIconSize(QSize(32, 32));
+    playButton.setCheckable(true);
     toolBar->addWidget(&playButton);
     connect(&playButton, &QAbstractButton::clicked, [this](bool) { Play(); });
 
     pauseButton.setIcon(QIcon(":/icons/playback-pause.ico"));
     pauseButton.setFixedSize(32, 32);
     pauseButton.setIconSize(QSize(32, 32));
+    pauseButton.setCheckable(true);
     toolBar->addWidget(&pauseButton);
     connect(&pauseButton, &QAbstractButton::clicked, [this](bool) { Pause(); });
 
@@ -227,8 +231,10 @@ void MainWindow::SetupStatusBar()
 
 void MainWindow::Play()
 {
-    if (!playbackEngine)
+    if (!playbackEngine) {
+        playButton.setChecked(false);
         return;
+    }
 
     playbackEngine->Play();
     playing = true;
@@ -237,20 +243,32 @@ void MainWindow::Play()
         playlistWidget.SetPlayState(true);
     else
         songlistWidget.SetPlayState(true);
+
+    playButton.setChecked(true);
+    stopButton.setChecked(false);
+    pauseButton.setChecked(false);
 }
 
 void MainWindow::Pause()
 {
-    if (!playbackEngine)
+    if (!playbackEngine) {
+        pauseButton.setChecked(false);
         return;
+    }
 
     playing = playbackEngine->Pause();
+
+    playButton.setChecked(playing);
+    stopButton.setChecked(false);
+    pauseButton.setChecked(!playing);
 }
 
 void MainWindow::Stop()
 {
-    if (!playbackEngine)
+    if (!playbackEngine) {
+        stopButton.setChecked(false);
         return;
+    }
 
     playbackEngine->Stop();
     playing = false;
@@ -259,6 +277,10 @@ void MainWindow::Stop()
         playlistWidget.SetPlayState(false);
     else
         songlistWidget.SetPlayState(false);
+
+    playButton.setChecked(false);
+    stopButton.setChecked(true);
+    pauseButton.setChecked(false);
 }
 
 void MainWindow::AdvanceSong(int indexDelta)

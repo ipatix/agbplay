@@ -18,7 +18,9 @@ public:
 
     void setPressed(const std::bitset<128> &pressed);
 
-    QGridLayout layout{this};
+    QVBoxLayout layout{this};
+    QHBoxLayout upperLayout;
+    QHBoxLayout lowerLayout;
 
     QLabel titleLabel{this};
     QLabel bpmLabel{this};
@@ -26,20 +28,4 @@ public:
     QLabel timeLabel{this};
     KeyboardWidget keyboardWidget{this};
     QLabel chordLabel{this};
-
-private:
-
-    enum {
-        COL_PADL,
-        COL_TITLE,
-        COL_SPACE1,
-        COL_CHN,
-        COL_SPACE2,
-        COL_TIME,
-        COL_SPACE3,
-        COL_KEYBOARD,
-        COL_SPACE4,
-        COL_CHORD,
-        COL_PADR,
-    };
 };

@@ -148,6 +148,20 @@ void MainWindow::SetupToolBar()
 
     toolBar->addSeparator();
 
+    speedHalveButton.setIcon(QIcon(":/icons/speed-halve.ico"));
+    speedHalveButton.setFixedSize(32, 32);
+    speedHalveButton.setIconSize(QSize(32, 32));
+    toolBar->addWidget(&speedHalveButton);
+    connect(&speedHalveButton, &QAbstractButton::clicked, [this](bool) { SpeedHalve(); });
+
+    speedDoubleButton.setIcon(QIcon(":/icons/speed-double.ico"));
+    speedDoubleButton.setFixedSize(32, 32);
+    speedDoubleButton.setIconSize(QSize(32, 32));
+    toolBar->addWidget(&speedDoubleButton);
+    connect(&speedDoubleButton, &QAbstractButton::clicked, [this](bool) { SpeedDouble(); });
+
+    toolBar->addSeparator();
+
     toolBar->addWidget(&vuMeter);
 }
 
@@ -324,6 +338,22 @@ void MainWindow::LoadSong(const std::string &title, uint16_t id)
 
     if (playing)
         playbackEngine->Play();
+}
+
+void MainWindow::SpeedHalve()
+{
+    if (!playbackEngine)
+        return;
+
+    playbackEngine->SpeedHalve();
+}
+
+void MainWindow::SpeedDouble()
+{
+    if (!playbackEngine)
+        return;
+
+    playbackEngine->SpeedDouble();
 }
 
 void MainWindow::LoadGame()

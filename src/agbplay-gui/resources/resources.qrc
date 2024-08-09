@@ -22,5 +22,7 @@
         <file>icons/profile-select.ico</file>
         <file>icons/profile-settings.ico</file>
         <file>icons/save-log.ico</file>
+        <file>icons/speed-double.ico</file>
+        <file>icons/speed-halve.ico</file>
     </qresource>
 </RCC>

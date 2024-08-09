@@ -24,6 +24,7 @@ public:
 
     QLabel titleLabel{this};
     QLabel bpmLabel{this};
+    QLabel bpmFactorLabel{this};
     QLabel chnLabel{this};
     QLabel timeLabel{this};
     KeyboardWidget keyboardWidget{this};

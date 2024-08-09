@@ -71,8 +71,8 @@ void StatusWidget::setVisualizerState(const MP2KVisualizerState &state)
 
     const auto &player = state.players.at(state.primaryPlayer);
 
-    // TODO BPM factor
     songWidget.bpmLabel.setFmtText("{} BPM", player.bpm);
+    songWidget.bpmFactorLabel.setFmtText("(x {:.4})", player.bpmFactor);
     songWidget.timeLabel.setFmtText("{:02}:{:02}", player.time / 60, player.time % 60);
 
     size_t i = 0;

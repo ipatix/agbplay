@@ -41,6 +41,8 @@ private:
     void Stop();
     void AdvanceSong(int indexDelta);
     void LoadSong(const std::string &title, uint16_t id);
+    void SpeedHalve();
+    void SpeedDouble();
 
     void LoadGame();
 
@@ -52,6 +54,8 @@ private:
     QPushButton stopButton{this};
     QPushButton prevButton{this};
     QPushButton nextButton{this};
+    QPushButton speedHalveButton{this};
+    QPushButton speedDoubleButton{this};
     VUMeterWidget vuMeter{128, 32, this};
 
     /* central container */

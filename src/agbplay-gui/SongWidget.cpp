@@ -17,7 +17,7 @@ SongWidget::SongWidget(QWidget *parent)
 
     QFont titleFont;
     titleFont.setUnderline(true);
-    titleLabel.setFixedSize(300, 16);
+    titleLabel.setFixedSize(320, 16);
     titleLabel.setFont(titleFont);
     titleLabel.setText("No game loaded");
     titleLabel.setPalette(labelPal);
@@ -27,10 +27,18 @@ SongWidget::SongWidget(QWidget *parent)
     upperLayout.addSpacing(10);
 
     bpmLabel.setFixedSize(50, 16);
-    bpmLabel.setText("0 BPM");
+    bpmLabel.setText("150 BPM");
     bpmLabel.setPalette(labelPal);
     bpmLabel.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     upperLayout.addWidget(&bpmLabel, 0);
+
+    upperLayout.addSpacing(5);
+
+    bpmFactorLabel.setFixedSize(60, 16);
+    bpmFactorLabel.setText("(x 1)");
+    bpmFactorLabel.setPalette(labelPal);
+    bpmFactorLabel.setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    upperLayout.addWidget(&bpmFactorLabel, 0);
 
     upperLayout.addSpacing(10);
 
@@ -40,7 +48,7 @@ SongWidget::SongWidget(QWidget *parent)
     chnLabel.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     upperLayout.addWidget(&chnLabel, 0);
 
-    upperLayout.addSpacing(10);
+    upperLayout.addSpacing(30);
 
     timeLabel.setFixedSize(30, 16);
     timeLabel.setText("00:00");

@@ -22,6 +22,8 @@ public:
     std::vector<MP2KTrack> tracks;
 
     // processing variables
+    size_t interframeCount = 0;
+    size_t frameCount = 0;
     size_t tickCount = 0;
     int32_t bpmStack = 0;
     uint16_t bpm = 0;

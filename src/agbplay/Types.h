@@ -162,6 +162,7 @@ struct MP2KVisualizerState
         float bpmFactor = 1.0f;
         uint16_t bpm = 0;
         uint8_t tracksUsed = 0;
+        size_t time;
     };
 
     std::vector<PlayerState> players;

@@ -45,6 +45,8 @@ void MP2KPlayer::Init(const Rom &rom, size_t songHeaderPos)
     bpmStack = 0;
     bpm = 150;
     tickCount = 0;
+    frameCount = 0;
+    interframeCount = 0;
 }
 
 size_t MP2KPlayer::GetSoundBankPos() const

@@ -106,6 +106,9 @@ bool SequenceReader::PlayerMain(MP2KPlayer &player)
     for (MP2KTrack &trk : player.tracks)
         TrackVolPitchMain(trk);
 
+    player.interframeCount++;
+    player.frameCount = player.interframeCount / INTERFRAMES;
+
     return player.playing;
 }
 

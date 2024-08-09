@@ -73,6 +73,7 @@ void StatusWidget::setVisualizerState(const MP2KVisualizerState &state)
 
     // TODO BPM factor
     songWidget.bpmLabel.setFmtText("{} BPM", player.bpm);
+    songWidget.timeLabel.setFmtText("{:02}:{:02}", player.time / 60, player.time % 60);
 
     size_t i = 0;
     for (; i < std::min(static_cast<size_t>(player.tracksUsed), trackWidgets.size()); i++) {

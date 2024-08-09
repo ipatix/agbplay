@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
         if (profileCandidates.size() > 1) {
             fmt::print("Found multiple matching profiles, please select profile to load:\n");
             for (size_t i = 0; i < profileCandidates.size(); i++) {
-                Profile &p = profileCandidates.at(i);
+                Profile &p = *profileCandidates.at(i);
                 std::string d = p.description;
                 if (d.size() == 0)
                     d = "<no description>";
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
         }
 
         fmt::print("Creating GUI!\n");
-        WindowGUI wgui(profileCandidates.at(profileIdx));
+        WindowGUI wgui(*profileCandidates.at(profileIdx));
 
         std::chrono::nanoseconds frameTime(1000000000 / 60);
 

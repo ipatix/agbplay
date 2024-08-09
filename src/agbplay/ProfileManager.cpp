@@ -23,7 +23,7 @@ void ProfileManager::LoadProfiles()
     LoadProfileDir(configDir / "agbplay" / "profiles-user");
 }
 
-void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std::reference_wrapper<Profile>> &profiles, const std::vector<MP2KScanner::Result> scanResults)
+void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std::shared_ptr<Profile>> &profiles, const std::vector<MP2KScanner::Result> scanResults)
 {
     if (scanResults.size() == 0 && profiles.size() == 0) {
         throw Xcept("Scanner failed to find songtable and no profile with manual songtable found.\n");
@@ -32,19 +32,19 @@ void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std:
     for (size_t tableIdx = 0; tableIdx < scanResults.size(); tableIdx++) {
         auto &scanResult = scanResults.at(tableIdx);
         bool profileExists = false;
-        for (Profile &profileCandidate : profiles) {
-            if (profileCandidate.songTableInfoConfig.pos != SongTableInfo::POS_AUTO) {
-                if (profileCandidate.songTableInfoConfig.count == SongTableInfo::COUNT_AUTO)
+        for (std::shared_ptr<Profile> &profileCandidate : profiles) {
+            if (profileCandidate->songTableInfoConfig.pos != SongTableInfo::POS_AUTO) {
+                if (profileCandidate->songTableInfoConfig.count == SongTableInfo::COUNT_AUTO)
                     throw Xcept("Cannot load profile with manual songtable but no song count");
-                profileCandidate.ApplyScanToPlayback(
+                profileCandidate->ApplyScanToPlayback(
                     SongTableInfo{},
                     PlayerTableInfo{},
                     MP2KSoundMode{}
                 );
                 continue;
             }
-            if (profileCandidate.songTableInfoConfig.tableIdx == tableIdx) {
-                profileCandidate.ApplyScanToPlayback(
+            if (profileCandidate->songTableInfoConfig.tableIdx == tableIdx) {
+                profileCandidate->ApplyScanToPlayback(
                     scanResult.songTableInfo,
                     scanResult.playerTableInfo,
                     scanResult.mp2kSoundMode
@@ -55,9 +55,10 @@ void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std:
         }
 
         if (!profileExists) {
-            Profile &p = profiles.emplace_back(CreateProfile(rom.GetROMCode(), tableIdx));
-            p.songTableInfoConfig.tableIdx = static_cast<uint8_t>(tableIdx);
-            p.ApplyScanToPlayback(
+            /* Caution: profiles is our parameter (i.e. != this->profiles */
+            std::shared_ptr<Profile> &p = profiles.emplace_back(CreateProfile(rom.GetROMCode(), tableIdx));
+            p->songTableInfoConfig.tableIdx = static_cast<uint8_t>(tableIdx);
+            p->ApplyScanToPlayback(
                 scanResult.songTableInfo,
                 scanResult.playerTableInfo,
                 scanResult.mp2kSoundMode
@@ -81,12 +82,12 @@ void ProfileManager::LoadProfileDir(const std::filesystem::path &dir)
 
 void ProfileManager::SaveProfiles()
 {
-    for (Profile &profile : profiles) {
+    for (std::shared_ptr<Profile> &profile : profiles) {
         SaveProfile(profile);
     }
 }
 
-std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfiles(const Rom &rom, const std::vector<MP2KScanner::Result> scanResults)
+std::vector<std::shared_ptr<Profile>> ProfileManager::GetProfiles(const Rom &rom, const std::vector<MP2KScanner::Result> scanResults)
 {
     /* Find all profiles which match the ROM passed.
      * If only a single match is found, return it.
@@ -95,10 +96,10 @@ std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfiles(const R
     const auto gameCode = rom.GetROMCode();
 
     /* find all matching game codes */
-    std::vector<std::reference_wrapper<Profile>> profilesWithGameCode;
+    std::vector<std::shared_ptr<Profile>> profilesWithGameCode;
 
-    for (Profile &profile : profiles) {
-        for (const std::string &gameCodeToCheck : profile.gameMatch.gameCodes) {
+    for (std::shared_ptr<Profile> &profile : profiles) {
+        for (const std::string &gameCodeToCheck : profile->gameMatch.gameCodes) {
             if (gameCodeToCheck == gameCode) {
                 profilesWithGameCode.emplace_back(profile);
                 break;
@@ -107,10 +108,10 @@ std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfiles(const R
     }
 
     /* find all profiles with magic bytes */
-    std::vector<std::reference_wrapper<Profile>> profilesWithMagicBytes;
+    std::vector<std::shared_ptr<Profile>> profilesWithMagicBytes;
 
-    for (Profile &profile : profilesWithGameCode) {
-        if (profile.gameMatch.magicBytes.size() != 0)
+    for (std::shared_ptr<Profile> &profile : profilesWithGameCode) {
+        if (profile->gameMatch.magicBytes.size() != 0)
             profilesWithMagicBytes.emplace_back(profile);
     }
 
@@ -120,12 +121,12 @@ std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfiles(const R
     }
 
     /* find all profiles with matching magic bytes */
-    std::vector<std::reference_wrapper<Profile>> profilesToReturn;
+    std::vector<std::shared_ptr<Profile>> profilesToReturn;
 
     // probably more complex than necessary, but I want to try a bloom filter today!
     std::vector<uint8_t> bloomFilter;
-    for (const Profile &profile : profilesWithMagicBytes) {
-        const auto &mb = profile.gameMatch.magicBytes;
+    for (std::shared_ptr<Profile> &profile : profilesWithMagicBytes) {
+        const auto &mb = profile->gameMatch.magicBytes;
         if (mb.size() > bloomFilter.size())
             bloomFilter.resize(mb.size(), 0);
 
@@ -147,8 +148,8 @@ std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfiles(const R
         if (filterMatch) [[unlikely]] {
             /* if the bloom filter matched, now check which one actually matched */
             auto &pwmb = profilesWithMagicBytes;
-            auto filterFunc = [&](Profile &profile){
-                const auto &mb = profile.gameMatch.magicBytes;
+            auto filterFunc = [&](std::shared_ptr<Profile> &profile){
+                const auto &mb = profile->gameMatch.magicBytes;
                 if (romIdx + mb.size() > rom.Size())
                     return false;
                 bool exactMatch = true;
@@ -173,13 +174,13 @@ std::vector<std::reference_wrapper<Profile>> ProfileManager::GetProfiles(const R
     return profilesToReturn;
 }
 
-Profile &ProfileManager::CreateProfile(const std::string &gameCode, size_t tableIdx)
+std::shared_ptr<Profile> &ProfileManager::CreateProfile(const std::string &gameCode, size_t tableIdx)
 {
     const std::string profileName = fmt::format("{}.{}.json", gameCode, tableIdx);
-    auto &profile = profiles.emplace_back();
-    profile.gameMatch.gameCodes.emplace_back(gameCode);
-    profile.path = OS::GetLocalConfigDirectory() / "agbplay" / "profiles" / profileName;
-    profile.dirty = true;
+    std::shared_ptr<Profile> &profile = profiles.emplace_back(std::make_shared<Profile>());
+    profile->gameMatch.gameCodes.emplace_back(gameCode);
+    profile->path = OS::GetLocalConfigDirectory() / "agbplay" / "profiles" / profileName;
+    profile->dirty = true;
     return profile;
 }
 
@@ -345,21 +346,21 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
     }
 
 
-    profiles.push_back(std::move(p));
+    profiles.emplace_back(std::make_shared<Profile>(std::move(p)));
 }
 
-void ProfileManager::SaveProfile(Profile &p)
+void ProfileManager::SaveProfile(std::shared_ptr<Profile> &p)
 {
-    if (!p.dirty)
+    if (!p->dirty)
         return;
 
     using nlohmann::json;
     json j;
 
     /* save playlist */
-    if (p.playlist.size() != 0) {
+    if (p->playlist.size() != 0) {
         json jpl = json::array();
-        for (const auto &entry : p.playlist) {
+        for (const auto &entry : p->playlist) {
             json jen;
             jen["name"] = entry.name;
             jen["id"] = entry.id;
@@ -370,20 +371,20 @@ void ProfileManager::SaveProfile(Profile &p)
 
     /* save song table info */
     json jsti;
-    if (p.songTableInfoConfig.count != SongTableInfo::COUNT_AUTO)
-        jsti["count"] = p.songTableInfoConfig.count;
-    if (p.songTableInfoConfig.pos == SongTableInfo::POS_AUTO) {
-        jsti["tableIdx"] = p.songTableInfoConfig.tableIdx;
+    if (p->songTableInfoConfig.count != SongTableInfo::COUNT_AUTO)
+        jsti["count"] = p->songTableInfoConfig.count;
+    if (p->songTableInfoConfig.pos == SongTableInfo::POS_AUTO) {
+        jsti["tableIdx"] = p->songTableInfoConfig.tableIdx;
     } else {
-        jsti["pos"] = p.songTableInfoConfig.pos;
+        jsti["pos"] = p->songTableInfoConfig.pos;
     }
     j["songTableInfo"] = std::move(jsti);
 
     /* save player table config */
-    if (p.playerTableConfig.size() != 0) {
+    if (p->playerTableConfig.size() != 0) {
         json jpti = json::array();;
 
-        for (const auto &player : p.playerTableConfig) {
+        for (const auto &player : p->playerTableConfig) {
             json jpi;
             jpi["maxTracks"] = player.maxTracks;
             jpi["usePriority"] = player.usePriority;
@@ -395,63 +396,63 @@ void ProfileManager::SaveProfile(Profile &p)
 
     /* save mp2k sound mode */
     json jmsm = json::object();
-    if (p.mp2kSoundModeConfig.vol != MP2KSoundMode::VOL_AUTO)
-        jmsm["vol"] = p.mp2kSoundModeConfig.vol;
-    if (p.mp2kSoundModeConfig.rev != MP2KSoundMode::REV_AUTO)
-        jmsm["rev"] = p.mp2kSoundModeConfig.rev;
-    if (p.mp2kSoundModeConfig.freq != MP2KSoundMode::FREQ_AUTO)
-        jmsm["freq"] = p.mp2kSoundModeConfig.freq;
-    if (p.mp2kSoundModeConfig.maxChannels != MP2KSoundMode::CHN_AUTO)
-        jmsm["maxChannels"] = p.mp2kSoundModeConfig.maxChannels;
-    if (p.mp2kSoundModeConfig.dacConfig != MP2KSoundMode::DAC_AUTO)
-        jmsm["dacConfig"] = p.mp2kSoundModeConfig.dacConfig;
+    if (p->mp2kSoundModeConfig.vol != MP2KSoundMode::VOL_AUTO)
+        jmsm["vol"] = p->mp2kSoundModeConfig.vol;
+    if (p->mp2kSoundModeConfig.rev != MP2KSoundMode::REV_AUTO)
+        jmsm["rev"] = p->mp2kSoundModeConfig.rev;
+    if (p->mp2kSoundModeConfig.freq != MP2KSoundMode::FREQ_AUTO)
+        jmsm["freq"] = p->mp2kSoundModeConfig.freq;
+    if (p->mp2kSoundModeConfig.maxChannels != MP2KSoundMode::CHN_AUTO)
+        jmsm["maxChannels"] = p->mp2kSoundModeConfig.maxChannels;
+    if (p->mp2kSoundModeConfig.dacConfig != MP2KSoundMode::DAC_AUTO)
+        jmsm["dacConfig"] = p->mp2kSoundModeConfig.dacConfig;
     if (jmsm.size() != 0)
         j["mp2kSoundMode"] = std::move(jmsm);
 
     /* save agbplay sound mode */
     json jasm = json::object();
-    jasm["resamplerTypeNormal"] = res2str(p.agbplaySoundMode.resamplerTypeNormal);
-    jasm["resamplerTypeFixed"] = res2str(p.agbplaySoundMode.resamplerTypeFixed);
-    jasm["reverbType"] = rev2str(p.agbplaySoundMode.reverbType);
-    jasm["cgbPolyphony"] = cgbPoly2str(p.agbplaySoundMode.cgbPolyphony);
-    jasm["dmaBufferLen"] = p.agbplaySoundMode.dmaBufferLen;
-    jasm["maxLoops"] = p.agbplaySoundMode.maxLoops;
-    jasm["padSilenceSecondsStart"] = p.agbplaySoundMode.padSilenceSecondsStart;
-    jasm["padSilenceSecondsEnd"] = p.agbplaySoundMode.padSilenceSecondsEnd;
-    jasm["accurateCh3Quantization"] = p.agbplaySoundMode.accurateCh3Quantization;
-    jasm["accurateCh3Volume"] = p.agbplaySoundMode.accurateCh3Volume;
-    jasm["emulateCgbSustainBug"] = p.agbplaySoundMode.emulateCgbSustainBug;
+    jasm["resamplerTypeNormal"] = res2str(p->agbplaySoundMode.resamplerTypeNormal);
+    jasm["resamplerTypeFixed"] = res2str(p->agbplaySoundMode.resamplerTypeFixed);
+    jasm["reverbType"] = rev2str(p->agbplaySoundMode.reverbType);
+    jasm["cgbPolyphony"] = cgbPoly2str(p->agbplaySoundMode.cgbPolyphony);
+    jasm["dmaBufferLen"] = p->agbplaySoundMode.dmaBufferLen;
+    jasm["maxLoops"] = p->agbplaySoundMode.maxLoops;
+    jasm["padSilenceSecondsStart"] = p->agbplaySoundMode.padSilenceSecondsStart;
+    jasm["padSilenceSecondsEnd"] = p->agbplaySoundMode.padSilenceSecondsEnd;
+    jasm["accurateCh3Quantization"] = p->agbplaySoundMode.accurateCh3Quantization;
+    jasm["accurateCh3Volume"] = p->agbplaySoundMode.accurateCh3Volume;
+    jasm["emulateCgbSustainBug"] = p->agbplaySoundMode.emulateCgbSustainBug;
     j["agbplaySoundMode"] = std::move(jasm);
 
     /* save game match */
     json jgm = json::object();
     json jgc = json::array();
-    assert(p.gameMatch.gameCodes.size() >= 1);
-    for (const std::string &gameCode : p.gameMatch.gameCodes)
+    assert(p->gameMatch.gameCodes.size() >= 1);
+    for (const std::string &gameCode : p->gameMatch.gameCodes)
         jgc.push_back(gameCode);
     jgm["gameCodes"] = std::move(jgc);
-    if (p.gameMatch.magicBytes.size() != 0) {
+    if (p->gameMatch.magicBytes.size() != 0) {
         json jmb = json::array();
-        for (const uint8_t b : p.gameMatch.magicBytes)
+        for (const uint8_t b : p->gameMatch.magicBytes)
             jmb.push_back(b);
         jgm["magicBytes"] = std::move(jmb);
     }
     j["gameMatch"] = jgm;
 
     /* save description */
-    if (p.description.size() > 0)
-        j["description"] = p.description;
+    if (p->description.size() > 0)
+        j["description"] = p->description;
 
     /* save JSON to disk */
-    std::ofstream fileStream(p.path);
+    std::ofstream fileStream(p->path);
     if (!fileStream.is_open()) {
         // TODO we very likely do not want to crash in case of write failure.
         // Better give the user an option to try again (i.e. after permissions are fixed or disk space freed).
         const std::string err = strerror(errno);
-        throw Xcept("Failed to save file: {}, {}", p.path.string(), err);
+        throw Xcept("Failed to save file: {}, {}", p->path.string(), err);
     }
     fileStream << std::setw(2) << j << std::endl;
     fileStream.close();
 
-    p.dirty = false;
+    p->dirty = false;
 }

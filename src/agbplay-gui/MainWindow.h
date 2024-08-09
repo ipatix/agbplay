@@ -93,8 +93,7 @@ private:
     /* MP2K Objects */
     QTimer statusUpdateTimer{this};
     std::unique_ptr<ProfileManager> pm;
-    // TODO replace with smart pointer, requires changes in ProfileManager
-    Profile *profile = nullptr;
+    std::shared_ptr<Profile> profile;
     std::unique_ptr<PlaybackEngine> playbackEngine;
     std::unique_ptr<MP2KVisualizerState> visualizerState;
 

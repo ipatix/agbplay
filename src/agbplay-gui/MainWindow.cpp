@@ -338,8 +338,8 @@ void MainWindow::LoadGame()
     assert(fileDialog.selectedFiles().size() == 1);
 
     Stop();
-    profile = nullptr;
     playbackEngine.reset();
+    profile.reset();
 
     Rom::CreateInstance(fileDialog.selectedFiles().at(0).toStdWString());
 
@@ -350,17 +350,17 @@ void MainWindow::LoadGame()
 
     if (profileCandidates.size() > 1) {
         SelectProfileDialog profileDialog;
-        for (const Profile &profile : profileCandidates)
-            profileDialog.addToSelectionDialog(profile);
+        for (const std::shared_ptr<Profile> &profile : profileCandidates)
+            profileDialog.addToSelectionDialog(*profile);
 
         if (!profileDialog.exec())
             return;
 
         assert(profileDialog.selectedProfile() >= 0);
 
-        profile = &profileCandidates.at(profileDialog.selectedProfile()).get();
+        profile = profileCandidates.at(profileDialog.selectedProfile());
     } else {
-        profile = &profileCandidates.at(0).get();
+        profile = profileCandidates.at(0);
     }
 
     songlistWidget.Clear();

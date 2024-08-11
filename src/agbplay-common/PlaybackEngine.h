@@ -38,7 +38,7 @@ private:
     void updateVisualizerState();
     void InvokeAsPlayer(const std::function<void(void)> &func);
     void InvokeRun();
-    static int audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,
+    static int audioCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
             const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags,
             void *userData);
     void AudioBufferPut(std::span<sample> buffer);

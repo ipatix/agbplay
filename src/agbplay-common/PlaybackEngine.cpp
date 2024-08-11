@@ -335,7 +335,7 @@ void PlaybackEngine::InvokeRun()
     playerInvokeComplete.wait(l);
 }
 
-int PlaybackEngine::audioCallback(const void *inputBuffer, void *outputBuffer, size_t framesPerBuffer,
+int PlaybackEngine::audioCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
         const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags, void *userData)
 {
     (void)inputBuffer;
@@ -429,7 +429,7 @@ void PlaybackEngine::portaudioOpen()
             portaudio::DirectionSpecificStreamParameters::null(),
             outPars,
             ctx->mixer.GetSampleRate(),
-            ctx->mixer.GetSamplesPerBuffer(),
+            static_cast<unsigned long>(ctx->mixer.GetSamplesPerBuffer()),
             paNoFlag
         );
 

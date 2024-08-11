@@ -10,6 +10,7 @@
 #include "Rom.h"
 #include "OS.h"
 #include "MP2KScanner.h"
+#include "Debug.h"
 
 void ProfileManager::Reset()
 {
@@ -69,6 +70,9 @@ void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std:
 
 void ProfileManager::LoadProfileDir(const std::filesystem::path &dir)
 {
+    if (std::filesystem::create_directories(dir))
+        Debug::print("Creating profile directory '{}', which does not exist yet.", dir.string());
+
     if (!std::filesystem::is_directory(dir))
         throw std::invalid_argument(fmt::format("ProfileManager: Profile directory is not a directory: {}", dir.string()));
 

@@ -6,6 +6,7 @@
 #include <atomic>
 #include <thread>
 #include <mutex>
+#include <codecvt>
 #include <sndfile.h>
 
 #include "SoundExporter.h"
@@ -20,21 +21,26 @@
  * public SoundExporter
  */
 
-SoundExporter::SoundExporter(const Profile &profile, bool benchmarkOnly, bool seperate)
-: profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
+SoundExporter::SoundExporter(const std::filesystem::path &directory, const Profile &profile, bool benchmarkOnly, bool seperate)
+    : directory(directory), profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
 {
+}
+
+std::filesystem::path SoundExporter::DefaultDirectory()
+{
+    return OS::GetMusicDirectory() / "agbplay";
 }
 
 void SoundExporter::Export()
 {
+    Debug::print("Starting export to directory: {}", directory.string());
     /* create directories for file export */
-    std::filesystem::path dir = OS::GetMusicDirectory() / "agbplay"; // TODO de-hard-code this path
-    if (std::filesystem::exists(dir)) {
-        if (!std::filesystem::is_directory(dir)) {
-            throw Xcept("Output directory exists but isn't a dir");
+    if (std::filesystem::exists(directory)) {
+        if (!std::filesystem::is_directory(directory)) {
+            throw Xcept("Output directory exists but isn't a directory");
         }
     }
-    else if (!std::filesystem::create_directories(dir)) {
+    else if (!std::filesystem::create_directories(directory)) {
         throw Xcept("Creating output directory failed");
     }
 
@@ -49,11 +55,15 @@ void SoundExporter::Export()
             if (i >= profile.playlist.size())
                 return;
 
-            std::string fname = profile.playlist.at(i).name;
-            boost::replace_all(fname, "/", "_");
-            Debug::print("{:3}% - Rendering to file: \"{}\"", (i + 1) * 100 / profile.playlist.size(), fname);
-            const auto fileName = std::format("{}/{:03d} - {}", dir.string(), i + 1, fname);
-            totalSamplesRendered += exportSong(fileName, profile.playlist.at(i).id);
+            /* name's in profile are utf8 encoded */
+            std::string name = profile.playlist.at(i).name;
+            ReplaceIllegalPathCharacters(name, '_');
+            Debug::print("{:3}% - Rendering to file: \"{}\"", (i + 1) * 100 / profile.playlist.size(), name);
+            std::u8string u8name(reinterpret_cast<const char8_t *>(name.c_str()));
+            std::filesystem::path filePath = directory;
+            filePath /= fmt::format("{:03d} - ", i + 1);
+            filePath += u8name;
+            totalSamplesRendered += exportSong(filePath, profile.playlist.at(i).id);
         }
     };
 
@@ -95,7 +105,7 @@ void SoundExporter::writeSilence(SNDFILE *ofile, double seconds)
     sf_writef_float(ofile, reinterpret_cast<float *>(silence.data()), static_cast<sf_count_t>(silence.size()));
 }
 
-size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t uid)
+size_t SoundExporter::exportSong(const std::filesystem::path& filePath, uint16_t uid)
 {
     MP2KContext ctx(
         Rom::Instance(),
@@ -128,8 +138,13 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
                 oinfos[i].samplerate = STREAM_SAMPLERATE;
                 oinfos[i].channels = 2; // stereo
                 oinfos[i].format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
-                const std::string outName = fmt::format("{}.{:02d}.wav", fileName.string(), i);
-                ofiles[i] = sf_open(outName.c_str(), SFM_WRITE, &oinfos[i]);
+                std::filesystem::path finalFilePath = filePath;
+                finalFilePath += fmt::format(".{:02d}.wav", i);
+#ifdef _WIN32
+                ofiles[i] = sf_wchar_open(finalFilePath.wstring().c_str(), SFM_WRITE, &oinfos[i]);
+#else
+                ofiles[i] = sf_open(finalFilePath.string().c_str(), SFM_WRITE, &oinfos[i]);
+#endif
                 if (ofiles[i] == NULL)
                     Debug::print("Error: {}", sf_strerror(NULL));
             }
@@ -169,7 +184,13 @@ size_t SoundExporter::exportSong(const std::filesystem::path& fileName, uint16_t
             oinfo.samplerate = STREAM_SAMPLERATE;
             oinfo.channels = 2; // sterep
             oinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
-            SNDFILE *ofile = sf_open((fileName.string() + ".wav").c_str(), SFM_WRITE, &oinfo);
+            std::filesystem::path finalFilePath = filePath;
+            finalFilePath += fmt::format(".wav");
+#ifdef _WIN32
+            SNDFILE *ofile = sf_wchar_open(finalFilePath.wstring().c_str(), SFM_WRITE, &oinfo);
+#else
+            SNDFILE *ofile = sf_open(finalFilePath.string().c_str(), SFM_WRITE, &oinfo);
+#endif
             if (ofile == NULL) {
                 Debug::print("Error: {}", sf_strerror(NULL));
                 return 0;

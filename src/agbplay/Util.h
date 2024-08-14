@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdexcept>
+#include <string>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -14,4 +15,20 @@ inline void CStrAppend(char *dest, size_t *index, const char *src)
     const char *copyChar = src;
     while ((ch = *copyChar++) != '\0')
         dest[(*index)++] = ch;
+}
+
+template<typename T>
+void ReplaceIllegalPathCharacters(std::basic_string<T> &str, T filler)
+{
+    static const char illegalChars[] = "<>:\"/\\|?*";
+    for (auto &c : str) {
+        if (c <= 31) {
+            c = filler;
+        } else {
+            for (const char *illegalChar = &illegalChars[0]; *illegalChar; illegalChar++) {
+                if (c == static_cast<T>(*illegalChar))
+                    c = filler;
+            }
+        }
+    }
 }

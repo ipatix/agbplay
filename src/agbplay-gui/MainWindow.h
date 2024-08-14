@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <memory>
 
 #include <QMainWindow>
@@ -20,6 +21,9 @@
 class PlaybackEngine;
 class ProfileManager;
 class Profile;
+namespace std {
+    class thread;
+}
 struct MP2KVisualizerState;
 
 class MainWindow : public QMainWindow
@@ -45,8 +49,12 @@ private:
     void SpeedDouble();
 
     void LoadGame();
+    void ExportAudio(bool benchmarkOnly, bool separateTracks);
+    void ExportStillInProgress();
 
     void StatusUpdate();
+
+    void closeEvent(QCloseEvent *event) override;
 
     /* menu bar */
     QPushButton pauseButton{this};
@@ -103,4 +111,8 @@ private:
 
     bool playing = false;
     bool playlistFocus = false;
+
+    /* File Export */
+    std::unique_ptr<std::thread> exportThread;
+    std::atomic<bool> exportBusy = false;
 };

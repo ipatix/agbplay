@@ -8,14 +8,17 @@
 #include <QTextEdit>
 #include <QToolBar>
 #include <QFileDialog>
+#include <QCloseEvent>
 
 #include <fmt/core.h>
+#include <thread>
 
 #include "SelectProfileDialog.h"
 
 #include "ProfileManager.h"
 #include "Rom.h"
 #include "PlaybackEngine.h"
+#include "SoundExporter.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -53,9 +56,12 @@ void MainWindow::SetupMenuBar()
 
     QAction *exportAudio = fileMenu->addAction("Export Audio");
     exportAudio->setIcon(QIcon(":/icons/export-audio.ico"));
+    exportAudio->setEnabled(false);
+    connect(exportAudio, &QAction::triggered, [this](bool){ ExportAudio(false, false); });
 
     QAction *exportMidi = fileMenu->addAction("Export MIDI");
     exportMidi->setIcon(QIcon(":/icons/export-midi.ico"));
+    exportMidi->setEnabled(false);
 
     fileMenu->addSeparator();
 
@@ -411,6 +417,97 @@ void MainWindow::LoadGame()
 
     playbackEngine = std::make_unique<PlaybackEngine>(*profile);
     visualizerState = std::make_unique<MP2KVisualizerState>();
+
+    LoadGameEnableActions();
+}
+
+void MainWindow::LoadGameEnableActions()
+{
+    exportAudioAction->setEnabled(true);
+}
+
+void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks)
+{
+    /* Check if export is currently going on and join thread afterwards. */
+    if (exportBusy) {
+        ExportStillInProgress();
+        return;
+    }
+
+    if (!profile)
+        return;
+
+    if (exportThread) {
+        exportThread->join();
+        exportThread.reset();
+    }
+
+    /* Select directory to export to. */
+    QFileDialog fileDialog{this};
+    fileDialog.setFileMode(QFileDialog::Directory);
+    fileDialog.setDirectory(QString::fromStdWString(SoundExporter::DefaultDirectory().wstring()));
+
+    if (!fileDialog.exec())
+        return;
+
+    assert(fileDialog.selectedFiles().size() == 1);
+
+    const std::filesystem::path directory = fileDialog.selectedFiles().at(0).toStdWString();
+
+    /* Make a Profile copy for use in export thread.
+     * That way we do not overwrite it while exporting. */
+    Profile profileToExport = *profile;
+
+    /* Modify export profile to only contain selected songs. */
+    profileToExport.playlist.clear();
+
+    for (int i = 0; i < songlistWidget.listWidget.count(); i++) {
+        QListWidgetItem *item = songlistWidget.listWidget.item(i);
+        if (!item)
+            continue;
+
+        const std::string name = item->text().toStdString();
+        const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
+        if (item->checkState() == Qt::Checked)
+            profileToExport.playlist.emplace_back(name, id);
+    }
+
+    for (int i = 0; i < playlistWidget.listWidget.count(); i++) {
+        QListWidgetItem *item = playlistWidget.listWidget.item(i);
+        if (!item)
+            continue;
+
+        const std::string name = item->text().toStdString();
+        const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
+        if (item->checkState() == Qt::Checked)
+            profileToExport.playlist.emplace_back(name, id);
+    }
+
+    exportBusy = true;
+
+    // TODO implement benchmark flag
+    // TODO implement progress bar
+    exportThread = std::make_unique<std::thread>([this](std::filesystem::path tDirectory, Profile tProfile, bool tBenchmarkOnly, bool tSeparateTracks) {
+            SoundExporter se(tDirectory, tProfile, tBenchmarkOnly, tSeparateTracks);
+            se.Export();
+            exportBusy = false;
+        },
+        directory,
+        profileToExport,
+        benchmarkOnly,
+        separateTracks
+    );
+#ifdef __linux__
+    pthread_setname_np(exportThread->native_handle(), "export thread");
+#endif
+}
+
+void MainWindow::ExportStillInProgress()
+{
+    const QString title = "Export in progress";
+    const QString msg = "There is already an export in progress. Please wait for the current export to complete.";
+    QMessageBox mbox(QMessageBox::Icon::Critical, title, msg, QMessageBox::Ok, this);
+    mbox.exec();
 }
 
 void MainWindow::StatusUpdate()
@@ -421,4 +518,20 @@ void MainWindow::StatusUpdate()
     playbackEngine->GetVisualizerState(*visualizerState);
     vuMeter.SetLevel(visualizerState->masterVolLeft, visualizerState->masterVolRight, 1.0f, 1.0f);
     statusWidget.setVisualizerState(*visualizerState);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (exportBusy) {
+        ExportStillInProgress();
+        event->ignore();
+        return;
+    }
+
+    if (exportThread) {
+        exportThread->join();
+        exportThread.reset();
+    }
+
+    event->accept();
 }

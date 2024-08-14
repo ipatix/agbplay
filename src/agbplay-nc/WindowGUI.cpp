@@ -706,7 +706,7 @@ void WindowGUI::exportLaunch(bool benchmarkOnly, bool separate)
     exportBusy.store(true);
 
     exportThread = std::make_unique<std::thread>([this](Profile profile, bool tBenchmarkOnly, bool tSeparate) {
-            SoundExporter se(profile, tBenchmarkOnly, tSeparate);
+            SoundExporter se(SoundExporter::DefaultDirectory(), profile, tBenchmarkOnly, tSeparate);
             se.Export();
             exportBusy.store(false);
         },

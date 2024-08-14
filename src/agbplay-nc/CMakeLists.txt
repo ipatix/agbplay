@@ -18,10 +18,10 @@ add_executable(agbplay-nc ${AGBPLAY_NC_SOURCES})
 target_compile_options(agbplay-nc PRIVATE -Wall -Wextra -Wconversion)
 #target_compile_options(agbplay-nc PRIVATE -Wall -Wextra -Wconversion -fsanitize=address)
 #target_link_options(agbplay-nc PRIVATE -fsanitize=address)
-target_include_directories(agbplay-nc PRIVATE "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/../agbplay-common")
 target_link_libraries(agbplay-nc
     PRIVATE
     agbplay
+    agbplay-util
     fmt::fmt
     PkgConfig::portaudio
     PkgConfig::ncurses

@@ -23,10 +23,10 @@ add_executable(agbplay-gui ${AGBPLAY_GUI_SOURCES} ${AGBPLAY_GUI_HEADERS} ${AGBPL
 target_compile_options(agbplay-gui PRIVATE -Wall -Wextra -Wconversion)
 #target_compile_options(agbplay-gui PRIVATE -Wall -Wextra -Wconversion -fsanitize=address)
 #target_link_options(agbplay-gui PRIVATE -fsanitize=address)
-target_include_directories(agbplay-gui PRIVATE "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/../agbplay-common")
 target_link_libraries(agbplay-gui
     PRIVATE
     agbplay
+    agbplay-util
     Qt6::Core
     Qt6::Widgets
     PkgConfig::portaudio

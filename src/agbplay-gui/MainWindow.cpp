@@ -12,6 +12,8 @@
 
 #include <fmt/core.h>
 #include <thread>
+#include <format>
+#include <fstream>
 
 #include "SelectProfileDialog.h"
 
@@ -19,6 +21,7 @@
 #include "Rom.h"
 #include "PlaybackEngine.h"
 #include "SoundExporter.h"
+#include "Debug.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -34,10 +37,13 @@ MainWindow::MainWindow(QWidget *parent)
     statusUpdateTimer.setTimerType(Qt::PreciseTimer);
     statusUpdateTimer.setInterval(16);
     statusUpdateTimer.start();
+
+    Debug::set_callback(&MainWindow::LogCallback, static_cast<void *>(this));
 }
 
 MainWindow::~MainWindow()
 {
+    Debug::set_callback(nullptr, nullptr);
 }
 
 void MainWindow::SetupMenuBar()
@@ -54,10 +60,10 @@ void MainWindow::SetupMenuBar()
 
     fileMenu->addSeparator();
 
-    QAction *exportAudio = fileMenu->addAction("Export Audio");
-    exportAudio->setIcon(QIcon(":/icons/export-audio.ico"));
-    exportAudio->setEnabled(false);
-    connect(exportAudio, &QAction::triggered, [this](bool){ ExportAudio(false, false); });
+    exportAudioAction = fileMenu->addAction("Export Audio");
+    exportAudioAction->setIcon(QIcon(":/icons/export-audio.ico"));
+    exportAudioAction->setEnabled(false);
+    connect(exportAudioAction, &QAction::triggered, [this](bool){ ExportAudio(false, false); });
 
     QAction *exportMidi = fileMenu->addAction("Export MIDI");
     exportMidi->setIcon(QIcon(":/icons/export-midi.ico"));
@@ -105,6 +111,7 @@ void MainWindow::SetupMenuBar()
     QMenu *helpMenu = menuBar()->addMenu("Help");
     QAction *helpSaveLog = helpMenu->addAction("Save Log");
     helpSaveLog->setIcon(QIcon(":/icons/save-log.ico"));
+    connect(helpSaveLog, &QAction::triggered, [this](bool){ SaveLog(); });
     helpMenu->addSeparator();
     QAction *helpAboutAction = helpMenu->addAction("About");
     helpAboutAction->setIcon(QIcon(":/icons/about.ico"));
@@ -230,8 +237,9 @@ void MainWindow::SetupWidgets()
     containerRightSplitter.setStretchFactor(1, 1);
     containerRightLayout.setContentsMargins(0, 0, 0, 0);
     logWidget.setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
-    logWidget.setFont(QFont("Monospace"));
-    logWidget.setText("hello");
+    logWidget.setFont(QFont("Monospace")); // TODO does this work on windows?
+    logWidget.setAcceptRichText(false);
+    LogAppend("agbplay ready!");
 
     centralWidget()->show();
 }
@@ -510,6 +518,32 @@ void MainWindow::ExportStillInProgress()
     mbox.exec();
 }
 
+void MainWindow::SaveLog()
+{
+    QFileDialog fileDialog(this);
+    fileDialog.setFileMode(QFileDialog::AnyFile);
+    fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+    fileDialog.setNameFilter("Log File (*.log *.txt)");
+    fileDialog.setDefaultSuffix("log");
+
+    if (!fileDialog.exec())
+        return;
+
+    assert(fileDialog.selectedFiles().size() == 1);
+
+    const std::filesystem::path selectedFile = fileDialog.selectedFiles().at(0).toStdWString();
+    std::ofstream fileStream(selectedFile);
+    if (!fileStream.is_open()) {
+        const QString title = "Save log file failed";
+        const QString text = QString::fromStdString(fmt::format("Failed to save file: {}", strerror(errno)));
+        QMessageBox mbox(QMessageBox::Icon::Critical, title, text, QMessageBox::Ok, this);
+        mbox.exec();
+        return;
+    }
+
+    fileStream << logWidget.toPlainText().toStdString();
+}
+
 void MainWindow::StatusUpdate()
 {
     if (!playbackEngine || !visualizerState)
@@ -518,6 +552,20 @@ void MainWindow::StatusUpdate()
     playbackEngine->GetVisualizerState(*visualizerState);
     vuMeter.SetLevel(visualizerState->masterVolLeft, visualizerState->masterVolRight, 1.0f, 1.0f);
     statusWidget.setVisualizerState(*visualizerState);
+}
+
+void MainWindow::LogCallback(const std::string &msg, void *void_this)
+{
+    MainWindow *_this = static_cast<MainWindow *>(void_this);
+    // Qt 6.7 only
+    //QMetaObject::invokeMethod(_this, &MainWindow::LogAppend, Qt::QueuedConnection, msg);
+    QMetaObject::invokeMethod(_this, "LogAppend", Qt::QueuedConnection, msg);
+}
+
+void MainWindow::LogAppend(std::string msg)
+{
+    std::string final_msg = std::format("[{:%T}] {}", std::chrono::system_clock::now(), msg);
+    logWidget.append(QString::fromStdString(msg));
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

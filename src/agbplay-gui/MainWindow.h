@@ -49,14 +49,21 @@ private:
     void SpeedDouble();
 
     void LoadGame();
+    void LoadGameEnableActions();
     void ExportAudio(bool benchmarkOnly, bool separateTracks);
     void ExportStillInProgress();
+    void SaveLog();
 
     void StatusUpdate();
+    static void LogCallback(const std::string &msg, void *void_this);
+    Q_INVOKABLE void LogAppend(std::string msg);
 
     void closeEvent(QCloseEvent *event) override;
 
     /* menu bar */
+    QAction *exportAudioAction = nullptr;
+
+    /* tool bar */
     QPushButton pauseButton{this};
     QPushButton playButton{this};
     QPushButton stopButton{this};

@@ -1,7 +1,11 @@
 #include "AboutWindow.h"
 
-static const QString figletText = []() {
-    QString t;
+#include <fmt/core.h>
+
+#include "Version.h"
+
+static const std::string figletText = []() {
+    std::string t;
     t += "<tt>";
     t += "             _         _             <br>";
     t += "   __ _ __ _| |__ _ __| |__ _ _  _   <br>";
@@ -9,7 +13,7 @@ static const QString figletText = []() {
     t += "  \\__,_\\__, |_.__/ .__/_\\__,_|\\_, |  <br>";
     t += "       |___/     |_|          |__/   <br>";
     t += "</tt>";
-    QString nt;
+    std::string nt;
     for (auto c : t) {
         if (c == ' ')
             nt += "&nbsp;";
@@ -19,15 +23,18 @@ static const QString figletText = []() {
     return nt;
 }();
 
-static const QString aboutText =
-    "agbplay v1.2.3<br>"
-    "<br>"
-    "The high quality GBA music player<br>"
-    "<br>"
-    "Copyright (c) 2015-2024 ipatix<br>"
-    "and contributors<br>"
-    "<br>"
-    "News, Bug Reports, Updates on <a href=\"https://github.com/ipatix/agbplay\">Github</a>";
+static const std::string aboutText = [](){
+    std::string t;
+    t += fmt::format("agbplay {}<br>", GIT_VERSION_STRING);
+    t += "<br>";
+    t += "The high quality GBA music player<br>";
+    t += "<br>";
+    t += "Copyright (c) 2015-2024 ipatix<br>";
+    t += "and contributors<br>";
+    t += "<br>";
+    t += "News, Bug Reports, Updates on <a href=\"https://github.com/ipatix/agbplay\">Github</a>";
+    return t;
+}();
 
 
 AboutWindow::AboutWindow(QWidget *parent)
@@ -48,13 +55,13 @@ AboutWindow::AboutWindow(QWidget *parent)
     pal.setColor(QPalette::Window, QColor(20, 20, 20));
     pal.setColor(QPalette::WindowText, QColor(220, 220, 0));
     figletLabel.setPalette(pal);
-    figletLabel.setText(figletText);
+    figletLabel.setText(QString::fromStdString(figletText));
     figletLabel.setAlignment(Qt::AlignCenter);
     figletLabel.setAutoFillBackground(true);
     figletLabel.setFrameStyle(QFrame::Sunken | QFrame::Panel);
     figletLabel.setLineWidth(3);
 
-    aboutInfoLabel.setText(aboutText);
+    aboutInfoLabel.setText(QString::fromStdString(aboutText));
     aboutInfoLabel.setAlignment(Qt::AlignCenter);
 
     connect(&okButton, &QAbstractButton::clicked, [this](bool){ accept(); });

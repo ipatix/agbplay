@@ -9,7 +9,16 @@ find_package(Boost REQUIRED)
 find_package(fmt REQUIRED)
 pkg_check_modules(sndfile REQUIRED IMPORTED_TARGET sndfile)
 
-# TODO configure header
+# configure heaer
+find_package(Git REQUIRED)
+execute_process(
+    COMMAND ${GIT_EXECUTABLE} describe --always --dirty
+    COMMAND_ERROR_IS_FATAL ANY
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE GIT_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+configure_file(Version.h.in Version.h @ONLY)
 
 file(GLOB_RECURSE AGBPLAY_SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.cpp")
 #file(GLOB_RECURSE AGBPLAY_HEADERS "${CMAKE_CURRENT_LIST_DIR}/*.h" "${CMAKE_CURRENT_LIST_DIR}/*.hpp")
@@ -19,7 +28,7 @@ add_library(agbplay SHARED ${AGBPLAY_SOURCES})
 target_compile_options(agbplay PRIVATE -Wall -Wextra -Wconversion)
 #target_compile_options(agbplay PRIVATE -Wall -Wextra -Wconversion -fsanitize=address)
 #target_link_options(agbplay PRIVATE -fsanitize=address)
-target_include_directories(agbplay PUBLIC "${CMAKE_CURRENT_LIST_DIR}")
+target_include_directories(agbplay PUBLIC "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(agbplay
     PUBLIC
     fmt::fmt

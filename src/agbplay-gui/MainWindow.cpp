@@ -43,6 +43,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(&songlistWidget.addRemoveButton, &QAbstractButton::clicked, [this](bool) { PlaylistAdd(); });
     connect(&playlistWidget.addRemoveButton, &QAbstractButton::clicked, [this](bool) { PlaylistRemove(); });
+
+    setWindowTitle("agbplay");
 }
 
 MainWindow::~MainWindow()

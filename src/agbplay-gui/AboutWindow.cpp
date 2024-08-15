@@ -41,6 +41,8 @@ AboutWindow::AboutWindow(QWidget *parent)
     : QDialog(parent, Qt::Window)
 {
     setFixedSize(600, 220);
+    setWindowTitle("About agbplay");
+
     layout.addLayout(&topLayout);
     layout.addLayout(&botLayout);
 

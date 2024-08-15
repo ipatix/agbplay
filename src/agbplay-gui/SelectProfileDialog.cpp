@@ -10,6 +10,7 @@
 SelectProfileDialog::SelectProfileDialog(QWidget *parent)
     : QDialog(parent)
 {
+    setWindowTitle("Please select profile");
     tableWidget.setMinimumSize(600, 150);
     mainLayout.addWidget(&tableWidget);
     mainLayout.addLayout(&buttonLayout, 0);

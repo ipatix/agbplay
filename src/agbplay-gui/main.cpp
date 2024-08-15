@@ -11,7 +11,6 @@ int main(int argc, char *argv[]) {
     portaudio::AutoSystem paSystem;
 
     MainWindow mainWindow;
-    mainWindow.setWindowTitle("Hello World Title");
     mainWindow.show();
 
     return app.exec();

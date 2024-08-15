@@ -618,6 +618,7 @@ void SequenceReader::cmdPlayFine(MP2KTrack &trk)
     }
 
     trk.enabled = false;
+    trk.activeNotes.reset();
 }
 
 void SequenceReader::cmdPlayMemacc(MP2KTrack &trk)

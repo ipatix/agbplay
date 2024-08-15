@@ -63,6 +63,7 @@ void MainWindow::SetupMenuBar()
 
     QAction *fileOpenRom = fileMenu->addAction("Open ROM");
     fileOpenRom->setIcon(QIcon(":/icons/open-rom.ico"));
+    fileOpenRom->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_O));
     connect(fileOpenRom, &QAction::triggered, [this](bool){ LoadGame(); });
 
     QAction *fileOpenGSF = fileMenu->addAction("Open GSF");
@@ -83,6 +84,7 @@ void MainWindow::SetupMenuBar()
 
     QAction *fileQuit = fileMenu->addAction("Quit");
     fileQuit->setIcon(QIcon(":/icons/exit.ico"));
+    fileQuit->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_Q));
 
     connect(fileQuit, &QAction::triggered, [this](bool) { close(); });
     fileQuit->setMenuRole(QAction::QuitRole);

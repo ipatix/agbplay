@@ -16,6 +16,7 @@
 #include <fstream>
 
 #include "SelectProfileDialog.h"
+#include "AboutWindow.h"
 
 #include "ProfileManager.h"
 #include "Rom.h"
@@ -118,7 +119,10 @@ void MainWindow::SetupMenuBar()
     helpMenu->addSeparator();
     QAction *helpAboutAction = helpMenu->addAction("About");
     helpAboutAction->setIcon(QIcon(":/icons/about.ico"));
-    connect(helpAboutAction, &QAction::triggered, [this](bool) { MBoxInfo("TEST", "TEST2"); });
+    connect(helpAboutAction, &QAction::triggered, [this](bool) {
+            AboutWindow w(this);
+            w.exec();
+    });
     helpAboutAction->setMenuRole(QAction::AboutRole);
 }
 

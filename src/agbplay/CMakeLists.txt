@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 include(FindPkgConfig)
 find_package(PkgConfig REQUIRED)
 find_package(nlohmann_json REQUIRED)
-find_package(Boost REQUIRED)
+find_package(Boost CONFIG REQUIRED)
 find_package(fmt REQUIRED)
 pkg_check_modules(sndfile REQUIRED IMPORTED_TARGET sndfile)
 

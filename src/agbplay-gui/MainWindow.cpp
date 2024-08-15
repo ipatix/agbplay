@@ -552,6 +552,11 @@ void MainWindow::StatusUpdate()
     playbackEngine->GetVisualizerState(*visualizerState);
     vuMeter.SetLevel(visualizerState->masterVolLeft, visualizerState->masterVolRight, 1.0f, 1.0f);
     statusWidget.setVisualizerState(*visualizerState);
+
+    if (playing && playbackEngine->HasEnded()) {
+        /* AdvanceSong automatically stops if this was the last song in the list. */
+        AdvanceSong(1);
+    }
 }
 
 void MainWindow::LogCallback(const std::string &msg, void *void_this)

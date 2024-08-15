@@ -63,6 +63,7 @@ AboutWindow::AboutWindow(QWidget *parent)
 
     aboutInfoLabel.setText(QString::fromStdString(aboutText));
     aboutInfoLabel.setAlignment(Qt::AlignCenter);
+    aboutInfoLabel.setOpenExternalLinks(true);
 
     connect(&okButton, &QAbstractButton::clicked, [this](bool){ accept(); });
 }

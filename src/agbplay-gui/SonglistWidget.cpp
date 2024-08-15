@@ -9,12 +9,25 @@ SonglistWidget::SonglistWidget(const QString &titleString, bool editable, QWidge
     if (editable)
         listWidget.setDragDropMode(QAbstractItemView::InternalMove);
     layout.setContentsMargins(5, 5, 0, 0);
-    layout.addWidget(&title);
-    layout.addWidget(&listWidget);
-    title.setText(titleString);
-    listWidget.setUniformItemSizes(true);
 
+    titleBarLayout.addWidget(&title);
+    titleBarLayout.addWidget(&selectAllCheckBox);
+
+    layout.addLayout(&titleBarLayout);
+    layout.addWidget(&listWidget);
+
+    title.setText(titleString);
+
+    selectAllCheckBox.setTristate(true);
+    selectAllCheckBox.setToolTip("Select/deselect all songs for export");
+    selectAllCheckBox.setFixedSize(16, 16);
+    connect(&selectAllCheckBox, &QAbstractButton::clicked, [this](bool) { UpdateCheckedFromCheckBox(); });
+    // Qt 6.7 only
+    //connect(&selectAllCheckBox, &QCheckBox::checkStateChanged, [this](Qt::CheckState) { UpdateCheckedFromCheckBox(); });
+
+    listWidget.setUniformItemSizes(true);
     listWidget.installEventFilter(this);
+    connect(&listWidget, &QListWidget::itemChanged, [this](QListWidgetItem *) { UpdateCheckedFromItems(); });
 }
 
 SonglistWidget::~SonglistWidget()
@@ -52,6 +65,12 @@ void SonglistWidget::AddSong(const std::string &name, uint16_t id)
         throw;
     }
     listWidget.addItem(item);
+
+    if (listWidget.count() == 1) {
+        selectAllCheckBox.setCheckState(Qt::Checked);
+    } else if (selectAllCheckBox.checkState() != Qt::Checked) {
+        selectAllCheckBox.setCheckState(Qt::PartiallyChecked);
+    }
 }
 
 void SonglistWidget::SetPlayState(bool playing)
@@ -80,6 +99,50 @@ void SonglistWidget::SelectSong(int index)
 int SonglistWidget::GetSelectedSong() const
 {
     return selectedSong;
+}
+
+void SonglistWidget::UpdateCheckedFromItems()
+{
+    bool noneChecked = true;
+    bool allChecked = true;
+
+    for (int i = 0; i < listWidget.count(); i++) {
+        QListWidgetItem *item = listWidget.item(i);
+        if (!item)
+            continue;
+
+        if (item->checkState() == Qt::Checked)
+            noneChecked = false;
+        else
+            allChecked = false;
+    }
+
+    if (noneChecked)
+        selectAllCheckBox.setCheckState(Qt::Unchecked);
+    else if (allChecked)
+        selectAllCheckBox.setCheckState(Qt::Checked);
+    else
+        selectAllCheckBox.setCheckState(Qt::PartiallyChecked);
+}
+
+void SonglistWidget::UpdateCheckedFromCheckBox()
+{
+    Qt::CheckState checkState = selectAllCheckBox.checkState();
+    if (checkState == Qt::PartiallyChecked) {
+        /* Not sure how safe this is. This assumes that clicking changes
+         * from unchecked -> partiallychecked -> checked -> unchecked.
+         * If this were not the case, the checkbox may be stuck on. */
+        checkState = Qt::Checked;
+        selectAllCheckBox.setCheckState(checkState);
+    }
+
+    for (int i = 0; i < listWidget.count(); i++) {
+        QListWidgetItem *item = listWidget.item(i);
+        if (!item)
+            continue;
+
+        item->setCheckState(checkState);
+    }
 }
 
 bool SonglistWidget::eventFilter(QObject *object, QEvent *event)

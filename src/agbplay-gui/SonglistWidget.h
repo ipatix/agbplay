@@ -4,7 +4,9 @@
 #include <QListWidget>
 #include <QLabel>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QIcon>
+#include <QCheckBox>
 
 #include <cstdint>
 #include <vector>
@@ -26,12 +28,16 @@ public:
     int GetSelectedSong() const;
 
 private:
+    void UpdateCheckedFromItems();
+    void UpdateCheckedFromCheckBox();
     bool eventFilter(QObject *object, QEvent *event);
 
 public:
     QVBoxLayout layout{this};
+    QHBoxLayout titleBarLayout;
     QListWidget listWidget{this};
     QLabel title{this};
+    QCheckBox selectAllCheckBox{this};
 
 private:
     int selectedSong = 0;

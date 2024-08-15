@@ -1,3 +1,4 @@
 #pragma once
 
 #define GIT_VERSION_STRING "@GIT_VERSION@"
+#define COPYRIGHT_YEAR "@BUILD_YEAR@"

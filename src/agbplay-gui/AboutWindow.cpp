@@ -29,7 +29,7 @@ static const std::string aboutText = [](){
     t += "<br>";
     t += "The high quality GBA music player<br>";
     t += "<br>";
-    t += "Copyright (c) 2015-2024 ipatix<br>";
+    t += fmt::format("Copyright (c) 2015-{} ipatix<br>", COPYRIGHT_YEAR);
     t += "and contributors<br>";
     t += "<br>";
     t += "News, Bug Reports, Updates on <a href=\"https://github.com/ipatix/agbplay\">Github</a>";

@@ -18,6 +18,7 @@ execute_process(
     OUTPUT_VARIABLE GIT_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+string(TIMESTAMP BUILD_YEAR "%Y")
 configure_file(Version.h.in Version.h @ONLY)
 
 file(GLOB_RECURSE AGBPLAY_SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.cpp")

@@ -59,7 +59,7 @@ MainWindow::~MainWindow()
 void MainWindow::SetupMenuBar()
 {
     /* File */
-    QMenu *fileMenu = menuBar()->addMenu("File");
+    QMenu *fileMenu = menuBar()->addMenu("&File");
 
     QAction *fileOpenRom = fileMenu->addAction("Open ROM");
     fileOpenRom->setIcon(QIcon(":/icons/open-rom.ico"));
@@ -90,12 +90,12 @@ void MainWindow::SetupMenuBar()
     fileQuit->setMenuRole(QAction::QuitRole);
 
     /* Edit */
-    QMenu *editMenu = menuBar()->addMenu("Edit");
+    QMenu *editMenu = menuBar()->addMenu("&Edit");
     QAction *editPreferences = editMenu->addAction("Global Preferences");
     editPreferences->setIcon(QIcon(":/icons/preferences.ico"));
 
     /* Profile */
-    QMenu *profileMenu = menuBar()->addMenu("Profile");
+    QMenu *profileMenu = menuBar()->addMenu("&Profile");
     QAction *profileSelect = profileMenu->addAction("Load Profile");
     profileSelect->setIcon(QIcon(":/icons/profile-select.ico"));
     profileSelect->setEnabled(false);
@@ -123,7 +123,7 @@ void MainWindow::SetupMenuBar()
     });
 
     /* Help */
-    QMenu *helpMenu = menuBar()->addMenu("Help");
+    QMenu *helpMenu = menuBar()->addMenu("&Help");
     QAction *helpSaveLog = helpMenu->addAction("Save Log");
     helpSaveLog->setIcon(QIcon(":/icons/save-log.ico"));
     connect(helpSaveLog, &QAction::triggered, [this](bool){ SaveLog(); });

@@ -48,6 +48,9 @@ private:
     void SpeedHalve();
     void SpeedDouble();
 
+    void PlaylistAdd();
+    void PlaylistRemove();
+
     void LoadGame();
     void LoadGameEnableActions();
     void ExportAudio(bool benchmarkOnly, bool separateTracks);

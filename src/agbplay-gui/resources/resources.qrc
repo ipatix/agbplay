@@ -11,7 +11,9 @@
         <file>icons/playback-play.ico</file>
         <file>icons/playback-previous.ico</file>
         <file>icons/playback-stop.ico</file>
+        <file>icons/playlist-add.ico</file>
         <file>icons/playlist-play.ico</file>
+        <file>icons/playlist-remove.ico</file>
         <file>icons/playlist-stop.ico</file>
         <file>icons/preferences.ico</file>
         <file>icons/profile-create.ico</file>

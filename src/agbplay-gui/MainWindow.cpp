@@ -39,6 +39,9 @@ MainWindow::MainWindow(QWidget *parent)
     statusUpdateTimer.start();
 
     Debug::set_callback(&MainWindow::LogCallback, static_cast<void *>(this));
+
+    connect(&songlistWidget.addRemoveButton, &QAbstractButton::clicked, [this](bool) { PlaylistAdd(); });
+    connect(&playlistWidget.addRemoveButton, &QAbstractButton::clicked, [this](bool) { PlaylistRemove(); });
 }
 
 MainWindow::~MainWindow()
@@ -365,6 +368,24 @@ void MainWindow::SpeedDouble()
         return;
 
     playbackEngine->SpeedDouble();
+}
+
+void MainWindow::PlaylistAdd()
+{
+    QList<QListWidgetItem *> items = songlistWidget.listWidget.selectedItems();
+    for (int i = 0; i < items.count(); i++) {
+        QListWidgetItem *item = items.at(i);
+        if (!item)
+            continue;
+        const std::string name = item->text().toStdString();
+        const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
+        playlistWidget.AddSong(name, id);
+    }
+}
+
+void MainWindow::PlaylistRemove()
+{
+    playlistWidget.RemoveSong();
 }
 
 void MainWindow::LoadGame()

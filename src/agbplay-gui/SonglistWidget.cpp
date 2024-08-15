@@ -11,12 +11,23 @@ SonglistWidget::SonglistWidget(const QString &titleString, bool editable, QWidge
     layout.setContentsMargins(5, 5, 0, 0);
 
     titleBarLayout.addWidget(&title);
+    titleBarLayout.addWidget(&addRemoveButton);
     titleBarLayout.addWidget(&selectAllCheckBox);
 
     layout.addLayout(&titleBarLayout);
     layout.addWidget(&listWidget);
 
     title.setText(titleString);
+
+    addRemoveButton.setFixedSize(24, 24);
+    addRemoveButton.setIconSize(QSize(16, 16));
+    if (editable) {
+        addRemoveButton.setIcon(QIcon(":/icons/playlist-remove.ico"));
+        addRemoveButton.setToolTip("Remove selected song from playlist");
+    } else {
+        addRemoveButton.setIcon(QIcon(":/icons/playlist-add.ico"));
+        addRemoveButton.setToolTip("Add selected song to playlist");
+    }
 
     selectAllCheckBox.setTristate(true);
     selectAllCheckBox.setToolTip("Select/deselect all songs for export");
@@ -70,6 +81,17 @@ void SonglistWidget::AddSong(const std::string &name, uint16_t id)
         selectAllCheckBox.setCheckState(Qt::Checked);
     } else if (selectAllCheckBox.checkState() != Qt::Checked) {
         selectAllCheckBox.setCheckState(Qt::PartiallyChecked);
+    }
+}
+
+void SonglistWidget::RemoveSong()
+{
+    QList<QListWidgetItem *> items = listWidget.selectedItems();
+    for (int i = 0; i < items.count(); i++) {
+        QListWidgetItem *item = items.at(i);
+        if (!item)
+            continue;
+        delete item;
     }
 }
 

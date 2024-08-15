@@ -1,6 +1,7 @@
 #include "SonglistWidget.h"
 
 #include <QEvent>
+#include <QInputDialog>
 
 SonglistWidget::SonglistWidget(const QString &titleString, bool editable, QWidget *parent)
     : QWidget(parent), editable(editable), playIcon(":/icons/playlist-play.ico"), stopIcon(":/icons/playlist-stop.ico")
@@ -38,6 +39,25 @@ SonglistWidget::SonglistWidget(const QString &titleString, bool editable, QWidge
 
     listWidget.setUniformItemSizes(true);
     listWidget.installEventFilter(this);
+    listWidget.setContextMenuPolicy(Qt::ActionsContextMenu);
+    if (editable) {
+        QAction *action = listWidget.addAction("Remove from playlist");
+        action->setIcon(QIcon(":/icons/playlist-remove.ico"));
+        action->setShortcut(QKeySequence(Qt::Key_Delete));
+        action->setShortcutContext(Qt::WidgetShortcut);
+        connect(action, &QAction::triggered, [this](bool) { emit ContextMenuActionRemove(); });
+
+        action = listWidget.addAction("Rename");
+        action->setShortcut(QKeySequence(Qt::Key_F2));
+        action->setShortcutContext(Qt::WidgetShortcut);
+        connect(action, &QAction::triggered, [this](bool) { Rename(); });
+    } else {
+        QAction *action = listWidget.addAction("Add to playlist");
+        action->setIcon(QIcon(":/icons/playlist-add.ico"));
+        action->setShortcut(QKeySequence(Qt::Key_Insert));
+        action->setShortcutContext(Qt::WidgetShortcut);
+        connect(action, &QAction::triggered, [this](bool) { emit ContextMenuActionAdd(); });
+    }
     connect(&listWidget, &QListWidget::itemChanged, [this](QListWidgetItem *) { UpdateCheckedFromItems(); });
 }
 
@@ -86,6 +106,7 @@ void SonglistWidget::AddSong(const std::string &name, uint16_t id)
 
 void SonglistWidget::RemoveSong()
 {
+    // TODO currently the selected index is not updated if it follows after the removed element
     QList<QListWidgetItem *> items = listWidget.selectedItems();
     for (int i = 0; i < items.count(); i++) {
         QListWidgetItem *item = items.at(i);
@@ -165,6 +186,22 @@ void SonglistWidget::UpdateCheckedFromCheckBox()
 
         item->setCheckState(checkState);
     }
+}
+
+void SonglistWidget::Rename()
+{
+    QList<QListWidgetItem *> items = listWidget.selectedItems();
+    if (items.count() == 0)
+        return;
+
+    QListWidgetItem *item = items.at(0);
+
+    bool ok = false;
+    QString text = QInputDialog::getText(this, "Rename song", "Song name:", QLineEdit::Normal, item->text(), &ok);
+    if (!ok || text.isEmpty())
+        return;
+
+    item->setText(text);
 }
 
 bool SonglistWidget::eventFilter(QObject *object, QEvent *event)

@@ -31,7 +31,13 @@ public:
 private:
     void UpdateCheckedFromItems();
     void UpdateCheckedFromCheckBox();
+    void Rename();
+
     bool eventFilter(QObject *object, QEvent *event);
+
+signals:
+    void ContextMenuActionRemove();
+    void ContextMenuActionAdd();
 
 public:
     QVBoxLayout layout{this};

@@ -16,8 +16,10 @@ ChordLabelWidget::~ChordLabelWidget()
 }
 
 StatusWidget::StatusWidget(QWidget *parent)
-    : QWidget(parent)
+    : QFrame(parent)
 {
+    setFrameStyle(QFrame::Sunken | QFrame::Panel);
+    setLineWidth(2);
     layout.setContentsMargins(0, 0, 0, 0);
     layout.setSpacing(0);
 

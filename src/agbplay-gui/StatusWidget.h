@@ -26,7 +26,7 @@ public:
     ~ChordLabelWidget() override;
 };
 
-class StatusWidget : public QWidget
+class StatusWidget : public QFrame
 {
     Q_OBJECT
 

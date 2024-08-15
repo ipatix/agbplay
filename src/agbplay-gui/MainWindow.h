@@ -54,6 +54,9 @@ private:
     void ExportStillInProgress();
     void SaveLog();
 
+    void MBoxInfo(const std::string &title, const std::string &msg);
+    void MBoxError(const std::string &title, const std::string &msg);
+
     void StatusUpdate();
     static void LogCallback(const std::string &msg, void *void_this);
     Q_INVOKABLE void LogAppend(std::string msg);

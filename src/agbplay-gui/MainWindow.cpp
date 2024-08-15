@@ -115,10 +115,7 @@ void MainWindow::SetupMenuBar()
     helpMenu->addSeparator();
     QAction *helpAboutAction = helpMenu->addAction("About");
     helpAboutAction->setIcon(QIcon(":/icons/about.ico"));
-    connect(helpAboutAction, &QAction::triggered, [this](bool) {
-        QMessageBox mbox(QMessageBox::Icon::Information, "TEST", "TEST 2", QMessageBox::Ok, this);
-        mbox.exec();
-    });
+    connect(helpAboutAction, &QAction::triggered, [this](bool) { MBoxInfo("TEST", "TEST2"); });
     helpAboutAction->setMenuRole(QAction::AboutRole);
 }
 
@@ -512,10 +509,10 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks)
 
 void MainWindow::ExportStillInProgress()
 {
-    const QString title = "Export in progress";
-    const QString msg = "There is already an export in progress. Please wait for the current export to complete.";
-    QMessageBox mbox(QMessageBox::Icon::Critical, title, msg, QMessageBox::Ok, this);
-    mbox.exec();
+    MBoxError(
+        "Export in progress",
+        "There is already an export in progress. Please wait for the current export to complete."
+    );
 }
 
 void MainWindow::SaveLog()
@@ -534,14 +531,27 @@ void MainWindow::SaveLog()
     const std::filesystem::path selectedFile = fileDialog.selectedFiles().at(0).toStdWString();
     std::ofstream fileStream(selectedFile);
     if (!fileStream.is_open()) {
-        const QString title = "Save log file failed";
-        const QString text = QString::fromStdString(fmt::format("Failed to save file: {}", strerror(errno)));
-        QMessageBox mbox(QMessageBox::Icon::Critical, title, text, QMessageBox::Ok, this);
-        mbox.exec();
+        MBoxError("Save log file failed", fmt::format("Failed to save file: {}", strerror(errno)));
         return;
     }
 
     fileStream << logWidget.toPlainText().toStdString();
+}
+
+void MainWindow::MBoxInfo(const std::string &title, const std::string &msg)
+{
+    const QString qtitle = QString::fromStdString(title);
+    const QString qmsg = QString::fromStdString(msg);
+    QMessageBox mbox(QMessageBox::Icon::Information, qtitle, qmsg, QMessageBox::Ok, this);
+    mbox.exec();
+}
+
+void MainWindow::MBoxError(const std::string &title, const std::string &msg)
+{
+    const QString qtitle = QString::fromStdString(title);
+    const QString qmsg = QString::fromStdString(msg);
+    QMessageBox mbox(QMessageBox::Icon::Critical, qtitle, qmsg, QMessageBox::Ok, this);
+    mbox.exec();
 }
 
 void MainWindow::StatusUpdate()

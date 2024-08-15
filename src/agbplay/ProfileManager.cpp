@@ -24,6 +24,11 @@ void ProfileManager::LoadProfiles()
     LoadProfileDir(configDir / "agbplay" / "profiles-user");
 }
 
+std::filesystem::path ProfileManager::ProfileUserPath()
+{
+    return OS::GetLocalConfigDirectory() / "agbplay" / "profiles-user";
+}
+
 void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std::shared_ptr<Profile>> &profiles, const std::vector<MP2KScanner::Result> scanResults)
 {
     if (scanResults.size() == 0 && profiles.size() == 0) {

@@ -9,6 +9,7 @@
 #include <QToolBar>
 #include <QFileDialog>
 #include <QCloseEvent>
+#include <QDesktopServices>
 
 #include <fmt/core.h>
 #include <thread>
@@ -112,6 +113,9 @@ void MainWindow::SetupMenuBar()
     profileMenu->addSeparator();
     QAction *profileDirectory = profileMenu->addAction("Open User Profile Directory");
     profileDirectory->setIcon(QIcon(":/icons/profile-open-folder.ico"));
+    connect(profileDirectory, &QAction::triggered, [this](bool) {
+            QDesktopServices::openUrl(QString::fromStdWString(ProfileManager::ProfileUserPath().wstring()));
+    });
 
     /* Help */
     QMenu *helpMenu = menuBar()->addMenu("Help");

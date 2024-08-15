@@ -600,8 +600,8 @@ void MainWindow::LogCallback(const std::string &msg, void *void_this)
 
 void MainWindow::LogAppend(std::string msg)
 {
-    std::string final_msg = std::format("[{:%T}] {}", std::chrono::system_clock::now(), msg);
-    logWidget.append(QString::fromStdString(msg));
+    const std::string final_msg = std::format("[{:%T}] {}", std::chrono::system_clock::now(), msg);
+    logWidget.append(QString::fromStdString(final_msg));
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

@@ -106,12 +106,15 @@ void SonglistWidget::AddSong(const std::string &name, uint16_t id)
 
 void SonglistWidget::RemoveSong()
 {
-    // TODO currently the selected index is not updated if it follows after the removed element
     QList<QListWidgetItem *> items = listWidget.selectedItems();
     for (int i = 0; i < items.count(); i++) {
         QListWidgetItem *item = items.at(i);
         if (!item)
             continue;
+        const int itemRow = listWidget.row(item);
+        assert(itemRow >= 0 && itemRow < listWidget.count());
+        if (itemRow < selectedSong)
+            selectedSong--;
         delete item;
     }
 }

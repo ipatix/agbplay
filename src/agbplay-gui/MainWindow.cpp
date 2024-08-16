@@ -87,6 +87,7 @@ void MainWindow::SetupMenuBar()
 
     exportAudioAction = fileMenu->addAction("Export Audio");
     exportAudioAction->setIcon(QIcon(":/icons/export-audio.ico"));
+    exportAudioAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_E));
     exportAudioAction->setEnabled(false);
     connect(exportAudioAction, &QAction::triggered, [this](bool){ ExportAudio(false, false); });
 

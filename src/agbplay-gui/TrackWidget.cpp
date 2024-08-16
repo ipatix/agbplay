@@ -131,8 +131,8 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     layout.setHorizontalSpacing(0);
     layout.setVerticalSpacing(0);
 
-    vuBarKeyboardLayout.addWidget(&vuBarWidget);
     vuBarKeyboardLayout.addWidget(&keyboardWidget);
+    vuBarKeyboardLayout.addWidget(&vuBarWidget);
     vuBarKeyboardLayout.setContentsMargins(0, 0, 0, 0);
     vuBarKeyboardLayout.setSpacing(0);
 

@@ -5,30 +5,42 @@
 #include <vector>
 #include <filesystem>
 #include <memory>
+#include <span>
 
 #include "AgbTypes.h"
 #include "Xcept.h"
 
 class Rom {
+private:
+    Rom() = default;
+
 public:
-    Rom(const std::filesystem::path& filePath);
+    Rom(Rom &&) = default;
     Rom(const Rom&) = delete;
     Rom& operator=(const Rom&) = delete;
+
+    static Rom LoadFromFile(const std::filesystem::path &filePath);
+    static Rom LoadFromBufferCopy(std::span<uint8_t> buffer); // buffer passed may be freed afterwards
+    static Rom LoadFromBufferRef(std::span<uint8_t> buffer); // buffer passed must not be freed during object filetime
+
     static void CreateInstance(const std::filesystem::path& filePath);
     static Rom& Instance() {
-        return *global_instance;
+        return *globalInstance;
     }
 
     const uint8_t& operator[](size_t pos) const {
-        return data[pos];
+        return romData[pos];
     }
 
     int8_t ReadS8(size_t pos) const {
-        return static_cast<int8_t>(data.at(pos));
+        return static_cast<int8_t>(ReadU8(pos));
     }
 
     uint8_t ReadU8(size_t pos) const {
-        return data.at(pos);
+        /* span::at is only available in C++26, we're currently on C++20... */
+        if (pos >= romData.size()) [[unlikely]]
+            throw Xcept("ERROR: Cannot read beyond end of ROM (size={:#x}): {:#x}", romData.size(), pos);
+        return romData[pos];
     }
 
     int16_t ReadS16(size_t pos) const {
@@ -36,9 +48,9 @@ public:
     }
 
     uint16_t ReadU16(size_t pos) const {
-        uint32_t retval = data.at(pos + 1);
+        uint32_t retval = ReadU8(pos + 1);
         retval <<= 8;
-        retval |= data[pos];
+        retval |= romData[pos];
         return static_cast<uint16_t>(retval);
     }
 
@@ -47,13 +59,13 @@ public:
     }
 
     uint32_t ReadU32(size_t pos) const {
-        uint32_t retval = data.at(pos + 3);
+        uint32_t retval = ReadU8(pos + 3);
         retval <<= 8;
-        retval |= data[pos + 2];
+        retval |= romData[pos + 2];
         retval <<= 8;
-        retval |= data[pos + 1];
+        retval |= romData[pos + 1];
         retval <<= 8;
-        retval |= data[pos + 0];
+        retval |= romData[pos + 0];
         return retval;
     }
 
@@ -65,23 +77,23 @@ public:
     }
 
     const void *GetPtr(size_t pos) const {
-        return &data[pos];
+        return &romData[pos];
     }
 
     size_t Size() const {
-        return data.size();
+        return romData.size();
     }
 
     bool ValidPointer(uint32_t ptr) const {
-        if (ptr - AGB_MAP_ROM >= data.size())
+        if (ptr - AGB_MAP_ROM >= romData.size())
             return false;
-        if (ptr - AGB_MAP_ROM + 1 >= data.size())
+        if (ptr - AGB_MAP_ROM + 1 >= romData.size())
             return false;
         return true;
     }
 
     bool ValidRange(size_t pos, size_t len) const {
-        if (pos + len >= data.size())
+        if (pos + len >= romData.size())
             return false;
         return true;
     }
@@ -93,7 +105,8 @@ private:
     void verify();
     void loadFile(const std::filesystem::path& filePath);
 
-    std::vector<uint8_t> data;
+    std::span<uint8_t> romData;
+    std::vector<uint8_t> romContainer;
 
-    static std::unique_ptr<Rom> global_instance;
+    static std::unique_ptr<Rom> globalInstance;
 };

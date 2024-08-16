@@ -102,6 +102,8 @@ void SonglistWidget::AddSong(const std::string &name, uint16_t id)
     } else if (selectAllCheckBox.checkState() != Qt::Checked) {
         selectAllCheckBox.setCheckState(Qt::PartiallyChecked);
     }
+
+    emit ContentChanged();
 }
 
 void SonglistWidget::RemoveSong()
@@ -117,6 +119,8 @@ void SonglistWidget::RemoveSong()
             selectedSong--;
         delete item;
     }
+
+    emit ContentChanged();
 }
 
 void SonglistWidget::SetPlayState(bool playing)
@@ -205,6 +209,8 @@ void SonglistWidget::Rename()
         return;
 
     item->setText(text);
+
+    emit ContentChanged();
 }
 
 bool SonglistWidget::eventFilter(QObject *object, QEvent *event)
@@ -222,6 +228,8 @@ bool SonglistWidget::eventFilter(QObject *object, QEvent *event)
 
     if (event->type() != QEvent::ChildRemoved)
         return false;
+
+    emit ContentChanged();
 
     QListWidgetItem *item = listWidget.item(selectedSong);
     if (!item)

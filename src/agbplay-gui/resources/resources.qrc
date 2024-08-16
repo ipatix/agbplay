@@ -21,9 +21,11 @@
         <file>icons/profile-duplicate.ico</file>
         <file>icons/profile-import-minigsf.ico</file>
         <file>icons/profile-open-folder.ico</file>
+        <file>icons/profile-save.ico</file>
         <file>icons/profile-select.ico</file>
         <file>icons/profile-settings.ico</file>
         <file>icons/save-log.ico</file>
+        <file>icons/save-profile-large.ico</file>
         <file>icons/speed-double.ico</file>
         <file>icons/speed-halve.ico</file>
     </qresource>

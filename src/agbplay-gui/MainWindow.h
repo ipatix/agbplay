@@ -56,6 +56,7 @@ private:
     void ExportAudio(bool benchmarkOnly, bool separateTracks);
     void ExportStillInProgress();
     void SaveLog();
+    void SaveProfile();
 
     void MBoxInfo(const std::string &title, const std::string &msg);
     void MBoxError(const std::string &title, const std::string &msg);
@@ -68,8 +69,10 @@ private:
 
     /* menu bar */
     QAction *exportAudioAction = nullptr;
+    QAction *saveProfileAction = nullptr;
 
     /* tool bar */
+    QPushButton saveButton{this};
     QPushButton pauseButton{this};
     QPushButton playButton{this};
     QPushButton stopButton{this};

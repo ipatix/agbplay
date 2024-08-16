@@ -48,6 +48,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&songlistWidget, &SonglistWidget::ContextMenuActionAdd, [this]() { PlaylistAdd(); });
     connect(&playlistWidget, &SonglistWidget::ContextMenuActionRemove, [this]() { PlaylistRemove(); });
 
+    connect(&playlistWidget, &SonglistWidget::ContentChanged, [this]() {
+        if (!profile)
+            return;
+        profile->dirty = true;
+        saveButton.setEnabled(true);
+        saveProfileAction->setEnabled(true);
+    });
+
     setWindowTitle("agbplay");
 }
 
@@ -70,6 +78,12 @@ void MainWindow::SetupMenuBar()
     fileOpenGSF->setIcon(QIcon(":/icons/open-gsf.ico"));
 
     fileMenu->addSeparator();
+
+    saveProfileAction = fileMenu->addAction("Save Profile");
+    saveProfileAction->setIcon(QIcon(":/icons/profile-save.ico"));
+    saveProfileAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_S));
+    saveProfileAction->setEnabled(false);
+    connect(saveProfileAction, &QAction::triggered, [this](bool){ SaveProfile(); });
 
     exportAudioAction = fileMenu->addAction("Export Audio");
     exportAudioAction->setIcon(QIcon(":/icons/export-audio.ico"));
@@ -140,6 +154,16 @@ void MainWindow::SetupMenuBar()
 void MainWindow::SetupToolBar()
 {
     QToolBar *toolBar = addToolBar("HAHAHAA");
+
+    saveButton.setIcon(QIcon(":/icons/save-profile-large.ico"));
+    saveButton.setFixedSize(32, 32);
+    saveButton.setIconSize(QSize(32, 32));
+    saveButton.setEnabled(false);
+    toolBar->addWidget(&saveButton);
+    connect(&saveButton, &QAbstractButton::clicked, [this](bool) { SaveProfile(); });
+
+    toolBar->addSeparator();
+
     stopButton.setIcon(QIcon(":/icons/playback-stop.ico"));
     stopButton.setFixedSize(32, 32);
     stopButton.setIconSize(QSize(32, 32));
@@ -451,6 +475,12 @@ void MainWindow::LoadGame()
         playlistWidget.AddSong(profile->playlist.at(i).name, profile->playlist.at(i).id);
     }
 
+    /* Inserting songs into the playlistWidget falsely marks the profile as dirty.
+     * Undo this. */
+    profile->dirty = false;
+    saveButton.setEnabled(false);
+    saveProfileAction->setEnabled(false);
+
     infoWidget.romNameLineEdit.setText(QString::fromStdString(Rom::Instance().ReadString(0xA0, 12)));
     infoWidget.romCodeLineEdit.setText(QString::fromStdString(Rom::Instance().ReadString(0xAc, 4)));
     infoWidget.songTableLineEdit.setText(QString::fromStdString(fmt::format("0x{:X}", profile->songTableInfoPlayback.pos)));
@@ -572,6 +602,28 @@ void MainWindow::SaveLog()
     }
 
     fileStream << logWidget.toPlainText().toStdString();
+}
+
+void MainWindow::SaveProfile()
+{
+    if (!profile || !profile->dirty)
+        return;
+
+    profile->playlist.clear();
+    for (int i = 0; i < playlistWidget.listWidget.count(); i++) {
+        QListWidgetItem *item = playlistWidget.listWidget.item(i);
+        if (!item)
+            continue;
+
+        const std::string title = item->text().toStdString();
+        const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
+        profile->playlist.emplace_back(title, id);
+    }
+
+    saveButton.setEnabled(false);
+    saveProfileAction->setEnabled(false);
+    assert(pm);
+    pm->SaveProfiles();
 }
 
 void MainWindow::MBoxInfo(const std::string &title, const std::string &msg)

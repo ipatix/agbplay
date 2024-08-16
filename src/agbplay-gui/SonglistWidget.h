@@ -38,6 +38,7 @@ private:
 signals:
     void ContextMenuActionRemove();
     void ContextMenuActionAdd();
+    void ContentChanged();
 
 public:
     QVBoxLayout layout{this};

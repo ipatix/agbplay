@@ -7,6 +7,7 @@ find_package(PkgConfig REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(Boost CONFIG REQUIRED)
 find_package(fmt REQUIRED)
+find_package(libzip REQUIRED)
 pkg_check_modules(sndfile REQUIRED IMPORTED_TARGET sndfile)
 
 # configure heaer
@@ -37,4 +38,5 @@ target_link_libraries(agbplay
     PRIVATE
     Boost::boost
     PkgConfig::sndfile
+    libzip::zip
 )

@@ -2,6 +2,9 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
+#include <optional>
+
+#include <zip.h>
 
 #include "Rom.h"
 #include "Xcept.h"
@@ -10,6 +13,80 @@
 
 std::unique_ptr<Rom> Rom::globalInstance;
 
+class FileReader {
+public:
+    virtual ~FileReader() = default;
+    [[maybe_unused]] virtual void read(std::span<uint8_t> buffer) = 0;
+    virtual size_t size() = 0;
+    virtual void close() = 0;
+};
+
+class SystemFileReader : public FileReader {
+public:
+    SystemFileReader(const std::filesystem::path &filePath) : ifs(filePath, std::ios_base::binary) {
+        if (!ifs.is_open())
+            throw Xcept("Error opening file (path={}): {}", filePath.string(), strerror(errno));
+    }
+    ~SystemFileReader() override = default;
+
+    [[maybe_unused]] void read(std::span<uint8_t> buffer) override {
+        ifs.read(reinterpret_cast<char *>(buffer.data()), buffer.size());
+        if (ifs.bad())
+            throw Xcept("Could not read file: bad bit is set");
+    }
+    size_t size() {
+        ifs.seekg(0, std::ios_base::end);
+        const std::ifstream::pos_type fileEnd = ifs.tellg();
+        if (fileEnd == -1)
+            throw Xcept("Error seeking in input file");
+        ifs.seekg(0, std::ios_base::beg);
+        return static_cast<size_t>(fileEnd);
+    }
+    void close() {
+        ifs.close();
+    }
+
+private:
+    std::ifstream ifs;
+};
+
+class ZipFileReader : public FileReader {
+public:
+    ZipFileReader(zip_t *archive, zip_uint64_t index) {
+        zip_stat_init(&s);
+        if (zip_stat_index(archive, index, 0, &s) == -1)
+            throw Xcept("zip_stat_index() failed: {}", zip_strerror(archive));
+
+        file = zip_fopen_index(archive, index, 0);
+        if (!file)
+            throw Xcept("zip_fopen_index() failed: {}", zip_strerror(archive));
+    }
+    ~ZipFileReader() override {
+        close();
+    }
+
+    [[maybe_unused]] void read(std::span<uint8_t> buffer) override {
+        const zip_int64_t bytesRead = zip_fread(file, static_cast<void *>(buffer.data()), buffer.size());
+        if (bytesRead == 0)
+            throw Xcept("zip_fread(): end of file reached");
+        if (bytesRead == -1)
+            throw Xcept("zip_fread(): error occured while reading: {}", zip_file_strerror(file));
+    }
+    size_t size() {
+        return static_cast<size_t>(s.size);
+    }
+    void close() {
+        if (file) {
+            zip_fclose(file);
+            file = nullptr;
+        }
+    }
+
+private:
+    zip_stat_t s;
+    zip_file_t *file = nullptr;
+};
+
 /*
  * public
  */
@@ -17,9 +94,9 @@ std::unique_ptr<Rom> Rom::globalInstance;
 Rom Rom::LoadFromFile(const std::filesystem::path &filePath)
 {
     Rom rom;
-    rom.loadFile(filePath);
+    rom.LoadFile(filePath);
     rom.romData = rom.romContainer;
-    rom.verify();
+    rom.Verify();
     return rom;
 }
 
@@ -28,7 +105,7 @@ Rom Rom::LoadFromBufferCopy(std::span<uint8_t> buffer)
     Rom rom;
     rom.romContainer.assign(buffer.begin(), buffer.end());
     rom.romData = rom.romContainer;
-    rom.verify();
+    rom.Verify();
     return rom;
 }
 
@@ -36,7 +113,7 @@ Rom Rom::LoadFromBufferRef(std::span<uint8_t> buffer)
 {
     Rom rom;
     rom.romData = buffer;
-    rom.verify();
+    rom.Verify();
     return rom;
 }
 
@@ -66,7 +143,7 @@ std::string Rom::GetROMCode() const
  * private
  */
 
-void Rom::verify() 
+void Rom::Verify()
 {
     // check ROM size
     if (romData.size() > AGB_ROM_SIZE || romData.size() < 0x200)
@@ -104,29 +181,99 @@ void Rom::verify()
         throw Xcept("ROM verification: Bad Header Checksum: {:02X} - expected {:02X}", checksum, check);
 }
 
-void Rom::loadFile(const std::filesystem::path& filePath)
+void Rom::LoadFile(const std::filesystem::path& filePath)
 {
-    std::ifstream is(filePath, std::ios_base::binary);
-    if (!is.is_open()) {
-        throw Xcept("Error while opening ROM: {}", strerror(errno));
-    }
-    is.seekg(0, std::ios_base::end);
-    std::ifstream::pos_type size = is.tellg();
-    if (size == -1) {
-        throw Xcept("Error while seeking in input file");
-    }
-    if (size > AGB_ROM_SIZE) {
-        throw Xcept("Input ROM exceeds 32 MiB file limit");
-    }
-    is.seekg(0, std::ios_base::beg);
-    romContainer.resize(static_cast<size_t>(size));
+    /* Try load load as zip file */
+    if (LoadZip(filePath))
+        return;
+    if (LoadGsflib(filePath))
+        return;
+    if (LoadRaw(filePath))
+        return;
+    throw Xcept("Unable to determine input file type");
+}
 
-    // copy file to memory
-    is.read(reinterpret_cast<char *>(romContainer.data()), size);
-    if (is.bad())
-        throw Xcept("read bad");
-    if (is.fail()) {
-        throw Xcept("read fail");
+bool Rom::LoadZip(const std::filesystem::path &filePath)
+{
+    /* use unnique_ptr as RAII management for C types */
+    auto errorDel = [](zip_error_t *error) { zip_error_fini(error); delete error; };
+    std::unique_ptr<zip_error_t, decltype(errorDel)> error(new zip_error_t, errorDel);
+    zip_error_init(error.get());
+
+    auto sourceDel = [](zip_source_t *s){ (void)zip_source_close(s); };
+    std::unique_ptr<zip_source_t, decltype(sourceDel)> source(
+#if _WIN32
+        zip_source_win32w_create(filePath.wstring().c_str(), 0, -1, error.get())
+#else
+        zip_source_file_create(filePath.string().c_str(), 0, -1, error.get())
+#endif
+        , sourceDel);
+
+    if (!source)
+        throw Xcept("LoadZip: Unable to open zip file: {}", zip_error_strerror(error.get()));
+
+    auto archiveDel = [](zip_t *z){ (void)zip_close(z); };
+    std::unique_ptr<zip_t, decltype(archiveDel)> archive(zip_open_from_source(source.get(), ZIP_CHECKCONS | ZIP_RDONLY, error.get()), archiveDel);
+    if (!archive) {
+        if (zip_error_code_zip(error.get()) == ZIP_ER_NOZIP)
+            return false;
+
+        throw Xcept("LoadZip: Unable to open zip file: {}", zip_error_strerror(error.get()));
     }
-    is.close();
+
+    zip_int64_t numFilesInZip = zip_get_num_entries(archive.get(), 0);
+
+    for (zip_int64_t i = 0; i < numFilesInZip; i++) {
+        const char *cname = zip_get_name(archive.get(), i, 0);
+        if (!cname)
+            continue;
+        std::string name(cname);
+        if (name.size() == 0 || name.ends_with("/"))
+            continue;
+
+        if (name.ends_with(".gba")) {
+            ZipFileReader zipFileReader(archive.get(), i);
+            return LoadRaw(zipFileReader);
+        }
+
+        if (name.ends_with(".gsflib")) {
+            ZipFileReader zipFileReader(archive.get(), i);
+            return LoadGsflib(zipFileReader);
+        }
+    }
+
+    throw Xcept("LoadZip: Unable to locate .gsflib or .gba file in zip file");
+}
+
+bool Rom::LoadGsflib(const std::filesystem::path& filePath)
+{
+    SystemFileReader systemFileReader(filePath);
+    return LoadGsflib(systemFileReader);
+}
+
+bool Rom::LoadGsflib(FileReader &fileReader)
+{
+    // TODO
+    return false;
+}
+
+bool Rom::LoadRaw(const std::filesystem::path& filePath)
+{
+    SystemFileReader systemFileReader(filePath);
+    return LoadRaw(systemFileReader);
+}
+
+bool Rom::LoadRaw(FileReader &fileReader)
+{
+    /* get file size */
+    const size_t size = fileReader.size();
+    if (size <= 0x200)
+        throw Xcept("ERROR: Attempting to load tiny ROM (<= 512 bytes). Incorrect or damaged file?");
+    if (size > AGB_ROM_SIZE)
+        throw Xcept("ERROR: Attempting to illegally large ROM (> 32 MiB). Incorrect or damaged file?");
+
+    /* read exactly as much data as the file contains */
+    romContainer.resize(size);
+    fileReader.read(romContainer);
+    return true;
 }

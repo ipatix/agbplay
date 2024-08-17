@@ -10,6 +10,8 @@
 #include "AgbTypes.h"
 #include "Xcept.h"
 
+class FileReader;
+
 class Rom {
 private:
     Rom() = default;
@@ -102,8 +104,13 @@ public:
     std::string GetROMCode() const;
 
 private:
-    void verify();
-    void loadFile(const std::filesystem::path& filePath);
+    void Verify();
+    void LoadFile(const std::filesystem::path& filePath);
+    bool LoadZip(const std::filesystem::path& filePath);
+    bool LoadGsflib(const std::filesystem::path& filePath);
+    bool LoadGsflib(FileReader &fileReader);
+    bool LoadRaw(const std::filesystem::path& filePath);
+    bool LoadRaw(FileReader &fileReader);
 
     std::span<uint8_t> romData;
     std::vector<uint8_t> romContainer;

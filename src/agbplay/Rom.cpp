@@ -3,6 +3,7 @@
 #include <cstring>
 #include <fstream>
 #include <optional>
+#include <algorithm>
 
 #include <zip.h>
 
@@ -230,6 +231,8 @@ bool Rom::LoadZip(const std::filesystem::path &filePath)
         std::string name(cname);
         if (name.size() == 0 || name.ends_with("/"))
             continue;
+
+        std::transform(name.begin(), name.end(), name.begin(), [](char c) { return std::tolower(c); });
 
         if (name.ends_with(".gba")) {
             ZipFileReader zipFileReader(archive.get(), i);

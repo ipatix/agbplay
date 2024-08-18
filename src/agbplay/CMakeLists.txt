@@ -9,6 +9,7 @@ find_package(Boost CONFIG REQUIRED)
 find_package(fmt REQUIRED)
 find_package(libzip REQUIRED)
 pkg_check_modules(sndfile REQUIRED IMPORTED_TARGET sndfile)
+pkg_check_modules(zlib REQUIRED IMPORTED_TARGET zlib)
 
 # configure heaer
 find_package(Git REQUIRED)
@@ -39,4 +40,5 @@ target_link_libraries(agbplay
     Boost::boost
     PkgConfig::sndfile
     libzip::zip
+    PkgConfig::zlib
 )

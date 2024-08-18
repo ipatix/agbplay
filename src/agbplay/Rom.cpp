@@ -11,6 +11,7 @@
 #include "Xcept.h"
 #include "Debug.h"
 #include "Util.h"
+#include "Gsf.h"
 
 std::unique_ptr<Rom> Rom::globalInstance;
 
@@ -256,8 +257,9 @@ bool Rom::LoadGsflib(const std::filesystem::path& filePath)
 
 bool Rom::LoadGsflib(FileReader &fileReader)
 {
-    // TODO
-    return false;
+    std::vector<uint8_t> gsfData(fileReader.size());
+    fileReader.read(gsfData);
+    return Gsf::GetRomData(gsfData, romContainer);
 }
 
 bool Rom::LoadRaw(const std::filesystem::path& filePath)

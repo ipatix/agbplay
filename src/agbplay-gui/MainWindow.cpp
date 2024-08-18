@@ -69,13 +69,10 @@ void MainWindow::SetupMenuBar()
     /* File */
     QMenu *fileMenu = menuBar()->addMenu("&File");
 
-    QAction *fileOpenRom = fileMenu->addAction("Open ROM");
+    QAction *fileOpenRom = fileMenu->addAction("Open ROM/GSF");
     fileOpenRom->setIcon(QIcon(":/icons/open-rom.ico"));
     fileOpenRom->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_O));
     connect(fileOpenRom, &QAction::triggered, [this](bool){ LoadGame(); });
-
-    QAction *fileOpenGSF = fileMenu->addAction("Open GSF");
-    fileOpenGSF->setIcon(QIcon(":/icons/open-gsf.ico"));
 
     fileMenu->addSeparator();
 

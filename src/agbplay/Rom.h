@@ -103,6 +103,8 @@ public:
     std::string ReadString(size_t pos, size_t limit) const;
     std::string GetROMCode() const;
 
+    bool IsGsf() const;
+
 private:
     void Verify();
     void LoadFile(const std::filesystem::path& filePath);
@@ -114,6 +116,8 @@ private:
 
     std::span<uint8_t> romData;
     std::vector<uint8_t> romContainer;
+
+    bool isGsf = false;
 
     static std::unique_ptr<Rom> globalInstance;
 };

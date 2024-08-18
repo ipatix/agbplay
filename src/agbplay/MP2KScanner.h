@@ -3,6 +3,7 @@
 #include <vector>
 #include <cstdint>
 #include <cstddef>
+#include <unordered_set>
 
 #include "Types.h"
 
@@ -28,8 +29,10 @@ private:
     bool IsPosReferenced(size_t pos) const;
     bool IsPosReferenced(size_t pos, size_t &findStartPos, size_t &referencePos) const;
     bool IsPosReferenced(const std::vector<size_t> &poss, size_t &index) const;
-    bool IsValidSongTableEntry(size_t pos) const;
+    bool IsValidSongTableEntry(size_t pos, bool relaxed) const;
     bool IsValidPlayerTableEntry(size_t pos) const;
+
+    void InitPointerCache();
 
     static bool IsValidIwramPointer(uint32_t word);
     static bool IsValidEwramPointer(uint32_t word);
@@ -39,4 +42,6 @@ private:
     static const size_t SEARCH_START = 0x200;
 
     const Rom &rom;
+
+    std::unordered_set<uint32_t> wordPointerCache; // pointers to 'words' (i.e. 4-byte aligned pointers)
 };

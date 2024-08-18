@@ -11,6 +11,8 @@ std::vector<MP2KScanner::Result> MP2KScanner::Scan()
 {
     std::vector<Result> results;
 
+    InitPointerCache();
+
     size_t findStartPos = SEARCH_START;
 
     while (true) {
@@ -62,7 +64,7 @@ bool MP2KScanner::FindSongTable(size_t &findStartPos, size_t &songTablePos, uint
         
         /* check if MIN_SONG_NUM entries look like a valid song table */
         for (size_t j = 0; j < MIN_SONG_NUM; j++) {
-            if (!IsValidSongTableEntry(i + j * 8)) {
+            if (!IsValidSongTableEntry(i + j * 8, rom.IsGsf())) {
                 i += j * 8;
                 candidateValid = false;
                 break;
@@ -77,14 +79,38 @@ bool MP2KScanner::FindSongTable(size_t &findStartPos, size_t &songTablePos, uint
             continue;
 
         /* count number of songs */
-        songCount = 0;
-        for (size_t pos = candidatePos; pos <= rom.Size() - 3; pos += 8) {
-            if (!IsValidSongTableEntry(pos))
+        uint16_t candidateSongCount = 0;
+        uint16_t candidatePopulatedSongCount = 0;
+
+        // COUNT_AUTO == 0xFFFF, so use one less
+        for (uint16_t songIdx = 0; songIdx < 0xFFFE; songIdx++) {
+            const size_t pos = candidatePos + 8 * songIdx;
+            if (pos >= rom.Size() - 3)
                 break;
-            songCount++;
+
+            if (rom.IsGsf()) {
+                if (!IsValidSongTableEntry(pos, true))
+                    break;
+                if (IsValidSongTableEntry(pos, false)) {
+                    candidateSongCount = songIdx + 1;
+                    candidatePopulatedSongCount++;
+                }
+            } else {
+                if (!IsValidSongTableEntry(pos, false))
+                    break;
+                candidateSongCount++;
+                candidatePopulatedSongCount = candidateSongCount;
+            }
         }
 
+        /* Do not allow song tables which are entirely (or almost blank).
+         * This way GSF sets are not accidentally detected with number of songs=0
+         * (e.g. when the falsely detected songtable only consists of zero bytes. */
+        if (candidatePopulatedSongCount < MIN_SONG_NUM)
+            continue;
+
         /* return results */
+        songCount = candidateSongCount;
         songTablePos = candidatePos;
         findStartPos += candidatePos + songCount * 8;
         return true;
@@ -265,9 +291,7 @@ bool MP2KScanner::FindSoundMode(size_t playerTablePos, size_t &soundModePos, uin
 
 bool MP2KScanner::IsPosReferenced(size_t pos) const
 {
-    size_t dummy;
-    size_t findStartPos = SEARCH_START;
-    return IsPosReferenced(pos, findStartPos, dummy);
+    return wordPointerCache.contains(static_cast<uint32_t>(pos + AGB_MAP_ROM));
 }
 
 bool MP2KScanner::IsPosReferenced(size_t pos, size_t &findStartPos, size_t &referencePos) const
@@ -306,22 +330,29 @@ bool MP2KScanner::IsPosReferenced(const std::vector<size_t> &poss, size_t &index
     return false;
 }
 
-bool MP2KScanner::IsValidSongTableEntry(size_t pos) const
+bool MP2KScanner::IsValidSongTableEntry(size_t pos, bool relaxed) const
 {
     if (!rom.ValidRange(pos, 8))
         return false;
+
+    /* 0. (optional) during GSF scanning, a relaxed scan is used. This is because
+     * GSFs have unused entries from the GSF set zeroed, but we have to assume
+     * they are valid for location of the song table start. */
+    if (relaxed && rom.ReadU32(pos) == 0 && rom.ReadU32(pos + 4) == 0)
+        return true;
 
     /* 1. check if pointer to song is valid */
     if (!rom.ValidPointer(rom.ReadU32(pos + 0)))
         return false;
 
-    /* 2. check if music player numbers are correct */
+    /* 2. check if music player numbers are correct.
+     * Special case: For GSF sets p2 is always zero instead of equal to p1 */
     const uint8_t p1 = rom.ReadU8(pos + 4);
     const uint8_t z1 = rom.ReadU8(pos + 5);
     const uint8_t p2 = rom.ReadU8(pos + 6);
     const uint8_t z2 = rom.ReadU8(pos + 7);
 
-    if (z1 != 0 || z2 != 0 || p1 != p2)
+    if (z1 != 0 || z2 != 0 || (rom.IsGsf() ? (p2 != 0) : (p1 != p2)))
         return false;
 
     /* 3. check if song is valid */
@@ -377,6 +408,18 @@ bool MP2KScanner::IsValidPlayerTableEntry(size_t pos) const
         return false;
 
     return true;
+}
+
+void MP2KScanner::InitPointerCache()
+{
+    wordPointerCache.clear();
+
+    /* find list of all pointers in ROM */
+    for (size_t i = SEARCH_START; i < rom.Size() - 3; i += 4) {
+        const uint32_t ptr = rom.ReadU32(i);
+        if (rom.ValidPointer(ptr) && (ptr % 4) == 0)
+            wordPointerCache.insert(ptr);
+    }
 }
 
 bool MP2KScanner::IsValidIwramPointer(uint32_t word)

@@ -141,6 +141,11 @@ std::string Rom::GetROMCode() const
     return ReadString(0xAC, 4);
 }
 
+bool Rom::IsGsf() const
+{
+    return isGsf;
+}
+
 /*
  * private
  */
@@ -150,6 +155,9 @@ void Rom::Verify()
     // check ROM size
     if (romData.size() > AGB_ROM_SIZE || romData.size() < 0x200)
         throw Xcept("Illegal ROM size");
+
+    if (isGsf)
+        return;
     
     // Logo data
     // TODO replace 1 to 1 logo comparison with checksum
@@ -259,6 +267,7 @@ bool Rom::LoadGsflib(FileReader &fileReader)
 {
     std::vector<uint8_t> gsfData(fileReader.size());
     fileReader.read(gsfData);
+    isGsf = true;
     return Gsf::GetRomData(gsfData, romContainer);
 }
 
@@ -280,5 +289,6 @@ bool Rom::LoadRaw(FileReader &fileReader)
     /* read exactly as much data as the file contains */
     romContainer.resize(size);
     fileReader.read(romContainer);
+    isGsf = false;
     return true;
 }

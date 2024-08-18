@@ -202,7 +202,10 @@ std::shared_ptr<Profile> &ProfileManager::CreateProfile(const std::string &gameC
     const std::string profileName = fmt::format("{}.{}.json", gameCode, tableIdx);
     std::shared_ptr<Profile> &profile = profiles.emplace_back(std::make_shared<Profile>());
     profile->gameMatch.gameCodes.emplace_back(gameCode);
-    profile->path = OS::GetLocalConfigDirectory() / "agbplay" / "profiles" / profileName;
+    if (!gameCode.empty())
+        profile->path = OS::GetLocalConfigDirectory() / "agbplay" / "profiles" / profileName;
+    else
+        profile->path.clear();
     profile->dirty = true;
     return profile;
 }
@@ -467,15 +470,17 @@ void ProfileManager::SaveProfile(std::shared_ptr<Profile> &p)
         j["description"] = p->description;
 
     /* save JSON to disk */
-    std::ofstream fileStream(p->path);
-    if (!fileStream.is_open()) {
-        // TODO we very likely do not want to crash in case of write failure.
-        // Better give the user an option to try again (i.e. after permissions are fixed or disk space freed).
-        const std::string err = strerror(errno);
-        throw Xcept("Failed to save file: {}, {}", p->path.string(), err);
+    if (!p->path.empty()) {
+        std::ofstream fileStream(p->path);
+        if (!fileStream.is_open()) {
+            // TODO we very likely do not want to crash in case of write failure.
+            // Better give the user an option to try again (i.e. after permissions are fixed or disk space freed).
+            const std::string err = strerror(errno);
+            throw Xcept("Failed to save file: {}, {}", p->path.string(), err);
+        }
+        fileStream << std::setw(2) << j << std::endl;
+        fileStream.close();
     }
-    fileStream << std::setw(2) << j << std::endl;
-    fileStream.close();
 
     p->dirty = false;
 }

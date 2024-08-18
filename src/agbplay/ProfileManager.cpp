@@ -33,7 +33,7 @@ std::filesystem::path ProfileManager::ProfileUserPath()
 void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std::shared_ptr<Profile>> &profiles, const std::vector<MP2KScanner::Result> scanResults)
 {
     if (scanResults.size() == 0 && profiles.size() == 0) {
-        throw Xcept("Scanner failed to find songtable and no profile with manual songtable found.\n");
+        throw Xcept("Scanner failed to find songtable and no profile with manual songtable found.");
     }
 
     if (scanResults.size() == 0) {
@@ -55,7 +55,7 @@ void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std:
         for (std::shared_ptr<Profile> &profileCandidate : profiles) {
             if (profileCandidate->songTableInfoConfig.pos != SongTableInfo::POS_AUTO) {
                 if (profileCandidate->songTableInfoConfig.count == SongTableInfo::COUNT_AUTO)
-                    throw Xcept("Cannot load profile with manual songtable but no song count");
+                    throw Xcept("Cannot load profile with manual songtable but no song count.");
                 profileCandidate->ApplyScanToPlayback(
                     SongTableInfo{},
                     PlayerTableInfo{},

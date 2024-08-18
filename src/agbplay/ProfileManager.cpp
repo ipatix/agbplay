@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <limits>
+#include <algorithm>
 
 #include <fmt/core.h>
 #include <nlohmann/json.hpp>
@@ -33,6 +34,19 @@ void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std:
 {
     if (scanResults.size() == 0 && profiles.size() == 0) {
         throw Xcept("Scanner failed to find songtable and no profile with manual songtable found.\n");
+    }
+
+    if (scanResults.size() == 0) {
+        /* If no scan results are found make sure profiles are restricted to the ones,
+         * which have a manual song table and song count. */
+        auto filterFunc = [](std::shared_ptr<Profile> &profile) {
+            const bool manualTable = profile->songTableInfoConfig.pos != SongTableInfo::POS_AUTO;
+            const bool manualCount = profile->songTableInfoConfig.count != SongTableInfo::COUNT_AUTO;
+            return !(manualTable && manualCount);
+        };
+        profiles.erase(std::remove_if(profiles.begin(), profiles.end(), filterFunc), profiles.end());
+        if (profiles.size() == 0)
+            throw Xcept("Scanner could not find MP2K data. Existing matching profiles were found, but none manually specify song table and song count.");
     }
 
     for (size_t tableIdx = 0; tableIdx < scanResults.size(); tableIdx++) {

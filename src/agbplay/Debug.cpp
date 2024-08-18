@@ -3,6 +3,7 @@
 #include <string>
 #include <mutex>
 #include <cstdarg>
+#include <iostream>
 
 #include "Debug.h"
 
@@ -47,4 +48,6 @@ void Debug::puts(const std::string &msg) {
 
     if (callback)
         callback(msg.c_str(), cb_obj);
+    else
+        std::cout << msg << std::endl;
 }

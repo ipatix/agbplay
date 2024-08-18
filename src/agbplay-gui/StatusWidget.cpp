@@ -47,8 +47,9 @@ StatusWidget::StatusWidget(QWidget *parent)
         layout.addWidget(trackWidgets.at(i));
         connect(trackWidgets.at(i), &TrackWidget::muteOrSoloChanged, this, &StatusWidget::updateMuteOrSolo);
         connect(trackWidgets.at(i), &TrackWidget::analyzerChanged, this, &StatusWidget::updateAnalyzer);
-        trackWidgets.at(i)->setVisible(false);
     }
+
+    reset();
 
     layout.addStretch(1);
 }
@@ -106,6 +107,13 @@ void StatusWidget::setVisualizerState(const MP2KVisualizerState &state)
     for (; i < trackWidgets.size(); i++) {
         trackWidgets.at(i)->setVisible(false);
     }
+}
+
+void StatusWidget::reset()
+{
+    for (size_t i = 0; i < 16; i++)
+        trackWidgets.at(i)->setVisible(false);
+    songWidget.reset();
 }
 
 void StatusWidget::updateMuteOrSolo()

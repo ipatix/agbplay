@@ -52,8 +52,7 @@ private:
     void PlaylistRemove();
 
     void LoadGame();
-    void LoadGameDisableActions();
-    void LoadGameEnableActions();
+    void CloseGame();
     void ExportAudio(bool benchmarkOnly, bool separateTracks);
     void ExportStillInProgress();
     void SaveLog();

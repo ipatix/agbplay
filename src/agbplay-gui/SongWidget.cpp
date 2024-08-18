@@ -19,7 +19,6 @@ SongWidget::SongWidget(QWidget *parent)
     titleFont.setUnderline(true);
     titleLabel.setFixedSize(320, 16);
     titleLabel.setFont(titleFont);
-    titleLabel.setText("No game loaded");
     titleLabel.setPalette(labelPal);
     titleLabel.setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     upperLayout.addWidget(&titleLabel, 0);
@@ -27,7 +26,6 @@ SongWidget::SongWidget(QWidget *parent)
     upperLayout.addSpacing(10);
 
     bpmLabel.setFixedSize(50, 16);
-    bpmLabel.setText("150 BPM");
     bpmLabel.setPalette(labelPal);
     bpmLabel.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     upperLayout.addWidget(&bpmLabel, 0);
@@ -35,7 +33,6 @@ SongWidget::SongWidget(QWidget *parent)
     upperLayout.addSpacing(5);
 
     bpmFactorLabel.setFixedSize(60, 16);
-    bpmFactorLabel.setText("(x 1)");
     bpmFactorLabel.setPalette(labelPal);
     bpmFactorLabel.setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     upperLayout.addWidget(&bpmFactorLabel, 0);
@@ -43,7 +40,6 @@ SongWidget::SongWidget(QWidget *parent)
     upperLayout.addSpacing(10);
 
     chnLabel.setFixedSize(70, 16);
-    chnLabel.setText("0/0 Chn");
     chnLabel.setPalette(labelPal);
     chnLabel.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     upperLayout.addWidget(&chnLabel, 0);
@@ -51,7 +47,6 @@ SongWidget::SongWidget(QWidget *parent)
     upperLayout.addSpacing(30);
 
     timeLabel.setFixedSize(30, 16);
-    timeLabel.setText("00:00");
     timeLabel.setPalette(labelPal);
     timeLabel.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     upperLayout.addWidget(&timeLabel, 0);
@@ -61,7 +56,6 @@ SongWidget::SongWidget(QWidget *parent)
     QPalette chordPal;
     chordPal.setColor(QPalette::WindowText, QColor("#37dcdc"));
     chordLabel.setFixedSize(128, 32);
-    chordLabel.setText("C Maj 7");
     chordLabel.setPalette(labelPal);
     chordLabel.setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     chordLabel.setFont(font);
@@ -79,6 +73,8 @@ SongWidget::SongWidget(QWidget *parent)
 
     upperLayout.addStretch(1);
     lowerLayout.addStretch(1);
+
+    reset();
 }
 
 SongWidget::~SongWidget()
@@ -88,4 +84,14 @@ SongWidget::~SongWidget()
 void SongWidget::setPressed(const std::bitset<128> &pressed)
 {
     keyboardWidget.setPressedKeys(pressed);
+}
+
+void SongWidget::reset()
+{
+    titleLabel.setText("No game loaded");
+    bpmLabel.setText("150 BPM");
+    bpmFactorLabel.setText("(x 1)");
+    chnLabel.setText("0/0 Chn");
+    timeLabel.setText("00:00");
+    chordLabel.setText("C Maj 7");
 }

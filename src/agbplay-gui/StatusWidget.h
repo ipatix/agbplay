@@ -35,6 +35,7 @@ public:
     ~StatusWidget() override;
 
     void setVisualizerState(const MP2KVisualizerState &state);
+    void reset();
 
     QVBoxLayout layout{this};
     SongWidget songWidget{this};

@@ -17,6 +17,7 @@ public:
     ~SongWidget() override;
 
     void setPressed(const std::bitset<128> &pressed);
+    void reset();
 
     QVBoxLayout layout{this};
     QHBoxLayout upperLayout;

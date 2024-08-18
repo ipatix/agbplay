@@ -436,11 +436,7 @@ void MainWindow::LoadGame()
 
     assert(fileDialog.selectedFiles().size() == 1);
 
-    Stop();
-    playbackEngine.reset();
-    profile.reset();
-
-    LoadGameDisableActions();
+    CloseGame();
 
     std::vector<std::shared_ptr<Profile>> profileCandidates;
 
@@ -468,13 +464,11 @@ void MainWindow::LoadGame()
         profile = profileCandidates.at(0);
     }
 
-    songlistWidget.Clear();
     for (uint16_t i = 0; i < profile->songTableInfoPlayback.count; i++) {
         auto songName = fmt::format("{:04}", i);
         songlistWidget.AddSong(songName, i);
     }
 
-    playlistWidget.Clear();
     for (size_t i = 0; i < profile->playlist.size(); i++) {
         playlistWidget.AddSong(profile->playlist.at(i).name, profile->playlist.at(i).id);
     }
@@ -493,17 +487,19 @@ void MainWindow::LoadGame()
     playbackEngine = std::make_unique<PlaybackEngine>(*profile);
     visualizerState = std::make_unique<MP2KVisualizerState>();
 
-    LoadGameEnableActions();
-}
-
-void MainWindow::LoadGameDisableActions()
-{
-    exportAudioAction->setEnabled(false);
-}
-
-void MainWindow::LoadGameEnableActions()
-{
     exportAudioAction->setEnabled(true);
+}
+
+void MainWindow::CloseGame()
+{
+    Stop();
+    playbackEngine.reset();
+    profile.reset();
+
+    statusWidget.reset();
+    songlistWidget.Clear();
+    playlistWidget.Clear();
+    exportAudioAction->setEnabled(false);
 }
 
 void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks)

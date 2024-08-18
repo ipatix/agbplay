@@ -443,12 +443,18 @@ void MainWindow::LoadGame()
     playbackEngine.reset();
     profile.reset();
 
-    Rom::CreateInstance(fileDialog.selectedFiles().at(0).toStdWString());
+    LoadGameDisableActions();
 
-    MP2KScanner scanner(Rom::Instance());
-    auto scanResults = scanner.Scan();
-    auto profileCandidates = pm->GetProfiles(Rom::Instance(), scanResults);
-    // TODO add error handling via exceptions, this needs distinct exception types in libagbplay
+    std::vector<std::shared_ptr<Profile>> profileCandidates;
+
+    try {
+        Rom::CreateInstance(fileDialog.selectedFiles().at(0).toStdWString());
+        MP2KScanner scanner(Rom::Instance());
+        profileCandidates = pm->GetProfiles(Rom::Instance(), scanner.Scan());
+    } catch (Xcept &e) {
+        MBoxError("Load Error", e.what());
+        return;
+    }
 
     if (profileCandidates.size() > 1) {
         SelectProfileDialog profileDialog;
@@ -491,6 +497,11 @@ void MainWindow::LoadGame()
     visualizerState = std::make_unique<MP2KVisualizerState>();
 
     LoadGameEnableActions();
+}
+
+void MainWindow::LoadGameDisableActions()
+{
+    exportAudioAction->setEnabled(false);
 }
 
 void MainWindow::LoadGameEnableActions()

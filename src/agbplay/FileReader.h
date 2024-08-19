@@ -12,6 +12,7 @@ public:
     [[maybe_unused]] virtual void read(std::span<uint8_t> buffer) = 0;
     virtual size_t size() = 0;
     virtual void close() = 0;
+    virtual std::filesystem::path path() const = 0;
 
     [[maybe_unused]] static bool forEachInZip(
         const std::filesystem::path &p,

@@ -116,6 +116,7 @@ private:
 
     std::span<uint8_t> romData;
     std::vector<uint8_t> romContainer;
+    std::filesystem::path gsfPath;
 
     bool isGsf = false;
 

@@ -574,7 +574,7 @@ void MainWindow::LoadGame()
     }
 
     infoWidget.romNameLineEdit.setText(QString::fromStdString(Rom::Instance().ReadString(0xA0, 12)));
-    infoWidget.romCodeLineEdit.setText(QString::fromStdString(Rom::Instance().ReadString(0xAc, 4)));
+    infoWidget.romCodeLineEdit.setText(QString::fromStdString(Rom::Instance().GetROMCode()));
     infoWidget.songTableLineEdit.setText(QString::fromStdString(fmt::format("0x{:X}", profile->songTableInfoPlayback.pos)));
     infoWidget.songCountLineEdit.setText(QString::number(profile->songTableInfoPlayback.count));
 

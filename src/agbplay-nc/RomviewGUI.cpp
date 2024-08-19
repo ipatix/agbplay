@@ -12,7 +12,7 @@ RomviewGUI::RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t 
     : CursesWin(height, width, yPos, xPos), songTableInfo(songTableInfo)
 {
     gameName = Rom::Instance().ReadString(0xA0, 12);
-    gameCode = Rom::Instance().ReadString(0xAC, 4);
+    gameCode = Rom::Instance().GetROMCode();
     update();
 }
 

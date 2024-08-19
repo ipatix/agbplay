@@ -75,8 +75,9 @@ void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std:
         }
 
         if (!profileExists) {
-            /* Caution: profiles is our parameter (i.e. != this->profiles */
-            std::shared_ptr<Profile> &p = profiles.emplace_back(CreateProfile(rom.GetROMCode(), tableIdx));
+            /* Caution: profiles is our parameter (i.e. != this->profiles) */
+            std::string code = rom.GetROMCode();
+            std::shared_ptr<Profile> &p = profiles.emplace_back(CreateProfile(code, tableIdx));
             p->songTableInfoConfig.tableIdx = static_cast<uint8_t>(tableIdx);
             p->ApplyScanToPlayback(
                 scanResult.songTableInfo,

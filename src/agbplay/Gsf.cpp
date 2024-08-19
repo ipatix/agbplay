@@ -3,6 +3,8 @@
 #include <sstream>
 #include <algorithm>
 #include <memory>
+#include <regex>
+#include <cassert>
 
 #include <zlib.h>
 
@@ -152,4 +154,20 @@ void Gsf::GetSongInfo(std::span<const uint8_t> gsfData, std::string &name, uint1
 
     if (name.empty())
         throw Xcept("Gsf::GetSongInfo(): unable to find title in minigsf tags");
+}
+
+std::string Gsf::GuessGameCodeFromPath(const std::filesystem::path &p)
+{
+    /* This is not unicode safe, but game codes are 4 byte ASCII anyway,
+     * so it ought to be good enough for identifying a GSF. */
+    std::string filename = p.stem().string();
+    std::regex re("^AGB-([A-Z0-9]{4})-\\w+$"); // example: AGB-AN8J-JPN
+    std::smatch matches;
+
+    if (std::regex_match(filename, matches, re)) {
+        assert(matches.size() == 2);
+        return matches[1].str();
+    } else {
+        return "";
+    }
 }

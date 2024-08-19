@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cstring>
 #include <algorithm>
+#include <cassert>
 
 #include <zip.h>
 
@@ -10,7 +11,7 @@
 
 class SystemFileReader : public FileReader {
 public:
-    SystemFileReader(const std::filesystem::path &filePath) : ifs(filePath, std::ios_base::binary) {
+    SystemFileReader(const std::filesystem::path &filePath) : ifs(filePath, std::ios_base::binary), originalPath(filePath) {
         if (!ifs.is_open())
             throw Xcept("Error opening file (path={}): {}", filePath.string(), strerror(errno));
     }
@@ -32,9 +33,13 @@ public:
     void close() {
         ifs.close();
     }
+    std::filesystem::path path() const override {
+        return originalPath;
+    }
 
 private:
     std::ifstream ifs;
+    std::filesystem::path originalPath;
 };
 
 class ZipFileReader : public FileReader {
@@ -47,6 +52,10 @@ public:
         file = zip_fopen_index(archive, index, 0);
         if (!file)
             throw Xcept("zip_fopen_index() failed: {}", zip_strerror(archive));
+
+        const char8_t *cname = reinterpret_cast<const char8_t *>(zip_get_name(archive, index, 0));
+        assert(cname);
+        originalPath = std::u8string(cname);
     }
     ~ZipFileReader() override {
         close();
@@ -68,10 +77,14 @@ public:
             file = nullptr;
         }
     }
+    std::filesystem::path path() const override {
+        return originalPath;
+    }
 
 private:
     zip_stat_t s;
     zip_file_t *file = nullptr;
+    std::filesystem::path originalPath;
 };
 
 /* While it would be possible to avoid the 'filterFunc', it can be used to

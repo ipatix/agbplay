@@ -66,7 +66,10 @@ std::string Rom::ReadString(size_t pos, size_t limit) const
 
 std::string Rom::GetROMCode() const
 {
-    return ReadString(0xAC, 4);
+    std::string result = ReadString(0xAC, 4);
+    if (!IsGsf() || !result.empty())
+        return result;
+    return Gsf::GuessGameCodeFromPath(gsfPath);
 }
 
 bool Rom::IsGsf() const
@@ -160,7 +163,7 @@ bool Rom::LoadZip(const std::filesystem::path &filePath)
     };
 
     /* return false if the zip file is not a zip file. */
-    if(!FileReader::forEachInZip(filePath, filterFunc, op)) {
+    if (!FileReader::forEachInZip(filePath, filterFunc, op)) {
         assert(!fileInZipLoaded);
         return false;
     }
@@ -185,6 +188,7 @@ bool Rom::LoadGsflib(FileReader &fileReader)
     std::vector<uint8_t> gsfData(fileReader.size());
     fileReader.read(gsfData);
     isGsf = true;
+    gsfPath = fileReader.path();
     return Gsf::GetRomData(gsfData, romContainer);
 }
 

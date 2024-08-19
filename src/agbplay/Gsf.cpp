@@ -77,7 +77,7 @@ static bool ReadGsfData(std::span<const uint8_t> gsfData, std::vector<uint8_t> &
     if (tagDataSize > 50000)
         tagDataSize = 50000; // do I understand Neill Corlett's doc right that this is limited to 50k bytes?
 
-    tagData.assign(reinterpret_cast<const char *>(gsfData.data()), tagDataSize);
+    tagData.assign(reinterpret_cast<const char *>(&gsfData[dataOffset]), tagDataSize);
     return true;
 }
 
@@ -97,7 +97,9 @@ bool Gsf::GetRomData(std::span<const uint8_t> gsfData, std::vector<uint8_t> &res
     const size_t offset = (resultRomData[4] << 0) | (resultRomData[5] << 8) | (resultRomData[6] << 16) | (resultRomData[7] << 24);
     const size_t romSize = (resultRomData[8] << 0) | (resultRomData[9] << 8) | (resultRomData[10] << 16) | (resultRomData[11] << 24);
 
-    //Debug::print("entryPoint={:#x} offset={:#x} romSize={:#x}", entryPoint, offset, romSize);
+    // currently unused
+    (void)entryPoint;
+    (void)offset;
 
     resultRomData.erase(resultRomData.begin(), resultRomData.begin() + 12);
 
@@ -137,7 +139,7 @@ void Gsf::GetSongInfo(std::span<const uint8_t> gsfData, std::string &name, uint1
         std::string lowerCaseLine = line;
         std::transform(lowerCaseLine.begin(), lowerCaseLine.end(), lowerCaseLine.begin(), [](char c){ return std::tolower(c); });
         if (lowerCaseLine.starts_with("title=")) {
-            name = lowerCaseLine.substr(6);
+            name = line.substr(6);
             break;
         }
     }

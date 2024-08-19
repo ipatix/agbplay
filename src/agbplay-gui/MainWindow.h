@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <memory>
+#include <filesystem>
 
 #include <QMainWindow>
 #include <QListView>
@@ -51,6 +52,8 @@ private:
     void PlaylistAdd();
     void PlaylistRemove();
 
+    void ProfileImportGsfPlaylist(const std::filesystem::path &gameFilePath = "");
+
     void LoadGame();
     void CloseGame();
     void ExportAudio(bool benchmarkOnly, bool separateTracks);
@@ -70,6 +73,7 @@ private:
     /* menu bar */
     QAction *exportAudioAction = nullptr;
     QAction *saveProfileAction = nullptr;
+    QAction *profileMinigsfImport = nullptr;
 
     /* tool bar */
     QPushButton saveButton{this};

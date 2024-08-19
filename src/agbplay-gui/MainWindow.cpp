@@ -15,6 +15,8 @@
 #include <thread>
 #include <format>
 #include <fstream>
+#include <algorithm>
+#include <tuple>
 
 #include "SelectProfileDialog.h"
 #include "AboutWindow.h"
@@ -24,6 +26,8 @@
 #include "PlaybackEngine.h"
 #include "SoundExporter.h"
 #include "Debug.h"
+#include "FileReader.h"
+#include "Gsf.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -124,9 +128,10 @@ void MainWindow::SetupMenuBar()
     QAction *profileSettings = profileMenu->addAction("Profile Settings");
     profileSettings->setIcon(QIcon(":/icons/profile-settings.ico"));
     profileSettings->setEnabled(false);
-    QAction *profileMinigsfImport = profileMenu->addAction("Import GSF Playlist");
+    profileMinigsfImport = profileMenu->addAction("Import GSF Playlist");
     profileMinigsfImport->setIcon(QIcon(":/icons/profile-import-minigsf.ico"));
     profileMinigsfImport->setEnabled(false);
+    connect(profileMinigsfImport, &QAction::triggered, [this](bool){ ProfileImportGsfPlaylist(); });
     profileMenu->addSeparator();
     QAction *profileDirectory = profileMenu->addAction("Open User Profile Directory");
     profileDirectory->setIcon(QIcon(":/icons/profile-open-folder.ico"));
@@ -425,6 +430,85 @@ void MainWindow::PlaylistRemove()
     playlistWidget.RemoveSong();
 }
 
+void MainWindow::ProfileImportGsfPlaylist(const std::filesystem::path &gameFilePath)
+{
+    if (!profile)
+        return;
+
+    QFileDialog fileDialog(this);
+    fileDialog.setFileMode(QFileDialog::ExistingFiles);
+    fileDialog.setNameFilter("MINIGSF files (*.minigsf *.zip)");
+
+    std::vector<std::filesystem::path> pathsToLoad;
+
+    auto miniGsfFilterFunc = [](const std::filesystem::path &p) {
+        return FileReader::cmpPathExt(p, "minigsf");
+    };
+
+    if (gameFilePath.empty()) {
+        /* If no path is passed, ask the user to specify them interactively */
+        if (!fileDialog.exec())
+            return;
+        for (int i = 0; i < fileDialog.selectedFiles().size(); i++)
+            pathsToLoad.emplace_back(fileDialog.selectedFiles().at(i).toStdWString());
+    } else {
+        if (FileReader::cmpPathExt(gameFilePath, "gsflib")) {
+            /* Main file loaded from raw file -> load minigsfs from same folder */
+            for (const auto &dirEnt : std::filesystem::directory_iterator(gameFilePath.parent_path())) {
+                if (!dirEnt.is_regular_file())
+                    continue;
+                if (miniGsfFilterFunc(dirEnt.path()))
+                    pathsToLoad.emplace_back(dirEnt.path());
+            }
+        } else if (FileReader::cmpPathExt(gameFilePath, "zip")) {
+            /* Main file loaded from zip file -> load minigsfs from same zip file */
+            pathsToLoad.emplace_back(gameFilePath);
+        } else {
+            throw std::logic_error("This case should not occur. Attempting to load MINIGSFs from invalid main file extension.");
+        }
+    }
+
+    /* Store all songs together with their original file name (for sorting later) */
+    std::vector<std::tuple<std::filesystem::path, std::string, uint16_t>> songs;
+
+    auto op = [&songs](const std::filesystem::path &p, FileReader &fileReader) {
+        std::string title;
+        uint16_t id;
+        std::vector<uint8_t> gsfData(fileReader.size());
+        fileReader.read(gsfData);
+        Gsf::GetSongInfo(gsfData, title, id);
+        songs.emplace_back(p, std::move(title), id);
+        return true;
+    };
+
+    /* FileReader::forEachIn will run 'op' if 'miniGsfFilterFunc' returns true
+     * for a specific path. In our case 'op' will populate our song list to load. */
+    for (const std::filesystem::path &p : pathsToLoad)
+        FileReader::forEachInZipOrRaw(p, miniGsfFilterFunc, op);
+
+    /* Playlist order may be random, so sort by filename like normal for MINIGSFs. */
+    auto pathCmp = [](const auto &ta, const auto &tb){
+        return std::get<0>(ta).stem() < std::get<0>(tb).stem();
+    };
+    std::sort(songs.begin(), songs.end(), pathCmp);
+
+    /* Ask the user to replace all current songs if there are any */
+    if (playlistWidget.listWidget.count() > 0) {
+        const QString title = "Overwrite exiting playlist?";
+        QString message = "The playlist of the current profile already contains songs. ";
+        message += "Do you want to keep the current songs in the playlist before import?";
+        QMessageBox mbox(QMessageBox::Icon::Question, title, message, QMessageBox::Yes | QMessageBox::No, this);
+        if (mbox.exec() == QMessageBox::No)
+            playlistWidget.listWidget.clear();
+    }
+
+    for (auto &[_, title, id] : songs)
+        playlistWidget.AddSong(title, id);
+
+    if (songs.size() > 0)
+        profile->dirty = true;
+}
+
 void MainWindow::LoadGame()
 {
     QFileDialog fileDialog(this);
@@ -479,6 +563,16 @@ void MainWindow::LoadGame()
     saveButton.setEnabled(false);
     saveProfileAction->setEnabled(false);
 
+    if (Rom::Instance().IsGsf() && profile->playlist.size() == 0) {
+        const QString title = "Load Playlist from GSF set?";
+        QString message = "You just loaded a GSF set. ";
+        message += "The current profile does not contain any songs in the playlist.\n\n";
+        message += "Do you want to import the playlist from the accompanying MINIGSFs?";
+        QMessageBox mbox(QMessageBox::Icon::Question, title, message, QMessageBox::Yes | QMessageBox::No, this);
+        if (mbox.exec() == QMessageBox::Yes)
+            ProfileImportGsfPlaylist(fileDialog.selectedFiles().at(0).toStdWString());
+    }
+
     infoWidget.romNameLineEdit.setText(QString::fromStdString(Rom::Instance().ReadString(0xA0, 12)));
     infoWidget.romCodeLineEdit.setText(QString::fromStdString(Rom::Instance().ReadString(0xAc, 4)));
     infoWidget.songTableLineEdit.setText(QString::fromStdString(fmt::format("0x{:X}", profile->songTableInfoPlayback.pos)));
@@ -488,6 +582,7 @@ void MainWindow::LoadGame()
     visualizerState = std::make_unique<MP2KVisualizerState>();
 
     exportAudioAction->setEnabled(true);
+    profileMinigsfImport->setEnabled(true);
 }
 
 void MainWindow::CloseGame()
@@ -500,6 +595,7 @@ void MainWindow::CloseGame()
     songlistWidget.Clear();
     playlistWidget.Clear();
     exportAudioAction->setEnabled(false);
+    profileMinigsfImport->setEnabled(false);
 }
 
 void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks)

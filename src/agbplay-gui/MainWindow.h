@@ -21,7 +21,7 @@
 
 class PlaybackEngine;
 class ProfileManager;
-class Profile;
+struct Profile;
 namespace std {
     class thread;
 }

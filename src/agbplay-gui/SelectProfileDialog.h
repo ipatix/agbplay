@@ -6,7 +6,7 @@
 #include <QPushButton>
 #include <QTableWidget>
 
-class Profile;
+struct Profile;
 
 class SelectProfileDialog : public QDialog
 {

@@ -1,23 +1,23 @@
-*.o
-*.obj
+# ignore GBA ROMs and its save files
+/gba_games
 *.gba
 *.sav
-/wav
-/wav/
-/gba_games
-DEBUG
-_DEBUG
-_DEBUG.txt
-a.out
-/agbplay
-agbplay.exe*
-sappy.txt
-log
-notes
-cygportaudio-2.dll
-gmon.out
-analysis*
-perf.data
+*.ss[1-9]
+
+# ignore log files
+/*.log
+asan.log*
+
+# ignore bregalads doc
+/sappy.txt
+
+# ignore profiler files
+/gmon.out
+/analysis*
+
+# ignore build directories
 /build
 /build_dbg
-.vscode
+
+# vscode always wants a little extra attention
+/.vscode

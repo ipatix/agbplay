@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cassert>
 
+#include "Debug.h"
+
 MP2KContext::MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, const AgbplaySoundMode &agbplaySoundMode, const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo)
     : rom(rom), reader(*this), mixer(*this, STREAM_SAMPLERATE, 1.0f), mp2kSoundMode(mp2kSoundMode), agbplaySoundMode(agbplaySoundMode), songTableInfo(songTableInfo), memaccArea(256)
 {
@@ -59,8 +61,11 @@ void MP2KContext::m4aSoundModeReverb(uint8_t reverb)
 
 void MP2KContext::m4aSongNumStart(uint16_t songId)
 {
-    if (songId >= songTableInfo.count)
-        throw Xcept("Failed to load out of range songId={} (total count={})", songId, songTableInfo.count);
+    if (songId >= songTableInfo.count) {
+        Debug::print("Failed to load song, which is out of range songId={} (total count={})", songId, songTableInfo.count);
+        m4aMPlayStart(0, 0);
+        return;
+    }
     const size_t tablePos = songTableInfo.pos + songId * 8;
     const size_t songPos = (rom.ReadU32(tablePos) != 0) ? rom.ReadAgbPtrToPos(tablePos) : 0;
     const uint8_t playerIdx = m4aSongNumPlayerGet(songId);
@@ -70,8 +75,11 @@ void MP2KContext::m4aSongNumStart(uint16_t songId)
 
 void MP2KContext::m4aSongNumStartOrChange(uint16_t songId)
 {
-    if (songId >= songTableInfo.count)
-        throw Xcept("Failed to load out of range songId={} (total count={})", songId, songTableInfo.count);
+    if (songId >= songTableInfo.count) {
+        Debug::print("Failed to load song, which is out of range songId={} (total count={})", songId, songTableInfo.count);
+        m4aMPlayStart(0, 0);
+        return;
+    }
     const size_t tablePos = songTableInfo.pos + songId * 8;
     const size_t songPos = (rom.ReadU32(tablePos) != 0) ? rom.ReadAgbPtrToPos(tablePos) : 0;
     const uint8_t playerIdx = m4aSongNumPlayerGet(songId);
@@ -85,8 +93,11 @@ void MP2KContext::m4aSongNumStartOrChange(uint16_t songId)
 
 void MP2KContext::m4aSongNumStartOrContinue(uint16_t songId)
 {
-    if (songId >= songTableInfo.count)
-        throw Xcept("Failed to load out of range songId={} (total count={})", songId, songTableInfo.count);
+    if (songId >= songTableInfo.count) {
+        Debug::print("Failed to load song, which is out of range songId={} (total count={})", songId, songTableInfo.count);
+        m4aMPlayStart(0, 0);
+        return;
+    }
     const size_t tablePos = songTableInfo.pos + songId * 8;
     const size_t songPos = (rom.ReadU32(tablePos) != 0) ? rom.ReadAgbPtrToPos(tablePos) : 0;
     const uint8_t playerIdx = m4aSongNumPlayerGet(songId);
@@ -101,8 +112,9 @@ void MP2KContext::m4aSongNumStartOrContinue(uint16_t songId)
 
 void MP2KContext::m4aSongNumStop(uint16_t songId)
 {
-    if (songId >= songTableInfo.count)
-        throw Xcept("Failed to load out of range songId={} (total count={})", songId, songTableInfo.count);
+    if (songId >= songTableInfo.count) {
+        throw Xcept("Cannot stop song, which is out of range songId={} (total count={})", songId, songTableInfo.count);
+    }
     m4aMPlayStop(m4aSongNumPlayerGet(songId));
 }
 

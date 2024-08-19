@@ -6,7 +6,6 @@
 
 #include <zlib.h>
 
-#include "Debug.h"
 #include "Xcept.h"
 
 static void Decompress(std::span<const uint8_t> compressedData, std::vector<uint8_t> &decompressedData)
@@ -105,6 +104,13 @@ bool Gsf::GetRomData(std::span<const uint8_t> gsfData, std::vector<uint8_t> &res
 
     if (resultRomData.size() != romSize)
         throw Xcept("Gsf::GetRomData(): size mismatch between delcared ROM size and decompressed size");
+
+    // uncomment this for GSF debugging and examination with hex editor
+    //std::ofstream ofs("/tmp/gsf.gba");
+    //if (ofs.is_open()) {
+    //    ofs.write(reinterpret_cast<const char *>(resultRomData.data()), resultRomData.size());
+    //    ofs.close();
+    //}
 
     return true;
 }

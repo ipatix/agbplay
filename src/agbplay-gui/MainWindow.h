@@ -55,11 +55,13 @@ private:
     void ProfileImportGsfPlaylist(const std::filesystem::path &gameFilePath = "");
 
     void LoadGame();
-    void CloseGame();
+    bool CloseGame();
     void ExportAudio(bool benchmarkOnly, bool separateTracks);
     void ExportStillInProgress();
     void SaveLog();
     void SaveProfile();
+    void DiscardProfile();
+    int AskSaveProfile();
 
     void MBoxInfo(const std::string &title, const std::string &msg);
     void MBoxError(const std::string &title, const std::string &msg);

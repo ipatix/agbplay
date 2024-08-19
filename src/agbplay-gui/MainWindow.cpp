@@ -520,7 +520,8 @@ void MainWindow::LoadGame()
 
     assert(fileDialog.selectedFiles().size() == 1);
 
-    CloseGame();
+    if (!CloseGame())
+        return;
 
     std::vector<std::shared_ptr<Profile>> profileCandidates;
 
@@ -585,8 +586,14 @@ void MainWindow::LoadGame()
     profileMinigsfImport->setEnabled(true);
 }
 
-void MainWindow::CloseGame()
+bool MainWindow::CloseGame()
 {
+    if (int result = AskSaveProfile(); result == QMessageBox::Cancel)
+        return false;
+    else if (result == QMessageBox::Save)
+        SaveProfile();
+    else
+        DiscardProfile();
     Stop();
     playbackEngine.reset();
     profile.reset();
@@ -596,6 +603,7 @@ void MainWindow::CloseGame()
     playlistWidget.Clear();
     exportAudioAction->setEnabled(false);
     profileMinigsfImport->setEnabled(false);
+    return true;
 }
 
 void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks)
@@ -727,6 +735,27 @@ void MainWindow::SaveProfile()
     pm->SaveProfiles();
 }
 
+void MainWindow::DiscardProfile()
+{
+    if (!profile)
+        return;
+
+    saveButton.setEnabled(false);
+    saveProfileAction->setEnabled(false);
+    profile->dirty = false;
+}
+
+int MainWindow::AskSaveProfile()
+{
+    if (!profile || !profile->dirty)
+        return QMessageBox::Discard;
+
+    const QString title = "Save changed profile?";
+    const QString message = "The currentl profile has unsaved changes. Do you want to save the changes?";
+    QMessageBox mbox(QMessageBox::Icon::Question, title, message, QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Discard, this);
+    return mbox.exec();
+}
+
 void MainWindow::MBoxInfo(const std::string &title, const std::string &msg)
 {
     const QString qtitle = QString::fromStdString(title);
@@ -785,5 +814,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
         exportThread.reset();
     }
 
-    event->accept();
+    if (CloseGame())
+        event->accept();
+    else
+        event->ignore();
 }

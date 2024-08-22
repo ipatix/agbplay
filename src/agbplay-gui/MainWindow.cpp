@@ -235,25 +235,17 @@ void MainWindow::SetupWidgets()
     /* 2. Create songlist and playlist. */
     containerLeftLayout.addWidget(&songlistWidget);
     connect(&songlistWidget.listWidget, &QAbstractItemView::doubleClicked, [this](const QModelIndex &index) {
-            const QListWidgetItem *item = songlistWidget.listWidget.item(index.row());
-            assert(item);
-            if (!item)
-                return;
-            playlistFocus = false;
-            LoadSong(item->text().toStdString(), static_cast<uint16_t>(item->data(Qt::UserRole).toUInt()));
-            songlistWidget.SelectSong(index.row());
-            Play();
+            SonglistSwitchSong(index.row());
+    });
+    connect(&songlistWidget, &SonglistWidget::PlayActionTriggered, [this](int row) {
+            SonglistSwitchSong(row);
     });
     containerLeftLayout.addWidget(&playlistWidget);
     connect(&playlistWidget.listWidget, &QAbstractItemView::doubleClicked, [this](const QModelIndex &index) {
-            const QListWidgetItem *item = playlistWidget.listWidget.item(index.row());
-            assert(item);
-            if (!item)
-                return;
-            playlistFocus = true;
-            LoadSong(item->text().toStdString(), static_cast<uint16_t>(item->data(Qt::UserRole).toUInt()));
-            playlistWidget.SelectSong(index.row());
-            Play();
+            PlaylistSwitchSong(index.row());
+    });
+    connect(&playlistWidget, &SonglistWidget::PlayActionTriggered, [this](int row) {
+            PlaylistSwitchSong(row);
     });
     containerLeftLayout.setContentsMargins(0, 0, 0, 0);
 
@@ -428,6 +420,30 @@ void MainWindow::PlaylistAdd()
 void MainWindow::PlaylistRemove()
 {
     playlistWidget.RemoveSong();
+}
+
+void MainWindow::SonglistSwitchSong(int row)
+{
+    const QListWidgetItem *item = songlistWidget.listWidget.item(row);
+    assert(item);
+    if (!item)
+        return;
+    playlistFocus = false;
+    LoadSong(item->text().toStdString(), static_cast<uint16_t>(item->data(Qt::UserRole).toUInt()));
+    songlistWidget.SelectSong(row);
+    Play();
+}
+
+void MainWindow::PlaylistSwitchSong(int row)
+{
+    const QListWidgetItem *item = playlistWidget.listWidget.item(row);
+    assert(item);
+    if (!item)
+        return;
+    playlistFocus = true;
+    LoadSong(item->text().toStdString(), static_cast<uint16_t>(item->data(Qt::UserRole).toUInt()));
+    playlistWidget.SelectSong(row);
+    Play();
 }
 
 void MainWindow::ProfileImportGsfPlaylist(const std::filesystem::path &gameFilePath)

@@ -39,6 +39,7 @@ signals:
     void ContextMenuActionRemove();
     void ContextMenuActionAdd();
     void ContentChanged();
+    void PlayActionTriggered(int row);
 
 public:
     QVBoxLayout layout{this};

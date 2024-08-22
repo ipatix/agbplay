@@ -59,6 +59,19 @@ SonglistWidget::SonglistWidget(const QString &titleString, bool editable, QWidge
         connect(action, &QAction::triggered, [this](bool) { emit ContextMenuActionAdd(); });
     }
     connect(&listWidget, &QListWidget::itemChanged, [this](QListWidgetItem *) { UpdateCheckedFromItems(); });
+
+    QAction *action = listWidget.addAction("Play");
+    action->setShortcut(QKeySequence(Qt::Key_Return));
+    action->setShortcutContext(Qt::WidgetShortcut);
+    connect(action, &QAction::triggered, [this](bool) {
+            QList<QListWidgetItem *> items = listWidget.selectedItems();
+            if (items.count() <= 0)
+                return;
+            int row = listWidget.row(items.at(0));
+            if (row < 0)
+                return;
+            emit PlayActionTriggered(row);
+    });
 }
 
 SonglistWidget::~SonglistWidget()

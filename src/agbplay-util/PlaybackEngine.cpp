@@ -81,6 +81,8 @@ PlaybackEngine::~PlaybackEngine()
 
 void PlaybackEngine::LoadSong(uint16_t songIdx)
 {
+    trackMuted.reset();
+
     auto func = [this, songIdx]() {
         const uint8_t playerIdx = ctx->primaryPlayer;
         if (playerIdx >= ctx->players.size())
@@ -105,7 +107,10 @@ void PlaybackEngine::Play()
         if (paused) {
             paused = false;
         } else {
-            ctx->m4aMPlayStart(playerIdx, ctx->players.at(playerIdx).GetSongHeaderPos());
+            MP2KPlayer &player = ctx->players.at(playerIdx);
+            ctx->m4aMPlayStart(playerIdx, player.GetSongHeaderPos());
+            for (size_t i = 0; i < std::min(player.tracks.size(), trackMuted.size()); i++)
+                player.tracks.at(i).muted = trackMuted[i];
             hasEnded = false;
         }
     };
@@ -124,7 +129,10 @@ bool PlaybackEngine::Pause()
         if (playing) {
             paused = !paused;
         } else {
+            MP2KPlayer &player = ctx->players.at(playerIdx);
             ctx->m4aMPlayStart(playerIdx, ctx->players.at(playerIdx).GetSongHeaderPos());
+            for (size_t i = 0; i < std::min(player.tracks.size(), trackMuted.size()); i++)
+                player.tracks.at(i).muted = trackMuted[i];
             hasEnded = false;
             paused = false;
         }
@@ -189,6 +197,11 @@ bool PlaybackEngine::HasEnded() const
 
 void PlaybackEngine::ToggleMute(size_t index)
 {
+    if (index >= trackMuted.size())
+        return;
+
+    trackMuted[index] = !trackMuted[index];
+
     auto func = [this, index]() {
         const uint8_t playerIdx = ctx->primaryPlayer;
         if (playerIdx >= ctx->players.size())
@@ -205,6 +218,11 @@ void PlaybackEngine::ToggleMute(size_t index)
 
 void PlaybackEngine::Mute(size_t index, bool mute)
 {
+    if (index >= trackMuted.size())
+        return;
+
+    trackMuted[index] = mute;
+
     auto func = [this, index, mute]() {
         const uint8_t playerIdx = ctx->primaryPlayer;
         if (playerIdx >= ctx->players.size())

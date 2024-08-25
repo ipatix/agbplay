@@ -7,6 +7,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <memory>
+#include <bitset>
 #include <portaudiocpp/PortAudioCpp.hxx>
 
 #include "MP2KContext.h"
@@ -50,6 +51,7 @@ private:
 
     portaudio::FunCallbackStream audioStream;
     uint32_t speedFactor = 64;
+    std::bitset<16> trackMuted; // TODO replace 16 with constant
     bool paused = false;
     std::unique_ptr<MP2KContext> ctx;
 

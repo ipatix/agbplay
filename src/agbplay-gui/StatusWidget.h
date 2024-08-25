@@ -36,12 +36,13 @@ public:
 
     void setVisualizerState(const MP2KVisualizerState &state);
     void reset();
+    void resetMuteSolo();
 
     QVBoxLayout layout{this};
     SongWidget songWidget{this};
 
 private:
-    void updateMuteOrSolo();
+    void updateMuteOrSolo(bool visualOnly);
     void updateAnalyzer();
 
     QFrame hlineWidget{this};
@@ -49,4 +50,7 @@ private:
     std::vector<TrackWidget *> trackWidgets;
 
     size_t maxChannels = 0;
+
+signals:
+    void audibilityChanged(size_t trackNo, bool audible, bool visualOnly);
 };

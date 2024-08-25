@@ -65,7 +65,7 @@ SongWidget::SongWidget(QWidget *parent)
     lowerLayout.addSpacing(10);
 
     keyboardWidget.setFixedHeight(32);
-    keyboardWidget.setPressedColor(QColor(0, 220, 220));
+    keyboardWidget.setPressedColor(QColor(255, 150, 0));
     lowerLayout.addWidget(&keyboardWidget, 0);
 
     layout.setSpacing(0);

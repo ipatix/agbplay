@@ -20,15 +20,16 @@ public:
     TrackWidget(size_t trackNo, QWidget *parent = nullptr);
     ~TrackWidget() override;
 
-    void setMuted(bool muted);
+    void setMuted(bool muted, bool visualOnly = false);
     bool isMuted() const;
-    void setSolo(bool solo);
+    void setSolo(bool solo, bool visualOnly = false);
     bool isSolo() const;
     void setAnalyzer(bool analyzer);
     bool isAnalyzing() const;
     void setAudible(bool audible);
     const std::bitset<128> getPressed() const;
     void setPressed(const std::bitset<128> &pressed);
+    size_t getTrackNo() const;
 
     QGridLayout layout{this};
 
@@ -70,6 +71,7 @@ private:
     static const QFont labelFont;
     static const QFont labelMonospaceFont;
 
+    size_t trackNo;
     bool muted = false;
     bool solo = false;
     bool analyzer = false;
@@ -96,6 +98,6 @@ private:
     };
 
 signals:
-    void muteOrSoloChanged();
+    void muteOrSoloChanged(bool visualOnly);
     void analyzerChanged();
 };

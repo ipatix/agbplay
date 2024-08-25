@@ -1,7 +1,7 @@
 #include "TrackWidget.h"
 
 TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
-    : QWidget(parent)
+    : QWidget(parent), trackNo(trackNo)
 {
     setFixedHeight(36);
 
@@ -31,14 +31,14 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     muteButton.setFixedSize(16, 16);
     muteButton.setText("M");
     muteButton.setToolTip("Mute/Unmute Track");
-    setMuted(false);
+    setMuted(false, true);
     layout.addWidget(&muteButton, 1, COL_BUTTONS1);
 
     connect(&soloButton, &QAbstractButton::clicked, [this](bool) { setSolo(!isSolo()); });
     soloButton.setFixedSize(16, 16);
     soloButton.setText("S");
     soloButton.setToolTip("Solo/De-solo Track");
-    setSolo(false);
+    setSolo(false, true);
     layout.addWidget(&soloButton, 2, COL_BUTTONS1);
 
     connect(&analyzerButton, &QAbstractButton::clicked, [this](bool) { setAnalyzer(!isAnalyzing()); });
@@ -152,18 +152,22 @@ TrackWidget::~TrackWidget()
 {
 }
 
-void TrackWidget::setMuted(bool muted)
+void TrackWidget::setMuted(bool muted, bool visualOnly)
 {
     this->muted = muted;
 
+    QPalette pal;
+
     if (muted) {
-        setSolo(false);
-        muteButton.setStyleSheet("QPushButton {background-color: #CC0000;};");
+        setSolo(false, visualOnly);
+        pal.setColor(QPalette::Button, QColor(0xcc, 0x00, 0x00));
     } else {
-        muteButton.setStyleSheet("QPushButton {background-color: #606060;};");
+        pal.setColor(QPalette::Button, QColor(0x60, 0x60, 0x60));
     }
 
-    emit muteOrSoloChanged();
+    muteButton.setPalette(pal);
+
+    emit muteOrSoloChanged(visualOnly);
 }
 
 bool TrackWidget::isMuted() const
@@ -171,18 +175,22 @@ bool TrackWidget::isMuted() const
     return muted;
 }
 
-void TrackWidget::setSolo(bool solo)
+void TrackWidget::setSolo(bool solo, bool visualOnly)
 {
     this->solo = solo;
 
+    QPalette pal;
+
     if (solo) {
-        setMuted(false);
-        soloButton.setStyleSheet("QPushButton {background-color: #00CC00;};");
+        setMuted(false, visualOnly);
+        pal.setColor(QPalette::Button, QColor(0x00, 0xcc, 0x00));
     } else {
-        soloButton.setStyleSheet("QPushButton {background-color: #606060;};");
+        pal.setColor(QPalette::Button, QColor(0x60, 0x60, 0x60));
     }
 
-    emit muteOrSoloChanged();
+    soloButton.setPalette(pal);
+
+    emit muteOrSoloChanged(visualOnly);
 }
 
 bool TrackWidget::isSolo() const
@@ -195,13 +203,17 @@ void TrackWidget::setAnalyzer(bool analyzer)
     const bool analyzerChanged = this->analyzer != analyzer;
     this->analyzer = analyzer;
 
+    QPalette pal;
+
     if (analyzer) {
-        analyzerButton.setStyleSheet("QPushButton {background-color: #00AAAA;};");
-        keyboardWidget.setPressedColor(QColor(0, 220, 220));
+        pal.setColor(QPalette::Button, QColor(0, 170, 170));
+        keyboardWidget.setPressedColor(QColor(255, 150, 0));
     } else {
-        analyzerButton.setStyleSheet("QPushButton {background-color: #606060;};");
+        pal.setColor(QPalette::Button, QColor(96, 96, 96));
         keyboardWidget.setPressedColor(QColor(255, 0, 255));
     }
+
+    analyzerButton.setPalette(pal);
 
     if (analyzerChanged)
         updateAnalyzer();
@@ -249,6 +261,11 @@ const std::bitset<128> TrackWidget::getPressed() const
 void TrackWidget::setPressed(const std::bitset<128> &pressed)
 {
     keyboardWidget.setPressedKeys(pressed);
+}
+
+size_t TrackWidget::getTrackNo() const
+{
+    return trackNo;
 }
 
 void TrackWidget::updateAnalyzer()

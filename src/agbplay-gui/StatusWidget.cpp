@@ -116,7 +116,15 @@ void StatusWidget::reset()
     songWidget.reset();
 }
 
-void StatusWidget::updateMuteOrSolo()
+void StatusWidget::resetMuteSolo()
+{
+    for (TrackWidget *trackWidget : trackWidgets) {
+        trackWidget->setSolo(false, true);
+        trackWidget->setMuted(false, true);
+    }
+}
+
+void StatusWidget::updateMuteOrSolo(bool visualOnly)
 {
     bool isSoloActive = false;
     for (const TrackWidget *trackWidget : trackWidgets) {
@@ -135,8 +143,10 @@ void StatusWidget::updateMuteOrSolo()
 
         if (isSoloActive) {
             trackWidget->setAudible(trackWidget->isSolo());
+            emit audibilityChanged(trackWidget->getTrackNo(), trackWidget->isSolo(), visualOnly);
         } else {
             trackWidget->setAudible(!trackWidget->isMuted());
+            emit audibilityChanged(trackWidget->getTrackNo(), !trackWidget->isMuted(), visualOnly);
         }
     }
 }

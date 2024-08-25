@@ -68,6 +68,7 @@ private:
     void MBoxInfo(const std::string &title, const std::string &msg);
     void MBoxError(const std::string &title, const std::string &msg);
 
+    void UpdateMute(size_t trackNo, bool audible, bool visualOnly);
     void StatusUpdate();
     static void LogCallback(const std::string &msg, void *void_this);
     Q_INVOKABLE void LogAppend(std::string msg);

@@ -59,6 +59,8 @@ MainWindow::MainWindow(QWidget *parent)
         saveProfileAction->setEnabled(true);
     });
 
+    connect(&statusWidget, &StatusWidget::audibilityChanged, this, &MainWindow::UpdateMute);
+
     setWindowTitle("agbplay");
 }
 
@@ -382,6 +384,9 @@ void MainWindow::LoadSong(const std::string &title, uint16_t id)
         songlistWidget.SetPlayState(playing);
         playlistWidget.SetPlayState(false);
     }
+
+    /* Unmute all tracks. This prevents the mute/solo status in the engine and the UI to diverge. */
+    statusWidget.resetMuteSolo();
 
     if (playing)
         playbackEngine->Play();
@@ -785,6 +790,14 @@ void MainWindow::MBoxError(const std::string &title, const std::string &msg)
     const QString qmsg = QString::fromStdString(msg);
     QMessageBox mbox(QMessageBox::Icon::Critical, qtitle, qmsg, QMessageBox::Ok, this);
     mbox.exec();
+}
+
+void MainWindow::UpdateMute(size_t trackNo, bool audible, bool visualOnly)
+{
+    if (!playbackEngine || visualOnly)
+        return;
+
+    playbackEngine->Mute(trackNo, !audible);
 }
 
 void MainWindow::StatusUpdate()

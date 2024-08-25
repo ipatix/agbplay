@@ -399,12 +399,14 @@ void PlaybackEngine::portaudioOpen()
         }
 #endif
 
+        auto &outputDevice = currentHostApi.defaultOutputDevice();
+
         portaudio::DirectionSpecificStreamParameters outPars(
-            currentHostApi.defaultOutputDevice(),
+            outputDevice,
             2,  // stereo
             portaudio::SampleDataFormat::FLOAT32,
             true,
-            currentHostApi.defaultOutputDevice().defaultLowOutputLatency(),
+            outputDevice.defaultLowOutputLatency(),
             hostApiSpecificStreamInfo.get()
         );
 
@@ -425,7 +427,8 @@ void PlaybackEngine::portaudioOpen()
 
             audioStream.start();
         } catch (portaudio::Exception &e) {
-            Debug::print("unable to open/start stream with Host API {}: {}", currentHostApi.name(), e.what());
+            Debug::print("unable to open/start stream on device {} with Host API {}: {}",
+                    outputDevice.name(), currentHostApi.name(), e.what());
             continue;
         }
 

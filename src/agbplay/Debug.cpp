@@ -4,6 +4,8 @@
 #include <mutex>
 #include <cstdarg>
 #include <iostream>
+#include <chrono>
+#include <format>
 
 #include "Debug.h"
 
@@ -41,13 +43,16 @@ void Debug::set_callback(void (*cb)(const std::string&, void *), void *obj) {
 }
 
 void Debug::puts(const std::string &msg) {
+    /* not sure why this requires std::format instead of fmt::format */
+    std::string finalMsg = std::format("[{:%T}] {}", std::chrono::system_clock::now(), msg);
+
     if (debug_file) {
-        fprintf(debug_file, "%s\n", msg.c_str());
+        fprintf(debug_file, "%s\n", finalMsg.c_str());
         fflush(debug_file);
     }
 
     if (callback)
-        callback(msg.c_str(), cb_obj);
+        callback(finalMsg.c_str(), cb_obj);
     else
-        std::cout << msg << std::endl;
+        std::cout << finalMsg << std::endl;
 }

@@ -13,7 +13,6 @@
 
 #include <fmt/core.h>
 #include <thread>
-#include <format>
 #include <fstream>
 #include <algorithm>
 #include <tuple>
@@ -813,8 +812,7 @@ void MainWindow::LogCallback(const std::string &msg, void *void_this)
 
 void MainWindow::LogAppend(std::string msg)
 {
-    const std::string final_msg = std::format("[{:%T}] {}", std::chrono::system_clock::now(), msg);
-    logWidget.append(QString::fromStdString(final_msg));
+    logWidget.append(QString::fromStdString(msg));
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

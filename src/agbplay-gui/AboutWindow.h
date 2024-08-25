@@ -22,5 +22,5 @@ private:
     QHBoxLayout botLayout;
     QLabel figletLabel{this};
     QLabel aboutInfoLabel{this};
-    QPushButton okButton{"Ok", this};
+    QPushButton okButton{"OK", this};
 };

@@ -157,7 +157,7 @@ void MainWindow::SetupMenuBar()
 
 void MainWindow::SetupToolBar()
 {
-    QToolBar *toolBar = addToolBar("HAHAHAA");
+    QToolBar *toolBar = addToolBar("Main Toolbar");
 
     saveButton.setIcon(QIcon(":/icons/save-profile-large.ico"));
     saveButton.setFixedSize(32, 32);
@@ -225,7 +225,7 @@ void MainWindow::SetupWidgets()
 {
     /* 1. Create containers. */
     containerCentralLayout.addWidget(&containerCentralSplitter);
-    containerCentralLayout.setContentsMargins(0, 0, 0, 0);
+    containerCentralLayout.setContentsMargins(0, 0, 4, 0);
     containerCentralSplitter.setChildrenCollapsible(false);
     containerCentralSplitter.addWidget(&containerLeft);
     containerCentralSplitter.addWidget(&containerRight);

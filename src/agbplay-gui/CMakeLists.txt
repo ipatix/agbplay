@@ -18,7 +18,7 @@ file(GLOB_RECURSE AGBPLAY_GUI_HEADERS "${CMAKE_CURRENT_LIST_DIR}/*.h" "${CMAKE_C
 file(GLOB_RECURSE AGBPLAY_GUI_UIS "${CMAKE_CURRENT_LIST_DIR}/*.ui")
 file(GLOB_RECURSE AGBPLAY_GUI_QRC "${CMAKE_CURRENT_LIST_DIR}/*.qrc")
 
-add_executable(agbplay-gui ${AGBPLAY_GUI_SOURCES} ${AGBPLAY_GUI_HEADERS} ${AGBPLAY_GUI_UIS} ${AGBPLAY_GUI_QRC})
+add_executable(agbplay-gui WIN32 ${AGBPLAY_GUI_SOURCES} ${AGBPLAY_GUI_HEADERS} ${AGBPLAY_GUI_UIS} ${AGBPLAY_GUI_QRC})
 
 target_compile_options(agbplay-gui PRIVATE -Wall -Wextra -Wconversion)
 #target_compile_options(agbplay-gui PRIVATE -Wall -Wextra -Wconversion -fsanitize=address)

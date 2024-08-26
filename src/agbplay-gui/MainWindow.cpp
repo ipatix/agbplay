@@ -87,15 +87,19 @@ void MainWindow::SetupMenuBar()
     saveProfileAction->setEnabled(false);
     connect(saveProfileAction, &QAction::triggered, [this](bool){ SaveProfile(); });
 
-    exportAudioAction = fileMenu->addAction("Export Audio");
+    exportAudioAction = fileMenu->addAction("Export Audio by Selection");
     exportAudioAction->setIcon(QIcon(":/icons/export-audio.ico"));
-    exportAudioAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_E));
+    exportAudioAction->setToolTip("Export songs based on selection.");
+    exportAudioAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_E));
     exportAudioAction->setEnabled(false);
-    connect(exportAudioAction, &QAction::triggered, [this](bool){ ExportAudio(false, false); });
+    connect(exportAudioAction, &QAction::triggered, [this](bool){ ExportAudio(false, false, false); });
 
-    QAction *exportMidi = fileMenu->addAction("Export MIDI");
-    exportMidi->setIcon(QIcon(":/icons/export-midi.ico"));
-    exportMidi->setEnabled(false);
+    exportAudioQuickAction = fileMenu->addAction("Quick Export Audio");
+    exportAudioQuickAction->setIcon(QIcon(":/icons/export-audio.ico"));
+    exportAudioQuickAction->setToolTip("Export single song only");
+    exportAudioQuickAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_E));
+    exportAudioQuickAction->setEnabled(false);
+    connect(exportAudioQuickAction, &QAction::triggered, [this](bool){ ExportAudio(false, false, true); });
 
     fileMenu->addSeparator();
 
@@ -603,6 +607,7 @@ void MainWindow::LoadGame()
     visualizerState = std::make_unique<MP2KVisualizerState>();
 
     exportAudioAction->setEnabled(true);
+    exportAudioQuickAction->setEnabled(true);
     profileMinigsfImport->setEnabled(true);
 }
 
@@ -622,11 +627,12 @@ bool MainWindow::CloseGame()
     songlistWidget.Clear();
     playlistWidget.Clear();
     exportAudioAction->setEnabled(false);
+    exportAudioQuickAction->setEnabled(false);
     profileMinigsfImport->setEnabled(false);
     return true;
 }
 
-void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks)
+void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick)
 {
     /* Check if export is currently going on and join thread afterwards. */
     if (exportBusy) {
@@ -661,26 +667,41 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks)
     /* Modify export profile to only contain selected songs. */
     profileToExport.playlist.clear();
 
-    for (int i = 0; i < songlistWidget.listWidget.count(); i++) {
-        QListWidgetItem *item = songlistWidget.listWidget.item(i);
-        if (!item)
-            continue;
+    if (quick) {
+        QListWidgetItem *item;
+        if (playlistFocus) {
+            item = playlistWidget.listWidget.item(playlistWidget.GetSelectedSong());
+        } else {
+            item = songlistWidget.listWidget.item(songlistWidget.GetSelectedSong());
+        }
 
-        const std::string name = item->text().toStdString();
-        const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
-        if (item->checkState() == Qt::Checked)
+        if (item) {
+            const std::string name = item->text().toStdString();
+            const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
             profileToExport.playlist.emplace_back(name, id);
-    }
+        }
+    } else {
+        for (int i = 0; i < songlistWidget.listWidget.count(); i++) {
+            QListWidgetItem *item = songlistWidget.listWidget.item(i);
+            if (!item)
+                continue;
 
-    for (int i = 0; i < playlistWidget.listWidget.count(); i++) {
-        QListWidgetItem *item = playlistWidget.listWidget.item(i);
-        if (!item)
-            continue;
+            const std::string name = item->text().toStdString();
+            const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
+            if (item->checkState() == Qt::Checked)
+                profileToExport.playlist.emplace_back(name, id);
+        }
 
-        const std::string name = item->text().toStdString();
-        const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
-        if (item->checkState() == Qt::Checked)
-            profileToExport.playlist.emplace_back(name, id);
+        for (int i = 0; i < playlistWidget.listWidget.count(); i++) {
+            QListWidgetItem *item = playlistWidget.listWidget.item(i);
+            if (!item)
+                continue;
+
+            const std::string name = item->text().toStdString();
+            const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
+            if (item->checkState() == Qt::Checked)
+                profileToExport.playlist.emplace_back(name, id);
+        }
     }
 
     exportBusy = true;

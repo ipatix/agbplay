@@ -58,7 +58,7 @@ private:
 
     void LoadGame();
     bool CloseGame();
-    void ExportAudio(bool benchmarkOnly, bool separateTracks);
+    void ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick);
     void ExportStillInProgress();
     void SaveLog();
     void SaveProfile();
@@ -77,6 +77,7 @@ private:
 
     /* menu bar */
     QAction *exportAudioAction = nullptr;
+    QAction *exportAudioQuickAction = nullptr;
     QAction *saveProfileAction = nullptr;
     QAction *profileMinigsfImport = nullptr;
 

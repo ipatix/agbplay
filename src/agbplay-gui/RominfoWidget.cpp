@@ -15,8 +15,31 @@ RominfoWidget::RominfoWidget(QWidget *parent)
     layout.addWidget(&songCountLabel);
     layout.addWidget(&songCountLineEdit);
     songCountLineEdit.setReadOnly(true);
+    layout.addWidget(&soundModeGroupBox);
     layout.addWidget(&spacer);
     spacer.setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+
+    soundModeGroupBoxLayout.addWidget(&pcmVolLabel);
+    soundModeGroupBoxLayout.addWidget(&pcmVolValLabel);
+    soundModeGroupBoxLayout.addWidget(&pcmRevLabel);
+    soundModeGroupBoxLayout.addWidget(&pcmRevValLabel);
+    soundModeGroupBoxLayout.addWidget(&pcmFreqLabel);
+    soundModeGroupBoxLayout.addWidget(&pcmFreqValLabel);
+    soundModeGroupBoxLayout.addWidget(&pcmChnLabel);
+    soundModeGroupBoxLayout.addWidget(&pcmChnValLabel);
+    soundModeGroupBoxLayout.addWidget(&pcmDacLabel);
+    soundModeGroupBoxLayout.addWidget(&pcmDacValLabel);
+
+    pcmVolValLabel.setAlignment(Qt::AlignRight);
+    //pcmVolValLabel.setReadOnly(true);
+    pcmRevValLabel.setAlignment(Qt::AlignRight);
+    //pcmRevValLabel.setReadOnly(true);
+    pcmFreqValLabel.setAlignment(Qt::AlignRight);
+    //pcmFreqValLabel.setReadOnly(true);
+    pcmChnValLabel.setAlignment(Qt::AlignRight);
+    //pcmChnValLabel.setReadOnly(true);
+    pcmDacValLabel.setAlignment(Qt::AlignRight);
+    //pcmDacValLabel.setReadOnly(true);
 
     setMinimumWidth(130);
 }

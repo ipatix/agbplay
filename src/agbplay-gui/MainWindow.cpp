@@ -16,6 +16,7 @@
 #include <fstream>
 #include <algorithm>
 #include <tuple>
+#include <array>
 
 #include "SelectProfileDialog.h"
 #include "AboutWindow.h"
@@ -608,6 +609,8 @@ void MainWindow::LoadGame()
     infoWidget.songTableLineEdit.setText(QString::fromStdString(fmt::format("0x{:X}", profile->songTableInfoPlayback.pos)));
     infoWidget.songCountLineEdit.setText(QString::number(profile->songTableInfoPlayback.count));
 
+    UpdateSoundMode();
+
     playbackEngine = std::make_unique<PlaybackEngine>(*profile);
     visualizerState = std::make_unique<MP2KVisualizerState>();
 
@@ -627,6 +630,17 @@ bool MainWindow::CloseGame()
     Stop();
     playbackEngine.reset();
     profile.reset();
+
+    infoWidget.romNameLineEdit.setText("<none>");
+    infoWidget.romCodeLineEdit.setText("<none>");
+    infoWidget.songTableLineEdit.setText("<none>");
+    infoWidget.songCountLineEdit.setText("<none>");
+
+    infoWidget.pcmVolValLabel.setText("<none>");
+    infoWidget.pcmRevValLabel.setText("<none>");
+    infoWidget.pcmFreqValLabel.setText("<none>");
+    infoWidget.pcmChnValLabel.setText("<none>");
+    infoWidget.pcmDacValLabel.setText("<none>");
 
     statusWidget.reset();
     songlistWidget.Clear();
@@ -816,6 +830,38 @@ void MainWindow::MBoxError(const std::string &title, const std::string &msg)
     const QString qmsg = QString::fromStdString(msg);
     QMessageBox mbox(QMessageBox::Icon::Critical, qtitle, qmsg, QMessageBox::Ok, this);
     mbox.exec();
+}
+
+void MainWindow::UpdateSoundMode()
+{
+    /* This table is duplicate and can be found elsewhere, but I currently don't know
+     * where to put it in a common place. */
+    static const std::array<uint32_t, 16> rateTable{
+        0, 5734, 7884, 10512,
+        13379, 15768, 18157, 21024,
+        26758, 31536, 36314, 40137,
+        42048, 0, 0, 0,
+    };
+
+    static const std::array<const char *, 4> dacTable{
+        "32 kHz @ 9 bit",
+        "65 kHz @ 8 bit",
+        "131 kHz @ 7 bit",
+        "262 kHz @ 6 bit",
+    };
+
+    const std::string vol = fmt::format("{}/15", profile->mp2kSoundModePlayback.vol);
+    const std::string rev = fmt::format("{}/127", profile->mp2kSoundModePlayback.rev % 128);
+    const std::string freq = fmt::format("{}: {} Hz",
+            profile->mp2kSoundModePlayback.freq, rateTable[profile->mp2kSoundModePlayback.freq % 16]);
+    const std::string chn = fmt::format("{}/12", profile->mp2kSoundModePlayback.maxChannels);
+    const std::string dac = dacTable[profile->mp2kSoundModePlayback.dacConfig % 4];
+
+    infoWidget.pcmVolValLabel.setText(QString::fromStdString(vol));
+    infoWidget.pcmRevValLabel.setText(QString::fromStdString(rev));
+    infoWidget.pcmFreqValLabel.setText(QString::fromStdString(freq));
+    infoWidget.pcmChnValLabel.setText(QString::fromStdString(chn));
+    infoWidget.pcmDacValLabel.setText(QString::fromStdString(dac));
 }
 
 void MainWindow::UpdateMute(size_t trackNo, bool audible, bool visualOnly)

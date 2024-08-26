@@ -24,6 +24,20 @@ public:
     QLineEdit songTableLineEdit{"<none>", this};
     QLabel songCountLabel{"Number of Songs:", this};
     QLineEdit songCountLineEdit{"<none>", this};
+    QGroupBox soundModeGroupBox{"Sound Mode:", this};
+
+    QVBoxLayout soundModeGroupBoxLayout{&soundModeGroupBox};
+
+    QLabel pcmVolLabel{"PCM Volume:", &soundModeGroupBox};
+    QLabel pcmVolValLabel{"<none>", &soundModeGroupBox};
+    QLabel pcmRevLabel{"Force Reverb:", &soundModeGroupBox};
+    QLabel pcmRevValLabel{"<none>", &soundModeGroupBox};
+    QLabel pcmFreqLabel{"PCM Freq:", &soundModeGroupBox};
+    QLabel pcmFreqValLabel{"<none>", &soundModeGroupBox};
+    QLabel pcmChnLabel{"PCM Max Chn:", &soundModeGroupBox};
+    QLabel pcmChnValLabel{"<none>", &soundModeGroupBox};
+    QLabel pcmDacLabel{"DAC Config:", &soundModeGroupBox};
+    QLabel pcmDacValLabel{"<none>", &soundModeGroupBox};
 
     QWidget spacer{this};
 };

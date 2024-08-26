@@ -19,6 +19,7 @@
 
 #include "SelectProfileDialog.h"
 #include "AboutWindow.h"
+#include "GlobalPreferencesWindow.h"
 
 #include "ProfileManager.h"
 #include "Rom.h"
@@ -114,6 +115,10 @@ void MainWindow::SetupMenuBar()
     QMenu *editMenu = menuBar()->addMenu("&Edit");
     QAction *editPreferences = editMenu->addAction("Global Preferences");
     editPreferences->setIcon(QIcon(":/icons/preferences.ico"));
+    connect(editPreferences, &QAction::triggered, [this](bool){
+        GlobalPreferencesWindow w(this);
+        w.exec();
+    });
 
     /* Profile */
     QMenu *profileMenu = menuBar()->addMenu("&Profile");

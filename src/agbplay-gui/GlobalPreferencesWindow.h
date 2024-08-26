@@ -35,7 +35,7 @@ private:
     QLineEdit exportQuickExportDirLineEdit{&exportGroupBox};
     QPushButton exportQuickExportDirButton{"...", &exportGroupBox};
 
-    QHBoxLayout botButtonLayout{this};
+    QHBoxLayout botButtonLayout;
     QPushButton saveButton{"Save", this};
     QPushButton cancelButton{"Cancel", this};
 };

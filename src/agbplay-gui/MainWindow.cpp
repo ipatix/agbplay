@@ -329,7 +329,7 @@ void MainWindow::Pause()
 void MainWindow::Stop()
 {
     if (!playbackEngine) {
-        stopButton.setChecked(false);
+        stopButton.setChecked(true);
         return;
     }
 

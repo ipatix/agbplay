@@ -36,7 +36,7 @@ public:
 
     void setVisualizerState(const MP2KVisualizerState &state);
     void reset();
-    void resetMuteSolo();
+    void loadSongReset();
 
     QVBoxLayout layout{this};
     SongWidget songWidget{this};
@@ -46,7 +46,6 @@ private:
     void updateAnalyzer();
 
     QFrame hlineWidget{this};
-    // TODO use constant MAX_TRACKS instead of 16
     std::vector<TrackWidget *> trackWidgets;
 
     size_t maxChannels = 0;

@@ -116,12 +116,14 @@ void StatusWidget::reset()
     songWidget.reset();
 }
 
-void StatusWidget::resetMuteSolo()
+void StatusWidget::loadSongReset()
 {
     for (TrackWidget *trackWidget : trackWidgets) {
         trackWidget->setSolo(false, true);
         trackWidget->setMuted(false, true);
     }
+
+    maxChannels = 0;
 }
 
 void StatusWidget::updateMuteOrSolo(bool visualOnly)

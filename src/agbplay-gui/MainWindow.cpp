@@ -395,7 +395,7 @@ void MainWindow::LoadSong(const std::string &title, uint16_t id)
     }
 
     /* Unmute all tracks. This prevents the mute/solo status in the engine and the UI to diverge. */
-    statusWidget.resetMuteSolo();
+    statusWidget.loadSongReset();
 
     if (playing)
         playbackEngine->Play();

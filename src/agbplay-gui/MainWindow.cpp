@@ -146,7 +146,7 @@ void MainWindow::SetupMenuBar()
     profileMenu->addSeparator();
     QAction *profileDirectory = profileMenu->addAction("Open User Profile Directory");
     profileDirectory->setIcon(QIcon(":/icons/profile-open-folder.ico"));
-    connect(profileDirectory, &QAction::triggered, [this](bool) {
+    connect(profileDirectory, &QAction::triggered, [](bool) {
             QDesktopServices::openUrl(QString::fromStdWString(ProfileManager::ProfileUserPath().wstring()));
     });
 
@@ -574,7 +574,7 @@ void MainWindow::LoadGame()
 
         assert(profileDialog.selectedProfile() >= 0);
 
-        profile = profileCandidates.at(profileDialog.selectedProfile());
+        profile = profileCandidates.at(static_cast<size_t>(profileDialog.selectedProfile()));
     } else {
         profile = profileCandidates.at(0);
     }

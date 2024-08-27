@@ -33,7 +33,7 @@ private:
     void UpdateCheckedFromCheckBox();
     void Rename();
 
-    bool eventFilter(QObject *object, QEvent *event);
+    bool eventFilter(QObject *object, QEvent *event) override;
 
 signals:
     void ContextMenuActionRemove();

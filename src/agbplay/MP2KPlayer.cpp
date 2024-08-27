@@ -5,7 +5,7 @@
 #include "Rom.h" // TODO remove once Rom is deglobalized
 
 MP2KPlayer::MP2KPlayer(const PlayerInfo &playerInfo, uint8_t playerIdx)
-    : playerIdx(playerIdx), usePriority(playerInfo.usePriority), trackLimit(playerInfo.maxTracks)
+    : trackLimit(playerInfo.maxTracks), playerIdx(playerIdx), usePriority(playerInfo.usePriority)
 {
     for (uint8_t i = 0; i < trackLimit; i++)
         tracks.emplace_back(i);
@@ -47,24 +47,4 @@ void MP2KPlayer::Init(const Rom &rom, size_t songHeaderPos)
     tickCount = 0;
     frameCount = 0;
     interframeCount = 0;
-}
-
-size_t MP2KPlayer::GetSoundBankPos() const
-{
-    return bankPos;
-}
-
-size_t MP2KPlayer::GetSongHeaderPos() const
-{
-    return songHeaderPos;
-}
-
-uint8_t MP2KPlayer::GetPriority() const
-{
-    return priority;
-}
-
-uint8_t MP2KPlayer::GetReverb() const
-{
-    return reverb;
 }

@@ -108,7 +108,7 @@ void PlaybackEngine::Play()
             paused = false;
         } else {
             MP2KPlayer &player = ctx->players.at(playerIdx);
-            ctx->m4aMPlayStart(playerIdx, player.GetSongHeaderPos());
+            ctx->m4aMPlayStart(playerIdx, player.songHeaderPos);
             for (size_t i = 0; i < std::min(player.tracks.size(), trackMuted.size()); i++)
                 player.tracks.at(i).muted = trackMuted[i];
             hasEnded = false;
@@ -130,7 +130,7 @@ bool PlaybackEngine::Pause()
             paused = !paused;
         } else {
             MP2KPlayer &player = ctx->players.at(playerIdx);
-            ctx->m4aMPlayStart(playerIdx, ctx->players.at(playerIdx).GetSongHeaderPos());
+            ctx->m4aMPlayStart(playerIdx, ctx->players.at(playerIdx).songHeaderPos);
             for (size_t i = 0; i < std::min(player.tracks.size(), trackMuted.size()); i++)
                 player.tracks.at(i).muted = trackMuted[i];
             hasEnded = false;
@@ -153,7 +153,7 @@ void PlaybackEngine::Stop()
             return;
 
         ctx->m4aMPlayAllStop();
-        ctx->m4aMPlayStart(playerIdx, ctx->players.at(playerIdx).GetSongHeaderPos());
+        ctx->m4aMPlayStart(playerIdx, ctx->players.at(playerIdx).songHeaderPos);
         ctx->m4aMPlayStop(playerIdx);
         hasEnded = false;
         paused = false;
@@ -244,10 +244,10 @@ SongInfo PlaybackEngine::GetSongInfo()
     auto func = [this, &songInfo]() {
         const MP2KPlayer &player = ctx->players.at(ctx->primaryPlayer);
 
-        songInfo.songHeaderPos = player.GetSongHeaderPos();
-        songInfo.voiceTablePos = player.GetSoundBankPos();
-        songInfo.reverb = player.GetReverb();
-        songInfo.priority = player.GetPriority();
+        songInfo.songHeaderPos = player.songHeaderPos;
+        songInfo.voiceTablePos = player.bankPos;
+        songInfo.reverb = player.reverb;
+        songInfo.priority = player.priority;
         songInfo.playerIdx = player.playerIdx;
     };
 

@@ -272,7 +272,7 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
     // find instrument definition
     uint8_t midiKeyPitch;
     int8_t rhythmPan = 0;
-    size_t instrPos = player.GetSoundBankPos() + trk.prog * 12;
+    size_t instrPos = player.bankPos + trk.prog * 12;
     if (const uint8_t bankDataType = rom.ReadU8(instrPos + 0x0); bankDataType & BANKDATA_TYPE_SPLIT) {
         const size_t subBankPos = rom.ReadAgbPtrToPos(instrPos + 0x4);
         const size_t subKeyMap = rom.ReadAgbPtrToPos(instrPos + 0x8);

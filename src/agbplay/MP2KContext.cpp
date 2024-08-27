@@ -86,7 +86,7 @@ void MP2KContext::m4aSongNumStartOrChange(uint16_t songId)
     auto &player = players.at(playerIdx);
     primaryPlayer = playerIdx;
 
-    if (songPos != player.GetSongHeaderPos() || player.finished || !player.playing) {
+    if (songPos != player.bankPos || player.finished || !player.playing) {
         m4aMPlayStart(playerIdx, songPos);
     }
 }
@@ -104,7 +104,7 @@ void MP2KContext::m4aSongNumStartOrContinue(uint16_t songId)
     auto &player = players.at(playerIdx);
     primaryPlayer = playerIdx;
 
-    if (songPos != player.GetSongHeaderPos() || player.finished)
+    if (songPos != player.songHeaderPos || player.finished)
         m4aMPlayStart(playerIdx, songPos);
     else if (!player.playing)
         m4aMPlayContinue(playerIdx);
@@ -122,9 +122,9 @@ void MP2KContext::m4aMPlayStart(uint8_t playerIdx, size_t songPos)
 {
     MP2KPlayer &player = players.at(playerIdx);
 
-    if (player.usePriority && player.GetSongHeaderPos() != 0 && songPos != 0 && player.playing) {
+    if (player.usePriority && player.songHeaderPos != 0 && songPos != 0 && player.playing) {
         /* If priority of current song is higher than new song, do not start the song. */
-        if (player.GetPriority() > rom.ReadU8(songPos + 2))
+        if (player.priority > rom.ReadU8(songPos + 2))
             return;
     }
 
@@ -135,7 +135,7 @@ void MP2KContext::m4aMPlayStart(uint8_t playerIdx, size_t songPos)
     reader.Restart();
     mixer.ResetFade();
 
-    const uint8_t reverb = player.GetReverb();
+    const uint8_t reverb = player.reverb;
     if (reverb & 0x80)
         m4aSoundModeReverb(reverb);
 }

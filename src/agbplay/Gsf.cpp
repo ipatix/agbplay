@@ -51,9 +51,9 @@ static bool ReadGsfData(std::span<const uint8_t> gsfData, std::vector<uint8_t> &
     if (gsfData[0] != 'P' || gsfData[1] != 'S' || gsfData[2] != 'F' || gsfData[3] != GSF_VERSION_BYTE)
         return false;
 
-    const size_t compReservedSize = (gsfData[4] << 0) | (gsfData[5] << 8) | (gsfData[6] << 16) | (gsfData[7] << 24);
-    const size_t compProgramSize = (gsfData[8] << 0) | (gsfData[9] << 8) | (gsfData[10] << 16) | (gsfData[11] << 24);
-    const uint32_t compProgramCrc32 = (gsfData[12] << 0) | (gsfData[13] << 8) | (gsfData[14] << 16) | (gsfData[15] << 24);
+    const size_t compReservedSize = static_cast<size_t>((gsfData[4] << 0) | (gsfData[5] << 8) | (gsfData[6] << 16) | (gsfData[7] << 24));
+    const size_t compProgramSize = static_cast<size_t>((gsfData[8] << 0) | (gsfData[9] << 8) | (gsfData[10] << 16) | (gsfData[11] << 24));
+    const uint32_t compProgramCrc32 = static_cast<uint32_t>((gsfData[12] << 0) | (gsfData[13] << 8) | (gsfData[14] << 16) | (gsfData[15] << 24));
 
     if (gsfData.size() < (16 + compReservedSize + compProgramSize))
         throw Xcept("ReadGsfData(): ill-formed gsflib, size in header larger than available");
@@ -94,9 +94,9 @@ bool Gsf::GetRomData(std::span<const uint8_t> gsfData, std::vector<uint8_t> &res
     if (resultRomData.size() < 12)
         throw Xcept("Gsf::GetRomData(): program data is ill-formed (size < 12)");
 
-    const size_t entryPoint = (resultRomData[0] << 0) | (resultRomData[1] << 8) | (resultRomData[2] << 16) | (resultRomData[3] << 24);
-    const size_t offset = (resultRomData[4] << 0) | (resultRomData[5] << 8) | (resultRomData[6] << 16) | (resultRomData[7] << 24);
-    const size_t romSize = (resultRomData[8] << 0) | (resultRomData[9] << 8) | (resultRomData[10] << 16) | (resultRomData[11] << 24);
+    const size_t entryPoint = static_cast<size_t>((resultRomData[0] << 0) | (resultRomData[1] << 8) | (resultRomData[2] << 16) | (resultRomData[3] << 24));
+    const size_t offset = static_cast<size_t>((resultRomData[4] << 0) | (resultRomData[5] << 8) | (resultRomData[6] << 16) | (resultRomData[7] << 24));
+    const size_t romSize = static_cast<size_t>((resultRomData[8] << 0) | (resultRomData[9] << 8) | (resultRomData[10] << 16) | (resultRomData[11] << 24));
 
     // currently unused
     (void)entryPoint;

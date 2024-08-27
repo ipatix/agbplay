@@ -66,7 +66,7 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
                 break;
             }
 
-            const int key = octave * 12 + W_KEY_TABLE[wkey];
+            const int key = octave * 12 + W_KEY_TABLE[static_cast<size_t>(wkey)];
             assert(key < 128);
 
             const QRect keyRect(
@@ -81,7 +81,7 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
             );
 
             QColor col;
-            if (pressed[key])
+            if (pressed[static_cast<size_t>(key)])
                 col = muted ? pressedMuted : pressedColor;
             else if (key == 60)
                 col = midc;
@@ -102,7 +102,7 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
             if (octave == 10 && bkey == 3)
                 break;
 
-            const int key = octave * 12 + B_KEY_TABLE[bkey];
+            const int key = octave * 12 + B_KEY_TABLE[static_cast<size_t>(bkey)];
             assert(key < 128);
 
             const int BLACK_L_HALF = BLACK_KEY_WIDTH / 2;
@@ -123,7 +123,7 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
             );
 
             QColor col;
-            if (pressed[key])
+            if (pressed[static_cast<size_t>(key)])
                 col = muted ? pressedMuted : pressedColor;
             else
                 col = bk;

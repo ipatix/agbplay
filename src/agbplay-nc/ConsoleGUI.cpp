@@ -62,7 +62,7 @@ void ConsoleGUI::update()
             txt = "";
         }
         txt.resize(textWidth, ' ');
-        mvwprintw(winPtr, (int)i, 2, txt.c_str());
+        mvwprintw(winPtr, (int)i, 2, "%s", txt.c_str());
     }
     wrefresh(winPtr);
 }

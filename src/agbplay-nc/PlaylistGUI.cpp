@@ -123,7 +123,7 @@ void PlaylistGUI::update()
     std::string bar = "Playlist:";
     bar.resize(contentWidth, ' ');
     wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::WINDOW_FRAME)) | A_REVERSE);
-    mvwprintw(winPtr, 0, 0, bar.c_str());
+    mvwprintw(winPtr, 0, 0, "%s", bar.c_str());
     for (uint32_t i = 0; i < contentHeight; i++) {
         uint32_t entry = i + viewPos;
         if (entry == cursorPos && cursorVisible) {
@@ -143,7 +143,7 @@ void PlaylistGUI::update()
             songText = "";
         }
         songText.resize(width, ' ');
-        mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, songText.c_str());
+        mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, "%s", songText.c_str());
     }
     wrefresh(winPtr);
 }

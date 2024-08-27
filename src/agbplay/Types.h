@@ -132,10 +132,6 @@ struct sample {
 
 struct MP2KVisualizerState 
 {
-    MP2KVisualizerState() = default;
-    MP2KVisualizerState(const MP2KVisualizerState&) = delete;
-    //MP2KVisualizerState& operator=(const MP2KVisualizerState&) = delete;
-
     struct TrackState
     {
         uint32_t trackPtr = 0;

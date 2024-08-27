@@ -27,6 +27,8 @@ bool NearestResampler::Process(std::span<float> buffer, float phaseInc, const Fe
     if (buffer.size() == 0)
         return true;
 
+    phaseInc = std::max(phaseInc, 0.0f);
+
     size_t samplesRequired = size_t(phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
@@ -36,7 +38,7 @@ bool NearestResampler::Process(std::span<float> buffer, float phaseInc, const Fe
     for (size_t i = 0; i < buffer.size(); i++) {
         buffer[i] = fetchBuffer[fi];
         phase += phaseInc;
-        int istep = static_cast<int>(phase);
+        size_t istep = static_cast<size_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
     }
@@ -67,6 +69,8 @@ bool LinearResampler::Process(std::span<float> buffer, float phaseInc, const Fet
     if (buffer.size() == 0)
         return true;
 
+    phaseInc = std::max(phaseInc, 0.0f);
+
     size_t samplesRequired = static_cast<size_t>(
             phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
@@ -81,7 +85,7 @@ bool LinearResampler::Process(std::span<float> buffer, float phaseInc, const Fet
         float b = fetchBuffer[fi+1];
         buffer[i] = a + phase * (b - a);
         phase += phaseInc;
-        int istep = static_cast<int>(phase);
+        size_t istep = static_cast<size_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
     }
@@ -128,6 +132,8 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     if (buffer.size()== 0)
         return true;
 
+    phaseInc = std::max(phaseInc, 0.0f);
+
     size_t samplesRequired = static_cast<size_t>(
             phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
@@ -154,13 +160,13 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
             //float s = triangle(sincIndex);
             //float w = 1.0f;
             float kernel = s * w;
-            sampleSum += kernel * fetchBuffer[fi + wi + SINC_WINDOW_SIZE - 1];
+            sampleSum += kernel * fetchBuffer[fi + static_cast<size_t>(wi + SINC_WINDOW_SIZE) - 1];
             kernelSum += kernel;
             //_print_debug("s=%f w=%f fetchBuffer[fi + wi]=%f", s, w, fetchBuffer[fi + wi]);
         }
         //_print_debug("sum=%f", sum);
         phase += phaseInc;
-        int istep = static_cast<int>(phase);
+        size_t istep = static_cast<size_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
 
@@ -296,6 +302,8 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     if (buffer.size() == 0)
         return true;
 
+    phaseInc = std::max(phaseInc, 0.0f);
+
     size_t samplesRequired = static_cast<size_t>(
             phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
@@ -316,11 +324,11 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
             float sl = fast_Si(SiIndexLeft);
             float sr = fast_Si(SiIndexRight);
             float kernel = sr - sl;
-            sampleSum += kernel * fetchBuffer[fi + wi + SINC_WINDOW_SIZE - 1];
+            sampleSum += kernel * fetchBuffer[fi + static_cast<size_t>(wi + SINC_WINDOW_SIZE) - 1];
             kernelSum += kernel;
         }
         phase += phaseInc;
-        int istep = static_cast<int>(phase);
+        size_t istep = static_cast<size_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
 
@@ -394,6 +402,8 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
     if (buffer.size() == 0)
         return true;
 
+    phaseInc = std::max(phaseInc, 0.0f);
+
     size_t samplesRequired = static_cast<size_t>(
             phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
@@ -415,11 +425,11 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
             float sm = fast_Ti(TiIndexMiddle);
             float sr = fast_Ti(TiIndexRight);
             float kernel = sr - 2.0f * sm + sl;
-            sampleSum += kernel * fetchBuffer[fi + wi + SINC_WINDOW_SIZE - 1];
+            sampleSum += kernel * fetchBuffer[fi + static_cast<size_t>(wi + SINC_WINDOW_SIZE) - 1];
             kernelSum += kernel;
         }
         phase += phaseInc;
-        int istep = static_cast<int>(phase);
+        size_t istep = static_cast<size_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
 

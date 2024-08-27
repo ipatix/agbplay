@@ -17,12 +17,12 @@ public:
     }
     ~SystemFileReader() override = default;
 
-    [[maybe_unused]] void read(std::span<uint8_t> buffer) override {
-        ifs.read(reinterpret_cast<char *>(buffer.data()), buffer.size());
+    void read(std::span<uint8_t> buffer) override {
+        ifs.read(reinterpret_cast<char *>(buffer.data()), static_cast<std::streamsize>(buffer.size()));
         if (ifs.bad())
             throw Xcept("Could not read file: bad bit is set");
     }
-    size_t size() {
+    size_t size() override {
         ifs.seekg(0, std::ios_base::end);
         const std::ifstream::pos_type fileEnd = ifs.tellg();
         if (fileEnd == -1)
@@ -30,7 +30,7 @@ public:
         ifs.seekg(0, std::ios_base::beg);
         return static_cast<size_t>(fileEnd);
     }
-    void close() {
+    void close() override {
         ifs.close();
     }
     std::filesystem::path path() const override {
@@ -44,7 +44,7 @@ private:
 
 class ZipFileReader : public FileReader {
 public:
-    ZipFileReader(zip_t *archive, zip_uint64_t index) {
+    ZipFileReader(zip_t *archive, uint64_t index) {
         zip_stat_init(&s);
         if (zip_stat_index(archive, index, 0, &s) == -1)
             throw Xcept("zip_stat_index() failed: {}", zip_strerror(archive));
@@ -61,17 +61,17 @@ public:
         close();
     }
 
-    [[maybe_unused]] void read(std::span<uint8_t> buffer) override {
-        const zip_int64_t bytesRead = zip_fread(file, static_cast<void *>(buffer.data()), buffer.size());
+    void read(std::span<uint8_t> buffer) override {
+        const int64_t bytesRead = zip_fread(file, static_cast<void *>(buffer.data()), buffer.size());
         if (bytesRead == 0)
             throw Xcept("zip_fread(): end of file reached");
         if (bytesRead == -1)
             throw Xcept("zip_fread(): error occured while reading: {}", zip_file_strerror(file));
     }
-    size_t size() {
+    size_t size() override {
         return static_cast<size_t>(s.size);
     }
-    void close() {
+    void close() override {
         if (file) {
             zip_fclose(file);
             file = nullptr;
@@ -124,9 +124,9 @@ bool FileReader::forEachInZip(
         throw Xcept("FileReader: Unable to open zip file: {}", zip_error_strerror(error.get()));
     }
 
-    const zip_int64_t numFilesInZip = zip_get_num_entries(archive.get(), 0);
+    const uint64_t numFilesInZip = static_cast<uint64_t>(zip_get_num_entries(archive.get(), 0));
 
-    for (zip_int64_t i = 0; i < numFilesInZip; i++) {
+    for (uint64_t i = 0; i < numFilesInZip; i++) {
         const char8_t *cname = reinterpret_cast<const char8_t *>(zip_get_name(archive.get(), i, 0));
         if (!cname)
             continue;

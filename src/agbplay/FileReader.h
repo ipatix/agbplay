@@ -9,7 +9,7 @@
 class FileReader {
 public:
     virtual ~FileReader() = default;
-    [[maybe_unused]] virtual void read(std::span<uint8_t> buffer) = 0;
+    virtual void read(std::span<uint8_t> buffer) = 0;
     virtual size_t size() = 0;
     virtual void close() = 0;
     virtual std::filesystem::path path() const = 0;

@@ -13,8 +13,8 @@
 
 typedef float PRECISION;
 const float SAMPLERATE = 48000.0f;
-const size_t NUM_SAMPLES = 1024 * 256;
-const float TEST_FREQ = 1000.0f;
+const float TEST_LEN_S = 2.0f;
+const float TEST_FREQ = 22000.0f;
 
 template<typename T>
 void printSig(std::span<T> buffer)
@@ -73,22 +73,61 @@ long double calcRms(std::span<T> buffer)
 
 int main()
 {
+    const size_t NUM_SAMPLES = static_cast<size_t>(TEST_LEN_S * SAMPLERATE);
     std::vector<PRECISION> buffer(NUM_SAMPLES);
 
-    fmt::print("Measuring aliasing of sine\n");
+    const float resampledRatio = 6.36391f;
+    const float resampledRate = SAMPLERATE * resampledRatio;
+    std::vector<PRECISION> resampledBuffer(static_cast<size_t>(resampledRatio * static_cast<float>(buffer.size())));
+
+    size_t pos = 0;
+
+    auto sampleFetchFunc = [&](std::vector<float>& fetchBuffer, size_t samplesRequired) {
+        if (fetchBuffer.size() >= samplesRequired)
+            return true;
+
+        fmt::print("hello: samplesRequired={}\n", samplesRequired);
+        size_t samplesToFetch = samplesRequired - fetchBuffer.size();
+        size_t i = fetchBuffer.size();
+        fetchBuffer.resize(samplesRequired);
+
+        do {
+            size_t samplesTilEnd = buffer.size() - pos;
+            size_t thisFetch = std::min(samplesTilEnd, samplesToFetch);
+
+            samplesToFetch -= thisFetch;
+            do {
+                fetchBuffer[i++] = buffer[pos++];
+            } while (--thisFetch > 0);
+
+            if (pos >= buffer.size()) {
+                fmt::print("warning padding resampler with zeroes: {}\n", fetchBuffer.size() - i);
+                std::fill(fetchBuffer.begin() + i, fetchBuffer.end(), 0.0f);
+                return false;
+            }
+        } while (samplesToFetch > 0);
+        return true;
+    };
 
     fmt::print("Generating sine\n");
     genSine<PRECISION>(buffer, SAMPLERATE, TEST_FREQ);
     fmt::print("rms of sine: {:.4f} dB\n", toDB(calcRms<PRECISION>(buffer)));
 
+    fmt::print("Resampling\n");
+    SincResampler res;
+    res.Process(resampledBuffer, 1.0f / resampledRatio, sampleFetchFunc);
+    fmt::print("rms of resampled sine: {:.4f} dB\n", toDB(calcRms<PRECISION>(resampledBuffer)));
+
     //applyWindow<PRECISION>(buffer);
     //fmt::print("rms of window: {:.4f} dB\n", toDB(calcRms<PRECISION>(buffer)));
 
-    applyNotch<PRECISION>(buffer, SAMPLERATE, 1.0f * TEST_FREQ);
+    applyNotch<PRECISION>(buffer, SAMPLERATE, TEST_FREQ);
+    applyNotch<PRECISION>(resampledBuffer, resampledRate, TEST_FREQ);
 
-    // delete unstable part of notch filter
-    buffer.erase(buffer.begin(), buffer.begin() + 10000);
+    fmt::print("Trimming start glitches\n");
+    buffer.erase(buffer.begin(), buffer.begin() + static_cast<int>(0.25f * SAMPLERATE));
+    resampledBuffer.erase(resampledBuffer.begin(), resampledBuffer.begin() + static_cast<int>(0.25f * resampledRate));
 
     fmt::print("rms of notch'ed signal: {:.4f} dB\n", toDB(calcRms<PRECISION>(buffer)));
-    printSig<PRECISION>(buffer);
+    fmt::print("rms of notch'ed resampled signal: {:.4f} dB\n", toDB(calcRms<PRECISION>(resampledBuffer)));
 }

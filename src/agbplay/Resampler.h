@@ -3,6 +3,9 @@
 #include <functional>
 #include <vector>
 #include <span>
+#ifdef __AVX2__
+#include <immintrin.h>
+#endif
 
 /* 
  * res_data_fetch_cb fetches samplesRequired samples to fetchBuffer
@@ -46,6 +49,12 @@ public:
     bool Process(std::span<float> buffer, float phaseInc, const FetchCallback &fetchCallback) override;
     void Reset() override;
 private:
+#ifdef __AVX2__
+    static __m256 fast_sinf(__m256 t);
+    static __m256 fast_cosf(__m256 t);
+    static __m256 fast_sincf(__m256 t);
+    static __m256 window_func(__m256 t);
+#endif
     static float fast_sinf(float t);
     static float fast_cosf(float t);
     static float fast_sincf(float t);

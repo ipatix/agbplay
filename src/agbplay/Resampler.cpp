@@ -150,6 +150,47 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     for (size_t i = 0; i < buffer.size(); i++) {
         float sampleSum = 0.0f;
         float kernelSum = 0.0f;
+
+#ifdef __AVX2__
+        __m256 sampleSumV = _mm256_set1_ps(0.0f);
+        __m256 kernelSumV = _mm256_set1_ps(0.0f);
+        const __m256 phaseV = _mm256_set1_ps(phase);
+        const __m256 sincStepV = _mm256_set1_ps(sincStep);
+        const __m256i sincWinSizeV = _mm256_set1_epi32(SINC_WINDOW_SIZE);
+        const __m256i fiV = _mm256_set1_epi32(static_cast<int>(fi));
+
+        __m256i wiV = _mm256_sub_epi32(_mm256_set_epi32(1, 2, 3, 4, 5, 6, 7, 8), sincWinSizeV);
+
+        for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
+            const __m256 sincIndexV = _mm256_mul_ps(_mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV), sincStepV);
+            const __m256 windowIndexV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
+
+            const __m256 sV = fast_sincf(sincIndexV);
+            const __m256 wV = window_func(windowIndexV);
+            const __m256 kernelV = _mm256_mul_ps(sV, wV);
+            const __m256i fetchedSampleIndexV = _mm256_sub_epi32(_mm256_add_epi32(_mm256_add_epi32(fiV, wiV), sincWinSizeV), _mm256_set1_epi32(1));
+            const __m256 fetchedSampleV = _mm256_i32gather_ps(fetchBuffer.data(), fetchedSampleIndexV, sizeof(decltype(fetchBuffer)::value_type));
+            sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
+            kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
+        }
+
+        // REDUCE sampleSumV and kernelSumV
+        /* tmp[k[76],k[54],s[76],s[54] , k[32],k[10],s[32],s[10]] */
+        const __m256 tmp = _mm256_hadd_ps(sampleSumV, kernelSumV);
+        /* tmplo[k[32],k[10] , s[32],s[10]] */
+        const __m128 tmplo = _mm256_castps256_ps128(tmp);
+        /* tmphi[k[76],k[54] , s[76],s[54]] */
+        const __m128 tmphi = _mm256_extractf128_ps(tmp, 1);
+        /* tmp2[k[7632],k[4310] , s[7632],s[5410] */
+        const __m128 tmp2 = _mm_add_ps(tmphi, tmplo);
+        /* tmp3[k[4310],k[7632] , s[5410],s[7632] */
+        const __m128 tmp3 = _mm_shuffle_ps(tmp2, tmp2, 0b10110001);
+        /* tmp4[k[76543210],k[76543210] , s[76543210],s[76543210]] */
+        const __m128 tmp4 = _mm_add_ps(tmp2, tmp3);
+
+        sampleSum = _mm_cvtss_f32(tmp4);
+        kernelSum = _mm_cvtss_f32(_mm_shuffle_ps(tmp4, tmp4, 0b00000010));
+#else
         for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi++) {
             float sincIndex = (float(wi) - phase) * sincStep;
             float windowIndex = float(wi) - phase;
@@ -163,6 +204,7 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
             kernelSum += kernel;
             //_print_debug("s=%f w=%f fetchBuffer[fi + wi]=%f", s, w, fetchBuffer[fi + wi]);
         }
+#endif
         //_print_debug("sum=%f", sum);
         phase += phaseInc;
         size_t istep = static_cast<size_t>(phase);
@@ -184,6 +226,7 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
  */
 
 // anything higher than 256 LUT size seems to be indistinguishable
+// MUST be power of two, performance won't just suffer, but AVX code will break!!!!
 #define LUT_SIZE 256
 
 static const std::vector<float> cos_lut = []() {
@@ -239,6 +282,56 @@ static const std::vector<float> win_lut = []() {
 }();
 */
 
+#ifdef __AVX2__
+static __m256 avx2_abs(__m256 x)
+{
+    // is this right? TODO check with debugger
+    return _mm256_andnot_ps(_mm256_set1_ps(-0.0f), x);
+}
+
+__m256 SincResampler::fast_sinf(__m256 t)
+{
+    return SincResampler::fast_cosf(_mm256_sub_ps(t, _mm256_set1_ps(float(M_PI / 2.0))));
+}
+
+__m256 SincResampler::fast_cosf(__m256 t)
+{
+    t = avx2_abs(t);
+    t = _mm256_mul_ps(t, _mm256_set1_ps(float(double(LUT_SIZE) / (2.0 * M_PI))));
+    __m256i leftIndex = _mm256_cvttps_epi32(t);
+    const __m256 fraction = _mm256_sub_ps(t, _mm256_cvtepi32_ps(leftIndex));
+    const __m256i rightIndex = _mm256_and_si256(_mm256_add_epi32(leftIndex, _mm256_set1_epi32(1)), _mm256_set1_epi32(LUT_SIZE - 1));
+    leftIndex = _mm256_and_si256(leftIndex, _mm256_set1_epi32(LUT_SIZE - 1));
+    const __m256 leftFetch = _mm256_i32gather_ps(cos_lut.data(), leftIndex, sizeof(decltype(cos_lut)::value_type));
+    const __m256 rightFetch = _mm256_i32gather_ps(cos_lut.data(), rightIndex, sizeof(decltype(cos_lut)::value_type));
+    return _mm256_add_ps(leftFetch, _mm256_mul_ps(fraction, _mm256_sub_ps(rightFetch, leftFetch)));
+}
+
+__m256 SincResampler::fast_sincf(__m256 t)
+{
+    t = avx2_abs(t);
+    t = _mm256_mul_ps(t, _mm256_set1_ps(float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE))));
+    const __m256i leftIndex = _mm256_cvttps_epi32(t);
+    const __m256 fraction = _mm256_sub_ps(t, _mm256_cvtepi32_ps(leftIndex));
+    const __m256i rightIndex = _mm256_add_epi32(leftIndex, _mm256_set1_epi32(1));
+    const __m256 leftFetch = _mm256_i32gather_ps(sinc_lut.data(), leftIndex, sizeof(decltype(sinc_lut)::value_type));
+    const __m256 rightFetch = _mm256_i32gather_ps(sinc_lut.data(), rightIndex, sizeof(decltype(sinc_lut)::value_type));
+    return _mm256_add_ps(leftFetch, _mm256_mul_ps(fraction, _mm256_sub_ps(rightFetch, leftFetch)));
+}
+
+__m256 SincResampler::window_func(__m256 t)
+{
+    t = avx2_abs(t);
+    t = _mm256_mul_ps(t, _mm256_set1_ps(float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE))));
+    const __m256i leftIndex = _mm256_cvttps_epi32(t);
+    const __m256 fraction = _mm256_sub_ps(t, _mm256_cvtepi32_ps(leftIndex));
+    const __m256i rightIndex = _mm256_add_epi32(leftIndex, _mm256_set1_epi32(1));
+    const __m256 leftFetch = _mm256_i32gather_ps(win_lut.data(), leftIndex, sizeof(decltype(win_lut)::value_type));
+    const __m256 rightFetch = _mm256_i32gather_ps(win_lut.data(), rightIndex, sizeof(decltype(win_lut)::value_type));
+    return _mm256_add_ps(leftFetch, _mm256_mul_ps(fraction, _mm256_sub_ps(rightFetch, leftFetch)));
+}
+#endif
+
 float SincResampler::fast_sinf(float t)
 {
     return SincResampler::fast_cosf(t - float(M_PI / 2.0));
@@ -258,7 +351,7 @@ float SincResampler::fast_cosf(float t)
 float SincResampler::fast_sincf(float t)
 {
     t = std::abs(t);
-    assert(t <= SINC_WINDOW_SIZE);
+    //assert(t <= SINC_WINDOW_SIZE);
     t *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));
     uint32_t left_index = static_cast<uint32_t>(t);
     float fraction = t - static_cast<float>(left_index);
@@ -268,8 +361,8 @@ float SincResampler::fast_sincf(float t)
 
 float SincResampler::window_func(float t)
 {
-    assert(t >= -float(SINC_WINDOW_SIZE));
-    assert(t <= +float(SINC_WINDOW_SIZE));
+    //assert(t >= -float(SINC_WINDOW_SIZE));
+    //assert(t <= +float(SINC_WINDOW_SIZE));
     //return 0.42659f - 0.49656f * cosf(2.0f * PI_F * t / float(SINC_WINDOW_SIZE - 1)) +
     //    0.076849f * cosf(4.0f * PI_F * t / float(SINC_WINDOW_SIZE - 1));
     t = std::abs(t);

@@ -68,6 +68,9 @@ public:
     bool Process(std::span<float> buffer, float phaseInc, const FetchCallback &fetchCallback) override;
     void Reset() override;
 private:
+#ifdef __AVX2__
+    static __m256 fast_Si(__m256 t);
+#endif
     static float fast_Si(float t);
 };
 
@@ -78,5 +81,8 @@ public:
     bool Process(std::span<float> buffer, float phaseInc, const FetchCallback &fetchCallback) override;
     void Reset() override;
 private:
+#ifdef __AVX2__
+    static __m256 fast_Ti(__m256 t);
+#endif
     static float fast_Ti(float t);
 };

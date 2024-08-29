@@ -4,6 +4,41 @@
 #include "Util.h"
 #include "Debug.h"
 
+#ifdef __AVX2__
+static inline __m256 avx2_abs(__m256 x)
+{
+    const __m256 signMask = _mm256_set1_ps(-0.0f);
+    return _mm256_andnot_ps(signMask, x);
+}
+
+static inline __m256 avx2_copysign(__m256 x, __m256 s)
+{
+    const __m256 signMask = _mm256_set1_ps(-0.0f);
+    return _mm256_or_ps(_mm256_andnot_ps(signMask, x), _mm256_and_ps(signMask, s));
+}
+
+static inline void avx2_hsum2(__m256 va, __m256 vb, float &a, float &b)
+{
+    // REDUCE va and vb
+    /* tmp[a[76],a[54],b[76],b[54] , a[32],a[10],b[32],b[10]] */
+    const __m256 tmp = _mm256_hadd_ps(vb, va);
+    /* tmplo[a[32],a[10] , b[32],b[10]] */
+    const __m128 tmplo = _mm256_castps256_ps128(tmp);
+    /* tmphi[a[76],a[54] , b[76],b[54]] */
+    const __m128 tmphi = _mm256_extractf128_ps(tmp, 1);
+    /* tmp2[a[7632],a[4310] , b[7632],b[5410] */
+    const __m128 tmp2 = _mm_add_ps(tmphi, tmplo);
+    /* tmp3[a[4310],a[7632] , b[5410],b[7632] */
+    const __m128 tmp3 = _mm_shuffle_ps(tmp2, tmp2, 0b10110001);
+    /* tmp4[a[76543210],a[76543210] , b[76543210],b[76543210]] */
+    const __m128 tmp4 = _mm_add_ps(tmp2, tmp3);
+
+    b = _mm_cvtss_f32(tmp4);
+    a = _mm_cvtss_f32(_mm_shuffle_ps(tmp4, tmp4, 0b00000010));
+}
+#endif
+
+
 Resampler::~Resampler()
 {
 }
@@ -141,10 +176,13 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     // fetch a few more for complete windowed sinc interpolation
     samplesRequired += SINC_WINDOW_SIZE * 2;
     const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
-
     const float sincStep = phaseInc > SINC_FILT_THRESH ? SINC_FILT_THRESH / phaseInc : 1.00f;
 
     //_print_debug("phaseInc=%f sincStep=%f", phaseInc, sincStep);
+#ifdef __AVX2__
+    const __m256 sincStepV = _mm256_set1_ps(sincStep);
+    const __m256i sincWinSizeV = _mm256_set1_epi32(SINC_WINDOW_SIZE);
+#endif
 
     size_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
@@ -155,10 +193,7 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
         __m256 sampleSumV = _mm256_set1_ps(0.0f);
         __m256 kernelSumV = _mm256_set1_ps(0.0f);
         const __m256 phaseV = _mm256_set1_ps(phase);
-        const __m256 sincStepV = _mm256_set1_ps(sincStep);
-        const __m256i sincWinSizeV = _mm256_set1_epi32(SINC_WINDOW_SIZE);
         const __m256i fiV = _mm256_set1_epi32(static_cast<int>(fi));
-
         __m256i wiV = _mm256_sub_epi32(_mm256_set_epi32(1, 2, 3, 4, 5, 6, 7, 8), sincWinSizeV);
 
         for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
@@ -174,22 +209,7 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
             kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
         }
 
-        // REDUCE sampleSumV and kernelSumV
-        /* tmp[k[76],k[54],s[76],s[54] , k[32],k[10],s[32],s[10]] */
-        const __m256 tmp = _mm256_hadd_ps(sampleSumV, kernelSumV);
-        /* tmplo[k[32],k[10] , s[32],s[10]] */
-        const __m128 tmplo = _mm256_castps256_ps128(tmp);
-        /* tmphi[k[76],k[54] , s[76],s[54]] */
-        const __m128 tmphi = _mm256_extractf128_ps(tmp, 1);
-        /* tmp2[k[7632],k[4310] , s[7632],s[5410] */
-        const __m128 tmp2 = _mm_add_ps(tmphi, tmplo);
-        /* tmp3[k[4310],k[7632] , s[5410],s[7632] */
-        const __m128 tmp3 = _mm_shuffle_ps(tmp2, tmp2, 0b10110001);
-        /* tmp4[k[76543210],k[76543210] , s[76543210],s[76543210]] */
-        const __m128 tmp4 = _mm_add_ps(tmp2, tmp3);
-
-        sampleSum = _mm_cvtss_f32(tmp4);
-        kernelSum = _mm_cvtss_f32(_mm_shuffle_ps(tmp4, tmp4, 0b00000010));
+        avx2_hsum2(kernelSumV, sampleSumV, kernelSum, sampleSum);
 #else
         for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi++) {
             float sincIndex = (float(wi) - phase) * sincStep;
@@ -283,11 +303,6 @@ static const std::vector<float> win_lut = []() {
 */
 
 #ifdef __AVX2__
-static __m256 avx2_abs(__m256 x)
-{
-    // is this right? TODO check with debugger
-    return _mm256_andnot_ps(_mm256_set1_ps(-0.0f), x);
-}
 
 __m256 SincResampler::fast_sinf(__m256 t)
 {
@@ -403,13 +418,40 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     // fetch a few more for complete windowed sinc interpolation
     samplesRequired += SINC_WINDOW_SIZE * 2;
     const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
-
     const float sincStep = SINC_FILT_THRESH / phaseInc;
+
+#ifdef __AVX2__
+    const __m256 sincStepV = _mm256_set1_ps(sincStep);
+    const __m256i sincWinSizeV = _mm256_set1_epi32(SINC_WINDOW_SIZE);
+#endif
 
     size_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
         float sampleSum = 0.0f;
         float kernelSum = 0.0f;
+
+#ifdef __AVX2__
+        __m256 sampleSumV = _mm256_set1_ps(0.0f);
+        __m256 kernelSumV = _mm256_set1_ps(0.0f);
+        const __m256 phaseV = _mm256_set1_ps(phase);
+        const __m256i fiV = _mm256_set1_epi32(static_cast<int>(fi));
+        __m256i wiV = _mm256_sub_epi32(_mm256_set_epi32(1, 2, 3, 4, 5, 6, 7, 8), sincWinSizeV);
+
+        for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
+            const __m256 wiMPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
+            const __m256 SiIndexLeftV = _mm256_mul_ps(_mm256_sub_ps(wiMPhaseV, _mm256_set1_ps(0.5f)), sincStepV);
+            const __m256 SiIndexRightV = _mm256_mul_ps(_mm256_add_ps(wiMPhaseV, _mm256_set1_ps(0.5)), sincStepV);
+            const __m256 slV = fast_Si(SiIndexLeftV);
+            const __m256 srV = fast_Si(SiIndexRightV);
+            const __m256 kernelV = _mm256_sub_ps(srV, slV);
+            const __m256i fetchedSampleIndexV = _mm256_sub_epi32(_mm256_add_epi32(_mm256_add_epi32(fiV, wiV), sincWinSizeV), _mm256_set1_epi32(1));
+            const __m256 fetchedSampleV = _mm256_i32gather_ps(fetchBuffer.data(), fetchedSampleIndexV, sizeof(decltype(fetchBuffer)::value_type));
+            sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
+            kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
+        }
+
+        avx2_hsum2(kernelSumV, sampleSumV, kernelSum, sampleSum);
+#else
         for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi++) {
             float SiIndexLeft = (float(wi) - phase - 0.5f) * sincStep;
             float SiIndexRight = (float(wi) - phase + 0.5f) * sincStep;
@@ -419,6 +461,7 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
             sampleSum += kernel * fetchBuffer[fi + static_cast<size_t>(wi + SINC_WINDOW_SIZE) - 1];
             kernelSum += kernel;
         }
+#endif
         phase += phaseInc;
         size_t istep = static_cast<size_t>(phase);
         phase -= static_cast<float>(istep);
@@ -460,6 +503,22 @@ static const std::vector<float> Si_lut = []() {
     return l;
 }();
 
+#ifdef __AVX2__
+__m256 BlepResampler::fast_Si(__m256 t)
+{
+    __m256 signed_t = t;
+    t = avx2_abs(t);
+    t = _mm256_min_ps(t, _mm256_set1_ps(float(SINC_WINDOW_SIZE)));
+    t = _mm256_mul_ps(t, _mm256_set1_ps(float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE))));
+    const __m256i leftIndex = _mm256_cvttps_epi32(t);
+    const __m256 fraction = _mm256_sub_ps(t, _mm256_cvtepi32_ps(leftIndex));
+    const __m256i rightIndex = _mm256_add_epi32(leftIndex, _mm256_set1_epi32(1));
+    const __m256 leftFetch = _mm256_i32gather_ps(Si_lut.data(), leftIndex, sizeof(decltype(Si_lut)::value_type));
+    const __m256 rightFetch = _mm256_i32gather_ps(Si_lut.data(), rightIndex, sizeof(decltype(Si_lut)::value_type));
+    const __m256 retval = _mm256_add_ps(leftFetch, _mm256_mul_ps(fraction, _mm256_sub_ps(rightFetch, leftFetch)));
+    return avx2_copysign(retval, signed_t);
+}
+#else
 float BlepResampler::fast_Si(float t)
 {
     float signed_t = t;
@@ -472,6 +531,7 @@ float BlepResampler::fast_Si(float t)
     float retval = Si_lut[left_index] + fraction * (Si_lut[right_index] - Si_lut[left_index]);
     return copysignf(retval, signed_t);
 }
+#endif
 
 BlampResampler::BlampResampler()
 {

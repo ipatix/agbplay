@@ -28,7 +28,7 @@ file(GLOB_RECURSE AGBPLAY_SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.cpp")
 
 add_library(agbplay SHARED ${AGBPLAY_SOURCES})
 
-target_compile_options(agbplay PRIVATE -Wall -Wextra -Wconversion)
+target_compile_options(agbplay PRIVATE -Wall -Wextra -Wconversion -mavx2)
 #target_compile_options(agbplay PRIVATE -Wall -Wextra -Wconversion -fsanitize=address)
 #target_link_options(agbplay PRIVATE -fsanitize=address)
 target_include_directories(agbplay PUBLIC "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")

@@ -131,18 +131,6 @@ bool LinearResampler::Process(std::span<float> buffer, float phaseInc, const Fet
     return continuePlayback;
 }
 
-//static float triangle(float t)
-//{
-//    if (t < -1.0f)
-//        return 0.0f;
-//    else if (t < 0.0f)
-//        return t + 1.0f;
-//    else if (t < 1.0f)
-//        return 1.0f - t;
-//    else
-//        return 0.0f;
-//}
-
 #define SINC_WINDOW_SIZE 16
 #define SINC_FILT_THRESH 0.85f
 
@@ -563,12 +551,41 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
     // fetch a few more for complete windowed sinc interpolation
     samplesRequired += SINC_WINDOW_SIZE * 2;
     const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
-
     const float sincStep = SINC_FILT_THRESH / phaseInc;
+
+#ifdef __AVX2__
+    const __m256 sincStepV = _mm256_set1_ps(sincStep);
+    const __m256i sincWinSizeV = _mm256_set1_epi32(SINC_WINDOW_SIZE);
+#endif
+
     size_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
         float sampleSum = 0.0f;
         float kernelSum = 0.0f;
+#ifdef __AVX2__
+        __m256 sampleSumV = _mm256_set1_ps(0.0f);
+        __m256 kernelSumV = _mm256_set1_ps(0.0f);
+        const __m256 phaseV = _mm256_set1_ps(phase);
+        const __m256i fiV = _mm256_set1_epi32(static_cast<int>(fi));
+        __m256i wiV = _mm256_sub_epi32(_mm256_set_epi32(1, 2, 3, 4, 5, 6, 7, 8), sincWinSizeV);
+
+        for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
+            const __m256 wiMPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
+            const __m256 TiIndexLeftV = _mm256_mul_ps(_mm256_sub_ps(wiMPhaseV, _mm256_set1_ps(1.0f)), sincStepV);
+            const __m256 TiIndexMiddleV = _mm256_mul_ps(wiMPhaseV, sincStepV);
+            const __m256 TiIndexRightV = _mm256_mul_ps(_mm256_add_ps(wiMPhaseV, _mm256_set1_ps(1.0f)), sincStepV);
+            const __m256 slV = fast_Ti(TiIndexLeftV);
+            const __m256 smV = fast_Ti(TiIndexMiddleV);
+            const __m256 srV = fast_Ti(TiIndexRightV);
+            const __m256 kernelV = _mm256_add_ps(_mm256_sub_ps(_mm256_sub_ps(srV, smV), smV), slV);
+            const __m256i fetchedSampleIndexV = _mm256_sub_epi32(_mm256_add_epi32(_mm256_add_epi32(fiV, wiV), sincWinSizeV), _mm256_set1_epi32(1));
+            const __m256 fetchedSampleV = _mm256_i32gather_ps(fetchBuffer.data(), fetchedSampleIndexV, sizeof(decltype(fetchBuffer)::value_type));
+            sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
+            kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
+        }
+
+        avx2_hsum2(kernelSumV, sampleSumV, kernelSum, sampleSum);
+#else
         for (int wi = -SINC_WINDOW_SIZE + 1; wi <= SINC_WINDOW_SIZE; wi++) {
             float TiIndexLeft = (float(wi) - phase - 1.0f) * sincStep;
             float TiIndexMiddle = (float(wi) - phase) * sincStep;
@@ -580,6 +597,7 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
             sampleSum += kernel * fetchBuffer[fi + static_cast<size_t>(wi + SINC_WINDOW_SIZE) - 1];
             kernelSum += kernel;
         }
+#endif
         phase += phaseInc;
         size_t istep = static_cast<size_t>(phase);
         phase -= static_cast<float>(istep);
@@ -622,18 +640,37 @@ static const std::vector<float> Ti_lut = []() {
     return l;
 }();
 
+#ifdef __AVX2__
+__m256 BlampResampler::fast_Ti(__m256 t)
+{
+    t = avx2_abs(t);
+    __m256 old_t = t;
+    t = _mm256_min_ps(t, _mm256_set1_ps(float(SINC_WINDOW_SIZE)));
+    t = _mm256_mul_ps(t, _mm256_set1_ps(float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE))));
+    const __m256i leftIndex = _mm256_cvttps_epi32(t);
+    const __m256 fraction = _mm256_sub_ps(t, _mm256_cvtepi32_ps(leftIndex));
+    const __m256i rightIndex = _mm256_add_epi32(leftIndex, _mm256_set1_epi32(1));
+    const __m256 leftFetch = _mm256_i32gather_ps(Ti_lut.data(), leftIndex, sizeof(decltype(Ti_lut)::value_type));
+    const __m256 rightFetch = _mm256_i32gather_ps(Ti_lut.data(), rightIndex, sizeof(decltype(Ti_lut)::value_type));
+    const __m256 retval = _mm256_add_ps(leftFetch, _mm256_mul_ps(fraction, _mm256_sub_ps(rightFetch, leftFetch)));
+    const __m256 outOfRangeRetval = _mm256_mul_ps(old_t, _mm256_set1_ps(0.5f));
+    const __m256 isOutOfRange = _mm256_cmp_ps(old_t, _mm256_set1_ps(float(SINC_WINDOW_SIZE)), _CMP_GT_OS);
+    return _mm256_or_ps(_mm256_andnot_ps(isOutOfRange, retval), _mm256_and_ps(isOutOfRange, outOfRangeRetval));
+}
+#else
 float BlampResampler::fast_Ti(float t)
 {
     t = std::abs(t);
-    float ct = t;
-    ct = std::min(ct, float(SINC_WINDOW_SIZE));
-    ct *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));
-    uint32_t left_index = static_cast<uint32_t>(ct);
-    float fraction = ct - static_cast<float>(left_index);
+    const float old_t = t;
+    t = std::min(t, float(SINC_WINDOW_SIZE));
+    t *= float(double(LUT_SIZE) / double(SINC_WINDOW_SIZE));
+    uint32_t left_index = static_cast<uint32_t>(t);
+    float fraction = t - static_cast<float>(left_index);
     uint32_t right_index = left_index + 1;
     float retval = Ti_lut[left_index] + fraction * (Ti_lut[right_index] - Ti_lut[left_index]);
-    if (t > float(SINC_WINDOW_SIZE))
-        return t * 0.5f;
+    if (old_t > float(SINC_WINDOW_SIZE))
+        return old_t * 0.5f;
     else
         return retval;
 }
+#endif

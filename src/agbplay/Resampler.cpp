@@ -32,7 +32,7 @@ bool NearestResampler::Process(std::span<float> buffer, float phaseInc, const Fe
     size_t samplesRequired = size_t(phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
-    bool result = fetchCallback(fetchBuffer, samplesRequired);
+    const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
 
     size_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
@@ -46,7 +46,7 @@ bool NearestResampler::Process(std::span<float> buffer, float phaseInc, const Fe
     // remove first fi elements from the fetch buffer since they are no longer needed
     fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
-    return result;
+    return continuePlayback;
 }
 
 LinearResampler::LinearResampler()
@@ -77,7 +77,7 @@ bool LinearResampler::Process(std::span<float> buffer, float phaseInc, const Fet
     samplesRequired += 1;
     // fetch one more for linear interpolation
     samplesRequired += 1;
-    bool result = fetchCallback(fetchBuffer, samplesRequired);
+    const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
 
     size_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
@@ -93,7 +93,7 @@ bool LinearResampler::Process(std::span<float> buffer, float phaseInc, const Fet
     // remove first fi elements from the fetch buffer since they are no longer needed
     fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
-    return result;
+    return continuePlayback;
 }
 
 //static float triangle(float t)
@@ -140,7 +140,7 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
     samplesRequired += SINC_WINDOW_SIZE * 2;
-    bool result = fetchCallback(fetchBuffer, samplesRequired);
+    const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
 
     float sincStep = phaseInc > SINC_FILT_THRESH ? SINC_FILT_THRESH / phaseInc : 1.00f;
     //float sincStep = 1.0;
@@ -177,7 +177,7 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     // remove first fi elements from the fetch buffer since they are no longer needed
     fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
-    return result;
+    return continuePlayback;
 }
 
 /*
@@ -310,7 +310,7 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
     samplesRequired += SINC_WINDOW_SIZE * 2;
-    bool result = fetchCallback(fetchBuffer, samplesRequired);
+    const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
 
     float sincStep = SINC_FILT_THRESH / phaseInc;
 
@@ -339,7 +339,7 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     // remove first i elements from the fetch buffer since they are no longer needed
     fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
-    return result;
+    return continuePlayback;
 }
 
 #define INTEGRAL_RESOLUTION 256
@@ -410,7 +410,7 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
     samplesRequired += SINC_WINDOW_SIZE * 2;
-    bool result = fetchCallback(fetchBuffer, samplesRequired);
+    const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
 
     float sincStep = SINC_FILT_THRESH / phaseInc;
     size_t fi = 0;
@@ -438,7 +438,7 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
     // remove first i elements from the fetch buffer since they are no longer needed
     fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
-    return result;
+    return continuePlayback;
 }
 
 // I call "Ti" the integral of Si function. I don't know its proper name

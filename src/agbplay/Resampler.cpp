@@ -142,8 +142,7 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     samplesRequired += SINC_WINDOW_SIZE * 2;
     const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
 
-    float sincStep = phaseInc > SINC_FILT_THRESH ? SINC_FILT_THRESH / phaseInc : 1.00f;
-    //float sincStep = 1.0;
+    const float sincStep = phaseInc > SINC_FILT_THRESH ? SINC_FILT_THRESH / phaseInc : 1.00f;
 
     //_print_debug("phaseInc=%f sincStep=%f", phaseInc, sincStep);
 
@@ -312,7 +311,7 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     samplesRequired += SINC_WINDOW_SIZE * 2;
     const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
 
-    float sincStep = SINC_FILT_THRESH / phaseInc;
+    const float sincStep = SINC_FILT_THRESH / phaseInc;
 
     size_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
@@ -412,7 +411,7 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
     samplesRequired += SINC_WINDOW_SIZE * 2;
     const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
 
-    float sincStep = SINC_FILT_THRESH / phaseInc;
+    const float sincStep = SINC_FILT_THRESH / phaseInc;
     size_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
         float sampleSum = 0.0f;

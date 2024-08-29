@@ -89,19 +89,40 @@ void MainWindow::SetupMenuBar()
     saveProfileAction->setEnabled(false);
     connect(saveProfileAction, &QAction::triggered, [this](bool){ SaveProfile(); });
 
-    exportAudioAction = fileMenu->addAction("Export Audio by Selection");
-    exportAudioAction->setIcon(QIcon(":/icons/export-audio.ico"));
-    exportAudioAction->setToolTip("Export songs based on selection.");
-    exportAudioAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_E));
-    exportAudioAction->setEnabled(false);
-    connect(exportAudioAction, &QAction::triggered, [this](bool){ ExportAudio(false, false, false); });
+    exportSongsAction = fileMenu->addAction("Export Songs by Selection");
+    exportSongsAction->setIcon(QIcon(":/icons/export-audio.ico"));
+    exportSongsAction->setToolTip("Export songs based on selection.");
+    exportSongsAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_E));
+    exportSongsAction->setEnabled(false);
+    connect(exportSongsAction, &QAction::triggered, [this](bool){ ExportAudio(false, false, false); });
 
-    exportAudioQuickAction = fileMenu->addAction("Quick Export Audio");
-    exportAudioQuickAction->setIcon(QIcon(":/icons/export-audio.ico"));
-    exportAudioQuickAction->setToolTip("Export single song only");
-    exportAudioQuickAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_E));
-    exportAudioQuickAction->setEnabled(false);
-    connect(exportAudioQuickAction, &QAction::triggered, [this](bool){ ExportAudio(false, false, true); });
+    exportStemsAction = fileMenu->addAction("Export Stems by Selection");
+    exportStemsAction->setIcon(QIcon(":/icons/export-audio.ico"));
+    exportStemsAction->setToolTip("Export songs based on selection. Tracks are stored to separate stem files.");
+    exportStemsAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_T));
+    exportStemsAction->setEnabled(false);
+    connect(exportStemsAction, &QAction::triggered, [this](bool){ ExportAudio(false, true, false); });
+
+    quickExportSongAction = fileMenu->addAction("Quick Export Song");
+    quickExportSongAction->setIcon(QIcon(":/icons/export-audio.ico"));
+    quickExportSongAction->setToolTip("Export single song only.");
+    quickExportSongAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_E));
+    quickExportSongAction->setEnabled(false);
+    connect(quickExportSongAction, &QAction::triggered, [this](bool){ ExportAudio(false, false, true); });
+
+    quickExportStemsAction = fileMenu->addAction("Quick Export Stems");
+    quickExportStemsAction->setIcon(QIcon(":/icons/export-audio.ico"));
+    quickExportStemsAction->setToolTip("Export single song only. Tracks are stored to separate stem files.");
+    quickExportStemsAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_T));
+    quickExportStemsAction->setEnabled(false);
+    connect(quickExportStemsAction, &QAction::triggered, [this](bool){ ExportAudio(false, true, true); });
+
+    benchmarkSelectedAction = fileMenu->addAction("Run Benchmark by Selection");
+    benchmarkSelectedAction->setIcon(QIcon()); // TODO
+    benchmarkSelectedAction->setToolTip("Render selected songs and measure the time. No files are written to disk.");
+    benchmarkSelectedAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_B));
+    benchmarkSelectedAction->setEnabled(false);
+    connect(benchmarkSelectedAction, &QAction::triggered, [this](bool){ ExportAudio(true, false, false); });
 
     fileMenu->addSeparator();
 
@@ -614,8 +635,11 @@ void MainWindow::LoadGame()
     playbackEngine = std::make_unique<PlaybackEngine>(*profile);
     visualizerState = std::make_unique<MP2KVisualizerState>();
 
-    exportAudioAction->setEnabled(true);
-    exportAudioQuickAction->setEnabled(true);
+    exportSongsAction->setEnabled(true);
+    exportStemsAction->setEnabled(true);
+    quickExportSongAction->setEnabled(true);
+    quickExportStemsAction->setEnabled(true);
+    benchmarkSelectedAction->setEnabled(true);
     profileMinigsfImport->setEnabled(true);
 }
 
@@ -645,8 +669,11 @@ bool MainWindow::CloseGame()
     statusWidget.reset();
     songlistWidget.Clear();
     playlistWidget.Clear();
-    exportAudioAction->setEnabled(false);
-    exportAudioQuickAction->setEnabled(false);
+    exportSongsAction->setEnabled(false);
+    exportStemsAction->setEnabled(false);
+    quickExportSongAction->setEnabled(false);
+    quickExportStemsAction->setEnabled(false);
+    benchmarkSelectedAction->setEnabled(false);
     profileMinigsfImport->setEnabled(false);
     return true;
 }

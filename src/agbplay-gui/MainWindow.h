@@ -77,8 +77,11 @@ private:
     void closeEvent(QCloseEvent *event) override;
 
     /* menu bar */
-    QAction *exportAudioAction = nullptr;
-    QAction *exportAudioQuickAction = nullptr;
+    QAction *exportSongsAction = nullptr;
+    QAction *exportStemsAction = nullptr;
+    QAction *quickExportSongAction = nullptr;
+    QAction *quickExportStemsAction = nullptr;
+    QAction *benchmarkSelectedAction = nullptr;
     QAction *saveProfileAction = nullptr;
     QAction *profileMinigsfImport = nullptr;
 

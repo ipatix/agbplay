@@ -9,6 +9,7 @@
 #include "Rom.h"
 #include "MP2KPlayer.h"
 #include "MP2KChnPCM.h"
+#include "MP2KChnPSG.h"
 
 /* Instead of defining lots of global objects, we define
  * a context with all the things we need. So anything which
@@ -57,10 +58,10 @@ struct MP2KContext {
 
     // sound channels
     std::list<MP2KChnPCM> sndChannels;
-    std::list<SquareChannel> sq1Channels;
-    std::list<SquareChannel> sq2Channels;
-    std::list<WaveChannel> waveChannels;
-    std::list<NoiseChannel> noiseChannels;
+    std::list<MP2KChnPSGSquare> sq1Channels;
+    std::list<MP2KChnPSGSquare> sq2Channels;
+    std::list<MP2KChnPSGWave> waveChannels;
+    std::list<MP2KChnPSGNoise> noiseChannels;
 
     uint8_t primaryPlayer = 0; // <-- this is only used for visualization, perhaps move outside from here
 };

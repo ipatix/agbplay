@@ -11,13 +11,13 @@
 struct MP2KContext;
 struct MP2KTrack;
 
-class CGBChannel : public MP2KChn
+class MP2KChnPSG : public MP2KChn
 {
 public: 
-    CGBChannel(MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, bool useStairstep = false);
-    CGBChannel(const CGBChannel&) = delete;
-    CGBChannel& operator=(const CGBChannel&) = delete;
-    virtual ~CGBChannel() = default;
+    MP2KChnPSG(MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, bool useStairstep = false);
+    MP2KChnPSG(const MP2KChnPSG&) = delete;
+    MP2KChnPSG& operator=(const MP2KChnPSG&) = delete;
+    virtual ~MP2KChnPSG() = default;
 
     virtual void Process(std::span<sample> buffer, MixingArgs& args) = 0;
     void SetVol(uint16_t vol, int16_t pan);
@@ -57,10 +57,10 @@ protected:
     Pan panPrev = Pan::CENTER;
 };
 
-class SquareChannel : public CGBChannel
+class MP2KChnPSGSquare : public MP2KChnPSG
 {
 public:
-    SquareChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep);
+    MP2KChnPSGSquare(MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep);
 
     void SetPitch(int16_t pitch) override;
     void Process(std::span<sample> buffer, MixingArgs& args) override;
@@ -85,10 +85,10 @@ private:
     float sweepTimer = 1.0f;
 };
 
-class WaveChannel : public CGBChannel
+class MP2KChnPSGWave : public MP2KChnPSG
 {
 public:
-    WaveChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep);
+    MP2KChnPSGWave(MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep);
 
     void SetPitch(int16_t pitch) override;
     void Process(std::span<sample> buffer, MixingArgs& args) override;
@@ -104,10 +104,10 @@ private:
     const uint8_t *wavePtr;
 };
 
-class NoiseChannel : public CGBChannel
+class MP2KChnPSGNoise : public MP2KChnPSG
 {
 public:
-    NoiseChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note);
+    MP2KChnPSGNoise(MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note);
 
     void SetPitch(int16_t pitch) override;
     void Process(std::span<sample> buffer, MixingArgs& args) override;

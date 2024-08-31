@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "ReverbEffect.h"
-#include "CGBChannel.h"
 #include "Constants.h"
 
 struct MP2KContext;

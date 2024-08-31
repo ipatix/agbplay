@@ -3,7 +3,7 @@
 #include <cassert>
 #include <algorithm>
 
-#include "CGBChannel.h"
+#include "MP2KChnPSG.h"
 #include "CGBPatterns.h"
 #include "Xcept.h"
 #include "Debug.h"
@@ -12,10 +12,10 @@
 #include "MP2KContext.h"
 
 /*
- * public CGBChannel
+ * public MP2KChnPSG
  */
 
-CGBChannel::CGBChannel(MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, bool useStairstep)
+MP2KChnPSG::MP2KChnPSG(MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, bool useStairstep)
     : MP2KChn(track, note, env), ctx(ctx), useStairstep(useStairstep)
 {
     this->env.att &= 0x7;
@@ -27,7 +27,7 @@ CGBChannel::CGBChannel(MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, 
     //    Debug::print("note start: this=%p att=%d dec=%d sus=%d rel=%d", this, (int)env.att, (int)env.dec, (int)env.sus, (int)env.rel);
 }
 
-void CGBChannel::SetVol(uint16_t vol, int16_t pan)
+void MP2KChnPSG::SetVol(uint16_t vol, int16_t pan)
 {
     if (stop)
         return;
@@ -41,35 +41,35 @@ void CGBChannel::SetVol(uint16_t vol, int16_t pan)
     this->mp2k_sus_vol_bug_update = true;
 }
 
-VolumeFade CGBChannel::getVol() const
+VolumeFade MP2KChnPSG::getVol() const
 {
     return volFade;
 }
 
-uint8_t CGBChannel::getPseudoEchoLevel() const
+uint8_t MP2KChnPSG::getPseudoEchoLevel() const
 {
     return static_cast<uint8_t>(((envPeak * note.pseudoEchoVol) + 0xFF) >> 8);
 }
 
-float CGBChannel::timer2freq(float timer)
+float MP2KChnPSG::timer2freq(float timer)
 {
     assert(timer >= 0.0f);
     assert(timer <= 2047.0f);
     return 131072.0f / static_cast<float>(2048.0f - timer);
 }
 
-float CGBChannel::freq2timer(float freq)
+float MP2KChnPSG::freq2timer(float freq)
 {
     assert(freq > 0.0f);
     return 2048.0f - std::min(131072.0f / freq, 2047.0f);
 }
 
-void CGBChannel::Release() noexcept
+void MP2KChnPSG::Release() noexcept
 {
     Release(false);
 }
 
-void CGBChannel::Release(bool fastRelease) noexcept
+void MP2KChnPSG::Release(bool fastRelease) noexcept
 {
     this->stop = true;
     this->fastRelease = fastRelease;
@@ -78,7 +78,7 @@ void CGBChannel::Release(bool fastRelease) noexcept
     //    Debug::print("releasing: %d", fastRelease);
 }
 
-bool CGBChannel::TickNote() noexcept
+bool MP2KChnPSG::TickNote() noexcept
 {
     if (envState < EnvState::REL) {
         if (note.length > 0) {
@@ -95,17 +95,17 @@ bool CGBChannel::TickNote() noexcept
     }
 }
 
-bool CGBChannel::IsFastReleasing() const
+bool MP2KChnPSG::IsFastReleasing() const
 {
     return fastRelease;
 }
 
-bool CGBChannel::IsChn3() const
+bool MP2KChnPSG::IsChn3() const
 {
     return false;
 }
 
-void CGBChannel::stepEnvelope()
+void MP2KChnPSG::stepEnvelope()
 {
     if (envState == EnvState::INIT) {
         if (stop) {
@@ -258,7 +258,7 @@ decay_start:
     }
 }
 
-void CGBChannel::updateVolFade()
+void MP2KChnPSG::updateVolFade()
 {
     size_t fadeInterframesCount = envFrameCount * INTERFRAMES - envInterStep;
     assert(fadeInterframesCount != 0);
@@ -316,7 +316,7 @@ void CGBChannel::updateVolFade()
     envFadeLevel = envFadeLevelNew;
 }
 
-void CGBChannel::applyVol()
+void MP2KChnPSG::applyVol()
 {
     /* because agbplay generally wants to avoid the center panorama dilemma
      * (i.e. 0 pan not being in the center of the [-128,127] range)
@@ -354,11 +354,11 @@ void CGBChannel::applyVol()
 }
 
 /*
- * public SquareChannel
+ * public MP2KChnPSGSquare
  */
 
-SquareChannel::SquareChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep)
-    : CGBChannel(ctx, track, env, note)
+MP2KChnPSGSquare::MP2KChnPSGSquare(MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep)
+    : MP2KChnPSG(ctx, track, env, note)
       , instrDuty(instrDuty)
       , sweep(sweep)
       , sweepEnabled(isSweepEnabled(sweep))
@@ -376,7 +376,7 @@ SquareChannel::SquareChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrD
     this->rs = std::make_unique<BlepResampler>();
 }
 
-void SquareChannel::SetPitch(int16_t pitch)
+void MP2KChnPSGSquare::SetPitch(int16_t pitch)
 {
     // non original quality improving behavior
     if (!stop || freq <= 0.0f)
@@ -393,7 +393,7 @@ void SquareChannel::SetPitch(int16_t pitch)
     }
 }
 
-void SquareChannel::Process(std::span<sample> buffer, MixingArgs& args)
+void MP2KChnPSGSquare::Process(std::span<sample> buffer, MixingArgs& args)
 {
     if (envState == EnvState::DEAD)
         return;
@@ -423,7 +423,7 @@ void SquareChannel::Process(std::span<sample> buffer, MixingArgs& args)
     }
 
     assert(buffer.size() == ctx.mixer.scratchBuffer.size());
-    FetchCallback cb = std::bind(&SquareChannel::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
+    FetchCallback cb = std::bind(&MP2KChnPSGSquare::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
     rs->Process(ctx.mixer.scratchBuffer, interStep, cb);
 
     for (size_t i = 0; i < buffer.size(); i++) {
@@ -450,7 +450,7 @@ void SquareChannel::Process(std::span<sample> buffer, MixingArgs& args)
     }
 }
 
-VoiceFlags SquareChannel::GetVoiceType() const noexcept
+VoiceFlags MP2KChnPSGSquare::GetVoiceType() const noexcept
 {
     if (sweep != 0) {
         switch (instrDuty) {
@@ -477,7 +477,7 @@ VoiceFlags SquareChannel::GetVoiceType() const noexcept
     }
 }
 
-bool SquareChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
+bool MP2KChnPSGSquare::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;
@@ -492,7 +492,7 @@ bool SquareChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t 
     return true;
 }
 
-bool SquareChannel::isSweepEnabled(uint8_t sweep)
+bool MP2KChnPSGSquare::isSweepEnabled(uint8_t sweep)
 {
     if (sweep >= 0x80 || (sweep & 0x7) == 0)
         return false;
@@ -500,7 +500,7 @@ bool SquareChannel::isSweepEnabled(uint8_t sweep)
         return true;
 }
 
-bool SquareChannel::isSweepAscending(uint8_t sweep)
+bool MP2KChnPSGSquare::isSweepAscending(uint8_t sweep)
 {
     if (sweep & 8)
         return false;
@@ -508,7 +508,7 @@ bool SquareChannel::isSweepAscending(uint8_t sweep)
         return true;
 }
 
-float SquareChannel::sweep2coeff(uint8_t sweep)
+float MP2KChnPSGSquare::sweep2coeff(uint8_t sweep)
 {
     /* if sweep time is zero, don't change pitch */
     const int sweep_time = sweepTime(sweep);
@@ -534,7 +534,7 @@ float SquareChannel::sweep2coeff(uint8_t sweep)
     return coeff;
 }
 
-float SquareChannel::sweep2convergence(uint8_t sweep)
+float MP2KChnPSGSquare::sweep2convergence(uint8_t sweep)
 {
     if (isSweepAscending(sweep)) {
         /* if ascending:
@@ -552,17 +552,17 @@ float SquareChannel::sweep2convergence(uint8_t sweep)
     }
 }
 
-uint8_t SquareChannel::sweepTime(uint8_t sweep)
+uint8_t MP2KChnPSGSquare::sweepTime(uint8_t sweep)
 {
     return static_cast<uint8_t>((sweep & 0x70) >> 4);
 }
 
 /*
- * public WaveChannel
+ * public MP2KChnPSGWave
  */
 
-WaveChannel::WaveChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep)
-    : CGBChannel(ctx, track, env, note, useStairstep)
+MP2KChnPSGWave::MP2KChnPSGWave(MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep)
+    : MP2KChnPSG(ctx, track, env, note, useStairstep)
 {
     static const uint8_t dummyWave[16] = {0};
     if (instrWave < AGB_MAP_ROM) {
@@ -622,13 +622,13 @@ WaveChannel::WaveChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave,
     }
 }
 
-void WaveChannel::SetPitch(int16_t pitch)
+void MP2KChnPSGWave::SetPitch(int16_t pitch)
 {
     freq = (440.0f * 16.0f) * 
         powf(2.0f, float(note.midiKeyPitch - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
-void WaveChannel::Process(std::span<sample> buffer, MixingArgs& args)
+void MP2KChnPSGWave::Process(std::span<sample> buffer, MixingArgs& args)
 {
     stepEnvelope();
     if (envState == EnvState::DEAD)
@@ -647,7 +647,7 @@ void WaveChannel::Process(std::span<sample> buffer, MixingArgs& args)
     float interStep = freq * args.sampleRateInv;
 
     assert(ctx.mixer.scratchBuffer.size() == buffer.size());
-    FetchCallback cb = std::bind(&WaveChannel::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
+    FetchCallback cb = std::bind(&MP2KChnPSGWave::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
     rs->Process(ctx.mixer.scratchBuffer, interStep, cb);
 
     for (size_t i = 0; i < buffer.size(); i++) {
@@ -659,19 +659,19 @@ void WaveChannel::Process(std::span<sample> buffer, MixingArgs& args)
     }
 }
 
-VoiceFlags WaveChannel::GetVoiceType() const noexcept
+VoiceFlags MP2KChnPSGWave::GetVoiceType() const noexcept
 {
     return VoiceFlags::PSG_WAVE;
 }
 
-bool WaveChannel::IsChn3() const
+bool MP2KChnPSGWave::IsChn3() const
 {
     return true;
 }
 
-VolumeFade WaveChannel::getVol() const
+VolumeFade MP2KChnPSGWave::getVol() const
 {
-    auto retval = CGBChannel::getVol();
+    auto retval = MP2KChnPSG::getVol();
 
     if (!ctx.agbplaySoundMode.accurateCh3Volume) {
         return retval;
@@ -697,7 +697,7 @@ VolumeFade WaveChannel::getVol() const
     return retval;
 }
 
-bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
+bool MP2KChnPSGWave::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;
@@ -775,11 +775,11 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
 }
 
 /*
- * public NoiseChannel
+ * public MP2KChnPSGNoise
  */
 
-NoiseChannel::NoiseChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note)
-    : CGBChannel(ctx, track, env, note), instrNp(instrNp)
+MP2KChnPSGNoise::MP2KChnPSGNoise(MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note)
+    : MP2KChnPSG(ctx, track, env, note), instrNp(instrNp)
 {
     this->rs = std::make_unique<NearestResampler>();
     if ((instrNp & 0x1) == 0) {
@@ -791,7 +791,7 @@ NoiseChannel::NoiseChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp,
     }
 }
 
-void NoiseChannel::SetPitch(int16_t pitch)
+void MP2KChnPSGNoise::SetPitch(int16_t pitch)
 {
     float fkey = note.midiKeyPitch + static_cast<float>(pitch) * (1.0f / 64.0f);
     float noisefreq;
@@ -807,7 +807,7 @@ void NoiseChannel::SetPitch(int16_t pitch)
     freq = std::max(4.5714f, noisefreq);
 }
 
-void NoiseChannel::Process(std::span<sample> buffer, MixingArgs& args)
+void MP2KChnPSGNoise::Process(std::span<sample> buffer, MixingArgs& args)
 {
     stepEnvelope();
     if (envState == EnvState::DEAD)
@@ -842,7 +842,7 @@ void NoiseChannel::Process(std::span<sample> buffer, MixingArgs& args)
         const size_t samplesToFetch = samplesRequired - fetchBuffer.size();
         const size_t i = fetchBuffer.size();
         fetchBuffer.resize(samplesRequired);
-        FetchCallback cbNearest = std::bind(&NoiseChannel::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
+        FetchCallback cbNearest = std::bind(&MP2KChnPSGNoise::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
         return rs->Process({&fetchBuffer[i], samplesToFetch}, interStep, cbNearest);
     };
 
@@ -857,7 +857,7 @@ void NoiseChannel::Process(std::span<sample> buffer, MixingArgs& args)
     }
 }
 
-VoiceFlags NoiseChannel::GetVoiceType() const noexcept
+VoiceFlags MP2KChnPSGNoise::GetVoiceType() const noexcept
 {
     if (instrNp == 0x0)
         return VoiceFlags::PSG_NOISE_15;
@@ -865,7 +865,7 @@ VoiceFlags NoiseChannel::GetVoiceType() const noexcept
         return VoiceFlags::PSG_NOISE_7;
 }
 
-bool NoiseChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
+bool MP2KChnPSGNoise::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;

@@ -169,7 +169,8 @@ void MainWindow::SetupMenuBar()
     QAction *profileDirectory = profileMenu->addAction("Open User Profile Directory");
     profileDirectory->setIcon(QIcon(":/icons/profile-open-folder.ico"));
     connect(profileDirectory, &QAction::triggered, [](bool) {
-            QDesktopServices::openUrl(QString::fromStdWString(ProfileManager::ProfileUserPath().wstring()));
+            const QUrl url = QUrl::fromLocalFile(QString::fromStdWString(ProfileManager::ProfileUserPath().wstring()));
+            QDesktopServices::openUrl(url);
     });
 
     /* Help */

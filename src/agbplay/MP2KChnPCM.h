@@ -10,7 +10,7 @@
 
 struct MP2KContext;
 
-class SoundChannel : public MP2KChn
+class MP2KChnPCM : public MP2KChn
 {
 private:
     struct ProcArgs
@@ -22,9 +22,9 @@ private:
         float interStep;
     };
 public:
-    SoundChannel(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed);
-    SoundChannel(const SoundChannel&) = delete;
-    SoundChannel& operator=(const SoundChannel&) = delete;
+    MP2KChnPCM(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed);
+    MP2KChnPCM(const MP2KChnPCM&) = delete;
+    MP2KChnPCM& operator=(const MP2KChnPCM&) = delete;
 
     void Process(std::span<sample> buffer, const MixingArgs& args);
     void SetVol(uint16_t vol, int16_t pan);

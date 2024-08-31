@@ -8,6 +8,7 @@
 #include "SoundMixer.h"
 #include "Rom.h"
 #include "MP2KPlayer.h"
+#include "MP2KChnPCM.h"
 
 /* Instead of defining lots of global objects, we define
  * a context with all the things we need. So anything which
@@ -55,7 +56,7 @@ struct MP2KContext {
     LoudnessCalculator masterLoudnessCalculator{5.0f};
 
     // sound channels
-    std::list<SoundChannel> sndChannels;
+    std::list<MP2KChnPCM> sndChannels;
     std::list<SquareChannel> sq1Channels;
     std::list<SquareChannel> sq2Channels;
     std::list<WaveChannel> waveChannels;

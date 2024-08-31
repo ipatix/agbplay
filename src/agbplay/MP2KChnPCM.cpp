@@ -4,16 +4,16 @@
 #include <algorithm>
 
 #include "Constants.h"
-#include "SoundChannel.h"
+#include "MP2KChnPCM.h"
 #include "Util.h"
 #include "Xcept.h"
 #include "MP2KContext.h"
 
 /*
- * public SoundChannel
+ * public MP2KChnPCM
  */
 
-SoundChannel::SoundChannel(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
+MP2KChnPCM::MP2KChnPCM(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
     : MP2KChn(track, note, env), ctx(ctx), sInfo(sInfo), fixed(fixed) 
 {
     const ResamplerType t = fixed ? ctx.agbplaySoundMode.resamplerTypeFixed : ctx.agbplaySoundMode.resamplerTypeNormal;
@@ -56,7 +56,7 @@ SoundChannel::SoundChannel(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo,
     this->shiftMPTcompressed = 0x38;
 }
 
-void SoundChannel::Process(std::span<sample> buffer, const MixingArgs& args)
+void MP2KChnPCM::Process(std::span<sample> buffer, const MixingArgs& args)
 {
     if (envState == EnvState::DEAD)
         return;
@@ -101,7 +101,7 @@ void SoundChannel::Process(std::span<sample> buffer, const MixingArgs& args)
     updateVolFade();
 }
 
-void SoundChannel::SetVol(uint16_t vol, int16_t pan)
+void MP2KChnPCM::SetVol(uint16_t vol, int16_t pan)
 {
     if (!stop) {
         int combinedPan = std::clamp(pan + note.rhythmPan, -128, +128);
@@ -115,7 +115,7 @@ void SoundChannel::SetVol(uint16_t vol, int16_t pan)
     }
 }
 
-VolumeFade SoundChannel::getVol() const
+VolumeFade MP2KChnPCM::getVol() const
 {
     float envBase = float(envLevelPrev);
     float envDelta = (float(envLevelCur) - envBase) / float(INTERFRAMES);
@@ -130,24 +130,24 @@ VolumeFade SoundChannel::getVol() const
     return retval;
 }
 
-void SoundChannel::Release() noexcept
+void MP2KChnPCM::Release() noexcept
 {
     stop = true;
 }
 
-bool SoundChannel::IsReleasing() const noexcept
+bool MP2KChnPCM::IsReleasing() const noexcept
 {
     return stop;
 }
 
-void SoundChannel::SetPitch(int16_t pitch)
+void MP2KChnPCM::SetPitch(int16_t pitch)
 {
     // non original quality improving behavior
     if (!stop || freq <= 0.0f)
         freq = sInfo.midCfreq * powf(2.0f, float(note.midiKeyPitch - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
-bool SoundChannel::TickNote() noexcept
+bool MP2KChnPCM::TickNote() noexcept
 {
     if (!stop) {
         if (note.length > 0) {
@@ -163,7 +163,7 @@ bool SoundChannel::TickNote() noexcept
     }
 }
 
-VoiceFlags SoundChannel::GetVoiceType() const noexcept
+VoiceFlags MP2KChnPCM::GetVoiceType() const noexcept
 {
     if (isGS) {
         if (sInfo.samplePtr[1] == 0)
@@ -180,7 +180,7 @@ VoiceFlags SoundChannel::GetVoiceType() const noexcept
     }
 }
 
-void SoundChannel::stepEnvelope()
+void MP2KChnPCM::stepEnvelope()
 {
     if (envState == EnvState::INIT) {
         if (stop) {
@@ -261,27 +261,27 @@ release:
     }
 }
 
-void SoundChannel::updateVolFade()
+void MP2KChnPCM::updateVolFade()
 {
     leftVolPrev = leftVolCur;
     rightVolPrev = rightVolCur;
 }
 
 /*
- * private SoundChannel
+ * private MP2KChnPCM
  */
 
-void SoundChannel::processNormal(std::span<sample> buffer, ProcArgs& cargs) {
+void MP2KChnPCM::processNormal(std::span<sample> buffer, ProcArgs& cargs) {
     if (buffer.size() == 0)
         return;
     assert(ctx.mixer.scratchBuffer.size() == buffer.size());
 
     bool running;
     if (this->isMPTcompressed) {
-        FetchCallback cb = std::bind(&SoundChannel::sampleFetchCallbackMPTDecomp, this, std::placeholders::_1, std::placeholders::_2);
+        FetchCallback cb = std::bind(&MP2KChnPCM::sampleFetchCallbackMPTDecomp, this, std::placeholders::_1, std::placeholders::_2);
         running = rs->Process(ctx.mixer.scratchBuffer, cargs.interStep, cb);
     } else {
-        FetchCallback cb = std::bind(&SoundChannel::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
+        FetchCallback cb = std::bind(&MP2KChnPCM::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
         running = rs->Process(ctx.mixer.scratchBuffer, cargs.interStep, cb);
     }
 
@@ -296,7 +296,7 @@ void SoundChannel::processNormal(std::span<sample> buffer, ProcArgs& cargs) {
         Kill();
 }
 
-void SoundChannel::processModPulse(std::span<sample> buffer, ProcArgs& cargs, float samplesPerBufferInv)
+void MP2KChnPCM::processModPulse(std::span<sample> buffer, ProcArgs& cargs, float samplesPerBufferInv)
 {
 #define DUTY_BASE 2
 #define DUTY_STEP 3
@@ -347,7 +347,7 @@ void SoundChannel::processModPulse(std::span<sample> buffer, ProcArgs& cargs, fl
     }
 }
 
-void SoundChannel::processSaw(std::span<sample> buffer, ProcArgs& cargs)
+void MP2KChnPCM::processSaw(std::span<sample> buffer, ProcArgs& cargs)
 {
     const uint32_t fix = 0x70;
 
@@ -374,7 +374,7 @@ void SoundChannel::processSaw(std::span<sample> buffer, ProcArgs& cargs)
     }
 }
 
-void SoundChannel::processTri(std::span<sample> buffer, ProcArgs& cargs)
+void MP2KChnPCM::processTri(std::span<sample> buffer, ProcArgs& cargs)
 {
     for (size_t i = 0; i < buffer.size(); i++) {
         interPos += cargs.interStep;
@@ -394,7 +394,7 @@ void SoundChannel::processTri(std::span<sample> buffer, ProcArgs& cargs)
     }
 }
 
-bool SoundChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
+bool MP2KChnPCM::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;
@@ -423,7 +423,7 @@ bool SoundChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t s
     return true;
 }
 
-bool SoundChannel::sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequired)
+bool MP2KChnPCM::sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;

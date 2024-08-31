@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "ReverbEffect.h"
-#include "SoundChannel.h"
 #include "CGBChannel.h"
 #include "Constants.h"
 

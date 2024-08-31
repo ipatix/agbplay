@@ -20,6 +20,7 @@ struct MP2KChn {
     virtual void Release() noexcept = 0;
     // TODO: Does TickNote really have to deviate between channel types?
     virtual bool TickNote() noexcept = 0;
+    virtual VoiceFlags GetVoiceType() const noexcept = 0;
 
     /* linked list of channels inside a track. */
     MP2KChn *prev = nullptr;

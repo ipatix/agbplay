@@ -64,6 +64,7 @@ public:
 
     void SetPitch(int16_t pitch) override;
     void Process(std::span<sample> buffer, MixingArgs& args) override;
+    VoiceFlags GetVoiceType() const noexcept override;
 private:
     bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired);
 
@@ -73,6 +74,7 @@ private:
     static float sweep2convergence(uint8_t sweep);
     static uint8_t sweepTime(uint8_t sweep);
 
+    const uint32_t instrDuty;
     const float *pat = nullptr;
     int16_t sweepStartCount = -1;
     const uint8_t sweep;
@@ -90,6 +92,7 @@ public:
 
     void SetPitch(int16_t pitch) override;
     void Process(std::span<sample> buffer, MixingArgs& args) override;
+    VoiceFlags GetVoiceType() const noexcept override;
 private:
     bool IsChn3() const override;
     VolumeFade getVol() const;
@@ -108,9 +111,11 @@ public:
 
     void SetPitch(int16_t pitch) override;
     void Process(std::span<sample> buffer, MixingArgs& args) override;
+    VoiceFlags GetVoiceType() const noexcept override;
 private:
     bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired);
     SincResampler srs;
+    const uint32_t instrNp;
     uint16_t noiseState;
     uint16_t noiseLfsrMask;
 };

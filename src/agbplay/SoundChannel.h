@@ -32,6 +32,7 @@ public:
     bool IsReleasing() const noexcept;
     void SetPitch(int16_t pitch);
     bool TickNote() noexcept override;
+    VoiceFlags GetVoiceType() const noexcept override;
 private:
     void stepEnvelope();
     void updateVolFade();

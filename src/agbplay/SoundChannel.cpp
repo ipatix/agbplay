@@ -163,6 +163,23 @@ bool SoundChannel::TickNote() noexcept
     }
 }
 
+VoiceFlags SoundChannel::GetVoiceType() const noexcept
+{
+    if (isGS) {
+        if (sInfo.samplePtr[1] == 0)
+            return VoiceFlags::SYNTH_PWM;
+        else if (sInfo.samplePtr[1] == 1)
+            return VoiceFlags::SYNTH_SAW;
+        else
+            return VoiceFlags::SYNTH_TRI;
+    } else {
+        if (isMPTcompressed)
+            return VoiceFlags::ADPCM_CAMELOT;
+        else
+            return VoiceFlags::PCM;
+    }
+}
+
 void SoundChannel::stepEnvelope()
 {
     if (envState == EnvState::INIT) {

@@ -69,7 +69,7 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
 
     voiceTypeLabel.setFixedSize(35, 16);
     voiceTypeLabel.setFont(labelFont);
-    voiceTypeLabel.setText("NONE");
+    voiceTypeLabel.setText("-");
     voiceTypeLabel.setToolTip("Voice Type");
     voiceTypeLabel.setAlignment(Qt::AlignRight);
     layout.addWidget(&voiceTypeLabel, 1, COL_PITCH);

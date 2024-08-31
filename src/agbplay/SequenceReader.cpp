@@ -211,12 +211,16 @@ void SequenceReader::TrackVolPitchMain(MP2KTrack &trk)
 int SequenceReader::TickTrackNotes(MP2KTrack &trk)
 {
     trk.activeNotes.reset();
+    trk.activeVoiceTypes = VoiceFlags::NONE;
     int active = 0;
 
     for (MP2KChn *chn = trk.channels; chn != nullptr; chn = chn->next) {
         if (chn->TickNote()) {
             active++;
             trk.activeNotes[chn->note.midiKeyTrackData % NUM_NOTES] = true;
+            trk.activeVoiceTypes = static_cast<VoiceFlags>(
+                static_cast<int>(trk.activeVoiceTypes) | static_cast<int>(chn->GetVoiceType())
+            );
         }
     }
 
@@ -619,6 +623,7 @@ void SequenceReader::cmdPlayFine(MP2KTrack &trk)
 
     trk.enabled = false;
     trk.activeNotes.reset();
+    trk.activeVoiceTypes = VoiceFlags::NONE;
 }
 
 void SequenceReader::cmdPlayMemacc(MP2KTrack &trk)

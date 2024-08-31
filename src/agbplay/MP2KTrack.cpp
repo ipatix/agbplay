@@ -45,6 +45,7 @@ void MP2KTrack::Init(size_t pos)
     updatePitch = false;
     channels = nullptr;
     activeNotes.reset();
+    activeVoiceTypes = VoiceFlags::NONE;
 }
 
 void MP2KTrack::Stop()

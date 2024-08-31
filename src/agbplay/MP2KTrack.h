@@ -34,6 +34,7 @@ struct MP2KTrack
     void ResetLfoValue();
 
     std::bitset<NUM_NOTES> activeNotes;
+    VoiceFlags activeVoiceTypes;
     std::vector<sample> audioBuffer;
     std::unique_ptr<ReverbEffect> reverb;
     LoudnessCalculator loudnessCalculator{5.0f};

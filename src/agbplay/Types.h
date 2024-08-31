@@ -14,6 +14,27 @@ enum class ReverbType { NORMAL, GS1, GS2, MGAT, TEST, NONE };
 enum class ResamplerType { NEAREST, LINEAR, SINC, BLEP, BLAMP };
 enum class CGBPolyphony { MONO_STRICT, MONO_SMOOTH, POLY };
 
+enum class VoiceFlags : int {
+    NONE = 0x0,
+    PCM = 0x1,
+    DPCM_GAMEFREAK = 0x2,
+    ADPCM_CAMELOT = 0x4,
+    SYNTH_PWM = 0x8,
+    SYNTH_SAW = 0x10,
+    SYNTH_TRI = 0x20,
+    PSG_SQ_12 = 0x40,
+    PSG_SQ_25 = 0x80,
+    PSG_SQ_50 = 0x100,
+    PSG_SQ_75 = 0x200,
+    PSG_SQ_12_SWEEP = 0x400,
+    PSG_SQ_25_SWEEP = 0x800,
+    PSG_SQ_50_SWEEP = 0x1000,
+    PSG_SQ_75_SWEEP = 0x2000,
+    PSG_WAVE = 0x4000,
+    PSG_NOISE_7 = 0x8000,
+    PSG_NOISE_15 = 0x10000,
+};
+
 ReverbType str2rev(const std::string& str);
 std::string rev2str(ReverbType t);
 ResamplerType str2res(const std::string& str);
@@ -149,6 +170,7 @@ struct MP2KVisualizerState
         uint8_t delay = 0;              // range 0 to 96
                                         //
         std::bitset<NUM_NOTES> activeNotes;
+        VoiceFlags activeVoiceTypes = VoiceFlags::NONE;
         float volLeft = 0.0f, volRight = 0.0f;
     };
 

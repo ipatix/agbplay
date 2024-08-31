@@ -359,6 +359,7 @@ void CGBChannel::applyVol()
 
 SquareChannel::SquareChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep)
     : CGBChannel(ctx, track, env, note)
+      , instrDuty(instrDuty)
       , sweep(sweep)
       , sweepEnabled(isSweepEnabled(sweep))
       , sweepConvergence(sweep2convergence(sweep))
@@ -445,6 +446,33 @@ void SquareChannel::Process(std::span<sample> buffer, MixingArgs& args)
             sweepStartCount -= 128;
             if (sweepStartCount < 0)
                 sweepStartCount = 0;
+        }
+    }
+}
+
+VoiceFlags SquareChannel::GetVoiceType() const noexcept
+{
+    if (sweep != 0) {
+        switch (instrDuty) {
+        case 0:
+            return VoiceFlags::PSG_SQ_12_SWEEP;
+        case 1:
+            return VoiceFlags::PSG_SQ_25_SWEEP;
+        case 2:
+            return VoiceFlags::PSG_SQ_50_SWEEP;
+        default:
+            return VoiceFlags::PSG_SQ_75_SWEEP;
+        }
+    } else {
+        switch (instrDuty) {
+        case 0:
+            return VoiceFlags::PSG_SQ_12;
+        case 1:
+            return VoiceFlags::PSG_SQ_25;
+        case 2:
+            return VoiceFlags::PSG_SQ_50;
+        default:
+            return VoiceFlags::PSG_SQ_75;
         }
     }
 }
@@ -631,6 +659,11 @@ void WaveChannel::Process(std::span<sample> buffer, MixingArgs& args)
     }
 }
 
+VoiceFlags WaveChannel::GetVoiceType() const noexcept
+{
+    return VoiceFlags::PSG_WAVE;
+}
+
 bool WaveChannel::IsChn3() const
 {
     return true;
@@ -746,7 +779,7 @@ bool WaveChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sa
  */
 
 NoiseChannel::NoiseChannel(MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note)
-    : CGBChannel(ctx, track, env, note)
+    : CGBChannel(ctx, track, env, note), instrNp(instrNp)
 {
     this->rs = std::make_unique<NearestResampler>();
     if ((instrNp & 0x1) == 0) {
@@ -822,6 +855,14 @@ void NoiseChannel::Process(std::span<sample> buffer, MixingArgs& args)
         lVol += lVolStep;
         rVol += rVolStep;
     }
+}
+
+VoiceFlags NoiseChannel::GetVoiceType() const noexcept
+{
+    if (instrNp == 0x0)
+        return VoiceFlags::PSG_NOISE_15;
+    else
+        return VoiceFlags::PSG_NOISE_7;
 }
 
 bool NoiseChannel::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)

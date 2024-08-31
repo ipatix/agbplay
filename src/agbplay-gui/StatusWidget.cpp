@@ -102,6 +102,68 @@ void StatusWidget::setVisualizerState(const MP2KVisualizerState &state)
         widget.keyboardWidget.setPressedKeys(trk.activeNotes);
         widget.vuBarWidgetLeft.setLevel(trk.envLFloat * 3.0f, 1.0f);
         widget.vuBarWidgetRight.setLevel(trk.envRFloat * 3.0f, 1.0f);
+
+        const char *s;
+        switch (trk.activeVoiceTypes) {
+        case VoiceFlags::NONE:
+            s = "-";
+            break;
+        case VoiceFlags::PCM:
+            s = "PCM";
+            break;
+        case VoiceFlags::DPCM_GAMEFREAK:
+            s = "DPCM";
+            break;
+        case VoiceFlags::ADPCM_CAMELOT:
+            s = "ADPCM";
+            break;
+        case VoiceFlags::SYNTH_PWM:
+            s = "PWM";
+            break;
+        case VoiceFlags::SYNTH_SAW:
+            s = "Saw";
+            break;
+        case VoiceFlags::SYNTH_TRI:
+            s = "Tri.";
+            break;
+        case VoiceFlags::PSG_SQ_12:
+            s = "Sq.12";
+            break;
+        case VoiceFlags::PSG_SQ_25:
+            s = "Sq.25";
+            break;
+        case VoiceFlags::PSG_SQ_50:
+            s = "Sq.50";
+            break;
+        case VoiceFlags::PSG_SQ_75:
+            s = "Sq.75";
+            break;
+        case VoiceFlags::PSG_SQ_12_SWEEP:
+            s = "Sq.12S";
+            break;
+        case VoiceFlags::PSG_SQ_25_SWEEP:
+            s = "Sq.25S";
+            break;
+        case VoiceFlags::PSG_SQ_50_SWEEP:
+            s = "Sq.50S";
+            break;
+        case VoiceFlags::PSG_SQ_75_SWEEP:
+            s = "Sq.75S";
+            break;
+        case VoiceFlags::PSG_WAVE:
+            s = "Wave";
+            break;
+        case VoiceFlags::PSG_NOISE_7:
+            s = "Ns.7";
+            break;
+        case VoiceFlags::PSG_NOISE_15:
+            s = "Ns.15";
+            break;
+        default:
+            s = "Multi";
+            break;
+        }
+        widget.voiceTypeLabel.setText(s);
     }
 
     for (; i < trackWidgets.size(); i++) {

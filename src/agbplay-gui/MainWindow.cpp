@@ -64,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&statusWidget, &StatusWidget::audibilityChanged, this, &MainWindow::UpdateMute);
 
     setWindowTitle("agbplay");
+    setWindowIcon(QIcon(":/icons/main-logo.ico"));
 }
 
 MainWindow::~MainWindow()

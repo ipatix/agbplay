@@ -16,7 +16,7 @@
  * SequenceReader data
  */
 
-const std::map<uint8_t, int8_t> SequenceReader::delayLut = {
+const std::map<uint8_t, uint8_t> SequenceReader::delayLut = {
     {0x80,0 },
     {0x81,1 }, {0x82,2 }, {0x83,3 }, {0x84,4 }, {0x85,5 }, {0x86,6 }, {0x87,7 }, {0x88,8 },
     {0x89,9 }, {0x8A,10}, {0x8B,11}, {0x8C,12}, {0x8D,13}, {0x8E,14}, {0x8F,15}, {0x90,16},
@@ -26,7 +26,7 @@ const std::map<uint8_t, int8_t> SequenceReader::delayLut = {
     {0xA9,76}, {0xAA,78}, {0xAB,80}, {0xAC,84}, {0xAD,88}, {0xAE,90}, {0xAF,92}, {0xB0,96}
 };
 
-const std::map<uint8_t, int8_t> SequenceReader::noteLut = {
+const std::map<uint8_t, uint8_t> SequenceReader::noteLut = {
     {0xCF,0 },
     {0xD0,1 }, {0xD1,2 }, {0xD2,3 }, {0xD3,4 }, {0xD4,5 }, {0xD5,6 }, {0xD6,7 }, {0xD7,8 },
     {0xD8,9 }, {0xD9,10}, {0xDA,11}, {0xDB,12}, {0xDC,13}, {0xDD,14}, {0xDE,15}, {0xDF,16},

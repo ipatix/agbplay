@@ -25,8 +25,8 @@ public:
     float GetSpeedFactor() const;
 
 private:
-    static const std::map<uint8_t, int8_t> delayLut;
-    static const std::map<uint8_t, int8_t> noteLut;
+    static const std::map<uint8_t, uint8_t> delayLut;
+    static const std::map<uint8_t, uint8_t> noteLut;
 
     MP2KContext& ctx;
 

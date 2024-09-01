@@ -42,15 +42,19 @@ private:
     void processSaw(std::span<sample> buffer, ProcArgs& cargs);
     void processTri(std::span<sample> buffer, ProcArgs& cargs);
     bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired);
+    bool sampleFetchCallbackGFDPCMDecomp(std::vector<float>& fetchBuffer, size_t samplesRequires);
     bool sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequires);
+
+    enum class Type {
+        INVALID, PCM, GAMEFREAK_DPCM, CAMELOT_ADPCM, SYNTH_PWM, SYNTH_SAWTOOTH, SYNTH_TRIANGLE
+    } type = Type::INVALID;
 
     MP2KContext &ctx;
     SampleInfo sInfo;
     bool fixed;
-    bool isGS;              // is Golden Sun synth
-    bool isMPTcompressed;   // is Mario Power Tennis compressed
-    int16_t levelMPTcompressed;
-    uint8_t shiftMPTcompressed;
+    bool isSynth = false;
+    int16_t levelMPTcompressed = 0;
+    uint8_t shiftMPTcompressed = 0x38;
 
     /* all of these values have pairs of new and old value to allow smooth fades */
     uint8_t envInterStep = 0;

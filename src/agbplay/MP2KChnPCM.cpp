@@ -2,12 +2,14 @@
 #include <cassert>
 #include <string>
 #include <algorithm>
+#include <array>
 
 #include "Constants.h"
 #include "MP2KChnPCM.h"
 #include "Util.h"
 #include "Xcept.h"
 #include "MP2KContext.h"
+#include "Debug.h"
 
 /*
  * public MP2KChnPCM
@@ -16,6 +18,24 @@
 MP2KChnPCM::MP2KChnPCM(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
     : MP2KChn(track, note, env), ctx(ctx), sInfo(sInfo), fixed(fixed) 
 {
+    if (sInfo.loopEnabled == true && sInfo.loopPos == 0 && sInfo.endPos == 0) {
+        if (!ctx.rom.ValidRange(sInfo.samplePos, 16 + 8)) {
+            Debug::print("Sample Error: Sample data reaches beyond end of file: [{:#08x}]", sInfo.samplePos);
+            envState = EnvState::DEAD;
+            return;
+        }
+
+        // Golden Sun's synth instruments are marked by having a length of zero and a loop of zero
+        if (sInfo.samplePtr[1] == 0)
+            type = Type::SYNTH_PWM;
+        else if (sInfo.samplePtr[1] == 1)
+            type = Type::SYNTH_SAWTOOTH;
+        else
+            type = Type::SYNTH_TRIANGLE;
+        isSynth = true;
+        return;
+    }
+
     const ResamplerType t = fixed ? ctx.agbplaySoundMode.resamplerTypeFixed : ctx.agbplaySoundMode.resamplerTypeNormal;
     switch (t) {
     case ResamplerType::NEAREST:
@@ -35,25 +55,34 @@ MP2KChnPCM::MP2KChnPCM(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADS
         break;
     }
 
-    // Golden Sun's synth instruments are marked by having a length of zero and a loop of zero
-    if (sInfo.loopEnabled == true && sInfo.loopPos == 0 && sInfo.endPos == 0) {
-        this->isGS = true;
-    } else {
-        this->isGS = false;
-    }
-
-    // Mario Power Tennis compressed instruments have a 'negative' length
-    // strictly speaking, these are originally only available at 'fixed' frequency,
-    // but we enhance song #17 which otherwise would have garbled/no sound
-    if (sInfo.endPos >= 0x80000000) {
-        this->isMPTcompressed = true;
+    if (sInfo.gamefreakCompressed) {
+        type = Type::GAMEFREAK_DPCM;
+        const size_t realEndPos = (sInfo.endPos + 63) / 64 * 0x21;
+        if (!ctx.rom.ValidRange(sInfo.samplePos, 16 + realEndPos)) {
+            Debug::print("Sample Error: DPCM data reaches beyond end of file: [{:#08x}]", sInfo.samplePos);
+            envState = EnvState::DEAD;
+            return;
+        }
+    } else if (sInfo.endPos >= 0x80000000) {
+        // Mario Power Tennis compressed instruments have a 'negative' length
+        // strictly speaking, these are originally only available at 'fixed' frequency,
+        // but we enhance song #17 which otherwise would have garbled/no sound
+        type = Type::CAMELOT_ADPCM;
         // flip it to it's intended length
         this->sInfo.endPos = -this->sInfo.endPos;
+        if (!ctx.rom.ValidRange(sInfo.samplePos, 16 + sInfo.endPos / 2u)) {
+            Debug::print("Sample Error: ADPCM data reaches beyond end of file: [{:#08x}]", sInfo.samplePos);
+            envState = EnvState::DEAD;
+            return;
+        }
     } else {
-        this->isMPTcompressed = false;
+        type = Type::PCM;
+        if (!ctx.rom.ValidRange(sInfo.samplePos, 16 + sInfo.endPos)) {
+            Debug::print("Sample Error: PCM data reaches beyond end of file: [{:#08x}]", sInfo.samplePos);
+            envState = EnvState::DEAD;
+            return;
+        }
     }
-    this->levelMPTcompressed = 0;
-    this->shiftMPTcompressed = 0x38;
 }
 
 void MP2KChnPCM::Process(std::span<sample> buffer, const MixingArgs& args)
@@ -80,20 +109,22 @@ void MP2KChnPCM::Process(std::span<sample> buffer, const MixingArgs& args)
     cargs.lVol = vol.fromVolLeft;
     cargs.rVol = vol.fromVolRight;
 
-    if (fixed && !isGS)
+    if (fixed && !isSynth)
         cargs.interStep = float(args.fixedModeRate) * args.sampleRateInv;
     else 
         cargs.interStep = freq * args.sampleRateInv;
 
-    if (isGS) {
+    if (isSynth) {
         cargs.interStep /= 64.f; // different scale for GS
         // switch by GS type
-        if (sInfo.samplePtr[1] == 0) {
+        if (type == Type::SYNTH_PWM) {
             processModPulse(buffer, cargs, samplesPerBufferInv);
-        } else if (sInfo.samplePtr[1] == 1) {
+        } else if (type == Type::SYNTH_SAWTOOTH) {
             processSaw(buffer, cargs);
-        } else {
+        } else if (type == Type::SYNTH_TRIANGLE) {
             processTri(buffer, cargs);
+        } else {
+            assert(false);
         }
     } else {
         processNormal(buffer, cargs);
@@ -165,18 +196,22 @@ bool MP2KChnPCM::TickNote() noexcept
 
 VoiceFlags MP2KChnPCM::GetVoiceType() const noexcept
 {
-    if (isGS) {
-        if (sInfo.samplePtr[1] == 0)
-            return VoiceFlags::SYNTH_PWM;
-        else if (sInfo.samplePtr[1] == 1)
-            return VoiceFlags::SYNTH_SAW;
-        else
-            return VoiceFlags::SYNTH_TRI;
-    } else {
-        if (isMPTcompressed)
-            return VoiceFlags::ADPCM_CAMELOT;
-        else
-            return VoiceFlags::PCM;
+    switch (type) {
+    case Type::PCM:
+        return VoiceFlags::PCM;
+    case Type::GAMEFREAK_DPCM:
+        return VoiceFlags::DPCM_GAMEFREAK;
+    case Type::CAMELOT_ADPCM:
+        return VoiceFlags::ADPCM_CAMELOT;
+    case Type::SYNTH_PWM:
+        return VoiceFlags::SYNTH_PWM;
+    case Type::SYNTH_SAWTOOTH:
+        return VoiceFlags::SYNTH_SAW;
+    case Type::SYNTH_TRIANGLE:
+        return VoiceFlags::SYNTH_TRI;
+    default:
+        assert(false);
+        return VoiceFlags::NONE;
     }
 }
 
@@ -276,14 +311,17 @@ void MP2KChnPCM::processNormal(std::span<sample> buffer, ProcArgs& cargs) {
         return;
     assert(ctx.mixer.scratchBuffer.size() == buffer.size());
 
-    bool running;
-    if (this->isMPTcompressed) {
-        FetchCallback cb = std::bind(&MP2KChnPCM::sampleFetchCallbackMPTDecomp, this, std::placeholders::_1, std::placeholders::_2);
-        running = rs->Process(ctx.mixer.scratchBuffer, cargs.interStep, cb);
-    } else {
-        FetchCallback cb = std::bind(&MP2KChnPCM::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
-        running = rs->Process(ctx.mixer.scratchBuffer, cargs.interStep, cb);
-    }
+    FetchCallback cb;
+    if (type == Type::PCM)
+        cb = std::bind(&MP2KChnPCM::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
+    else if (type == Type::GAMEFREAK_DPCM)
+        cb = std::bind(&MP2KChnPCM::sampleFetchCallbackGFDPCMDecomp, this, std::placeholders::_1, std::placeholders::_2);
+    else if (type == Type::CAMELOT_ADPCM)
+        cb = std::bind(&MP2KChnPCM::sampleFetchCallbackMPTDecomp, this, std::placeholders::_1, std::placeholders::_2);
+    else
+        assert(false);
+
+    const bool running = rs->Process(ctx.mixer.scratchBuffer, cargs.interStep, cb);;
 
     for (size_t i = 0; i < buffer.size(); i++) {
         const float samp = ctx.mixer.scratchBuffer[i];
@@ -409,6 +447,60 @@ bool MP2KChnPCM::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sam
         samplesToFetch -= thisFetch;
         do {
             fetchBuffer[i++] = float(sInfo.samplePtr[pos++]) / 128.0f;
+        } while (--thisFetch > 0);
+
+        if (pos >= sInfo.endPos) {
+            if (sInfo.loopEnabled) {
+                pos = sInfo.loopPos;
+            } else {
+                std::fill(fetchBuffer.begin() + i, fetchBuffer.end(), 0.0f);
+                return false;
+            }
+        }
+    } while (samplesToFetch > 0);
+    return true;
+}
+
+bool MP2KChnPCM::sampleFetchCallbackGFDPCMDecomp(std::vector<float>& fetchBuffer, size_t samplesRequired)
+{
+    const size_t DPCM_BLOCK_SIZE = 64;
+    if (fetchBuffer.size() >= samplesRequired)
+        return true;
+    size_t samplesToFetch = samplesRequired - fetchBuffer.size();
+    size_t i = fetchBuffer.size();
+    fetchBuffer.resize(samplesRequired);
+
+    std::array<int8_t, DPCM_BLOCK_SIZE> decodeBuffer;
+    size_t decodedBlockIdx = ~static_cast<size_t>(0);
+
+    do {
+        size_t samplesTilLoop = sInfo.endPos - pos;
+        size_t thisFetch = std::min(samplesTilLoop, samplesToFetch);
+
+        samplesToFetch -= thisFetch;
+        do {
+            const size_t currentBlock = pos / DPCM_BLOCK_SIZE;
+            if (decodedBlockIdx != currentBlock) [[unlikely]] {
+                static const std::array<int8_t, 16> deltaTable = {
+                    0, 1, 4, 9, 16, 25, 36, 49, -64, -49, -36, -25, -16, -9, -4, -1
+                };
+
+                const size_t currentBlockPos = currentBlock * 0x21;
+
+                int8_t acc = sInfo.samplePtr[currentBlockPos];
+                decodeBuffer[0] = acc;
+                acc += deltaTable[sInfo.samplePtr[currentBlockPos + 1] & 0xF];
+                decodeBuffer[1] = acc;
+                for (size_t j = 2, h = 2; j < DPCM_BLOCK_SIZE; j += 2, h++) {
+                    acc += deltaTable[(sInfo.samplePtr[currentBlockPos + h] & 0xF0) >> 4];
+                    decodeBuffer[j+0] = acc;
+                    acc += deltaTable[sInfo.samplePtr[currentBlockPos + h] & 0xF];
+                    decodeBuffer[j+1] = acc;
+                }
+                decodedBlockIdx = currentBlock;
+            }
+
+            fetchBuffer[i++] = static_cast<float>(decodeBuffer[pos++ % DPCM_BLOCK_SIZE]) / 128.0f;
         } while (--thisFetch > 0);
 
         if (pos >= sInfo.endPos) {

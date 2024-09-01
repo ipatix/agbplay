@@ -83,10 +83,12 @@ struct Note
 struct SampleInfo
 {
     const int8_t *samplePtr;
+    size_t samplePos;
     float midCfreq;
     uint32_t loopPos;
     uint32_t endPos;
     bool loopEnabled;
+    bool gamefreakCompressed;
 };
 
 struct MP2KSoundMode

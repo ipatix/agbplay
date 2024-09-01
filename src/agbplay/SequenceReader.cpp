@@ -423,8 +423,11 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
         const size_t samplePos = rom.ReadAgbPtrToPos(instrPos + 0x4);
         SampleInfo sinfo;
 
-        // TODO implement DPCM decompression
-        if (rom.ReadU8(samplePos + 0x0) != 0) {
+        if (rom.ReadU8(samplePos + 0x0) == 0) {
+            sinfo.gamefreakCompressed = false;
+        } else if (rom.ReadU8(samplePos + 0x0) == 1) {
+            sinfo.gamefreakCompressed = true;
+        } else {
             Debug::print("Sample Error: Unknown/unsupported sample mode: [{:08X}]={:02X}, instrument: [{:08X}]",
                 samplePos, rom.ReadU8(samplePos), instrPos);
             return;
@@ -435,12 +438,12 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
         sinfo.loopPos = rom.ReadU32(samplePos + 8);
         sinfo.endPos = rom.ReadU32(samplePos + 12);
 
-        /* Second range interprets Mario Golf samples which have 'negative' length */
-        if (!rom.ValidRange(samplePos, 16 + sinfo.endPos) && !rom.ValidRange(samplePos, 16 + static_cast<uint32_t>(0 - sinfo.endPos) / 2)) {
-            Debug::print("Sample Error: Sample data reaches beyond end of file: instrument: [{:08X}]", instrPos);
+        if (!rom.ValidRange(samplePos, 16)) {
+            Debug::print("Sample Error: Sample header reaches beyond end of file: instrument: [{:08X}]", instrPos);
             return;
         }
 
+        sinfo.samplePos = samplePos;
         sinfo.samplePtr = static_cast<const int8_t *>(rom.GetPtr(samplePos + 16));
 
         ctx.sndChannels.emplace_back(

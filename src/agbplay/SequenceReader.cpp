@@ -217,14 +217,19 @@ int SequenceReader::TickTrackNotes(MP2KTrack &trk)
     for (MP2KChn *chn = trk.channels; chn != nullptr; chn = chn->next) {
         if (chn->TickNote()) {
             active++;
-            trk.activeNotes[chn->note.midiKeyTrackData % NUM_NOTES] = true;
-            trk.activeVoiceTypes = static_cast<VoiceFlags>(
-                static_cast<int>(trk.activeVoiceTypes) | static_cast<int>(chn->GetVoiceType())
-            );
+            AddNoteToState(trk, *chn);
         }
     }
 
     return active;
+}
+
+void SequenceReader::AddNoteToState(MP2KTrack &trk, const MP2KChn &chn)
+{
+    trk.activeNotes[chn.note.midiKeyTrackData % NUM_NOTES] = true;
+    trk.activeVoiceTypes = static_cast<VoiceFlags>(
+        static_cast<int>(trk.activeVoiceTypes) | static_cast<int>(chn.GetVoiceType())
+    );
 }
 
 void SequenceReader::TrackVolPitchSet(MP2KTrack &trk, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch)
@@ -363,6 +368,7 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
         return true;
     };
 
+    const MP2KChn *chn = nullptr;
     const uint8_t instrType = rom.ReadU8(instrPos);
 
     // enqueue actual note
@@ -381,6 +387,7 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
                     adsr,
                     note,
                     sweep);
+            chn = &ctx.sq1Channels.back();
             break;
         case BANKDATA_TYPE_SQ2:
             if (!cgbPolyphonySuppressFunc(ctx.sq2Channels))
@@ -392,6 +399,7 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
                     adsr,
                     note,
                     0);
+            chn = &ctx.sq2Channels.back();
             break;
         case BANKDATA_TYPE_WAVE:
             if (!cgbPolyphonySuppressFunc(ctx.waveChannels))
@@ -403,6 +411,7 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
                     adsr,
                     note,
                     ctx.agbplaySoundMode.accurateCh3Volume);
+            chn = &ctx.waveChannels.back();
             break;
         case BANKDATA_TYPE_NOISE:
             if (!cgbPolyphonySuppressFunc(ctx.noiseChannels))
@@ -413,6 +422,7 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
                     instrDutyWaveNp,
                     adsr,
                     note);
+            chn = &ctx.noiseChannels.back();
             break;
         default:
             Debug::print("CGB Error: Invalid CGB Type: [{:08X}]={:02X}, instrument: [{:08X}]",
@@ -453,7 +463,13 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
                 adsr,
                 note,
                 instrType & BANKDATA_TYPE_FIX);
+        chn = &ctx.sndChannels.back();
     }
+
+    /* New notes should be added to the visualizer state immediately. Otherwise they won't be
+     * present during the first tick. */
+    assert(chn != nullptr);
+    AddNoteToState(trk, *chn);
 
     // new notes need correct pitch and volume applied
     trk.updateVolume = true;

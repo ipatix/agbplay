@@ -10,6 +10,7 @@
 struct MP2KContext;
 struct MP2KTrack;
 struct MP2KPlayer;
+struct MP2KChn;
 
 class SequenceReader
 {
@@ -39,6 +40,7 @@ private:
     void TrackVolPitchMain(MP2KTrack &trk);
     void TrackVolPitchSet(MP2KTrack &trk, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch);
     int TickTrackNotes(MP2KTrack &trk);
+    void AddNoteToState(MP2KTrack &trk, const MP2KChn &chn);
 
     void cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd);
     void cmdPlayCommand(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd);

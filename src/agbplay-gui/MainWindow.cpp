@@ -10,6 +10,8 @@
 #include <QFileDialog>
 #include <QCloseEvent>
 #include <QDesktopServices>
+#include <QInputDialog>
+#include <QShortcut>
 
 #include <fmt/core.h>
 #include <thread>
@@ -62,6 +64,8 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(&statusWidget, &StatusWidget::audibilityChanged, this, &MainWindow::UpdateMute);
+
+    new QShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_G), this, [this]() { JumpSong(); });
 
     setWindowTitle("agbplay");
     setWindowIcon(QIcon(":/icons/main-logo.ico"));
@@ -400,6 +404,40 @@ void MainWindow::AdvanceSong(int indexDelta)
         listWidget.SelectSong(newIndex);
         LoadSong(newItem->text().toStdString(), static_cast<uint16_t>(newItem->data(Qt::UserRole).toUInt()));
     }
+}
+
+void MainWindow::JumpSong()
+{
+    if (!playbackEngine)
+        return;
+
+    bool ok = false;
+    int index = QInputDialog::getInt(this, "Jump to Song Index", "Index:", 0, 0, songlistWidget.listWidget.count()-1, 1, &ok);
+    if (!ok)
+        return;
+
+    JumpSong(index);
+}
+
+void MainWindow::JumpSong(int index)
+{
+    if (!playbackEngine)
+        return;
+
+    if (index < 0 || index >= songlistWidget.listWidget.count()) {
+        MBoxError("Jump to song error", "Unable to jump to song ID, which is beyond the song table.");
+        return;
+    }
+
+    QListWidgetItem *item = songlistWidget.listWidget.item(index);
+    if (!item) {
+        assert(false);
+        return;
+    }
+
+    playlistFocus = false;
+    songlistWidget.SelectSong(index);
+    LoadSong(item->text().toStdString(), static_cast<uint16_t>(item->data(Qt::UserRole).toUInt()));
 }
 
 void MainWindow::LoadSong(const std::string &title, uint16_t id)

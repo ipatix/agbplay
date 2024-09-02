@@ -45,6 +45,8 @@ private:
     void Pause();
     void Stop();
     void AdvanceSong(int indexDelta);
+    void JumpSong();
+    void JumpSong(int index);
     void LoadSong(const std::string &title, uint16_t id);
     void SpeedHalve();
     void SpeedDouble();

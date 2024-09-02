@@ -12,6 +12,8 @@
 #include "KeyboardWidget.h"
 #include "VUBarWidget.h"
 
+struct MP2KVisualizerStateTrack;
+
 class TrackWidget : public QWidget
 {
     Q_OBJECT
@@ -28,6 +30,7 @@ public:
     bool isAnalyzing() const;
     void setAudible(bool audible);
     const std::bitset<128> getPressed() const;
+    void setVisualizerState(const MP2KVisualizerStateTrack &state);
     void setPressed(const std::bitset<128> &pressed);
     size_t getTrackNo() const;
 
@@ -61,6 +64,7 @@ private:
 
     static const QPalette mutedLabelPalette;
     static const QPalette posPalette;
+    static const QPalette posCallPalette;
     static const QPalette restPalette;
     static const QPalette voiceTypePalette;
     static const QPalette instNoPalette;
@@ -75,6 +79,18 @@ private:
     bool muted = false;
     bool solo = false;
     bool analyzer = false;
+
+    uint32_t oldTrackPtr = 0;
+    bool oldIsCalling = false;
+    float oldEnvLFloat = 0.0f;
+    float oldEnvRFloat = 0.0f;
+    uint8_t oldVol = 0;
+    uint8_t oldMod = 0;
+    uint8_t oldProg = 0;
+    int8_t oldPan = 0;
+    int16_t oldPitch = 0;
+    uint8_t oldDelay = 0;
+    int oldActiveVoiceTypes = 0;
 
     enum {
         COL_PADL = 0,

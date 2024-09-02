@@ -1,5 +1,9 @@
 #include "SongWidget.h"
 
+#include <fmt/core.h>
+
+#include "Types.h"
+
 SongWidget::SongWidget(QWidget *parent)
     : QWidget(parent)
 {
@@ -81,6 +85,37 @@ SongWidget::~SongWidget()
 {
 }
 
+#define setFmtText(...) setText(QString::fromStdString(fmt::format(__VA_ARGS__)))
+
+void SongWidget::setVisualizerState(const MP2KVisualizerStatePlayer &state, size_t activeChannels)
+{
+    if (oldBpm != state.bpm) {
+        oldBpm = state.bpm;
+        bpmLabel.setFmtText("{} BPM", state.bpm);
+    }
+
+    if (oldBpmFactor != state.bpmFactor) {
+        oldBpmFactor = state.bpmFactor;
+        bpmFactorLabel.setFmtText("(x {:.4})", state.bpmFactor);
+    }
+
+    if (oldTime != state.time) {
+        oldTime = state.time;
+        timeLabel.setFmtText("{:02}:{:02}", state.time / 60, state.time % 60);
+    }
+
+    if (oldActiveChannels != activeChannels) {
+        oldActiveChannels = activeChannels;
+
+        if (maxChannels < activeChannels)
+            maxChannels = activeChannels;
+
+        chnLabel.setFmtText("{}/{} Chn", activeChannels, maxChannels);
+    }
+}
+
+#undef setFmtText
+
 void SongWidget::setPressed(const std::bitset<128> &pressed)
 {
     keyboardWidget.setPressedKeys(pressed);
@@ -94,4 +129,9 @@ void SongWidget::reset()
     chnLabel.setText("0/0 Chn");
     timeLabel.setText("00:00");
     chordLabel.setText("C Maj 7");
+}
+
+void SongWidget::resetMaxChannels()
+{
+    maxChannels = 0;
 }

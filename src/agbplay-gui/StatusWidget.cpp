@@ -2,8 +2,6 @@
 
 #include <QPainter>
 
-#include <fmt/core.h>
-
 #include "Types.h"
 
 ChordLabelWidget::ChordLabelWidget(QWidget *parent)
@@ -58,25 +56,13 @@ StatusWidget::~StatusWidget()
 {
 }
 
-#define setFmtText(...) setText(QString::fromStdString(fmt::format(__VA_ARGS__)))
-
 void StatusWidget::setVisualizerState(const MP2KVisualizerState &state)
 {
     if (state.players.size() == 0)
         return;
 
-    if (maxChannels < state.activeChannels)
-        maxChannels = state.activeChannels;
-
-    songWidget.chnLabel.setFmtText("{}/{} Chn", state.activeChannels, maxChannels);
-
-    // FIXME probably slow as fuck with all these string conversions, but it's a start
-
     const auto &player = state.players.at(state.primaryPlayer);
-
-    songWidget.bpmLabel.setFmtText("{} BPM", player.bpm);
-    songWidget.bpmFactorLabel.setFmtText("(x {:.4})", player.bpmFactor);
-    songWidget.timeLabel.setFmtText("{:02}:{:02}", player.time / 60, player.time % 60);
+    songWidget.setVisualizerState(player, state.activeChannels);
 
     size_t i = 0;
     for (; i < std::min(static_cast<size_t>(player.tracksUsed), trackWidgets.size()); i++) {
@@ -84,86 +70,7 @@ void StatusWidget::setVisualizerState(const MP2KVisualizerState &state)
         auto &widget = *trackWidgets.at(i);
 
         widget.setVisible(true);
-        widget.posLabel.setFmtText("0x{:07X}", trk.trackPtr); // TODO patt/pend
-        widget.restLabel.setText(QString::number(trk.delay));
-        if (trk.prog == PROG_UNDEFINED)
-            widget.instNoLabel.setText("-");
-        else
-            widget.instNoLabel.setText(QString::number(trk.prog));
-        widget.volLabel.setText(QString::number(trk.vol));
-        if (trk.pan < 0)
-            widget.panLabel.setFmtText("L{}", -trk.pan);
-        else if (trk.pan > 0)
-            widget.panLabel.setFmtText("R{}", trk.pan);
-        else
-            widget.panLabel.setText("C");
-        widget.modLabel.setText(QString::number(trk.mod));
-        widget.pitchLabel.setText(QString::number(trk.pitch));
-        widget.keyboardWidget.setPressedKeys(trk.activeNotes);
-        widget.vuBarWidgetLeft.setLevel(trk.envLFloat * 3.0f, 1.0f);
-        widget.vuBarWidgetRight.setLevel(trk.envRFloat * 3.0f, 1.0f);
-
-        const char *s;
-        switch (trk.activeVoiceTypes) {
-        case VoiceFlags::NONE:
-            s = "-";
-            break;
-        case VoiceFlags::PCM:
-            s = "PCM";
-            break;
-        case VoiceFlags::DPCM_GAMEFREAK:
-            s = "DPCM";
-            break;
-        case VoiceFlags::ADPCM_CAMELOT:
-            s = "ADPCM";
-            break;
-        case VoiceFlags::SYNTH_PWM:
-            s = "PWM";
-            break;
-        case VoiceFlags::SYNTH_SAW:
-            s = "Saw";
-            break;
-        case VoiceFlags::SYNTH_TRI:
-            s = "Tri.";
-            break;
-        case VoiceFlags::PSG_SQ_12:
-            s = "Sq.12";
-            break;
-        case VoiceFlags::PSG_SQ_25:
-            s = "Sq.25";
-            break;
-        case VoiceFlags::PSG_SQ_50:
-            s = "Sq.50";
-            break;
-        case VoiceFlags::PSG_SQ_75:
-            s = "Sq.75";
-            break;
-        case VoiceFlags::PSG_SQ_12_SWEEP:
-            s = "Sq.12S";
-            break;
-        case VoiceFlags::PSG_SQ_25_SWEEP:
-            s = "Sq.25S";
-            break;
-        case VoiceFlags::PSG_SQ_50_SWEEP:
-            s = "Sq.50S";
-            break;
-        case VoiceFlags::PSG_SQ_75_SWEEP:
-            s = "Sq.75S";
-            break;
-        case VoiceFlags::PSG_WAVE:
-            s = "Wave";
-            break;
-        case VoiceFlags::PSG_NOISE_7:
-            s = "Ns.7";
-            break;
-        case VoiceFlags::PSG_NOISE_15:
-            s = "Ns.15";
-            break;
-        default:
-            s = "Multi";
-            break;
-        }
-        widget.voiceTypeLabel.setText(s);
+        widget.setVisualizerState(trk);
     }
 
     for (; i < trackWidgets.size(); i++) {
@@ -185,7 +92,7 @@ void StatusWidget::loadSongReset()
         trackWidget->setMuted(false, true);
     }
 
-    maxChannels = 0;
+    songWidget.resetMaxChannels();
 }
 
 void StatusWidget::updateMuteOrSolo(bool visualOnly)

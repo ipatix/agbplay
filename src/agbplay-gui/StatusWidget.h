@@ -48,8 +48,6 @@ private:
     QFrame hlineWidget{this};
     std::vector<TrackWidget *> trackWidgets;
 
-    size_t maxChannels = 0;
-
 signals:
     void audibilityChanged(size_t trackNo, bool audible, bool visualOnly);
 };

@@ -1,5 +1,9 @@
 #include "TrackWidget.h"
 
+#include <fmt/core.h>
+
+#include "Types.h"
+
 TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     : QWidget(parent), trackNo(trackNo)
 {
@@ -258,6 +262,104 @@ const std::bitset<128> TrackWidget::getPressed() const
     return keyboardWidget.getPressedKeys();
 }
 
+#define setFmtText(...) setText(QString::fromStdString(fmt::format(__VA_ARGS__)))
+
+void TrackWidget::setVisualizerState(const MP2KVisualizerStateTrack &state)
+{
+    if (oldTrackPtr != state.trackPtr) {
+        oldTrackPtr = state.trackPtr;
+        posLabel.setFmtText("0x{:07X}", state.trackPtr); // TODO patt/pend COLOR
+    }
+
+    if (oldIsCalling != state.isCalling) {
+        oldIsCalling = state.isCalling;
+        if (state.isCalling)
+            posLabel.setPalette(posPalette);
+        else
+            posLabel.setPalette(posCallPalette);
+    }
+
+    if (oldEnvLFloat != state.envLFloat) {
+        oldEnvLFloat = state.envLFloat;
+        vuBarWidgetLeft.setLevel(state.envLFloat * 3.0f, 1.0f);
+    }
+
+    if (oldEnvRFloat != state.envRFloat) {
+        oldEnvRFloat = state.envRFloat;
+        vuBarWidgetRight.setLevel(state.envRFloat * 3.0f, 1.0f);
+    }
+
+    if (oldVol != state.vol) {
+        oldVol = state.vol;
+        volLabel.setText(QString::number(state.vol));
+    }
+
+    if (oldMod != state.mod) {
+        oldMod = state.mod;
+        modLabel.setText(QString::number(state.mod));
+    }
+
+    if (oldProg != state.prog) {
+        oldProg = state.prog;
+        if (state.prog == PROG_UNDEFINED)
+            instNoLabel.setText("-");
+        else
+            instNoLabel.setText(QString::number(state.prog));
+    }
+
+    if (oldPan != state.pan) {
+        oldPan = state.pan;
+        if (state.pan < 0)
+            panLabel.setFmtText("L{}", -state.pan);
+        else if (state.pan > 0)
+            panLabel.setFmtText("R{}", state.pan);
+        else
+            panLabel.setText("C");
+    }
+
+    if (oldPitch != state.pitch) {
+        oldPitch = state.pitch;
+        pitchLabel.setText(QString::number(state.pitch));
+    }
+
+    if (oldDelay != state.delay) {
+        oldDelay = state.delay;
+        restLabel.setText(QString::number(state.delay));
+    }
+
+    keyboardWidget.setPressedKeys(state.activeNotes);
+
+    if (oldActiveVoiceTypes != static_cast<int>(state.activeVoiceTypes)) {
+        oldActiveVoiceTypes = static_cast<int>(state.activeVoiceTypes);
+
+        const char *s;
+        switch (state.activeVoiceTypes) {
+        case VoiceFlags::NONE: s = "-"; break;
+        case VoiceFlags::PCM: s = "PCM"; break;
+        case VoiceFlags::DPCM_GAMEFREAK: s = "DPCM"; break;
+        case VoiceFlags::ADPCM_CAMELOT: s = "ADPCM"; break;
+        case VoiceFlags::SYNTH_PWM: s = "PWM"; break;
+        case VoiceFlags::SYNTH_SAW: s = "Saw"; break;
+        case VoiceFlags::SYNTH_TRI: s = "Tri."; break;
+        case VoiceFlags::PSG_SQ_12: s = "Sq.12"; break;
+        case VoiceFlags::PSG_SQ_25: s = "Sq.25"; break;
+        case VoiceFlags::PSG_SQ_50: s = "Sq.50"; break;
+        case VoiceFlags::PSG_SQ_75: s = "Sq.75"; break;
+        case VoiceFlags::PSG_SQ_12_SWEEP: s = "Sq.12S"; break;
+        case VoiceFlags::PSG_SQ_25_SWEEP: s = "Sq.25S"; break;
+        case VoiceFlags::PSG_SQ_50_SWEEP: s = "Sq.50S"; break;
+        case VoiceFlags::PSG_SQ_75_SWEEP: s = "Sq.75S"; break;
+        case VoiceFlags::PSG_WAVE: s = "Wave"; break;
+        case VoiceFlags::PSG_NOISE_7: s = "Ns.7"; break;
+        case VoiceFlags::PSG_NOISE_15: s = "Ns.15"; break;
+        default: s = "Multi"; break;
+        }
+        voiceTypeLabel.setText(s);
+    }
+}
+
+#undef setFmtText
+
 void TrackWidget::setPressed(const std::bitset<128> &pressed)
 {
     keyboardWidget.setPressedKeys(pressed);
@@ -302,6 +404,12 @@ const QPalette TrackWidget::mutedLabelPalette = []() {
 const QPalette TrackWidget::posPalette = []() {
     QPalette pal;
     pal.setColor(QPalette::WindowText, QColor("#27b927"));
+    return pal;
+}();
+
+const QPalette TrackWidget::posCallPalette = []() {
+    QPalette pal;
+    pal.setColor(QPalette::WindowText, QColor("#e7e700"));
     return pal;
 }();
 

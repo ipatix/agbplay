@@ -28,6 +28,8 @@ public:
     QHBoxLayout lowerLayout;
 
     QLabel titleLabel{this};
+
+private:
     QLabel bpmLabel{this};
     QLabel bpmFactorLabel{this};
     QLabel chnLabel{this};
@@ -35,7 +37,6 @@ public:
     KeyboardWidget keyboardWidget{this};
     QLabel chordLabel{this};
 
-private:
     uint16_t oldBpm = 0;
     float oldBpmFactor = 1.0f;
     size_t oldTime = 0;

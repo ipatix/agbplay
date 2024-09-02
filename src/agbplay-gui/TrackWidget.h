@@ -34,6 +34,25 @@ public:
     void setPressed(const std::bitset<128> &pressed);
     size_t getTrackNo() const;
 
+private:
+    void updateAnalyzer();
+
+    static const QPalette labelUnmutedPalette;
+    static const QPalette labelMutedPalette;
+
+    static const QPalette mutedLabelPalette;
+    static const QPalette posPalette;
+    static const QPalette posCallPalette;
+    static const QPalette restPalette;
+    static const QPalette voiceTypePalette;
+    static const QPalette instNoPalette;
+    static const QPalette volPalette;
+    static const QPalette panPalette;
+    static const QPalette modPalette;
+    static const QPalette pitchPalette;
+    static const QFont labelFont;
+    static const QFont labelMonospaceFont;
+
     QGridLayout layout{this};
 
     QLabel trackNoLabel{this};
@@ -55,25 +74,6 @@ public:
     VUBarWidget vuBarWidgetLeft{VUBarWidget::Orientation::Left, false, -36.0f, 3.0f, &vuBarWidget};
     VUBarWidget vuBarWidgetRight{VUBarWidget::Orientation::Right, false, -36.0f, 3.0f, &vuBarWidget};
     QVBoxLayout vuBarKeyboardLayout;
-
-private:
-    void updateAnalyzer();
-
-    static const QPalette labelUnmutedPalette;
-    static const QPalette labelMutedPalette;
-
-    static const QPalette mutedLabelPalette;
-    static const QPalette posPalette;
-    static const QPalette posCallPalette;
-    static const QPalette restPalette;
-    static const QPalette voiceTypePalette;
-    static const QPalette instNoPalette;
-    static const QPalette volPalette;
-    static const QPalette panPalette;
-    static const QPalette modPalette;
-    static const QPalette pitchPalette;
-    static const QFont labelFont;
-    static const QFont labelMonospaceFont;
 
     size_t trackNo;
     bool muted = false;

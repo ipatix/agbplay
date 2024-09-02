@@ -153,39 +153,39 @@ struct sample {
     float right;
 };
 
+struct MP2KVisualizerStateTrack
+{
+    uint32_t trackPtr = 0;
+    float envLFloat = 0.0f;
+    float envRFloat = 0.0f;
+    bool isCalling = false;
+    bool isMuted = false;
+    uint8_t vol = 100;              // range 0 to 127
+    uint8_t mod = 0;                // range 0 to 127
+    uint8_t prog = PROG_UNDEFINED;  // range 0 to 127
+    int8_t pan = 0;                 // range -64 to 63
+    int16_t pitch = 0;              // range -32768 to 32767
+    uint8_t envL = 0;               // range 0 to 255
+    uint8_t envR = 0;               // range 0 to 255
+    uint8_t delay = 0;              // range 0 to 96
+                                    //
+    std::bitset<NUM_NOTES> activeNotes;
+    VoiceFlags activeVoiceTypes = VoiceFlags::NONE;
+    float volLeft = 0.0f, volRight = 0.0f;
+};
+
+struct MP2KVisualizerStatePlayer
+{
+    std::vector<MP2KVisualizerStateTrack> tracks;
+    float bpmFactor = 1.0f;
+    uint16_t bpm = 0;
+    uint8_t tracksUsed = 0;
+    size_t time;
+};
+
 struct MP2KVisualizerState 
 {
-    struct TrackState
-    {
-        uint32_t trackPtr = 0;
-        float envLFloat = 0.0f;
-        float envRFloat = 0.0f;
-        bool isCalling = false;
-        bool isMuted = false;
-        uint8_t vol = 100;              // range 0 to 127
-        uint8_t mod = 0;                // range 0 to 127
-        uint8_t prog = PROG_UNDEFINED;  // range 0 to 127
-        int8_t pan = 0;                 // range -64 to 63
-        int16_t pitch = 0;              // range -32768 to 32767
-        uint8_t envL = 0;               // range 0 to 255
-        uint8_t envR = 0;               // range 0 to 255
-        uint8_t delay = 0;              // range 0 to 96
-                                        //
-        std::bitset<NUM_NOTES> activeNotes;
-        VoiceFlags activeVoiceTypes = VoiceFlags::NONE;
-        float volLeft = 0.0f, volRight = 0.0f;
-    };
-
-    struct PlayerState
-    {
-        std::vector<TrackState> tracks;
-        float bpmFactor = 1.0f;
-        uint16_t bpm = 0;
-        uint8_t tracksUsed = 0;
-        size_t time;
-    };
-
-    std::vector<PlayerState> players;
+    std::vector<MP2KVisualizerStatePlayer> players;
 
     float masterVolLeft = 0.0f, masterVolRight = 0.0f;
     size_t activeChannels = 0;

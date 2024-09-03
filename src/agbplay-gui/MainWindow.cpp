@@ -411,8 +411,11 @@ void MainWindow::JumpSong()
     if (!playbackEngine)
         return;
 
+    if (songlistWidget.listWidget.count() <= 0)
+        return;
+
     bool ok = false;
-    int index = QInputDialog::getInt(this, "Jump to Song Index", "Index:", 0, 0, songlistWidget.listWidget.count()-1, 1, &ok);
+    int index = QInputDialog::getInt(this, "Jump to Song Index", "Index:", songlistWidget.GetSelectedSong(), 0, songlistWidget.listWidget.count()-1, 1, &ok);
     if (!ok)
         return;
 

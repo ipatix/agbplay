@@ -24,11 +24,13 @@ string(TIMESTAMP BUILD_YEAR "%Y")
 configure_file(Version.h.in Version.h @ONLY)
 
 file(GLOB_RECURSE AGBPLAY_SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.cpp")
-#file(GLOB_RECURSE AGBPLAY_HEADERS "${CMAKE_CURRENT_LIST_DIR}/*.h" "${CMAKE_CURRENT_LIST_DIR}/*.hpp")
+set(AGBPLAY_SOURCES_AVX2 ${AGBPLAY_SOURCES})
+list(FILTER AGBPLAY_SOURCES_AVX2 INCLUDE REGEX ".*AVX2\\.cpp")
 
 add_library(agbplay SHARED ${AGBPLAY_SOURCES})
 
-target_compile_options(agbplay PRIVATE -Wall -Wextra -Wconversion -mavx2)
+target_compile_options(agbplay PRIVATE -Wall -Wextra -Wconversion)
+set_source_files_properties(${AGBPLAY_SOURCES_AVX2} PROPERTIES COMPILE_FLAGS -mavx2)
 #target_compile_options(agbplay PRIVATE -Wall -Wextra -Wconversion -fsanitize=address)
 #target_link_options(agbplay PRIVATE -fsanitize=address)
 target_include_directories(agbplay PUBLIC "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
@@ -41,4 +43,5 @@ target_link_libraries(agbplay
     PkgConfig::sndfile
     libzip::zip
     PkgConfig::zlib
+    ${AGBPLAY_ADDITIONAL_LIBS}
 )

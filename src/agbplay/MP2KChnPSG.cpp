@@ -373,7 +373,7 @@ MP2KChnPSGSquare::MP2KChnPSGSquare(MP2KContext &ctx, MP2KTrack *track, uint32_t 
     };
 
     this->pat = patterns[instrDuty % 4];
-    this->rs = std::make_unique<BlepResampler>();
+    this->rs = Resampler::MakeResampler(ResamplerType::BLEP);
 }
 
 void MP2KChnPSGSquare::SetPitch(int16_t pitch)
@@ -575,7 +575,7 @@ MP2KChnPSGWave::MP2KChnPSGWave(MP2KContext &ctx, MP2KTrack *track, uint32_t inst
             wavePtr = dummyWave;
     }
 
-    this->rs = std::make_unique<BlepResampler>();
+    this->rs = Resampler::MakeResampler(ResamplerType::BLEP);
 
     /* wave samples are unsigned by default, so we'll calculate the required
      * DC offset correction */
@@ -781,7 +781,12 @@ bool MP2KChnPSGWave::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t
 MP2KChnPSGNoise::MP2KChnPSGNoise(MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note)
     : MP2KChnPSG(ctx, track, env, note), instrNp(instrNp)
 {
-    this->rs = std::make_unique<NearestResampler>();
+    /* Noise is first generated at the generators frequency and converted to
+     * AGB's DAC output rate using nearest neighbor.
+     * In order to sound good, we then resample this signal again to our actual
+     * output rate using a bandlimited sinc resampler. */
+    this->rs = Resampler::MakeResampler(ResamplerType::NEAREST);
+    this->srs = Resampler::MakeResampler(ResamplerType::SINC);
     if ((instrNp & 0x1) == 0) {
         noiseState = 0x4000;
         noiseLfsrMask = 0x6000;
@@ -846,7 +851,7 @@ void MP2KChnPSGNoise::Process(std::span<sample> buffer, MixingArgs& args)
         return rs->Process({&fetchBuffer[i], samplesToFetch}, interStep, cbNearest);
     };
 
-    srs.Process(ctx.mixer.scratchBuffer, noiseFreq / float(STREAM_SAMPLERATE), cbSinc);
+    srs->Process(ctx.mixer.scratchBuffer, noiseFreq / float(STREAM_SAMPLERATE), cbSinc);
 
     for (size_t i = 0; i < buffer.size(); i++) {
         const float samp = ctx.mixer.scratchBuffer[i];

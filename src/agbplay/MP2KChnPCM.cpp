@@ -37,23 +37,7 @@ MP2KChnPCM::MP2KChnPCM(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADS
     }
 
     const ResamplerType t = fixed ? ctx.agbplaySoundMode.resamplerTypeFixed : ctx.agbplaySoundMode.resamplerTypeNormal;
-    switch (t) {
-    case ResamplerType::NEAREST:
-        this->rs = std::make_unique<NearestResampler>();
-        break;
-    case ResamplerType::LINEAR:
-        this->rs = std::make_unique<LinearResampler>();
-        break;
-    case ResamplerType::SINC:
-        this->rs = std::make_unique<SincResampler>();
-        break;
-    case ResamplerType::BLEP:
-        this->rs = std::make_unique<BlepResampler>();
-        break;
-    case ResamplerType::BLAMP:
-        this->rs = std::make_unique<BlampResampler>();
-        break;
-    }
+    this->rs = Resampler::MakeResampler(t);
 
     if (sInfo.gamefreakCompressed) {
         type = Type::GAMEFREAK_DPCM;

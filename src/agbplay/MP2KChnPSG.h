@@ -114,7 +114,7 @@ public:
     VoiceFlags GetVoiceType() const noexcept override;
 private:
     bool sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired);
-    SincResampler srs;
+    std::unique_ptr<Resampler> srs;
     const uint32_t instrNp;
     uint16_t noiseState;
     uint16_t noiseLfsrMask;

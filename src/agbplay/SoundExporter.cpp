@@ -86,8 +86,9 @@ void SoundExporter::Export()
     if (std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count() == 0) {
         Debug::print("Successfully wrote {} files", profile.playlist.size());
     } else {
-        size_t secondsTotal = static_cast<size_t>(std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count());
-        size_t samplesPerSecond = totalSamplesRendered / secondsTotal;
+        const uint64_t secondsTotal = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count());
+        const uint64_t microSecondsTotal = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count());
+        const uint64_t samplesPerSecond = totalSamplesRendered * 1000000 / microSecondsTotal;
         Debug::print("Successfully wrote {} files at {} samples per second ({} seconds total)", profile.playlist.size(), samplesPerSecond, secondsTotal);
     }
 }

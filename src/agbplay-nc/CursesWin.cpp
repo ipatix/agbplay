@@ -2,9 +2,9 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "ColorDef.h"
-#include "CursesWin.h"
-#include "Xcept.h"
+#include "ColorDef.hpp"
+#include "CursesWin.hpp"
+#include "Xcept.hpp"
 
 CursesWin::CursesWin(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) {
     if ((winPtr = newwin((int)height, (int)width, (int)yPos, (int)xPos)) == nullptr) {

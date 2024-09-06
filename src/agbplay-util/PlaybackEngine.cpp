@@ -13,10 +13,10 @@
 #include <pa_jack.h>
 #endif
 
-#include "PlaybackEngine.h"
-#include "Xcept.h"
-#include "Debug.h"
-#include "Util.h"
+#include "PlaybackEngine.hpp"
+#include "Xcept.hpp"
+#include "Debug.hpp"
+#include "Util.hpp"
 
 /*
  * set JACK client name

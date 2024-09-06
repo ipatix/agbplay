@@ -1,7 +1,7 @@
-#include "MP2KScanner.h"
+#include "MP2KScanner.hpp"
 
-#include "Rom.h"
-#include "Constants.h"
+#include "Rom.hpp"
+#include "Constants.hpp"
 
 MP2KScanner::MP2KScanner(const Rom &rom) : rom(rom)
 {

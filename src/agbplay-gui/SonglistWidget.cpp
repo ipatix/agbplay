@@ -1,4 +1,4 @@
-#include "SonglistWidget.h"
+#include "SonglistWidget.hpp"
 
 #include <QEvent>
 #include <QInputDialog>

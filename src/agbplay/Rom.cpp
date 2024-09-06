@@ -1,4 +1,4 @@
-#include "Rom.h"
+#include "Rom.hpp"
 
 #include <string>
 #include <cassert>
@@ -9,11 +9,11 @@
 
 #include <zip.h>
 
-#include "Xcept.h"
-#include "Debug.h"
-#include "Util.h"
-#include "Gsf.h"
-#include "FileReader.h"
+#include "Xcept.hpp"
+#include "Debug.hpp"
+#include "Util.hpp"
+#include "Gsf.hpp"
+#include "FileReader.hpp"
 
 std::unique_ptr<Rom> Rom::globalInstance;
 

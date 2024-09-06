@@ -1,10 +1,10 @@
 #include <boost/math/special_functions/sinc.hpp>
 
-#include "ResamplerAVX2.h"
+#include "ResamplerAVX2.hpp"
 
-#include "Resampler.h"
-#include "Util.h"
-#include "Debug.h"
+#include "Resampler.hpp"
+#include "Util.hpp"
+#include "Debug.hpp"
 
 const bool AVX2_SUPPORTED = []() {
 #if defined(__x86_64__) || defined(i386) || defined(__i386__) || defined(__386)

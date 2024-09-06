@@ -1,4 +1,4 @@
-#include "MainWindow.h"
+#include "MainWindow.hpp"
 
 #include <QStatusBar>
 #include <QMenuBar>
@@ -20,17 +20,17 @@
 #include <tuple>
 #include <array>
 
-#include "SelectProfileDialog.h"
-#include "AboutWindow.h"
-#include "GlobalPreferencesWindow.h"
+#include "SelectProfileDialog.hpp"
+#include "AboutWindow.hpp"
+#include "GlobalPreferencesWindow.hpp"
 
-#include "ProfileManager.h"
-#include "Rom.h"
-#include "PlaybackEngine.h"
-#include "SoundExporter.h"
-#include "Debug.h"
-#include "FileReader.h"
-#include "Gsf.h"
+#include "ProfileManager.hpp"
+#include "Rom.hpp"
+#include "PlaybackEngine.hpp"
+#include "SoundExporter.hpp"
+#include "Debug.hpp"
+#include "FileReader.hpp"
+#include "Gsf.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

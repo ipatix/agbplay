@@ -21,7 +21,7 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 string(TIMESTAMP BUILD_YEAR "%Y")
-configure_file(Version.h.in Version.h @ONLY)
+configure_file(Version.hpp.in Version.hpp @ONLY)
 
 file(GLOB_RECURSE AGBPLAY_SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.cpp")
 set(AGBPLAY_SOURCES_AVX2 ${AGBPLAY_SOURCES})

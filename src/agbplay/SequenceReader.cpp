@@ -1,12 +1,12 @@
 #include <cmath>
 #include <cassert>
 
-#include "SequenceReader.h"
-#include "Xcept.h"
-#include "Util.h"
-#include "Debug.h"
-#include "Rom.h"
-#include "MP2KContext.h"
+#include "SequenceReader.hpp"
+#include "Xcept.hpp"
+#include "Util.hpp"
+#include "Debug.hpp"
+#include "Rom.hpp"
+#include "MP2KContext.hpp"
 
 #define NOTE_TIE -1
 #define NOTE_ALL 0xFE

@@ -1,8 +1,8 @@
-#include "SongWidget.h"
+#include "SongWidget.hpp"
 
 #include <fmt/core.h>
 
-#include "Types.h"
+#include "Types.hpp"
 
 SongWidget::SongWidget(QWidget *parent)
     : QWidget(parent)

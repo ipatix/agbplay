@@ -1,11 +1,11 @@
-#include "SelectProfileDialog.h"
+#include "SelectProfileDialog.hpp"
 
 #include <QListWidgetItem>
 #include <QMessageBox>
 
 #include <fmt/core.h>
 
-#include "Profile.h"
+#include "Profile.hpp"
 
 SelectProfileDialog::SelectProfileDialog(QWidget *parent)
     : QDialog(parent)

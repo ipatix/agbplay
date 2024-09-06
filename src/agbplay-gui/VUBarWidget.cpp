@@ -1,4 +1,4 @@
-#include "VUBarWidget.h"
+#include "VUBarWidget.hpp"
 
 #include <QPainter>
 

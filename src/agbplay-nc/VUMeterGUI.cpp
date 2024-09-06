@@ -3,11 +3,11 @@
 #include <cmath>
 #include <algorithm>
 
-#include "VUMeterGUI.h"
-#include "ColorDef.h"
-#include "Util.h"
-#include "Xcept.h"
-#include "Debug.h"
+#include "VUMeterGUI.hpp"
+#include "ColorDef.hpp"
+#include "Util.hpp"
+#include "Xcept.hpp"
+#include "Debug.hpp"
 
 /*
  * public VUMeterGUI

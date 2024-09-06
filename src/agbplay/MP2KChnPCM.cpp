@@ -4,12 +4,12 @@
 #include <algorithm>
 #include <array>
 
-#include "Constants.h"
-#include "MP2KChnPCM.h"
-#include "Util.h"
-#include "Xcept.h"
-#include "MP2KContext.h"
-#include "Debug.h"
+#include "Constants.hpp"
+#include "MP2KChnPCM.hpp"
+#include "Util.hpp"
+#include "Xcept.hpp"
+#include "MP2KContext.hpp"
+#include "Debug.hpp"
 
 /*
  * public MP2KChnPCM

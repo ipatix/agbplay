@@ -1,8 +1,8 @@
-#include "TrackWidget.h"
+#include "TrackWidget.hpp"
 
 #include <fmt/core.h>
 
-#include "Types.h"
+#include "Types.hpp"
 
 TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     : QWidget(parent), trackNo(trackNo)

@@ -1,4 +1,4 @@
-#include "Gsf.h"
+#include "Gsf.hpp"
 
 #include <sstream>
 #include <algorithm>
@@ -8,7 +8,7 @@
 
 #include <zlib.h>
 
-#include "Xcept.h"
+#include "Xcept.hpp"
 
 static void Decompress(std::span<const uint8_t> compressedData, std::vector<uint8_t> &decompressedData)
 {

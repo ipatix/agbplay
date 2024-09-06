@@ -1,4 +1,4 @@
-#include "VUMeterWidget.h"
+#include "VUMeterWidget.hpp"
 
 #include <array>
 #include <algorithm>

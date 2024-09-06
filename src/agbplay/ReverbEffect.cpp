@@ -1,10 +1,10 @@
 #include <algorithm>
 #include <cassert>
 
-#include "ReverbEffect.h"
-#include "Util.h"
-#include "Constants.h"
-#include "Xcept.h"
+#include "ReverbEffect.hpp"
+#include "Util.hpp"
+#include "Constants.hpp"
+#include "Xcept.hpp"
 
 /*
  * public ReverbEffect

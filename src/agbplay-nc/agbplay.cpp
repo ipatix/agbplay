@@ -6,12 +6,12 @@
 #include <clocale>
 #include <fmt/core.h>
 
-#include "Debug.h"
-#include "WindowGUI.h"
-#include "Xcept.h"
-#include "OS.h"
-#include "MP2KScanner.h"
-#include "ProfileManager.h"
+#include "Debug.hpp"
+#include "WindowGUI.hpp"
+#include "Xcept.hpp"
+#include "OS.hpp"
+#include "MP2KScanner.hpp"
+#include "ProfileManager.hpp"
 
 static void usage();
 static void help();

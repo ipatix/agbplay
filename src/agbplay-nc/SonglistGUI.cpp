@@ -1,7 +1,7 @@
-#include "SonglistGUI.h"
-#include "Xcept.h"
-#include "ColorDef.h"
-#include "Debug.h"
+#include "SonglistGUI.hpp"
+#include "Xcept.hpp"
+#include "ColorDef.hpp"
+#include "Debug.hpp"
 #include <cstring>
 #include <string>
 #include <vector>

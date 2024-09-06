@@ -8,13 +8,13 @@
 #include <cstring>
 #include <iomanip>
 
-#include "Constants.h"
-#include "Xcept.h"
-#include "Debug.h"
-#include "ColorDef.h"
-#include "WindowGUI.h"
-#include "Util.h"
-#include "SoundExporter.h"
+#include "Constants.hpp"
+#include "Xcept.hpp"
+#include "Debug.hpp"
+#include "ColorDef.hpp"
+#include "WindowGUI.hpp"
+#include "Util.hpp"
+#include "SoundExporter.hpp"
 
 #define KEY_TAB 9
 

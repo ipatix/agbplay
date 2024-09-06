@@ -3,13 +3,13 @@
 #include <cassert>
 #include <algorithm>
 
-#include "MP2KChnPSG.h"
-#include "CGBPatterns.h"
-#include "Xcept.h"
-#include "Debug.h"
-#include "Util.h"
-#include "Constants.h"
-#include "MP2KContext.h"
+#include "MP2KChnPSG.hpp"
+#include "CGBPatterns.hpp"
+#include "Xcept.hpp"
+#include "Debug.hpp"
+#include "Util.hpp"
+#include "Constants.hpp"
+#include "MP2KContext.hpp"
 
 /*
  * public MP2KChnPSG

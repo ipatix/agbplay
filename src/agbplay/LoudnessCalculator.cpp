@@ -1,9 +1,9 @@
 #include <cmath>
 #include <cassert>
 
-#include "LoudnessCalculator.h"
-#include "Constants.h"
-#include "Util.h"
+#include "LoudnessCalculator.hpp"
+#include "Constants.hpp"
+#include "Util.hpp"
 
 LoudnessCalculator::LoudnessCalculator(const float lowpassFreq)
     : lpAlpha(calcAlpha(lowpassFreq))

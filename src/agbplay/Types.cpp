@@ -1,4 +1,4 @@
-#include "Types.h"
+#include "Types.hpp"
 
 ReverbType str2rev(const std::string& str)
 {

@@ -1,8 +1,8 @@
-#include "MP2KPlayer.h"
+#include "MP2KPlayer.hpp"
 
-#include "MP2KTrack.h"
-#include "ReverbEffect.h"
-#include "Rom.h" // TODO remove once Rom is deglobalized
+#include "MP2KTrack.hpp"
+#include "ReverbEffect.hpp"
+#include "Rom.hpp" // TODO remove once Rom is deglobalized
 
 MP2KPlayer::MP2KPlayer(const PlayerInfo &playerInfo, uint8_t playerIdx)
     : trackLimit(playerInfo.maxTracks), playerIdx(playerIdx), usePriority(playerInfo.usePriority)

@@ -1,4 +1,4 @@
-#include "KeyboardWidget.h"
+#include "KeyboardWidget.hpp"
 
 #include <QPainter>
 

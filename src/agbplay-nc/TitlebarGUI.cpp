@@ -1,10 +1,10 @@
 #include <cstring>
 #include <string>
 #include <vector>
-#include "Constants.h"
-#include "TitlebarGUI.h"
-#include "ColorDef.h"
-#include "Xcept.h"
+#include "Constants.hpp"
+#include "TitlebarGUI.hpp"
+#include "ColorDef.hpp"
+#include "Xcept.hpp"
 
 static const std::vector<std::string> bannerText = {
     "           _         _           ",

@@ -1,6 +1,6 @@
-#include "OS.h"
+#include "OS.hpp"
 
-#include "Xcept.h"
+#include "Xcept.hpp"
 
 #include <filesystem>
 #include <iostream>

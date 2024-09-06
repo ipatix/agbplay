@@ -3,10 +3,10 @@
 #include <cmath>
 #include <cassert>
 
-#include "SoundMixer.h"
-#include "Xcept.h"
-#include "Util.h"
-#include "MP2KContext.h"
+#include "SoundMixer.hpp"
+#include "Xcept.hpp"
+#include "Util.hpp"
+#include "MP2KContext.hpp"
 
 /*
  * public SoundMixer

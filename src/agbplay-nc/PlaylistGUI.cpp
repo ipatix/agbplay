@@ -1,11 +1,11 @@
 #include <algorithm>
 #include <cstring>
 
-#include "PlaylistGUI.h"
-#include "ColorDef.h"
-#include "Util.h"
-#include "Xcept.h"
-#include "Debug.h"
+#include "PlaylistGUI.hpp"
+#include "ColorDef.hpp"
+#include "Util.hpp"
+#include "Xcept.hpp"
+#include "Debug.hpp"
 
 /*
  * public

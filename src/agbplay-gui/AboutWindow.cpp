@@ -1,8 +1,8 @@
-#include "AboutWindow.h"
+#include "AboutWindow.hpp"
 
 #include <fmt/core.h>
 
-#include "Version.h"
+#include "Version.hpp"
 
 static const std::string figletText = []() {
     std::string t;

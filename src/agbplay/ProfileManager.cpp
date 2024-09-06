@@ -1,4 +1,4 @@
-#include "ProfileManager.h"
+#include "ProfileManager.hpp"
 
 #include <fstream>
 #include <limits>
@@ -7,11 +7,11 @@
 #include <fmt/core.h>
 #include <nlohmann/json.hpp>
 
-#include "Xcept.h"
-#include "Rom.h"
-#include "OS.h"
-#include "MP2KScanner.h"
-#include "Debug.h"
+#include "Xcept.hpp"
+#include "Rom.hpp"
+#include "OS.hpp"
+#include "MP2KScanner.hpp"
+#include "Debug.hpp"
 
 void ProfileManager::Reset()
 {

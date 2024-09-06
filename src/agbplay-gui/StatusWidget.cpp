@@ -1,8 +1,8 @@
-#include "StatusWidget.h"
+#include "StatusWidget.hpp"
 
 #include <QPainter>
 
-#include "Types.h"
+#include "Types.hpp"
 
 ChordLabelWidget::ChordLabelWidget(QWidget *parent)
     : QFrame(parent)

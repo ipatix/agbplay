@@ -2,11 +2,11 @@
 #include <algorithm>
 #include <cassert>
 
-#include "Util.h"
-#include "TrackviewGUI.h"
-#include "ColorDef.h"
-#include "Debug.h"
-#include "Xcept.h"
+#include "Util.hpp"
+#include "TrackviewGUI.hpp"
+#include "ColorDef.hpp"
+#include "Debug.hpp"
+#include "Xcept.hpp"
 
 const std::vector<const char *> TrackviewGUI::noteNames = {
     "C-2", "C#-2", "D-2", "D#-2", "E-2", "F-2", "F#-2", "G-2", "G#-2", "A-2", "A#-2", "B-2",

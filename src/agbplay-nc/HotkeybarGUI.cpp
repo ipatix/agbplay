@@ -1,6 +1,6 @@
-#include "HotkeybarGUI.h"
-#include "ColorDef.h"
-#include "Xcept.h"
+#include "HotkeybarGUI.hpp"
+#include "ColorDef.hpp"
+#include "Xcept.hpp"
 #include <string>
 #include <cstdint>
 

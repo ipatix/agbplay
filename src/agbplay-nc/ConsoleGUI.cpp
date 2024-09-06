@@ -1,11 +1,11 @@
 #include <string>
 #include <mutex>
 
-#include "ConsoleGUI.h"
-#include "Debug.h"
-#include "WindowGUI.h"
-#include "Xcept.h"
-#include "ColorDef.h"
+#include "ConsoleGUI.hpp"
+#include "Debug.hpp"
+#include "WindowGUI.hpp"
+#include "Xcept.hpp"
+#include "ColorDef.hpp"
 
 /*
  * -- public --

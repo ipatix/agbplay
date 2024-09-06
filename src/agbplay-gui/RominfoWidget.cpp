@@ -1,4 +1,4 @@
-#include "RominfoWidget.h"
+#include "RominfoWidget.hpp"
 
 RominfoWidget::RominfoWidget(QWidget *parent)
     : QGroupBox("ROM Info", parent)

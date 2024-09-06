@@ -1,4 +1,4 @@
-#include "FileReader.h"
+#include "FileReader.hpp"
 
 #include <fstream>
 #include <cstring>
@@ -7,7 +7,7 @@
 
 #include <zip.h>
 
-#include "Xcept.h"
+#include "Xcept.hpp"
 
 class SystemFileReader : public FileReader {
 public:

@@ -1,8 +1,8 @@
-#include "MP2KChn.h"
+#include "MP2KChn.hpp"
 
 #include <cassert>
 
-#include "MP2KTrack.h"
+#include "MP2KTrack.hpp"
 
 MP2KChn::MP2KChn(MP2KTrack *track, const Note &note, const ADSR &env) : note(note), env(env)
 {

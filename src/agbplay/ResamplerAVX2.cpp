@@ -1,4 +1,4 @@
-#include "ResamplerAVX2.h"
+#include "ResamplerAVX2.hpp"
 
 #include <cmath>
 

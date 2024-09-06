@@ -1,4 +1,4 @@
-#include "CGBPatterns.h"
+#include "CGBPatterns.hpp"
 
 // square wave LUT
 

@@ -9,13 +9,13 @@
 #include <codecvt>
 #include <sndfile.h>
 
-#include "SoundExporter.h"
-#include "Util.h"
-#include "Xcept.h"
-#include "Constants.h"
-#include "Debug.h"
-#include "MP2KContext.h"
-#include "OS.h"
+#include "SoundExporter.hpp"
+#include "Util.hpp"
+#include "Xcept.hpp"
+#include "Constants.hpp"
+#include "Debug.hpp"
+#include "MP2KContext.hpp"
+#include "OS.hpp"
 
 /*
  * public SoundExporter

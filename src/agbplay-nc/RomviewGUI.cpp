@@ -1,8 +1,8 @@
-#include "RomviewGUI.h"
-#include "ColorDef.h"
-#include "Util.h"
-#include "Debug.h"
-#include "Rom.h"
+#include "RomviewGUI.hpp"
+#include "ColorDef.hpp"
+#include "Util.hpp"
+#include "Debug.hpp"
+#include "Rom.hpp"
 
 /*
  * public

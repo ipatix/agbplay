@@ -1,4 +1,4 @@
-#include "GlobalPreferencesWindow.h"
+#include "GlobalPreferencesWindow.hpp"
 
 GlobalPreferencesWindow::GlobalPreferencesWindow(QWidget *parent)
     : QDialog(parent)

@@ -1,9 +1,9 @@
-#include "MP2KTrack.h"
+#include "MP2KTrack.hpp"
 
 #include <cassert>
 
-#include "ReverbEffect.h"
-#include "MP2KChn.h"
+#include "ReverbEffect.hpp"
+#include "MP2KChn.hpp"
 
 MP2KTrack::MP2KTrack(uint8_t trackIdx)
     : trackIdx(trackIdx)

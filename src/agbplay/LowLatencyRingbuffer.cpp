@@ -1,4 +1,4 @@
-#include "LowLatencyRingbuffer.h"
+#include "LowLatencyRingbuffer.hpp"
 
 #include <algorithm>
 #include <cassert>

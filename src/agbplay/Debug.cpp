@@ -7,7 +7,7 @@
 #include <chrono>
 #include <format>
 
-#include "Debug.h"
+#include "Debug.hpp"
 
 static FILE *debug_file = nullptr;
 

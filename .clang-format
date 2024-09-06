@@ -1,62 +1,171 @@
 AccessModifierOffset: -4
-AlignAfterOpenBracket: AlwaysBreak
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
-#AlignEscapedNewlines: Left
-AlignOperands: true
-AlignTrailingComments: true
+AlignAfterOpenBracket: BlockIndent
+AlignArrayOfStructures: None
+AlignConsecutiveAssignments: None   # maybe change this?
+AlignConsecutiveBitFields: Consecutive
+AlignConsecutiveDeclarations: None
+AlignConsecutiveMacros: Consecutive
+# clang 17
+#AlignConsecutiveShortCaseStatements:
+#  Enabled: true
+#  AcrossEmptyLines: false
+#  AcrossComments: false
+#  AlignCaseArrows: false
+#  AlignCaseColons: false
+AlignEscapedNewlines: Left
+AlignOperands: Align
+AlignTrailingComments: Always
+AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: false
-AllowShortCaseLabelsOnASingleLine: true
-#AllowShortFunctionsOnASingleLine: InlineOnly
-AllowShortIfStatementsOnASingleLine: false
+# clang 18
+#AllowBreakBeforeNoexceptSpecifier: Always
+AllowShortBlocksOnASingleLine: Empty
+# clang 19
+#AllowShortCaseExpressionOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: false
+# clang 19
+#AllowShortCompoundRequirementOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: false
-AlwaysBreakAfterReturnType: None
+AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
-#AlwaysBreakTemplateDeclarations: Yes
-BinPackArguments: true
-BinPackParameters: true
-BreakBeforeBinaryOperators: None
-BreakBeforeBraces: Linux
+# we probably do not use this
+#AttributeMacros:
+BinPackArguments: false
+#BinPackParameters: OnePerLine
+BinPackParameters: false
+BitFieldColonSpacing: Both
+BraceWrapping:
+  AfterCaseLabel: false
+  AfterClass: true
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: false
+  BeforeElse: false
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+#BracedInitializerIndentWidth:
+# clang 18
+#BreakAdjacentStringLiterals: false
+BreakAfterAttributes: Leave
+# clang 19
+#BreakAfterReturnType: Automatic
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Custom
+BreakBeforeConceptDeclarations: Never
+BreakBeforeInlineASMColon: OnlyMultiline
 BreakBeforeTernaryOperators: true
-#BreakConstructorInitializers: AfterColon
-#BreakInheritanceList: AfterColon
-#BreakStringLiterals: false
-ColumnLimit: 80
-#CompactNamespaces: false
-ConstructorInitializerAllOnOneLineOrOnePerLine: false
+# clang 20
+#BreakBinaryOperations: RespectPrecedence
+BreakConstructorInitializers: AfterColon
+# clang 19
+#BreakFunctionDefinitionParameters: false
+BreakInheritanceList: AfterColon
+BreakStringLiterals: false
+#BreakTemplateDeclarations: Yes
+ColumnLimit: 120
+# do not really need the following
+#CommentPragmas:
+CompactNamespaces: false
 ConstructorInitializerIndentWidth: 4
-ContinuationIndentWidth: 8
+ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
-#FixNamespaceComments: true
-#IncludeBlocks: Regroup
+DerivePointerAlignment: false
+EmptyLineAfterAccessModifier: Never
+EmptyLineBeforeAccessModifier: LogicalBlock
+FixNamespaceComments: true
+# do not need the following two
+#ForEachMacros
+#IfMacros
+IncludeBlocks: Regroup
+# do not need these either
+#IncludeCategories
+#IncludeIsMainRegex
+#IncludeIsMainSourceRegex
+IndentAccessModifiers: false
+IndentCaseBlocks: true
 IndentCaseLabels: false
-#IndentPPDirectives: None
+IndentExternBlock: NoIndent
+IndentPPDirectives: None
+IndentRequiresClause: false
 IndentWidth: 4
 IndentWrappedFunctionNames: true
-KeepEmptyLinesAtTheStartOfBlocks: false
+InsertBraces: false
+InsertNewlineAtEOF: true
+# clang 19
+#KeepEmptyLines:
+#  AtEndOfFile: false
+#  AtStartOfBlock: false
+#  AtStartOfFile: false
+LambdaBodyIndentation: Signature
+LineEnding: LF
 Language: Cpp
+# do not need these three
+#MacroBlockBegin
+#MacroBlockEnd
+#Macros
+# clang 19
+#MainIncludeChar: Quote
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
+# no need for this
+#NamespaceMacros:
+# IndentPPDirectives is disabled, so the following has no meaning
+#PPIndentWidth:
+PackConstructorInitializers: NextLine
+# we do not set any of the Penalty* manually
 PointerAlignment: Right
+# do not manually set these two
+#QualifierOrder:
+#RawStringFormats:
+ReferenceAlignment: Right
 ReflowComments: true
-SortIncludes: true
-#SortUsingDeclarations: true
+RequiresExpressionIndentation: OuterScope
+SeparateDefinitionBlocks: Leave # perhaps change this in the future
+ShortNamespaceLines: 1
+# clang 18
+#SkipMacroDefinitionBody: false
+SortIncludes: CaseInsensitive
+SortUsingDeclarations: LexicographicNumeric
 SpaceAfterCStyleCast: false
-#SpaceAfterTemplateKeyword: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: false
+SpaceAroundPointerQualifiers: Both
 SpaceBeforeAssignmentOperators: true
-#SpaceBeforeCpp11BracedList: true
-#SpaceBeforeCtorInitializerColon: true
-#SpaceBeforeInheritanceColon: true
+SpaceBeforeCaseColon: false
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
 SpaceBeforeParens: ControlStatements
-#SpaceBeforeRangeBasedForLoopColon: true
-SpaceInEmptyParentheses: false
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: true
 SpacesBeforeTrailingComments: 4
-SpacesInAngles: false
-SpacesInCStyleCastParentheses: false
+SpacesInAngles: Never
 SpacesInContainerLiterals: false
-SpacesInParentheses: false
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: 1
 SpacesInSquareBrackets: false
-Standard: Cpp11
+Standard: Latest
+# do not need these
+#StatementAttributeLikeMacros
+#StatementMacros
+#TableGenBreakInsideDAGArg
+#TableGenBreakingDAGArgOperators
 TabWidth: 4
+#TypeNames
+#TypenameMacros
 UseTab: Never
+#WhitespaceSensitiveMacros

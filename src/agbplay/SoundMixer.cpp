@@ -29,7 +29,7 @@ void SoundMixer::UpdateReverb()
 
 void SoundMixer::UpdateFixedModeRate()
 {
-    static std::array<uint32_t, 16> rateTable{
+    static const std::array<uint32_t, 16> rateTable{
         0, 5734, 7884, 10512, 13379, 15768, 18157, 21024, 26758, 31536, 36314, 40137, 42048, 0, 0, 0
     };
 

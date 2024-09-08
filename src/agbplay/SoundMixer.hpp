@@ -1,22 +1,22 @@
 #pragma once
 
-#include <vector>
-#include <list>
-#include <cstdint>
-#include <bitset>
-#include <memory>
-
-#include "ReverbEffect.hpp"
 #include "Constants.hpp"
+#include "ReverbEffect.hpp"
+
+#include <bitset>
+#include <cstdint>
+#include <list>
+#include <memory>
+#include <vector>
 
 struct MP2KContext;
 
 class SoundMixer
 {
 public:
-    SoundMixer(MP2KContext& ctx, uint32_t sampleRate, float masterVolume);
-    SoundMixer(const SoundMixer&) = delete;
-    SoundMixer& operator=(const SoundMixer&) = delete;
+    SoundMixer(MP2KContext &ctx, uint32_t sampleRate, float masterVolume);
+    SoundMixer(const SoundMixer &) = delete;
+    SoundMixer &operator=(const SoundMixer &) = delete;
 
     void UpdateReverb();
     void UpdateFixedModeRate();
@@ -30,7 +30,7 @@ public:
     bool IsFadeDone() const;
 
 private:
-    MP2KContext& ctx;
+    MP2KContext &ctx;
 
     const uint32_t sampleRate;
     uint32_t fixedModeRate = 13379;

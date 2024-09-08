@@ -1,6 +1,10 @@
 #include "Profile.hpp"
 
-void Profile::ApplyScanToPlayback(const SongTableInfo &songTableInfoScan, const PlayerTableInfo &playerTableScan, const MP2KSoundMode &mp2kSoundModeScan)
+void Profile::ApplyScanToPlayback(
+    const SongTableInfo &songTableInfoScan,
+    const PlayerTableInfo &playerTableScan,
+    const MP2KSoundMode &mp2kSoundModeScan
+)
 {
     /* SongTableInfo */
     songTableInfoPlayback = songTableInfoConfig;

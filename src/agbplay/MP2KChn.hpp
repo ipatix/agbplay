@@ -1,16 +1,17 @@
 #pragma once
 
-#include <memory>
-
-#include "Types.hpp"
 #include "Resampler.hpp"
+#include "Types.hpp"
+
+#include <memory>
 
 struct MP2KTrack;
 
-struct MP2KChn {
+struct MP2KChn
+{
     MP2KChn(MP2KTrack *track, const Note &note, const ADSR &env);
     MP2KChn(const MP2KChn &) = delete;
-    MP2KChn& operator=(const MP2KChn&) = delete;
+    MP2KChn &operator=(const MP2KChn &) = delete;
     virtual ~MP2KChn();
 
     void RemoveFromTrack() noexcept;

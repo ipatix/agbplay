@@ -1,30 +1,32 @@
-#include <array>
-#include <cmath>
-#include <cassert>
-#include <algorithm>
-
 #include "MP2KChnPSG.hpp"
+
 #include "CGBPatterns.hpp"
-#include "Xcept.hpp"
-#include "Debug.hpp"
-#include "Util.hpp"
 #include "Constants.hpp"
+#include "Debug.hpp"
 #include "MP2KContext.hpp"
+#include "Util.hpp"
+#include "Xcept.hpp"
+
+#include <algorithm>
+#include <array>
+#include <cassert>
+#include <cmath>
 
 /*
  * public MP2KChnPSG
  */
 
-MP2KChnPSG::MP2KChnPSG(MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, bool useStairstep)
-    : MP2KChn(track, note, env), ctx(ctx), useStairstep(useStairstep)
+MP2KChnPSG::MP2KChnPSG(MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, bool useStairstep) :
+    MP2KChn(track, note, env), ctx(ctx), useStairstep(useStairstep)
 {
     this->env.att &= 0x7;
     this->env.dec &= 0x7;
     this->env.sus &= 0xF;
     this->env.rel &= 0x7;
 
-    //if (note.trackIdx == 6)
-    //    Debug::print("note start: this=%p att=%d dec=%d sus=%d rel=%d", this, (int)env.att, (int)env.dec, (int)env.sus, (int)env.rel);
+    // if (note.trackIdx == 6)
+    //     Debug::print("note start: this=%p att=%d dec=%d sus=%d rel=%d", this, (int)env.att, (int)env.dec,
+    //     (int)env.sus, (int)env.rel);
 }
 
 void MP2KChnPSG::SetVol(uint16_t vol, int16_t pan)
@@ -74,8 +76,8 @@ void MP2KChnPSG::Release(bool fastRelease) noexcept
     this->stop = true;
     this->fastRelease = fastRelease;
 
-    //if (note.trackIdx == 6)
-    //    Debug::print("releasing: %d", fastRelease);
+    // if (note.trackIdx == 6)
+    //     Debug::print("releasing: %d", fastRelease);
 }
 
 bool MP2KChnPSG::TickNote() noexcept
@@ -186,7 +188,7 @@ void MP2KChnPSG::stepEnvelope()
             assert((int8_t)envLevelCur >= 0);
 
             if (envLevelCur == 0) {
-pseudo_echo_start:
+            pseudo_echo_start:
                 envFrameCount = 1;
                 envLevelCur = getPseudoEchoLevel();
                 if (envLevelCur != 0 && note.pseudoEchoLen != 0) {
@@ -202,7 +204,7 @@ pseudo_echo_start:
                 assert(env.rel != 0);
             }
         } else if (envState == EnvState::SUS) {
-sustain_state:
+        sustain_state:
             if (ctx.agbplaySoundMode.emulateCgbSustainBug) {
                 envFrameCount = 7;
                 if (IsChn3())
@@ -218,7 +220,7 @@ sustain_state:
             assert((int8_t)envLevelCur >= 0);
 
             if (envLevelCur <= envSustain) {
-sustain_start:
+            sustain_start:
                 if (env.sus == 0) {
                     envState = EnvState::REL;
                     goto pseudo_echo_start;
@@ -234,13 +236,13 @@ sustain_start:
             envLevelCur++;
 
             if (envLevelCur >= envPeak) {
-decay_start:
+            decay_start:
                 envState = EnvState::DEC;
                 envFrameCount = env.dec;
                 if (envPeak == 0 || envFrameCount == 0 || envPeak == envSustain) {
                     /* original code doesn't branch on envPeak == 0, but we do that we don't do a decrease envelope even
-                     * though the level is already zero. Original also doesn't branch when peak == sustain, which we to do avoid
-                     * an envelope decrease that will increase right after again. */
+                     * though the level is already zero. Original also doesn't branch when peak == sustain, which we to
+                     * do avoid an envelope decrease that will increase right after again. */
                     goto sustain_start;
                 } else {
                     envLevelCur = envPeak;
@@ -308,9 +310,11 @@ void MP2KChnPSG::updateVolFade()
     volFade.toVolLeft = (panCur == Pan::RIGHT) ? 0.0f : envFadeLevelNew * (1.0f / 32.0f);
     volFade.toVolRight = (panCur == Pan::LEFT) ? 0.0f : envFadeLevelNew * (1.0f / 32.0f);
 
-    //if (note.trackIdx == 6)
-    //    Debug::print("this=%p envState=%d envLevelCur=%d envFadeLevel=%f envFadeLevelNew=%f envFrameCount=%d envInterStep=%d",
-    //            this, (int)envState, (int)envLevelCur, envFadeLevel, envFadeLevelNew, (int)envFrameCount, (int)envInterStep);
+    // if (note.trackIdx == 6)
+    //     Debug::print("this=%p envState=%d envLevelCur=%d envFadeLevel=%f envFadeLevelNew=%f envFrameCount=%d
+    //     envInterStep=%d",
+    //             this, (int)envState, (int)envLevelCur, envFadeLevel, envFadeLevelNew, (int)envFrameCount,
+    //             (int)envInterStep);
 
     panPrev = panCur;
     envFadeLevel = envFadeLevelNew;
@@ -357,13 +361,15 @@ void MP2KChnPSG::applyVol()
  * public MP2KChnPSGSquare
  */
 
-MP2KChnPSGSquare::MP2KChnPSGSquare(MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep)
-    : MP2KChnPSG(ctx, track, env, note)
-      , instrDuty(instrDuty)
-      , sweep(sweep)
-      , sweepEnabled(isSweepEnabled(sweep))
-      , sweepConvergence(sweep2convergence(sweep))
-      , sweepCoeff(sweep2coeff(sweep))
+MP2KChnPSGSquare::MP2KChnPSGSquare(
+    MP2KContext &ctx, MP2KTrack *track, uint32_t instrDuty, ADSR env, Note note, uint8_t sweep
+) :
+    MP2KChnPSG(ctx, track, env, note),
+    instrDuty(instrDuty),
+    sweep(sweep),
+    sweepEnabled(isSweepEnabled(sweep)),
+    sweepConvergence(sweep2convergence(sweep)),
+    sweepCoeff(sweep2coeff(sweep))
 {
     static const float *patterns[4] = {
         CGBPatterns::pat_sq12,
@@ -393,7 +399,7 @@ void MP2KChnPSGSquare::SetPitch(int16_t pitch)
     }
 }
 
-void MP2KChnPSGSquare::Process(std::span<sample> buffer, MixingArgs& args)
+void MP2KChnPSGSquare::Process(std::span<sample> buffer, MixingArgs &args)
 {
     if (envState == EnvState::DEAD)
         return;
@@ -415,20 +421,21 @@ void MP2KChnPSGSquare::Process(std::span<sample> buffer, MixingArgs& args)
     float interStep;
 
     if (sweepEnabled) {
-        //Debug::print("sweepTimer=%f sweepConvergence=%f sweepCoeff=%f resultFreq=%f",
-        //        sweepTimer, sweepConvergence, sweepCoeff, timer2freq(sweepTimer));
+        // Debug::print("sweepTimer=%f sweepConvergence=%f sweepCoeff=%f resultFreq=%f",
+        //         sweepTimer, sweepConvergence, sweepCoeff, timer2freq(sweepTimer));
         interStep = 8.0f * timer2freq(sweepTimer) * args.sampleRateInv;
     } else {
         interStep = freq * args.sampleRateInv;
     }
 
     assert(buffer.size() == ctx.mixer.scratchBuffer.size());
-    FetchCallback cb = std::bind(&MP2KChnPSGSquare::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
+    FetchCallback cb =
+        std::bind(&MP2KChnPSGSquare::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
     rs->Process(ctx.mixer.scratchBuffer, interStep, cb);
 
     for (size_t i = 0; i < buffer.size(); i++) {
         const float samp = ctx.mixer.scratchBuffer[i];
-        buffer[i].left  += samp * lVol;
+        buffer[i].left += samp * lVol;
         buffer[i].right += samp * rVol;
         lVol += lVolStep;
         rVol += rVolStep;
@@ -477,7 +484,7 @@ VoiceFlags MP2KChnPSGSquare::GetVoiceType() const noexcept
     }
 }
 
-bool MP2KChnPSGSquare::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
+bool MP2KChnPSGSquare::sampleFetchCallback(std::vector<float> &fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;
@@ -561,8 +568,10 @@ uint8_t MP2KChnPSGSquare::sweepTime(uint8_t sweep)
  * public MP2KChnPSGWave
  */
 
-MP2KChnPSGWave::MP2KChnPSGWave(MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep)
-    : MP2KChnPSG(ctx, track, env, note, useStairstep)
+MP2KChnPSGWave::MP2KChnPSGWave(
+    MP2KContext &ctx, MP2KTrack *track, uint32_t instrWave, ADSR env, Note note, bool useStairstep
+) :
+    MP2KChnPSG(ctx, track, env, note, useStairstep)
 {
     static const uint8_t dummyWave[16] = {0};
     if (instrWave < AGB_MAP_ROM) {
@@ -624,11 +633,11 @@ MP2KChnPSGWave::MP2KChnPSGWave(MP2KContext &ctx, MP2KTrack *track, uint32_t inst
 
 void MP2KChnPSGWave::SetPitch(int16_t pitch)
 {
-    freq = (440.0f * 16.0f) * 
-        powf(2.0f, float(note.midiKeyPitch - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
+    freq =
+        (440.0f * 16.0f) * powf(2.0f, float(note.midiKeyPitch - 69) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
-void MP2KChnPSGWave::Process(std::span<sample> buffer, MixingArgs& args)
+void MP2KChnPSGWave::Process(std::span<sample> buffer, MixingArgs &args)
 {
     stepEnvelope();
     if (envState == EnvState::DEAD)
@@ -647,12 +656,13 @@ void MP2KChnPSGWave::Process(std::span<sample> buffer, MixingArgs& args)
     float interStep = freq * args.sampleRateInv;
 
     assert(ctx.mixer.scratchBuffer.size() == buffer.size());
-    FetchCallback cb = std::bind(&MP2KChnPSGWave::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
+    FetchCallback cb =
+        std::bind(&MP2KChnPSGWave::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
     rs->Process(ctx.mixer.scratchBuffer, interStep, cb);
 
     for (size_t i = 0; i < buffer.size(); i++) {
         const float samp = ctx.mixer.scratchBuffer[i];
-        buffer[i].left  += samp * lVol;
+        buffer[i].left += samp * lVol;
         buffer[i].right += samp * rVol;
         lVol += lVolStep;
         rVol += rVolStep;
@@ -697,7 +707,7 @@ VolumeFade MP2KChnPSGWave::getVol() const
     return retval;
 }
 
-bool MP2KChnPSGWave::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
+bool MP2KChnPSGWave::sampleFetchCallback(std::vector<float> &fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;
@@ -712,29 +722,30 @@ bool MP2KChnPSGWave::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t
         const float toVol = std::max(fade.toVolLeft, fade.toVolRight);
         /* I'm not entirely certain whether the hardware uses arithmetic shifts or logic shifts (with bias).
          * Using logic shifts for now, hopefully works good enough... */
-        auto mapFunc = [this](float x, float& compensationScale, float& dcCorrection, uint32_t& shiftA, uint32_t& shiftB) {
-            if (x < 6.0f / 32.0f) {
-                shiftA = 2;
-                shiftB = 4;
-                compensationScale = 4.0f;
-                dcCorrection = dcCorrection25;
-            } else if (x < 10.0f / 32.0f) {
-                shiftA = 1;
-                shiftB = 4;
-                compensationScale = 2.0f;
-                dcCorrection = dcCorrection50;
-            } else if (x < 14.0f / 32.0f) {
-                shiftA = 1;
-                shiftB = 2;
-                compensationScale = 4.0f / 3.0f;
-                dcCorrection = dcCorrection75;
-            } else {
-                shiftA = 0;
-                shiftB = 4;
-                compensationScale = 1.0f;
-                dcCorrection = dcCorrection100;
-            }
-        };
+        auto mapFunc =
+            [this](float x, float &compensationScale, float &dcCorrection, uint32_t &shiftA, uint32_t &shiftB) {
+                if (x < 6.0f / 32.0f) {
+                    shiftA = 2;
+                    shiftB = 4;
+                    compensationScale = 4.0f;
+                    dcCorrection = dcCorrection25;
+                } else if (x < 10.0f / 32.0f) {
+                    shiftA = 1;
+                    shiftB = 4;
+                    compensationScale = 2.0f;
+                    dcCorrection = dcCorrection50;
+                } else if (x < 14.0f / 32.0f) {
+                    shiftA = 1;
+                    shiftB = 2;
+                    compensationScale = 4.0f / 3.0f;
+                    dcCorrection = dcCorrection75;
+                } else {
+                    shiftA = 0;
+                    shiftB = 4;
+                    compensationScale = 1.0f;
+                    dcCorrection = dcCorrection100;
+                }
+            };
         uint32_t shiftAFrom, shiftATo, shiftBFrom, shiftBTo;
         float compensationScaleFrom, compensationScaleTo;
         float dcCorrectionFrom, dcCorrectionTo;
@@ -752,8 +763,10 @@ bool MP2KChnPSGWave::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t
                 nibble = static_cast<uint8_t>(wavePtr[pos / 2] >> 4u);
             else
                 nibble = static_cast<uint8_t>(wavePtr[pos / 2] & 0xF);
-            float sampleFrom = (static_cast<float>((nibble >> shiftAFrom) + (nibble >> shiftBFrom)) + dcCorrectionFrom) * compensationScaleFrom;
-            float sampleTo   = (static_cast<float>((nibble >> shiftATo  ) + (nibble >> shiftBTo  )) + dcCorrectionTo  ) * compensationScaleTo;
+            float sampleFrom = (static_cast<float>((nibble >> shiftAFrom) + (nibble >> shiftBFrom)) + dcCorrectionFrom)
+                               * compensationScaleFrom;
+            float sampleTo = (static_cast<float>((nibble >> shiftATo) + (nibble >> shiftBTo)) + dcCorrectionTo)
+                             * compensationScaleTo;
             float sample = (sampleFrom + t * (sampleTo - sampleFrom)) * (1.0f / 16.0f);
             t += t_inc;
             fetchBuffer[i++] = sample;
@@ -778,8 +791,8 @@ bool MP2KChnPSGWave::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t
  * public MP2KChnPSGNoise
  */
 
-MP2KChnPSGNoise::MP2KChnPSGNoise(MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note)
-    : MP2KChnPSG(ctx, track, env, note), instrNp(instrNp)
+MP2KChnPSGNoise::MP2KChnPSGNoise(MP2KContext &ctx, MP2KTrack *track, uint32_t instrNp, ADSR env, Note note) :
+    MP2KChnPSG(ctx, track, env, note), instrNp(instrNp)
 {
     /* Noise is first generated at the generators frequency and converted to
      * AGB's DAC output rate using nearest neighbor.
@@ -812,7 +825,7 @@ void MP2KChnPSGNoise::SetPitch(int16_t pitch)
     freq = std::max(4.5714f, noisefreq);
 }
 
-void MP2KChnPSGNoise::Process(std::span<sample> buffer, MixingArgs& args)
+void MP2KChnPSGNoise::Process(std::span<sample> buffer, MixingArgs &args)
 {
     stepEnvelope();
     if (envState == EnvState::DEAD)
@@ -823,9 +836,7 @@ void MP2KChnPSGNoise::Process(std::span<sample> buffer, MixingArgs& args)
     if (buffer.size() == 0)
         return;
 
-    static const std::array<float, 4> noiseFreqs{
-        32768.0f, 65536.0f, 131072.0f, 262144.0f,
-    };
+    static const std::array<float, 4> noiseFreqs{32768.0f, 65536.0f, 131072.0f, 262144.0f};
     const float noiseFreq = noiseFreqs[ctx.mp2kSoundMode.dacConfig % noiseFreqs.size()];
 
     VolumeFade vol = getVol();
@@ -847,7 +858,8 @@ void MP2KChnPSGNoise::Process(std::span<sample> buffer, MixingArgs& args)
         const size_t samplesToFetch = samplesRequired - fetchBuffer.size();
         const size_t i = fetchBuffer.size();
         fetchBuffer.resize(samplesRequired);
-        FetchCallback cbNearest = std::bind(&MP2KChnPSGNoise::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
+        FetchCallback cbNearest =
+            std::bind(&MP2KChnPSGNoise::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
         return rs->Process({&fetchBuffer[i], samplesToFetch}, interStep, cbNearest);
     };
 
@@ -855,7 +867,7 @@ void MP2KChnPSGNoise::Process(std::span<sample> buffer, MixingArgs& args)
 
     for (size_t i = 0; i < buffer.size(); i++) {
         const float samp = ctx.mixer.scratchBuffer[i];
-        buffer[i].left  += samp * lVol;
+        buffer[i].left += samp * lVol;
         buffer[i].right += samp * rVol;
         lVol += lVolStep;
         rVol += rVolStep;
@@ -870,7 +882,7 @@ VoiceFlags MP2KChnPSGNoise::GetVoiceType() const noexcept
         return VoiceFlags::PSG_NOISE_7;
 }
 
-bool MP2KChnPSGNoise::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
+bool MP2KChnPSGNoise::sampleFetchCallback(std::vector<float> &fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;

@@ -1,19 +1,21 @@
 #pragma once
 
-#include <vector>
-#include <cstdint>
-#include <cstddef>
-#include <unordered_set>
-
 #include "Types.hpp"
+
+#include <cstddef>
+#include <cstdint>
+#include <unordered_set>
+#include <vector>
 
 class Rom;
 
-class MP2KScanner {
+class MP2KScanner
+{
 public:
     MP2KScanner(const Rom &rom);
 
-    struct Result {
+    struct Result
+    {
         MP2KSoundMode mp2kSoundMode;
         PlayerTableInfo playerTableInfo;
         SongTableInfo songTableInfo;
@@ -38,10 +40,10 @@ private:
     static bool IsValidEwramPointer(uint32_t word);
     static bool IsValidRamPointer(uint32_t word);
 
-    static const size_t MIN_SONG_NUM = 4; // lowest one seen is 7 in Tetris World
+    static const size_t MIN_SONG_NUM = 4;    // lowest one seen is 7 in Tetris World
     static const size_t SEARCH_START = 0x200;
 
     const Rom &rom;
 
-    std::unordered_set<uint32_t> wordPointerCache; // pointers to 'words' (i.e. 4-byte aligned pointers)
+    std::unordered_set<uint32_t> wordPointerCache;    // pointers to 'words' (i.e. 4-byte aligned pointers)
 };

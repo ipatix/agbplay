@@ -1,17 +1,16 @@
 #include "ProfileManager.hpp"
 
+#include "Debug.hpp"
+#include "MP2KScanner.hpp"
+#include "OS.hpp"
+#include "Rom.hpp"
+#include "Xcept.hpp"
+
+#include <algorithm>
+#include <fmt/core.h>
 #include <fstream>
 #include <limits>
-#include <algorithm>
-
-#include <fmt/core.h>
 #include <nlohmann/json.hpp>
-
-#include "Xcept.hpp"
-#include "Rom.hpp"
-#include "OS.hpp"
-#include "MP2KScanner.hpp"
-#include "Debug.hpp"
 
 void ProfileManager::Reset()
 {
@@ -30,7 +29,9 @@ std::filesystem::path ProfileManager::ProfileUserPath()
     return OS::GetLocalConfigDirectory() / "agbplay" / "profiles-user";
 }
 
-void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std::shared_ptr<Profile>> &profiles, const std::vector<MP2KScanner::Result> scanResults)
+void ProfileManager::ApplyScanResultsToProfiles(
+    const Rom &rom, std::vector<std::shared_ptr<Profile>> &profiles, const std::vector<MP2KScanner::Result> scanResults
+)
 {
     if (scanResults.size() == 0 && profiles.size() == 0) {
         throw Xcept("Scanner failed to find songtable and no profile with manual songtable found.");
@@ -46,7 +47,9 @@ void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std:
         };
         profiles.erase(std::remove_if(profiles.begin(), profiles.end(), filterFunc), profiles.end());
         if (profiles.size() == 0)
-            throw Xcept("Scanner could not find MP2K data. Existing matching profiles were found, but none manually specify song table and song count.");
+            throw Xcept(
+                "Scanner could not find MP2K data. Existing matching profiles were found, but none manually specify song table and song count."
+            );
     }
 
     for (size_t tableIdx = 0; tableIdx < scanResults.size(); tableIdx++) {
@@ -56,18 +59,12 @@ void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std:
             if (profileCandidate->songTableInfoConfig.pos != SongTableInfo::POS_AUTO) {
                 if (profileCandidate->songTableInfoConfig.count == SongTableInfo::COUNT_AUTO)
                     throw Xcept("Cannot load profile with manual songtable but no song count.");
-                profileCandidate->ApplyScanToPlayback(
-                    SongTableInfo{},
-                    PlayerTableInfo{},
-                    MP2KSoundMode{}
-                );
+                profileCandidate->ApplyScanToPlayback(SongTableInfo{}, PlayerTableInfo{}, MP2KSoundMode{});
                 continue;
             }
             if (profileCandidate->songTableInfoConfig.tableIdx == tableIdx) {
                 profileCandidate->ApplyScanToPlayback(
-                    scanResult.songTableInfo,
-                    scanResult.playerTableInfo,
-                    scanResult.mp2kSoundMode
+                    scanResult.songTableInfo, scanResult.playerTableInfo, scanResult.mp2kSoundMode
                 );
                 profileExists = true;
                 break;
@@ -79,11 +76,7 @@ void ProfileManager::ApplyScanResultsToProfiles(const Rom &rom, std::vector<std:
             std::string code = rom.GetROMCode();
             std::shared_ptr<Profile> &p = profiles.emplace_back(CreateProfile(code, tableIdx));
             p->songTableInfoConfig.tableIdx = static_cast<uint8_t>(tableIdx);
-            p->ApplyScanToPlayback(
-                scanResult.songTableInfo,
-                scanResult.playerTableInfo,
-                scanResult.mp2kSoundMode
-            );
+            p->ApplyScanToPlayback(scanResult.songTableInfo, scanResult.playerTableInfo, scanResult.mp2kSoundMode);
         }
     }
 }
@@ -94,7 +87,9 @@ void ProfileManager::LoadProfileDir(const std::filesystem::path &dir)
         Debug::print("Creating profile directory '{}', which does not exist yet.", dir.string());
 
     if (!std::filesystem::is_directory(dir))
-        throw std::invalid_argument(fmt::format("ProfileManager: Profile directory is not a directory: {}", dir.string()));
+        throw std::invalid_argument(
+            fmt::format("ProfileManager: Profile directory is not a directory: {}", dir.string())
+        );
 
     for (const auto &dirEntry : std::filesystem::directory_iterator(dir)) {
         if (dirEntry.is_directory())
@@ -111,7 +106,8 @@ void ProfileManager::SaveProfiles()
     }
 }
 
-std::vector<std::shared_ptr<Profile>> ProfileManager::GetProfiles(const Rom &rom, const std::vector<MP2KScanner::Result> scanResults)
+std::vector<std::shared_ptr<Profile>>
+    ProfileManager::GetProfiles(const Rom &rom, const std::vector<MP2KScanner::Result> scanResults)
 {
     /* Find all profiles which match the ROM passed.
      * If only a single match is found, return it.
@@ -172,7 +168,7 @@ std::vector<std::shared_ptr<Profile>> ProfileManager::GetProfiles(const Rom &rom
         if (filterMatch) [[unlikely]] {
             /* if the bloom filter matched, now check which one actually matched */
             auto &pwmb = profilesWithMagicBytes;
-            auto filterFunc = [&](std::shared_ptr<Profile> &profile){
+            auto filterFunc = [&](std::shared_ptr<Profile> &profile) {
                 const auto &mb = profile->gameMatch.magicBytes;
                 if (romIdx + mb.size() > rom.Size())
                     return false;
@@ -251,7 +247,7 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
 
     /* load song table info */
     if (j.contains("songTableInfo") && j.is_object()) {
-        const auto &sti= j["songTableInfo"];
+        const auto &sti = j["songTableInfo"];
 
         // TODO range checks
         if (sti.contains("pos") && sti["pos"].is_number()) {
@@ -372,7 +368,6 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
         p.description = j["description"];
     }
 
-
     profiles.emplace_back(std::make_shared<Profile>(std::move(p)));
 }
 
@@ -409,7 +404,7 @@ void ProfileManager::SaveProfile(std::shared_ptr<Profile> &p)
 
     /* save player table config */
     if (p->playerTableConfig.size() != 0) {
-        json jpti = json::array();;
+        json jpti = json::array();
 
         for (const auto &player : p->playerTableConfig) {
             json jpi;

@@ -1,12 +1,13 @@
 #pragma once
 
-#include <span>
-#include <cstdint>
 #include <cstddef>
-#include <functional>
+#include <cstdint>
 #include <filesystem>
+#include <functional>
+#include <span>
 
-class FileReader {
+class FileReader
+{
 public:
     virtual ~FileReader() = default;
     virtual void read(std::span<uint8_t> buffer) = 0;
@@ -16,20 +17,17 @@ public:
 
     [[maybe_unused]] static bool forEachInZip(
         const std::filesystem::path &p,
-        std::function<bool(const std::filesystem::path&)> filterFunc,
-        std::function<bool(const std::filesystem::path&, FileReader &)> op
+        std::function<bool(const std::filesystem::path &)> filterFunc,
+        std::function<bool(const std::filesystem::path &, FileReader &)> op
     );
 
     static void forEachInZipOrRaw(
         const std::filesystem::path &p,
-        std::function<bool(const std::filesystem::path&)> filterFunc,
-        std::function<bool(const std::filesystem::path&, FileReader &)> op
+        std::function<bool(const std::filesystem::path &)> filterFunc,
+        std::function<bool(const std::filesystem::path &, FileReader &)> op
     );
 
-    static bool forRaw(
-        const std::filesystem::path &p,
-        std::function<bool(FileReader &)> op
-    );
+    static bool forRaw(const std::filesystem::path &p, std::function<bool(FileReader &)> op);
 
     static bool cmpPathExt(const std::filesystem::path &p, const std::string &ext);
 };

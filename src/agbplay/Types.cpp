@@ -1,6 +1,6 @@
 #include "Types.hpp"
 
-ReverbType str2rev(const std::string& str)
+ReverbType str2rev(const std::string &str)
 {
     if (str == "gs1")
         return ReverbType::GS1;
@@ -30,7 +30,7 @@ std::string rev2str(ReverbType t)
     return "normal";
 }
 
-ResamplerType str2res(const std::string& str)
+ResamplerType str2res(const std::string &str)
 {
     if (str == "nearest")
         return ResamplerType::NEAREST;
@@ -60,7 +60,7 @@ std::string res2str(ResamplerType t)
     return "linear";
 }
 
-CGBPolyphony str2cgbPoly(const std::string& str)
+CGBPolyphony str2cgbPoly(const std::string &str)
 {
     if (str == "mono-strict")
         return CGBPolyphony::MONO_STRICT;
@@ -71,7 +71,8 @@ CGBPolyphony str2cgbPoly(const std::string& str)
     return CGBPolyphony::MONO_STRICT;
 }
 
-std::string cgbPoly2str(CGBPolyphony t) {
+std::string cgbPoly2str(CGBPolyphony t)
+{
     if (t == CGBPolyphony::MONO_STRICT)
         return "mono-strict";
     else if (t == CGBPolyphony::MONO_SMOOTH)

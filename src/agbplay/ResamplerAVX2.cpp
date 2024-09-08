@@ -42,13 +42,12 @@ SincResamplerAVX2::~SincResamplerAVX2()
 
 bool SincResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const FetchCallback &fetchCallback)
 {
-    if (buffer.size()== 0)
+    if (buffer.size() == 0)
         return true;
 
     phaseInc = std::max(phaseInc, 0.0f);
 
-    size_t samplesRequired = static_cast<size_t>(
-            phase + phaseInc * static_cast<float>(buffer.size()));
+    size_t samplesRequired = static_cast<size_t>(phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
@@ -65,14 +64,16 @@ bool SincResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
         const __m256 phaseV = _mm256_set1_ps(phase);
         __m256i wiV = _mm256_sub_epi32(_mm256_set_epi32(8, 7, 6, 5, 4, 3, 2, 1), sincWinSizeV);
 
-        for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE; wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
+        for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE;
+             wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
             const __m256 sincIndexV = _mm256_mul_ps(_mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV), sincStepV);
             const __m256 windowIndexV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
 
             const __m256 sV = fast_sincf(sincIndexV);
             const __m256 wV = window_func(windowIndexV);
             const __m256 kernelV = _mm256_mul_ps(sV, wV);
-            const __m256 fetchedSampleV = _mm256_loadu_ps(&fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1]);
+            const __m256 fetchedSampleV =
+                _mm256_loadu_ps(&fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1]);
             sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
             kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
         }
@@ -105,7 +106,9 @@ __m256 SincResamplerAVX2::fast_cosf(__m256 t)
     t = _mm256_mul_ps(t, _mm256_set1_ps(float(double(INTERP_FILTER_LUT_SIZE) / (2.0 * M_PI))));
     __m256i leftIndex = _mm256_cvttps_epi32(t);
     const __m256 fraction = _mm256_sub_ps(t, _mm256_cvtepi32_ps(leftIndex));
-    const __m256i rightIndex = _mm256_and_si256(_mm256_add_epi32(leftIndex, _mm256_set1_epi32(1)), _mm256_set1_epi32(INTERP_FILTER_LUT_SIZE - 1));
+    const __m256i rightIndex = _mm256_and_si256(
+        _mm256_add_epi32(leftIndex, _mm256_set1_epi32(1)), _mm256_set1_epi32(INTERP_FILTER_LUT_SIZE - 1)
+    );
     leftIndex = _mm256_and_si256(leftIndex, _mm256_set1_epi32(INTERP_FILTER_LUT_SIZE - 1));
     const __m256 leftFetch = _mm256_i32gather_ps(cosLut.data(), leftIndex, sizeof(decltype(cosLut)::value_type));
     const __m256 rightFetch = _mm256_i32gather_ps(cosLut.data(), rightIndex, sizeof(decltype(cosLut)::value_type));
@@ -147,8 +150,7 @@ bool BlepResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
 
     phaseInc = std::max(phaseInc, 0.0f);
 
-    size_t samplesRequired = static_cast<size_t>(
-            phase + phaseInc * static_cast<float>(buffer.size()));
+    size_t samplesRequired = static_cast<size_t>(phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
@@ -165,14 +167,16 @@ bool BlepResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
         const __m256 phaseV = _mm256_set1_ps(phase);
         __m256i wiV = _mm256_sub_epi32(_mm256_set_epi32(8, 7, 6, 5, 4, 3, 2, 1), sincWinSizeV);
 
-        for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE; wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
+        for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE;
+             wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
             const __m256 wiMPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
             const __m256 SiIndexLeftV = _mm256_mul_ps(_mm256_sub_ps(wiMPhaseV, _mm256_set1_ps(0.5f)), sincStepV);
             const __m256 SiIndexRightV = _mm256_mul_ps(_mm256_add_ps(wiMPhaseV, _mm256_set1_ps(0.5)), sincStepV);
             const __m256 slV = fast_Si(SiIndexLeftV);
             const __m256 srV = fast_Si(SiIndexRightV);
             const __m256 kernelV = _mm256_sub_ps(srV, slV);
-            const __m256 fetchedSampleV = _mm256_loadu_ps(&fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1]);
+            const __m256 fetchedSampleV =
+                _mm256_loadu_ps(&fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1]);
             sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
             kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
         }
@@ -218,8 +222,7 @@ bool BlampResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const 
 
     phaseInc = std::max(phaseInc, 0.0f);
 
-    size_t samplesRequired = static_cast<size_t>(
-            phase + phaseInc * static_cast<float>(buffer.size()));
+    size_t samplesRequired = static_cast<size_t>(phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
@@ -236,7 +239,8 @@ bool BlampResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const 
         const __m256 phaseV = _mm256_set1_ps(phase);
         __m256i wiV = _mm256_sub_epi32(_mm256_set_epi32(8, 7, 6, 5, 4, 3, 2, 1), sincWinSizeV);
 
-        for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE; wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
+        for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE;
+             wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
             const __m256 wiMPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
             const __m256 TiIndexLeftV = _mm256_mul_ps(_mm256_sub_ps(wiMPhaseV, _mm256_set1_ps(1.0f)), sincStepV);
             const __m256 TiIndexMiddleV = _mm256_mul_ps(wiMPhaseV, sincStepV);
@@ -245,7 +249,8 @@ bool BlampResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const 
             const __m256 smV = fast_Ti(TiIndexMiddleV);
             const __m256 srV = fast_Ti(TiIndexRightV);
             const __m256 kernelV = _mm256_add_ps(_mm256_sub_ps(_mm256_sub_ps(srV, smV), smV), slV);
-            const __m256 fetchedSampleV = _mm256_loadu_ps(&fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1]);
+            const __m256 fetchedSampleV =
+                _mm256_loadu_ps(&fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1]);
             sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
             kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
         }

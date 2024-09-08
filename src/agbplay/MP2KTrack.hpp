@@ -1,15 +1,15 @@
 #pragma once
 
 #include <bitset>
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <vector>
 
 // TODO remove dependency for NUM_NOTES, and possibly remove active notes state?
 #include "Constants.hpp"
-#include "Types.hpp"
 #include "LoudnessCalculator.hpp"
+#include "Types.hpp"
 
 #define TRACK_CALL_STACK_SIZE 3
 
@@ -21,9 +21,9 @@ class ReverbEffect;
 struct MP2KTrack
 {
     MP2KTrack(uint8_t trackIdx);
-    MP2KTrack(const MP2KTrack&) = delete;
+    MP2KTrack(const MP2KTrack &) = delete;
     MP2KTrack(MP2KTrack &&) = default;
-    MP2KTrack& operator=(const MP2KTrack&) = delete;
+    MP2KTrack &operator=(const MP2KTrack &) = delete;
 
     void Init(size_t pos);
     void Stop();

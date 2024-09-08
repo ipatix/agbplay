@@ -1,18 +1,17 @@
 #include "Gsf.hpp"
 
-#include <sstream>
+#include "Xcept.hpp"
+
 #include <algorithm>
+#include <cassert>
 #include <memory>
 #include <regex>
-#include <cassert>
-
+#include <sstream>
 #include <zlib.h>
-
-#include "Xcept.hpp"
 
 static void Decompress(std::span<const uint8_t> compressedData, std::vector<uint8_t> &decompressedData)
 {
-    int error = Z_OK;;
+    int error = Z_OK;
     const size_t CHUNK_SIZE = 4096;
     decompressedData.clear();
 
@@ -32,7 +31,7 @@ static void Decompress(std::span<const uint8_t> compressedData, std::vector<uint
         strm.next_out = reinterpret_cast<Bytef *>(&decompressedData[strm.total_out]);
         strm.avail_out = CHUNK_SIZE;
 
-        error = inflate(&strm, Z_NO_FLUSH); 
+        error = inflate(&strm, Z_NO_FLUSH);
         if (error == Z_STREAM_END)
             break;
         else if (error != Z_OK)
@@ -42,7 +41,12 @@ static void Decompress(std::span<const uint8_t> compressedData, std::vector<uint
     decompressedData.resize(strm.total_out);
 }
 
-static bool ReadGsfData(std::span<const uint8_t> gsfData, std::vector<uint8_t> &reservedData, std::vector<uint8_t> &programData, std::string &tagData)
+static bool ReadGsfData(
+    std::span<const uint8_t> gsfData,
+    std::vector<uint8_t> &reservedData,
+    std::vector<uint8_t> &programData,
+    std::string &tagData
+)
 {
     if (gsfData.size() < 16)
         return false;
@@ -51,9 +55,12 @@ static bool ReadGsfData(std::span<const uint8_t> gsfData, std::vector<uint8_t> &
     if (gsfData[0] != 'P' || gsfData[1] != 'S' || gsfData[2] != 'F' || gsfData[3] != GSF_VERSION_BYTE)
         return false;
 
-    const size_t compReservedSize = static_cast<size_t>((gsfData[4] << 0) | (gsfData[5] << 8) | (gsfData[6] << 16) | (gsfData[7] << 24));
-    const size_t compProgramSize = static_cast<size_t>((gsfData[8] << 0) | (gsfData[9] << 8) | (gsfData[10] << 16) | (gsfData[11] << 24));
-    const uint32_t compProgramCrc32 = static_cast<uint32_t>((gsfData[12] << 0) | (gsfData[13] << 8) | (gsfData[14] << 16) | (gsfData[15] << 24));
+    const size_t compReservedSize =
+        static_cast<size_t>((gsfData[4] << 0) | (gsfData[5] << 8) | (gsfData[6] << 16) | (gsfData[7] << 24));
+    const size_t compProgramSize =
+        static_cast<size_t>((gsfData[8] << 0) | (gsfData[9] << 8) | (gsfData[10] << 16) | (gsfData[11] << 24));
+    const uint32_t compProgramCrc32 =
+        static_cast<uint32_t>((gsfData[12] << 0) | (gsfData[13] << 8) | (gsfData[14] << 16) | (gsfData[15] << 24));
 
     if (gsfData.size() < (16 + compReservedSize + compProgramSize))
         throw Xcept("ReadGsfData(): ill-formed gsflib, size in header larger than available");
@@ -69,14 +76,16 @@ static bool ReadGsfData(std::span<const uint8_t> gsfData, std::vector<uint8_t> &
     unsigned long crc = crc32_z(0, nullptr, 0);
     crc = crc32_z(crc, reinterpret_cast<const Bytef *>(&gsfData[dataOffset]), compProgramSize);
     if (crc != compProgramCrc32)
-        throw Xcept("ReadGsfData(): program data crc32 mismatch: expected={:#08x} calculated={:#08x}", compProgramCrc32, crc);
+        throw Xcept(
+            "ReadGsfData(): program data crc32 mismatch: expected={:#08x} calculated={:#08x}", compProgramCrc32, crc
+        );
 
     Decompress(gsfData.subspan(dataOffset, compProgramSize), programData);
     dataOffset += compProgramSize;
 
     size_t tagDataSize = gsfData.size() - dataOffset;
     if (tagDataSize > 50000)
-        tagDataSize = 50000; // do I understand Neill Corlett's doc right that this is limited to 50k bytes?
+        tagDataSize = 50000;    // do I understand Neill Corlett's doc right that this is limited to 50k bytes?
 
     tagData.assign(reinterpret_cast<const char *>(&gsfData[dataOffset]), tagDataSize);
     return true;
@@ -94,9 +103,15 @@ bool Gsf::GetRomData(std::span<const uint8_t> gsfData, std::vector<uint8_t> &res
     if (resultRomData.size() < 12)
         throw Xcept("Gsf::GetRomData(): program data is ill-formed (size < 12)");
 
-    const size_t entryPoint = static_cast<size_t>((resultRomData[0] << 0) | (resultRomData[1] << 8) | (resultRomData[2] << 16) | (resultRomData[3] << 24));
-    const size_t offset = static_cast<size_t>((resultRomData[4] << 0) | (resultRomData[5] << 8) | (resultRomData[6] << 16) | (resultRomData[7] << 24));
-    const size_t romSize = static_cast<size_t>((resultRomData[8] << 0) | (resultRomData[9] << 8) | (resultRomData[10] << 16) | (resultRomData[11] << 24));
+    const size_t entryPoint = static_cast<size_t>(
+        (resultRomData[0] << 0) | (resultRomData[1] << 8) | (resultRomData[2] << 16) | (resultRomData[3] << 24)
+    );
+    const size_t offset = static_cast<size_t>(
+        (resultRomData[4] << 0) | (resultRomData[5] << 8) | (resultRomData[6] << 16) | (resultRomData[7] << 24)
+    );
+    const size_t romSize = static_cast<size_t>(
+        (resultRomData[8] << 0) | (resultRomData[9] << 8) | (resultRomData[10] << 16) | (resultRomData[11] << 24)
+    );
 
     // currently unused
     (void)entryPoint;
@@ -108,8 +123,8 @@ bool Gsf::GetRomData(std::span<const uint8_t> gsfData, std::vector<uint8_t> &res
         throw Xcept("Gsf::GetRomData(): size mismatch between delcared ROM size and decompressed size");
 
     // uncomment this for GSF debugging and examination with hex editor
-    //std::ofstream ofs("/tmp/gsf.gba");
-    //if (ofs.is_open()) {
+    // std::ofstream ofs("/tmp/gsf.gba");
+    // if (ofs.is_open()) {
     //    ofs.write(reinterpret_cast<const char *>(resultRomData.data()), resultRomData.size());
     //    ofs.close();
     //}
@@ -145,7 +160,9 @@ void Gsf::GetSongInfo(std::span<const uint8_t> gsfData, std::string &name, uint1
 
     while (std::getline(ss, line)) {
         std::string lowerCaseLine = line;
-        std::transform(lowerCaseLine.begin(), lowerCaseLine.end(), lowerCaseLine.begin(), [](char c){ return std::tolower(c); });
+        std::transform(lowerCaseLine.begin(), lowerCaseLine.end(), lowerCaseLine.begin(), [](char c) {
+            return std::tolower(c);
+        });
         if (lowerCaseLine.starts_with("title=")) {
             name = line.substr(6);
             break;
@@ -161,7 +178,7 @@ std::string Gsf::GuessGameCodeFromPath(const std::filesystem::path &p)
     /* This is not unicode safe, but game codes are 4 byte ASCII anyway,
      * so it ought to be good enough for identifying a GSF. */
     std::string filename = p.stem().string();
-    std::regex re("^AGB-([A-Z0-9]{4})-\\w+$"); // example: AGB-AN8J-JPN
+    std::regex re("^AGB-([A-Z0-9]{4})-\\w+$");    // example: AGB-AN8J-JPN
     std::smatch matches;
 
     if (std::regex_match(filename, matches, re)) {

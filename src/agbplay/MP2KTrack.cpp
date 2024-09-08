@@ -1,12 +1,11 @@
 #include "MP2KTrack.hpp"
 
+#include "MP2KChn.hpp"
+#include "ReverbEffect.hpp"
+
 #include <cassert>
 
-#include "ReverbEffect.hpp"
-#include "MP2KChn.hpp"
-
-MP2KTrack::MP2KTrack(uint8_t trackIdx)
-    : trackIdx(trackIdx)
+MP2KTrack::MP2KTrack(uint8_t trackIdx) : trackIdx(trackIdx)
 {
     Init(0);
 }
@@ -22,7 +21,7 @@ void MP2KTrack::Init(size_t pos)
     lastNoteVel = 0;
     lastNoteLen = 0;
     reptCount = 0;
-    prog = PROG_UNDEFINED; // TODO replace this with an instrument definition like in original MP2K
+    prog = PROG_UNDEFINED;    // TODO replace this with an instrument definition like in original MP2K
     vol = 0;
     mod = 0;
     bendr = 2;
@@ -93,4 +92,3 @@ void MP2KTrack::ResetLfoValue()
     else
         updateVolume = true;
 }
-

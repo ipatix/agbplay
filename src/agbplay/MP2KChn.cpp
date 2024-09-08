@@ -1,8 +1,8 @@
 #include "MP2KChn.hpp"
 
-#include <cassert>
-
 #include "MP2KTrack.hpp"
+
+#include <cassert>
 
 MP2KChn::MP2KChn(MP2KTrack *track, const Note &note, const ADSR &env) : note(note), env(env)
 {
@@ -39,8 +39,8 @@ void MP2KChn::RemoveFromTrack() noexcept
     // Do not clear pointers in order to not break for loops over the channel list.
     // This possibly leads to dangling pointers!
     // Do not use these pointers if track == nullptr.
-    //prev = nullptr;
-    //next = nullptr;
+    // prev = nullptr;
+    // next = nullptr;
     track = nullptr;
 }
 

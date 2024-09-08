@@ -1,17 +1,18 @@
+#include "ReverbEffect.hpp"
+
+#include "Constants.hpp"
+#include "Util.hpp"
+#include "Xcept.hpp"
+
 #include <algorithm>
 #include <cassert>
-
-#include "ReverbEffect.hpp"
-#include "Util.hpp"
-#include "Constants.hpp"
-#include "Xcept.hpp"
 
 /*
  * public ReverbEffect
  */
 
-ReverbEffect::ReverbEffect(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers)
-    : reverbBuffer((streamRate / AGB_FPS) * numAgbBuffers, sample{0.0f, 0.0f})
+ReverbEffect::ReverbEffect(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers) :
+    reverbBuffer((streamRate / AGB_FPS) * numAgbBuffers, sample{0.0f, 0.0f})
 {
     SetLevel(intensity);
     const size_t bufferLen = streamRate / AGB_FPS;
@@ -25,8 +26,7 @@ ReverbEffect::~ReverbEffect()
 
 void ReverbEffect::Process(std::span<sample> buffer)
 {
-    while (buffer.size() > 0)
-    {
+    while (buffer.size() > 0) {
         // TODO change the semantics of ProcessInternal to return 'processed' instead of 'left' samples
         const size_t left = ProcessInternal(buffer);
         buffer = buffer.subspan(buffer.size() - left);
@@ -38,30 +38,23 @@ void ReverbEffect::SetLevel(uint8_t level)
     intensity = level / 128.0f;
 }
 
-std::unique_ptr<ReverbEffect> ReverbEffect::MakeReverb(ReverbType reverbType, uint8_t intensity, size_t sampleRate, uint8_t numDmaBuffers)
+std::unique_ptr<ReverbEffect>
+    ReverbEffect::MakeReverb(ReverbType reverbType, uint8_t intensity, size_t sampleRate, uint8_t numDmaBuffers)
 {
     switch (reverbType) {
     case ReverbType::NORMAL:
-        return std::make_unique<ReverbEffect>(
-                intensity, sampleRate, numDmaBuffers);
+        return std::make_unique<ReverbEffect>(intensity, sampleRate, numDmaBuffers);
     case ReverbType::NONE:
-        return std::make_unique<ReverbEffect>(
-                0, sampleRate, numDmaBuffers);
+        return std::make_unique<ReverbEffect>(0, sampleRate, numDmaBuffers);
     case ReverbType::GS1:
-        return std::make_unique<ReverbGS1>(
-                intensity, sampleRate, numDmaBuffers);
+        return std::make_unique<ReverbGS1>(intensity, sampleRate, numDmaBuffers);
     case ReverbType::GS2:
-        return std::make_unique<ReverbGS2>(
-                intensity, sampleRate, numDmaBuffers,
-                0.4140625f, -0.0625f);
+        return std::make_unique<ReverbGS2>(intensity, sampleRate, numDmaBuffers, 0.4140625f, -0.0625f);
         // Mario Power Tennis uses same coefficients as Mario Golf Advance Tour
     case ReverbType::MGAT:
-        return std::make_unique<ReverbGS2>(
-                intensity, sampleRate, numDmaBuffers,
-                0.25f, -0.046875f);
+        return std::make_unique<ReverbGS2>(intensity, sampleRate, numDmaBuffers, 0.25f, -0.046875f);
     case ReverbType::TEST:
-        return std::make_unique<ReverbTest>(
-                intensity, sampleRate, numDmaBuffers);
+        return std::make_unique<ReverbTest>(intensity, sampleRate, numDmaBuffers);
     default:
         throw Xcept("MakeReverb: Invalid Reverb Effect: {}", static_cast<int>(reverbType));
     }
@@ -73,25 +66,29 @@ std::unique_ptr<ReverbEffect> ReverbEffect::MakeReverb(ReverbType reverbType, ui
 
 size_t ReverbEffect::ProcessInternal(std::span<sample> buffer)
 {
-    std::vector<sample>& rbuf = reverbBuffer;
-    const size_t count = std::min(std::min(reverbBuffer.size() - bufferPos2, reverbBuffer.size() - bufferPos), buffer.size());
+    std::vector<sample> &rbuf = reverbBuffer;
+    const size_t count =
+        std::min(std::min(reverbBuffer.size() - bufferPos2, reverbBuffer.size() - bufferPos), buffer.size());
     bool reset = false, reset2 = false;
     if (reverbBuffer.size() - bufferPos == count) {
         reset = true;
     }
     if (reverbBuffer.size() - bufferPos2 == count) {
         reset2 = true;
-    } 
+    }
     for (size_t i = 0; i < count; i++) {
-        const float rev = (rbuf[bufferPos].left + rbuf[bufferPos].right + 
-                rbuf[bufferPos2].left + rbuf[bufferPos2].right) * intensity * (1.0f / 4.0f);
-        rbuf[bufferPos].left  = buffer[i].left  += rev;
+        const float rev =
+            (rbuf[bufferPos].left + rbuf[bufferPos].right + rbuf[bufferPos2].left + rbuf[bufferPos2].right) * intensity
+            * (1.0f / 4.0f);
+        rbuf[bufferPos].left = buffer[i].left += rev;
         rbuf[bufferPos].right = buffer[i].right += rev;
         bufferPos++;
         bufferPos2++;
     }
-    if (reset2) bufferPos2 = 0;
-    if (reset) bufferPos = 0;
+    if (reset2)
+        bufferPos2 = 0;
+    if (reset)
+        bufferPos = 0;
     return buffer.size() - count;
 }
 
@@ -99,9 +96,8 @@ size_t ReverbEffect::ProcessInternal(std::span<sample> buffer)
  * ReverbGS1
  */
 
-ReverbGS1::ReverbGS1(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers)
-    : ReverbEffect(intensity, streamRate, numAgbBuffers), 
-    gsBuffer((streamRate / AGB_FPS), sample{0.0f, 0.0f})
+ReverbGS1::ReverbGS1(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers) :
+    ReverbEffect(intensity, streamRate, numAgbBuffers), gsBuffer((streamRate / AGB_FPS), sample{0.0f, 0.0f})
 {
     bufferPos2 = 0;
 }
@@ -112,7 +108,7 @@ ReverbGS1::~ReverbGS1()
 
 size_t ReverbGS1::ProcessInternal(std::span<sample> buffer)
 {
-    std::vector<sample>& rbuf = reverbBuffer;
+    std::vector<sample> &rbuf = reverbBuffer;
     size_t count = std::min(std::min(reverbBuffer.size() - bufferPos, gsBuffer.size() - bufferPos2), buffer.size());
     bool reset = false, resetGS = false;
 
@@ -122,27 +118,29 @@ size_t ReverbGS1::ProcessInternal(std::span<sample> buffer)
         resetGS = true;
 
     for (size_t i = 0; i < count; i++) {
-        const float mixL = buffer[i].left  + gsBuffer[bufferPos2].left;
+        const float mixL = buffer[i].left + gsBuffer[bufferPos2].left;
         const float mixR = buffer[i].right + gsBuffer[bufferPos2].right;
 
         const float lA = rbuf[bufferPos].left;
         const float rA = rbuf[bufferPos].right;
 
-        buffer[i].left  = rbuf[bufferPos].left  = mixL;
+        buffer[i].left = rbuf[bufferPos].left = mixL;
         buffer[i].right = rbuf[bufferPos].right = mixR;
 
         const float lRMix = 0.25f * mixL + 0.25f * rA;
         const float rRMix = 0.25f * mixR + 0.25f * lA;
 
-        gsBuffer[bufferPos2].left  = lRMix;
+        gsBuffer[bufferPos2].left = lRMix;
         gsBuffer[bufferPos2].right = rRMix;
 
         bufferPos++;
         bufferPos2++;
     }
 
-    if (resetGS) bufferPos2 = 0;
-    if (reset) bufferPos = 0;
+    if (resetGS)
+        bufferPos2 = 0;
+    if (reset)
+        bufferPos = 0;
     return buffer.size() - count;
 }
 
@@ -150,9 +148,8 @@ size_t ReverbGS1::ProcessInternal(std::span<sample> buffer)
  * ReverbGS2
  */
 
-ReverbGS2::ReverbGS2(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers,
-        float rPrimFac, float rSecFac)
-    : ReverbEffect(intensity, streamRate, numAgbBuffers),
+ReverbGS2::ReverbGS2(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers, float rPrimFac, float rSecFac) :
+    ReverbEffect(intensity, streamRate, numAgbBuffers),
     gs2Buffer(streamRate / AGB_FPS, sample{0.0f, 0.0f}),
     gs2Pos(0),
     rPrimFac(rPrimFac),
@@ -168,16 +165,16 @@ ReverbGS2::~ReverbGS2()
 
 size_t ReverbGS2::ProcessInternal(std::span<sample> buffer)
 {
-    std::vector<sample>& rbuf = reverbBuffer;
+    std::vector<sample> &rbuf = reverbBuffer;
     size_t count = std::min(
-            std::min(reverbBuffer.size() - bufferPos2, reverbBuffer.size() - bufferPos), 
-            std::min(buffer.size(), gs2Buffer.size() - gs2Pos)
-            );
+        std::min(reverbBuffer.size() - bufferPos2, reverbBuffer.size() - bufferPos),
+        std::min(buffer.size(), gs2Buffer.size() - gs2Pos)
+    );
     bool reset = false, reset2 = false, resetgs2 = false;
 
     if (reverbBuffer.size() - bufferPos2 == count) {
         reset2 = true;
-    } 
+    }
     if (reverbBuffer.size() - bufferPos == count) {
         reset = true;
     }
@@ -186,13 +183,13 @@ size_t ReverbGS2::ProcessInternal(std::span<sample> buffer)
     }
 
     for (size_t i = 0; i < count; i++) {
-        const float mixL = buffer[i].left  + gs2Buffer[gs2Pos].left;
+        const float mixL = buffer[i].left + gs2Buffer[gs2Pos].left;
         const float mixR = buffer[i].right + gs2Buffer[gs2Pos].right;
 
         const float lA = rbuf[bufferPos].left;
         const float rA = rbuf[bufferPos].right;
 
-        buffer[i].left  = rbuf[bufferPos].left  = mixL;
+        buffer[i].left = rbuf[bufferPos].left = mixL;
         buffer[i].right = rbuf[bufferPos].right = mixR;
 
         const float lRMix = lA * rPrimFac + rA * rSecFac;
@@ -201,16 +198,19 @@ size_t ReverbGS2::ProcessInternal(std::span<sample> buffer)
         const float lB = rbuf[bufferPos2].right * 0.25f;
         const float rB = mixR * 0.25f;
 
-        gs2Buffer[gs2Pos].left  = lRMix + lB;
+        gs2Buffer[gs2Pos].left = lRMix + lB;
         gs2Buffer[gs2Pos].right = rRMix + rB;
 
         bufferPos++;
         bufferPos2++;
         gs2Pos++;
     }
-    if (reset2) bufferPos2 = 0;
-    if (reset) bufferPos = 0;
-    if (resetgs2) gs2Pos = 0;
+    if (reset2)
+        bufferPos2 = 0;
+    if (reset)
+        bufferPos = 0;
+    if (resetgs2)
+        gs2Pos = 0;
     return buffer.size() - count;
 }
 
@@ -218,8 +218,8 @@ size_t ReverbGS2::ProcessInternal(std::span<sample> buffer)
  * ReverbTest
  */
 
-ReverbTest::ReverbTest(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers)
-    : ReverbEffect(intensity, streamRate, numAgbBuffers)
+ReverbTest::ReverbTest(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers) :
+    ReverbEffect(intensity, streamRate, numAgbBuffers)
 {
 }
 
@@ -229,7 +229,7 @@ ReverbTest::~ReverbTest()
 
 size_t ReverbTest::ProcessInternal(std::span<sample> buffer)
 {
-    std::vector<sample>& rbuf = reverbBuffer;
+    std::vector<sample> &rbuf = reverbBuffer;
     size_t count = std::min(std::min(reverbBuffer.size() - bufferPos, reverbBuffer.size() - bufferPos2), buffer.size());
     bool reset = false, reset2 = false;
     if (reverbBuffer.size() - bufferPos2 == count) {
@@ -252,10 +252,10 @@ size_t ReverbTest::ProcessInternal(std::span<sample> buffer)
         float output_l = -g * new_feedback_l + feedback_l;
         float output_r = -g * new_feedback_r + feedback_r;
 
-        buffer[i].left  = output_l;
+        buffer[i].left = output_l;
         buffer[i].right = output_r;
 
-        rbuf[bufferPos].left  = -new_feedback_l;
+        rbuf[bufferPos].left = -new_feedback_l;
         rbuf[bufferPos].right = -new_feedback_r;
         /*
            float in_delay_1_l = rbuf[bufferPos * 2], in_delay_1_r = rbuf[bufferPos * 2 + 1];
@@ -286,7 +286,9 @@ size_t ReverbTest::ProcessInternal(std::span<sample> buffer)
         bufferPos++;
         bufferPos2++;
     }
-    if (reset2) bufferPos2 = 0;
-    if (reset) bufferPos = 0;
+    if (reset2)
+        bufferPos2 = 0;
+    if (reset)
+        bufferPos = 0;
     return buffer.size() - count;
 }

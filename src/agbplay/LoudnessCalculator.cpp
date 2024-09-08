@@ -1,12 +1,12 @@
-#include <cmath>
-#include <cassert>
-
 #include "LoudnessCalculator.hpp"
+
 #include "Constants.hpp"
 #include "Util.hpp"
 
-LoudnessCalculator::LoudnessCalculator(const float lowpassFreq)
-    : lpAlpha(calcAlpha(lowpassFreq))
+#include <cassert>
+#include <cmath>
+
+LoudnessCalculator::LoudnessCalculator(const float lowpassFreq) : lpAlpha(calcAlpha(lowpassFreq))
 {
 }
 
@@ -29,7 +29,7 @@ void LoudnessCalculator::CalcLoudness(std::span<const sample> buffer)
     volRight = sqrtf(avgVolRightSq) * sqrt_2;
 }
 
-void LoudnessCalculator::GetLoudness(float& lVol, float& rVol)
+void LoudnessCalculator::GetLoudness(float &lVol, float &rVol)
 {
     lVol = volLeft;
     rVol = volRight;

@@ -1,17 +1,17 @@
-#include <cstdio>
-#include <cstdarg>
-#include <string>
-#include <mutex>
-#include <cstdarg>
-#include <iostream>
-#include <chrono>
-#include <format>
-
 #include "Debug.hpp"
+
+#include <chrono>
+#include <cstdarg>
+#include <cstdio>
+#include <format>
+#include <iostream>
+#include <mutex>
+#include <string>
 
 static FILE *debug_file = nullptr;
 
-bool Debug::open(const char *file) {
+bool Debug::open(const char *file)
+{
     if (!file)
         return true;
 
@@ -23,7 +23,8 @@ bool Debug::open(const char *file) {
     return true;
 }
 
-bool Debug::close() {
+bool Debug::close()
+{
     if (debug_file == nullptr)
         return true;
 
@@ -33,16 +34,17 @@ bool Debug::close() {
     return true;
 }
 
-
-static void (*callback)(const std::string&, void *) = nullptr;
+static void (*callback)(const std::string &, void *) = nullptr;
 static void *cb_obj = nullptr;
 
-void Debug::set_callback(void (*cb)(const std::string&, void *), void *obj) {
+void Debug::set_callback(void (*cb)(const std::string &, void *), void *obj)
+{
     callback = cb;
     cb_obj = obj;
 }
 
-void Debug::puts(const std::string &msg) {
+void Debug::puts(const std::string &msg)
+{
     /* not sure why this requires std::format instead of fmt::format */
     std::string finalMsg = std::format("[{:%T}] {}", std::chrono::system_clock::now(), msg);
 

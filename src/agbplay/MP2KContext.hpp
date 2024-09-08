@@ -1,25 +1,32 @@
 #pragma once
 
-#include <vector>
-#include <list>
-
 #include "LoudnessCalculator.hpp"
-#include "SequenceReader.hpp"
-#include "SoundMixer.hpp"
-#include "Rom.hpp"
-#include "MP2KPlayer.hpp"
 #include "MP2KChnPCM.hpp"
 #include "MP2KChnPSG.hpp"
+#include "MP2KPlayer.hpp"
+#include "Rom.hpp"
+#include "SequenceReader.hpp"
+#include "SoundMixer.hpp"
+
+#include <list>
+#include <vector>
 
 /* Instead of defining lots of global objects, we define
  * a context with all the things we need. So anything which
  * needs anything out of this context only needs a reference
  * to a MP2KContext */
 
-struct MP2KContext {
-    MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, const AgbplaySoundMode &agbplaySoundMode, const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo);
-    MP2KContext(const MP2KContext&) = delete;
-    MP2KContext& operator=(const MP2KContext&) = delete;
+struct MP2KContext
+{
+    MP2KContext(
+        const Rom &rom,
+        const MP2KSoundMode &mp2kSoundMode,
+        const AgbplaySoundMode &agbplaySoundMode,
+        const SongTableInfo &songTableInfo,
+        const PlayerTableInfo &playerTableInfo
+    );
+    MP2KContext(const MP2KContext &) = delete;
+    MP2KContext &operator=(const MP2KContext &) = delete;
 
     /* original API functions */
     void m4aSoundMain();
@@ -45,14 +52,14 @@ struct MP2KContext {
     bool HasEnded() const;
     void GetVisualizerState(MP2KVisualizerState &visualizerState);
 
-    const Rom& rom;
+    const Rom &rom;
     SequenceReader reader;
     SoundMixer mixer;
     MP2KSoundMode mp2kSoundMode;
     AgbplaySoundMode agbplaySoundMode;
     SongTableInfo songTableInfo;
     std::vector<MP2KPlayer> players;
-    std::vector<uint8_t> memaccArea; // TODO, this will have to be accessible from outside for emulator support
+    std::vector<uint8_t> memaccArea;    // TODO, this will have to be accessible from outside for emulator support
     std::vector<sample> masterAudioBuffer;
     LoudnessCalculator masterLoudnessCalculator{5.0f};
 
@@ -63,5 +70,5 @@ struct MP2KContext {
     std::list<MP2KChnPSGWave> waveChannels;
     std::list<MP2KChnPSGNoise> noiseChannels;
 
-    uint8_t primaryPlayer = 0; // <-- this is only used for visualization, perhaps move outside from here
+    uint8_t primaryPlayer = 0;    // <-- this is only used for visualization, perhaps move outside from here
 };

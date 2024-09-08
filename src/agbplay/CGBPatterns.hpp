@@ -7,4 +7,4 @@ namespace CGBPatterns
     extern const float pat_sq25[];
     extern const float pat_sq50[];
     extern const float pat_sq75[];
-};
+};    // namespace CGBPatterns

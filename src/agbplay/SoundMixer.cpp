@@ -1,19 +1,20 @@
+#include "SoundMixer.hpp"
+
+#include "MP2KContext.hpp"
+#include "Util.hpp"
+#include "Xcept.hpp"
+
 #include <algorithm>
 #include <array>
-#include <cmath>
 #include <cassert>
-
-#include "SoundMixer.hpp"
-#include "Xcept.hpp"
-#include "Util.hpp"
-#include "MP2KContext.hpp"
+#include <cmath>
 
 /*
  * public SoundMixer
  */
 
-SoundMixer::SoundMixer(MP2KContext& ctx, uint32_t sampleRate, float masterVolume)
-    : ctx(ctx), sampleRate(sampleRate), masterVolume(masterVolume), scratchBuffer(samplesPerBuffer)
+SoundMixer::SoundMixer(MP2KContext &ctx, uint32_t sampleRate, float masterVolume) :
+    ctx(ctx), sampleRate(sampleRate), masterVolume(masterVolume), scratchBuffer(samplesPerBuffer)
 {
 }
 
@@ -29,26 +30,19 @@ void SoundMixer::UpdateReverb()
 void SoundMixer::UpdateFixedModeRate()
 {
     static std::array<uint32_t, 16> rateTable{
-        0, 5734, 7884, 10512,
-        13379, 15768, 18157, 21024,
-        26758, 31536, 36314, 40137,
-        42048, 0, 0, 0,
+        0, 5734, 7884, 10512, 13379, 15768, 18157, 21024, 26758, 31536, 36314, 40137, 42048, 0, 0, 0
     };
 
     fixedModeRate = rateTable[ctx.mp2kSoundMode.freq % rateTable.size()];
 
     const uint8_t numDmaBuffers = std::max(
-        static_cast<uint8_t>(2),
-        static_cast<uint8_t>(ctx.agbplaySoundMode.dmaBufferLen / (fixedModeRate / AGB_FPS))
+        static_cast<uint8_t>(2), static_cast<uint8_t>(ctx.agbplaySoundMode.dmaBufferLen / (fixedModeRate / AGB_FPS))
     );
 
     for (MP2KPlayer &player : ctx.players) {
         for (MP2KTrack &trk : player.tracks) {
             trk.reverb = ReverbEffect::MakeReverb(
-                ctx.agbplaySoundMode.reverbType,
-                ctx.mp2kSoundMode.rev & 0x7F,
-                sampleRate,
-                numDmaBuffers
+                ctx.agbplaySoundMode.reverbType, ctx.mp2kSoundMode.rev & 0x7F, sampleRate, numDmaBuffers
             );
         }
     }
@@ -72,7 +66,7 @@ void SoundMixer::Process()
     margs.vol = static_cast<float>((ctx.mp2kSoundMode.vol + 1) / 16.0f);
     margs.fixedModeRate = fixedModeRate;
     margs.sampleRateInv = 1.0f / static_cast<float>(sampleRate);
-    margs.samplesPerBufferInv= 1.0f / static_cast<float>(samplesPerBuffer);
+    margs.samplesPerBufferInv = 1.0f / static_cast<float>(samplesPerBuffer);
 
     /* 3. mix channels which are affected by reverb (PCM only) */
     auto mixFunc = [&](auto &channels) {
@@ -96,7 +90,7 @@ void SoundMixer::Process()
     mixFunc(ctx.noiseChannels);
 
     /* 6. clean up all stopped channels */
-    auto removeFunc = [](const auto& chn) { return chn.envState == EnvState::DEAD; };
+    auto removeFunc = [](const auto &chn) { return chn.envState == EnvState::DEAD; };
     ctx.sndChannels.remove_if(removeFunc);
     ctx.sq1Channels.remove_if(removeFunc);
     ctx.sq2Channels.remove_if(removeFunc);
@@ -126,12 +120,11 @@ void SoundMixer::Process()
         for (MP2KTrack &trk : player.tracks) {
             const float masterStep = (masterTo - masterFrom) * margs.samplesPerBufferInv;
             float masterLevel = masterFrom;
-            for (size_t i = 0; i < samplesPerBuffer; i++)
-            {
+            for (size_t i = 0; i < samplesPerBuffer; i++) {
                 trk.audioBuffer[i].left *= masterLevel;
                 trk.audioBuffer[i].right *= masterLevel;
 
-                masterLevel +=  masterStep;
+                masterLevel += masterStep;
             }
         }
     }

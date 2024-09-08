@@ -1,21 +1,22 @@
 #pragma once
 
+#include "Types.hpp"
+
 #include <cstddef>
 #include <span>
-
-#include "Types.hpp"
 
 class LoudnessCalculator
 {
 public:
     LoudnessCalculator(const float lowpassFreq);
-    LoudnessCalculator(const LoudnessCalculator&) = delete;
-    LoudnessCalculator(LoudnessCalculator&&) = default;
-    LoudnessCalculator& operator=(const LoudnessCalculator&) = delete;
+    LoudnessCalculator(const LoudnessCalculator &) = delete;
+    LoudnessCalculator(LoudnessCalculator &&) = default;
+    LoudnessCalculator &operator=(const LoudnessCalculator &) = delete;
 
     void CalcLoudness(std::span<const sample> buffer);
-    void GetLoudness(float& lVol, float& rVol);
+    void GetLoudness(float &lVol, float &rVol);
     void Reset();
+
 private:
     static float calcAlpha(float lowpassFreq);
 

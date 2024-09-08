@@ -1,10 +1,10 @@
-#include <boost/math/special_functions/sinc.hpp>
-
-#include "ResamplerAVX2.hpp"
-
 #include "Resampler.hpp"
-#include "Util.hpp"
+
 #include "Debug.hpp"
+#include "ResamplerAVX2.hpp"
+#include "Util.hpp"
+
+#include <boost/math/special_functions/sinc.hpp>
 
 const bool AVX2_SUPPORTED = []() {
 #if defined(__x86_64__) || defined(i386) || defined(__i386__) || defined(__386)
@@ -113,8 +113,7 @@ bool LinearResampler::Process(std::span<float> buffer, float phaseInc, const Fet
 
     phaseInc = std::max(phaseInc, 0.0f);
 
-    size_t samplesRequired = static_cast<size_t>(
-            phase + phaseInc * static_cast<float>(buffer.size()));
+    size_t samplesRequired = static_cast<size_t>(phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
     // fetch one more for linear interpolation
@@ -124,7 +123,7 @@ bool LinearResampler::Process(std::span<float> buffer, float phaseInc, const Fet
     size_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
         float a = fetchBuffer[fi];
-        float b = fetchBuffer[fi+1];
+        float b = fetchBuffer[fi + 1];
         buffer[i] = a + phase * (b - a);
         phase += phaseInc;
         size_t istep = static_cast<size_t>(phase);
@@ -156,13 +155,12 @@ void SincResampler::Reset()
 
 bool SincResampler::Process(std::span<float> buffer, float phaseInc, const FetchCallback &fetchCallback)
 {
-    if (buffer.size()== 0)
+    if (buffer.size() == 0)
         return true;
 
     phaseInc = std::max(phaseInc, 0.0f);
 
-    size_t samplesRequired = static_cast<size_t>(
-            phase + phaseInc * static_cast<float>(buffer.size()));
+    size_t samplesRequired = static_cast<size_t>(phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
@@ -183,8 +181,8 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
             //_print_debug("wi=%zu phase=%f sincStep=%f sincIndex=%f", wi, phase, sincStep, sincIndex);
             float s = fast_sincf(sincIndex);
             float w = window_func(windowIndex);
-            //float s = triangle(sincIndex);
-            //float w = 1.0f;
+            // float s = triangle(sincIndex);
+            // float w = 1.0f;
             float kernel = s * w;
             sampleSum += kernel * fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1];
             kernelSum += kernel;
@@ -219,24 +217,24 @@ const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE> SincResampler::cosLut
     return l;
 }();
 
-const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE+2> SincResampler::sincLut = []() {
-    std::array<float, INTERP_FILTER_LUT_SIZE+2> l;
-    for (size_t i = 0; i < INTERP_FILTER_LUT_SIZE+1; i++) {
+const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE + 2> SincResampler::sincLut = []() {
+    std::array<float, INTERP_FILTER_LUT_SIZE + 2> l;
+    for (size_t i = 0; i < INTERP_FILTER_LUT_SIZE + 1; i++) {
         float index = float(i) * float(INTERP_FILTER_SIZE * M_PI / double(INTERP_FILTER_LUT_SIZE));
         l[i] = boost::math::sinc_pi(index);
     }
-    l[INTERP_FILTER_LUT_SIZE+1] = 0.0f;
+    l[INTERP_FILTER_LUT_SIZE + 1] = 0.0f;
     return l;
 }();
 
-const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE+2> SincResampler::winLut = []() {
+const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE + 2> SincResampler::winLut = []() {
     // hann window (raised cosine)
-    std::array<float, INTERP_FILTER_LUT_SIZE+2> l;
-    for (size_t i = 0; i < INTERP_FILTER_LUT_SIZE+1; i++) {
+    std::array<float, INTERP_FILTER_LUT_SIZE + 2> l;
+    for (size_t i = 0; i < INTERP_FILTER_LUT_SIZE + 1; i++) {
         float index = float(i) * float(M_PI / double(INTERP_FILTER_LUT_SIZE));
         l[i] = 0.5f + (0.5f * cosf(index));
     }
-    l[INTERP_FILTER_LUT_SIZE+1] = 0.0f;
+    l[INTERP_FILTER_LUT_SIZE + 1] = 0.0f;
     return l;
 }();
 
@@ -279,7 +277,7 @@ float SincResampler::fast_cosf(float t)
 float SincResampler::fast_sincf(float t)
 {
     t = std::abs(t);
-    //assert(t <= INTERP_FILTER_SIZE);
+    // assert(t <= INTERP_FILTER_SIZE);
     t *= float(double(INTERP_FILTER_LUT_SIZE) / double(INTERP_FILTER_SIZE));
     uint32_t left_index = static_cast<uint32_t>(t);
     float fraction = t - static_cast<float>(left_index);
@@ -289,10 +287,10 @@ float SincResampler::fast_sincf(float t)
 
 float SincResampler::window_func(float t)
 {
-    //assert(t >= -float(INTERP_FILTER_SIZE));
-    //assert(t <= +float(INTERP_FILTER_SIZE));
-    //return 0.42659f - 0.49656f * cosf(2.0f * PI_F * t / float(INTERP_FILTER_SIZE - 1)) +
-    //    0.076849f * cosf(4.0f * PI_F * t / float(INTERP_FILTER_SIZE - 1));
+    // assert(t >= -float(INTERP_FILTER_SIZE));
+    // assert(t <= +float(INTERP_FILTER_SIZE));
+    // return 0.42659f - 0.49656f * cosf(2.0f * PI_F * t / float(INTERP_FILTER_SIZE - 1)) +
+    //     0.076849f * cosf(4.0f * PI_F * t / float(INTERP_FILTER_SIZE - 1));
     t = std::abs(t);
     t *= float(double(INTERP_FILTER_LUT_SIZE) / double(INTERP_FILTER_SIZE));
     uint32_t left_index = static_cast<uint32_t>(t);
@@ -324,8 +322,7 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
 
     phaseInc = std::max(phaseInc, 0.0f);
 
-    size_t samplesRequired = static_cast<size_t>(
-            phase + phaseInc * static_cast<float>(buffer.size()));
+    size_t samplesRequired = static_cast<size_t>(phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
@@ -363,15 +360,15 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     return continuePlayback;
 }
 
-const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE+2> BlepResampler::SiLut = []() {
-    std::array<float, INTERP_FILTER_LUT_SIZE+2> l;
+const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE + 2> BlepResampler::SiLut = []() {
+    std::array<float, INTERP_FILTER_LUT_SIZE + 2> l;
     double acc = 0.0;
     double step_per_index = double(INTERP_FILTER_SIZE) / double(INTERP_FILTER_LUT_SIZE);
     double integration_inc = step_per_index / double(INTEGRAL_RESOLUTION);
     double index = 0.0;
     double prev_value = 1.0;
 
-    for (size_t i = 0; i < INTERP_FILTER_LUT_SIZE+1; i++) {
+    for (size_t i = 0; i < INTERP_FILTER_LUT_SIZE + 1; i++) {
         double convergence_level = 0.5 - 0.5 * cos(double(i) * M_PI / double(INTERP_FILTER_LUT_SIZE));
         double integral_level = 1.0 - convergence_level;
         l[i] = static_cast<float>(acc * integral_level + 0.5 * convergence_level);
@@ -382,7 +379,7 @@ const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE+2> BlepResampler::SiLu
             prev_value = new_value;
         }
     }
-    l[INTERP_FILTER_LUT_SIZE+1] = 0.5f;
+    l[INTERP_FILTER_LUT_SIZE + 1] = 0.5f;
     return l;
 }();
 
@@ -422,8 +419,7 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
 
     phaseInc = std::max(phaseInc, 0.0f);
 
-    size_t samplesRequired = static_cast<size_t>(
-            phase + phaseInc * static_cast<float>(buffer.size()));
+    size_t samplesRequired = static_cast<size_t>(phase + phaseInc * static_cast<float>(buffer.size()));
     // be sure and fetch one more sample in case of odd rounding errors
     samplesRequired += 1;
     // fetch a few more for complete windowed sinc interpolation
@@ -462,15 +458,15 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
 }
 
 // I call "Ti" the integral of Si function. I don't know its proper name
-const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE+2> BlampResampler::TiLut = []() {
-    std::array<float, INTERP_FILTER_LUT_SIZE+2> l;
+const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE + 2> BlampResampler::TiLut = []() {
+    std::array<float, INTERP_FILTER_LUT_SIZE + 2> l;
     double acc = 0.0;
     double step_per_index = double(INTERP_FILTER_SIZE) / double(INTERP_FILTER_LUT_SIZE);
     double integration_inc = step_per_index / double(INTEGRAL_RESOLUTION);
     double index = 0.0;
     double prev_value = 1.0;
 
-    for (size_t i = 0; i < INTERP_FILTER_LUT_SIZE+1; i++) {
+    for (size_t i = 0; i < INTERP_FILTER_LUT_SIZE + 1; i++) {
         const double t = double(i) * step_per_index;
         const double convergence_value = t * 0.5;
         const double function_value = t * acc + cos(M_PI * t) / (M_PI * M_PI);
@@ -485,7 +481,7 @@ const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE+2> BlampResampler::TiL
             prev_value = new_value;
         }
     }
-    l[INTERP_FILTER_LUT_SIZE+1] = static_cast<float>(((INTERP_FILTER_LUT_SIZE+1) * step_per_index) * 0.5);
+    l[INTERP_FILTER_LUT_SIZE + 1] = static_cast<float>(((INTERP_FILTER_LUT_SIZE + 1) * step_per_index) * 0.5);
     return l;
 }();
 

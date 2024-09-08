@@ -1,22 +1,23 @@
-#include <cmath>
-#include <cassert>
-#include <string>
-#include <algorithm>
-#include <array>
+#include "MP2KChnPCM.hpp"
 
 #include "Constants.hpp"
-#include "MP2KChnPCM.hpp"
+#include "Debug.hpp"
+#include "MP2KContext.hpp"
 #include "Util.hpp"
 #include "Xcept.hpp"
-#include "MP2KContext.hpp"
-#include "Debug.hpp"
+
+#include <algorithm>
+#include <array>
+#include <cassert>
+#include <cmath>
+#include <string>
 
 /*
  * public MP2KChnPCM
  */
 
-MP2KChnPCM::MP2KChnPCM(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note& note, bool fixed)
-    : MP2KChn(track, note, env), ctx(ctx), sInfo(sInfo), fixed(fixed) 
+MP2KChnPCM::MP2KChnPCM(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note &note, bool fixed) :
+    MP2KChn(track, note, env), ctx(ctx), sInfo(sInfo), fixed(fixed)
 {
     if (sInfo.loopEnabled == true && sInfo.loopPos == 0 && sInfo.endPos == 0) {
         if (!ctx.rom.ValidRange(sInfo.samplePos, 16 + 8)) {
@@ -69,7 +70,7 @@ MP2KChnPCM::MP2KChnPCM(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADS
     }
 }
 
-void MP2KChnPCM::Process(std::span<sample> buffer, const MixingArgs& args)
+void MP2KChnPCM::Process(std::span<sample> buffer, const MixingArgs &args)
 {
     if (envState == EnvState::DEAD)
         return;
@@ -95,11 +96,11 @@ void MP2KChnPCM::Process(std::span<sample> buffer, const MixingArgs& args)
 
     if (fixed && !isSynth)
         cargs.interStep = float(args.fixedModeRate) * args.sampleRateInv;
-    else 
+    else
         cargs.interStep = freq * args.sampleRateInv;
 
     if (isSynth) {
-        cargs.interStep /= 64.f; // different scale for GS
+        cargs.interStep /= 64.f;    // different scale for GS
         // switch by GS type
         if (type == Type::SYNTH_PWM) {
             processModPulse(buffer, cargs, samplesPerBufferInv);
@@ -159,7 +160,8 @@ void MP2KChnPCM::SetPitch(int16_t pitch)
 {
     // non original quality improving behavior
     if (!stop || freq <= 0.0f)
-        freq = sInfo.midCfreq * powf(2.0f, float(note.midiKeyPitch - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
+        freq = sInfo.midCfreq
+               * powf(2.0f, float(note.midiKeyPitch - 60) * (1.0f / 12.0f) + float(pitch) * (1.0f / 768.0f));
 }
 
 bool MP2KChnPCM::TickNote() noexcept
@@ -249,7 +251,7 @@ void MP2KChnPCM::stepEnvelope()
              * Even when pseudo echo has no length, the following condition will kick in and may cause
              * an earlier then intended note release */
             if (envLevelCur <= note.pseudoEchoVol) {
-release:
+            release:
                 if (note.pseudoEchoVol == 0 || note.pseudoEchoLen == 0) {
                     envState = EnvState::DIE;
                     envLevelCur = 0;
@@ -290,7 +292,8 @@ void MP2KChnPCM::updateVolFade()
  * private MP2KChnPCM
  */
 
-void MP2KChnPCM::processNormal(std::span<sample> buffer, ProcArgs& cargs) {
+void MP2KChnPCM::processNormal(std::span<sample> buffer, ProcArgs &cargs)
+{
     if (buffer.size() == 0)
         return;
     assert(ctx.mixer.scratchBuffer.size() == buffer.size());
@@ -299,17 +302,18 @@ void MP2KChnPCM::processNormal(std::span<sample> buffer, ProcArgs& cargs) {
     if (type == Type::PCM)
         cb = std::bind(&MP2KChnPCM::sampleFetchCallback, this, std::placeholders::_1, std::placeholders::_2);
     else if (type == Type::GAMEFREAK_DPCM)
-        cb = std::bind(&MP2KChnPCM::sampleFetchCallbackGFDPCMDecomp, this, std::placeholders::_1, std::placeholders::_2);
+        cb =
+            std::bind(&MP2KChnPCM::sampleFetchCallbackGFDPCMDecomp, this, std::placeholders::_1, std::placeholders::_2);
     else if (type == Type::CAMELOT_ADPCM)
         cb = std::bind(&MP2KChnPCM::sampleFetchCallbackMPTDecomp, this, std::placeholders::_1, std::placeholders::_2);
     else
         assert(false);
 
-    const bool running = rs->Process(ctx.mixer.scratchBuffer, cargs.interStep, cb);;
+    const bool running = rs->Process(ctx.mixer.scratchBuffer, cargs.interStep, cb);
 
     for (size_t i = 0; i < buffer.size(); i++) {
         const float samp = ctx.mixer.scratchBuffer[i];
-        buffer[i].left  += samp * cargs.lVol;
+        buffer[i].left += samp * cargs.lVol;
         buffer[i].right += samp * cargs.rVol;
         cargs.lVol += cargs.lVolStep;
         cargs.rVol += cargs.rVolStep;
@@ -318,11 +322,11 @@ void MP2KChnPCM::processNormal(std::span<sample> buffer, ProcArgs& cargs) {
         Kill();
 }
 
-void MP2KChnPCM::processModPulse(std::span<sample> buffer, ProcArgs& cargs, float samplesPerBufferInv)
+void MP2KChnPCM::processModPulse(std::span<sample> buffer, ProcArgs &cargs, float samplesPerBufferInv)
 {
 #define DUTY_BASE 2
 #define DUTY_STEP 3
-#define DEPTH 4
+#define DEPTH     4
 #define INIT_DUTY 5
     uint32_t fromPos;
 
@@ -340,8 +344,15 @@ void MP2KChnPCM::processModPulse(std::span<sample> buffer, ProcArgs& cargs, floa
         return float(iThreshold) / float(0x100000000);
     };
 
-    float fromThresh = calcThresh(fromPos, (uint8_t)sInfo.samplePtr[DUTY_BASE], (uint8_t)sInfo.samplePtr[DEPTH], (uint8_t)sInfo.samplePtr[INIT_DUTY]);
-    float toThresh = calcThresh(toPos, (uint8_t)sInfo.samplePtr[DUTY_BASE], (uint8_t)sInfo.samplePtr[DEPTH], (uint8_t)sInfo.samplePtr[INIT_DUTY]);
+    float fromThresh = calcThresh(
+        fromPos,
+        (uint8_t)sInfo.samplePtr[DUTY_BASE],
+        (uint8_t)sInfo.samplePtr[DEPTH],
+        (uint8_t)sInfo.samplePtr[INIT_DUTY]
+    );
+    float toThresh = calcThresh(
+        toPos, (uint8_t)sInfo.samplePtr[DUTY_BASE], (uint8_t)sInfo.samplePtr[DEPTH], (uint8_t)sInfo.samplePtr[INIT_DUTY]
+    );
 
     float deltaThresh = toThresh - fromThresh;
     float baseThresh = fromThresh + (deltaThresh * (float(envInterStep) * (1.0f / float(INTERFRAMES))));
@@ -357,7 +368,7 @@ void MP2KChnPCM::processModPulse(std::span<sample> buffer, ProcArgs& cargs, floa
         // correct dc offset
         baseSamp += 0.5f - fThreshold;
         fThreshold += threshStep;
-        buffer[i].left  += baseSamp * cargs.lVol;
+        buffer[i].left += baseSamp * cargs.lVol;
         buffer[i].right += baseSamp * cargs.rVol;
 
         cargs.lVol += cargs.lVolStep;
@@ -365,11 +376,12 @@ void MP2KChnPCM::processModPulse(std::span<sample> buffer, ProcArgs& cargs, floa
 
         interPos += cargs.interStep;
         // this below might glitch for too high frequencies, which usually shouldn't be used anyway
-        if (interPos >= 1.0f) interPos -= 1.0f;
+        if (interPos >= 1.0f)
+            interPos -= 1.0f;
     }
 }
 
-void MP2KChnPCM::processSaw(std::span<sample> buffer, ProcArgs& cargs)
+void MP2KChnPCM::processSaw(std::span<sample> buffer, ProcArgs &cargs)
 {
     const uint32_t fix = 0x70;
 
@@ -380,7 +392,8 @@ void MP2KChnPCM::processSaw(std::span<sample> buffer, ProcArgs& cargs)
          * Could probably be reimplemented easier. Not sure if it's a perfect saw wave
          */
         interPos += cargs.interStep;
-        if (interPos >= 1.0f) interPos -= 1.0f;
+        if (interPos >= 1.0f)
+            interPos -= 1.0f;
         uint32_t var1 = uint32_t(interPos * 256) - fix;
         uint32_t var2 = uint32_t(interPos * 65536.0f) << 17;
         uint32_t var3 = var1 - (var2 >> 27);
@@ -388,7 +401,7 @@ void MP2KChnPCM::processSaw(std::span<sample> buffer, ProcArgs& cargs)
 
         const float baseSamp = float((int32_t)pos) / 256.0f;
 
-        buffer[i].left  += baseSamp * cargs.lVol;
+        buffer[i].left += baseSamp * cargs.lVol;
         buffer[i].right += baseSamp * cargs.rVol;
 
         cargs.lVol += cargs.lVolStep;
@@ -396,11 +409,12 @@ void MP2KChnPCM::processSaw(std::span<sample> buffer, ProcArgs& cargs)
     }
 }
 
-void MP2KChnPCM::processTri(std::span<sample> buffer, ProcArgs& cargs)
+void MP2KChnPCM::processTri(std::span<sample> buffer, ProcArgs &cargs)
 {
     for (size_t i = 0; i < buffer.size(); i++) {
         interPos += cargs.interStep;
-        if (interPos >= 1.0f) interPos -= 1.0f;
+        if (interPos >= 1.0f)
+            interPos -= 1.0f;
         float baseSamp;
         if (interPos < 0.5f) {
             baseSamp = (4.0f * interPos) - 1.0f;
@@ -408,7 +422,7 @@ void MP2KChnPCM::processTri(std::span<sample> buffer, ProcArgs& cargs)
             baseSamp = 3.0f - (4.0f * interPos);
         }
 
-        buffer[i].left  += baseSamp * cargs.lVol;
+        buffer[i].left += baseSamp * cargs.lVol;
         buffer[i].right += baseSamp * cargs.rVol;
 
         cargs.lVol += cargs.lVolStep;
@@ -416,7 +430,7 @@ void MP2KChnPCM::processTri(std::span<sample> buffer, ProcArgs& cargs)
     }
 }
 
-bool MP2KChnPCM::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t samplesRequired)
+bool MP2KChnPCM::sampleFetchCallback(std::vector<float> &fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;
@@ -445,7 +459,7 @@ bool MP2KChnPCM::sampleFetchCallback(std::vector<float>& fetchBuffer, size_t sam
     return true;
 }
 
-bool MP2KChnPCM::sampleFetchCallbackGFDPCMDecomp(std::vector<float>& fetchBuffer, size_t samplesRequired)
+bool MP2KChnPCM::sampleFetchCallbackGFDPCMDecomp(std::vector<float> &fetchBuffer, size_t samplesRequired)
 {
     const size_t DPCM_BLOCK_SIZE = 64;
     if (fetchBuffer.size() >= samplesRequired)
@@ -477,9 +491,9 @@ bool MP2KChnPCM::sampleFetchCallbackGFDPCMDecomp(std::vector<float>& fetchBuffer
                 decodeBuffer[1] = acc;
                 for (size_t j = 2, h = 2; j < DPCM_BLOCK_SIZE; j += 2, h++) {
                     acc += deltaTable[(sInfo.samplePtr[currentBlockPos + h] & 0xF0) >> 4];
-                    decodeBuffer[j+0] = acc;
+                    decodeBuffer[j + 0] = acc;
                     acc += deltaTable[sInfo.samplePtr[currentBlockPos + h] & 0xF];
-                    decodeBuffer[j+1] = acc;
+                    decodeBuffer[j + 1] = acc;
                 }
                 decodedBlockIdx = currentBlock;
             }
@@ -499,7 +513,7 @@ bool MP2KChnPCM::sampleFetchCallbackGFDPCMDecomp(std::vector<float>& fetchBuffer
     return true;
 }
 
-bool MP2KChnPCM::sampleFetchCallbackMPTDecomp(std::vector<float>& fetchBuffer, size_t samplesRequired)
+bool MP2KChnPCM::sampleFetchCallbackMPTDecomp(std::vector<float> &fetchBuffer, size_t samplesRequired)
 {
     if (fetchBuffer.size() >= samplesRequired)
         return true;

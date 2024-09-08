@@ -1,28 +1,31 @@
-#include <filesystem>
-#include <boost/algorithm/string/replace.hpp>
-#include <chrono>
-#include <climits>
-#include <cmath>
-#include <atomic>
-#include <thread>
-#include <mutex>
-#include <codecvt>
-#include <sndfile.h>
-
 #include "SoundExporter.hpp"
-#include "Util.hpp"
-#include "Xcept.hpp"
+
 #include "Constants.hpp"
 #include "Debug.hpp"
 #include "MP2KContext.hpp"
 #include "OS.hpp"
+#include "Util.hpp"
+#include "Xcept.hpp"
+
+#include <atomic>
+#include <boost/algorithm/string/replace.hpp>
+#include <chrono>
+#include <climits>
+#include <cmath>
+#include <codecvt>
+#include <filesystem>
+#include <mutex>
+#include <sndfile.h>
+#include <thread>
 
 /*
  * public SoundExporter
  */
 
-SoundExporter::SoundExporter(const std::filesystem::path &directory, const Profile &profile, bool benchmarkOnly, bool seperate)
-    : directory(directory), profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
+SoundExporter::SoundExporter(
+    const std::filesystem::path &directory, const Profile &profile, bool benchmarkOnly, bool seperate
+) :
+    directory(directory), profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
 {
 }
 
@@ -39,8 +42,7 @@ void SoundExporter::Export()
         if (!std::filesystem::is_directory(directory)) {
             throw Xcept("Output directory exists but isn't a directory");
         }
-    }
-    else if (!std::filesystem::create_directories(directory)) {
+    } else if (!std::filesystem::create_directories(directory)) {
         throw Xcept("Creating output directory failed");
     }
 
@@ -51,7 +53,7 @@ void SoundExporter::Export()
     std::function<void(void)> threadFunc = [&]() {
         OS::LowerThreadPriority();
         while (true) {
-            size_t i = currentSong++;   // atomic ++
+            size_t i = currentSong++;    // atomic ++
             if (i >= profile.playlist.size())
                 return;
 
@@ -76,7 +78,7 @@ void SoundExporter::Export()
     std::vector<std::thread> workers;
     for (size_t i = 0; i < numThreads; i++)
         workers.emplace_back(threadFunc);
-    for (auto& w : workers)
+    for (auto &w : workers)
         w.join();
     workers.clear();
 
@@ -86,10 +88,17 @@ void SoundExporter::Export()
     if (std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count() == 0) {
         Debug::print("Successfully wrote {} files", profile.playlist.size());
     } else {
-        const uint64_t secondsTotal = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count());
-        const uint64_t microSecondsTotal = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count());
+        const uint64_t secondsTotal =
+            static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count());
+        const uint64_t microSecondsTotal =
+            static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count());
         const uint64_t samplesPerSecond = totalSamplesRendered * 1000000 / microSecondsTotal;
-        Debug::print("Successfully wrote {} files at {} samples per second ({} seconds total)", profile.playlist.size(), samplesPerSecond, secondsTotal);
+        Debug::print(
+            "Successfully wrote {} files at {} samples per second ({} seconds total)",
+            profile.playlist.size(),
+            samplesPerSecond,
+            secondsTotal
+        );
     }
 }
 
@@ -106,7 +115,7 @@ void SoundExporter::writeSilence(SNDFILE *ofile, double seconds)
     sf_writef_float(ofile, reinterpret_cast<float *>(silence.data()), static_cast<sf_count_t>(silence.size()));
 }
 
-size_t SoundExporter::exportSong(const std::filesystem::path& filePath, uint16_t uid)
+size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t uid)
 {
     MP2KContext ctx(
         Rom::Instance(),
@@ -125,19 +134,16 @@ size_t SoundExporter::exportSong(const std::filesystem::path& filePath, uint16_t
     const double padSecondsStart = profile.agbplaySoundMode.padSilenceSecondsStart;
     const double padSecondsEnd = profile.agbplaySoundMode.padSilenceSecondsEnd;
 
-    if (!benchmarkOnly) 
-    {
+    if (!benchmarkOnly) {
         /* save each track to a separate file */
-        if (seperate)
-        {
+        if (seperate) {
             std::vector<SNDFILE *> ofiles(nTracks, nullptr);
             std::vector<SF_INFO> oinfos(nTracks);
 
-            for (size_t i = 0; i < nTracks; i++)
-            {
+            for (size_t i = 0; i < nTracks; i++) {
                 memset(&oinfos[i], 0, sizeof(oinfos[i]));
                 oinfos[i].samplerate = STREAM_SAMPLERATE;
-                oinfos[i].channels = 2; // stereo
+                oinfos[i].channels = 2;    // stereo
                 oinfos[i].format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
                 std::filesystem::path finalFilePath = filePath;
                 finalFilePath += fmt::format(".{:02d}.wav", i);
@@ -150,40 +156,39 @@ size_t SoundExporter::exportSong(const std::filesystem::path& filePath, uint16_t
                     Debug::print("Error: {}", sf_strerror(NULL));
             }
 
-            while (true)
-            {
+            while (true) {
                 ctx.m4aSoundMain();
                 if (ctx.HasEnded())
                     break;
 
                 assert(ctx.players.at(playerIdx).tracks.size() == nTracks);
 
-                for (size_t i = 0; i < nTracks; i++) 
-                {
+                for (size_t i = 0; i < nTracks; i++) {
                     // do not write to invalid files
                     if (ofiles[i] == NULL)
                         continue;
                     sf_count_t processed = 0;
                     do {
-                        processed += sf_writef_float(ofiles[i], &ctx.players.at(playerIdx).tracks.at(i).audioBuffer[processed].left, sf_count_t(samplesPerBuffer) - processed);
+                        processed += sf_writef_float(
+                            ofiles[i],
+                            &ctx.players.at(playerIdx).tracks.at(i).audioBuffer[processed].left,
+                            sf_count_t(samplesPerBuffer) - processed
+                        );
                     } while (processed < sf_count_t(samplesPerBuffer));
                 }
                 samplesRendered += samplesPerBuffer;
             }
 
-            for (SNDFILE *& i : ofiles)
-            {
+            for (SNDFILE *&i : ofiles) {
                 int err = sf_close(i);
                 if (err != 0)
                     Debug::print("Error: {}", sf_error_number(err));
             }
-        }
-        else
-        {
+        } else {
             SF_INFO oinfo;
             memset(&oinfo, 0, sizeof(oinfo));
             oinfo.samplerate = STREAM_SAMPLERATE;
-            oinfo.channels = 2; // sterep
+            oinfo.channels = 2;    // sterep
             oinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
             std::filesystem::path finalFilePath = filePath;
             finalFilePath += fmt::format(".wav");
@@ -199,15 +204,16 @@ size_t SoundExporter::exportSong(const std::filesystem::path& filePath, uint16_t
 
             writeSilence(ofile, padSecondsStart);
 
-            while (true) 
-            {
+            while (true) {
                 ctx.m4aSoundMain();
                 if (ctx.HasEnded())
                     break;
 
                 sf_count_t processed = 0;
                 do {
-                    processed += sf_writef_float(ofile, &ctx.masterAudioBuffer[processed].left, sf_count_t(samplesPerBuffer) - processed);
+                    processed += sf_writef_float(
+                        ofile, &ctx.masterAudioBuffer[processed].left, sf_count_t(samplesPerBuffer) - processed
+                    );
                 } while (processed < sf_count_t(samplesPerBuffer));
                 samplesRendered += samplesPerBuffer;
             }
@@ -218,11 +224,10 @@ size_t SoundExporter::exportSong(const std::filesystem::path& filePath, uint16_t
             if ((err = sf_close(ofile)) != 0)
                 Debug::print("Error: {}", sf_error_number(err));
         }
-    } 
+    }
     // if benchmark only
     else {
-        while (true)
-        {
+        while (true) {
             ctx.m4aSoundMain();
             samplesRendered += samplesPerBuffer;
             if (ctx.HasEnded())

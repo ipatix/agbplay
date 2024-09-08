@@ -17,8 +17,7 @@ inline void CStrAppend(char *dest, size_t *index, const char *src)
         dest[(*index)++] = ch;
 }
 
-template<typename T>
-void ReplaceIllegalPathCharacters(std::basic_string<T> &str, T filler)
+template<typename T> void ReplaceIllegalPathCharacters(std::basic_string<T> &str, T filler)
 {
     static const char illegalChars[] = "<>:\"/\\|?*";
     for (auto &c : str) {

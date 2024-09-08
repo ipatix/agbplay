@@ -1,20 +1,20 @@
 #pragma once
 
-#include <vector>
-#include <cstdint>
-#include <cstddef>
-
 #include "Constants.hpp"
 #include "MP2KTrack.hpp"
+
+#include <cstddef>
+#include <cstdint>
+#include <vector>
 
 class Rom;
 
 struct MP2KPlayer
 {
     MP2KPlayer(const PlayerInfo &playerInfo, uint8_t playerIdx);
-    MP2KPlayer(const MP2KPlayer&) = delete;
+    MP2KPlayer(const MP2KPlayer &) = delete;
     MP2KPlayer(MP2KPlayer &&) = default;
-    MP2KPlayer& operator=(const MP2KPlayer&) = delete;
+    MP2KPlayer &operator=(const MP2KPlayer &) = delete;
 
     void Init(const Rom &rom, size_t songHeaderPos);
 

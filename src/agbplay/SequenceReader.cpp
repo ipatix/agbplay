@@ -1,15 +1,16 @@
-#include <cmath>
-#include <cassert>
-
 #include "SequenceReader.hpp"
-#include "Xcept.hpp"
-#include "Util.hpp"
-#include "Debug.hpp"
-#include "Rom.hpp"
-#include "MP2KContext.hpp"
 
-#define NOTE_TIE -1
-#define NOTE_ALL 0xFE
+#include "Debug.hpp"
+#include "MP2KContext.hpp"
+#include "Rom.hpp"
+#include "Util.hpp"
+#include "Xcept.hpp"
+
+#include <cassert>
+#include <cmath>
+
+#define NOTE_TIE     -1
+#define NOTE_ALL     0xFE
 #define LOOP_ENDLESS -1
 
 /*
@@ -17,31 +18,28 @@
  */
 
 const std::map<uint8_t, uint8_t> SequenceReader::delayLut = {
-    {0x80,0 },
-    {0x81,1 }, {0x82,2 }, {0x83,3 }, {0x84,4 }, {0x85,5 }, {0x86,6 }, {0x87,7 }, {0x88,8 },
-    {0x89,9 }, {0x8A,10}, {0x8B,11}, {0x8C,12}, {0x8D,13}, {0x8E,14}, {0x8F,15}, {0x90,16},
-    {0x91,17}, {0x92,18}, {0x93,19}, {0x94,20}, {0x95,21}, {0x96,22}, {0x97,23}, {0x98,24},
-    {0x99,28}, {0x9A,30}, {0x9B,32}, {0x9C,36}, {0x9D,40}, {0x9E,42}, {0x9F,44}, {0xA0,48},
-    {0xA1,52}, {0xA2,54}, {0xA3,56}, {0xA4,60}, {0xA5,64}, {0xA6,66}, {0xA7,68}, {0xA8,72},
-    {0xA9,76}, {0xAA,78}, {0xAB,80}, {0xAC,84}, {0xAD,88}, {0xAE,90}, {0xAF,92}, {0xB0,96}
+    {0x80, 0},  {0x81, 1},  {0x82, 2},  {0x83, 3},  {0x84, 4},  {0x85, 5},  {0x86, 6},  {0x87, 7},  {0x88, 8},
+    {0x89, 9},  {0x8A, 10}, {0x8B, 11}, {0x8C, 12}, {0x8D, 13}, {0x8E, 14}, {0x8F, 15}, {0x90, 16}, {0x91, 17},
+    {0x92, 18}, {0x93, 19}, {0x94, 20}, {0x95, 21}, {0x96, 22}, {0x97, 23}, {0x98, 24}, {0x99, 28}, {0x9A, 30},
+    {0x9B, 32}, {0x9C, 36}, {0x9D, 40}, {0x9E, 42}, {0x9F, 44}, {0xA0, 48}, {0xA1, 52}, {0xA2, 54}, {0xA3, 56},
+    {0xA4, 60}, {0xA5, 64}, {0xA6, 66}, {0xA7, 68}, {0xA8, 72}, {0xA9, 76}, {0xAA, 78}, {0xAB, 80}, {0xAC, 84},
+    {0xAD, 88}, {0xAE, 90}, {0xAF, 92}, {0xB0, 96}
 };
 
 const std::map<uint8_t, uint8_t> SequenceReader::noteLut = {
-    {0xCF,0 },
-    {0xD0,1 }, {0xD1,2 }, {0xD2,3 }, {0xD3,4 }, {0xD4,5 }, {0xD5,6 }, {0xD6,7 }, {0xD7,8 },
-    {0xD8,9 }, {0xD9,10}, {0xDA,11}, {0xDB,12}, {0xDC,13}, {0xDD,14}, {0xDE,15}, {0xDF,16},
-    {0xE0,17}, {0xE1,18}, {0xE2,19}, {0xE3,20}, {0xE4,21}, {0xE5,22}, {0xE6,23}, {0xE7,24},
-    {0xE8,28}, {0xE9,30}, {0xEA,32}, {0xEB,36}, {0xEC,40}, {0xED,42}, {0xEE,44}, {0xEF,48},
-    {0xF0,52}, {0xF1,54}, {0xF2,56}, {0xF3,60}, {0xF4,64}, {0xF5,66}, {0xF6,68}, {0xF7,72},
-    {0xF8,76}, {0xF9,78}, {0xFA,80}, {0xFB,84}, {0xFC,88}, {0xFD,90}, {0xFE,92}, {0xFF,96}
+    {0xCF, 0},  {0xD0, 1},  {0xD1, 2},  {0xD2, 3},  {0xD3, 4},  {0xD4, 5},  {0xD5, 6},  {0xD6, 7},  {0xD7, 8},
+    {0xD8, 9},  {0xD9, 10}, {0xDA, 11}, {0xDB, 12}, {0xDC, 13}, {0xDD, 14}, {0xDE, 15}, {0xDF, 16}, {0xE0, 17},
+    {0xE1, 18}, {0xE2, 19}, {0xE3, 20}, {0xE4, 21}, {0xE5, 22}, {0xE6, 23}, {0xE7, 24}, {0xE8, 28}, {0xE9, 30},
+    {0xEA, 32}, {0xEB, 36}, {0xEC, 40}, {0xED, 42}, {0xEE, 44}, {0xEF, 48}, {0xF0, 52}, {0xF1, 54}, {0xF2, 56},
+    {0xF3, 60}, {0xF4, 64}, {0xF5, 66}, {0xF6, 68}, {0xF7, 72}, {0xF8, 76}, {0xF9, 78}, {0xFA, 80}, {0xFB, 84},
+    {0xFC, 88}, {0xFD, 90}, {0xFE, 92}, {0xFF, 96}
 };
 
 /*
  * public SequenceReader
  */
 
-SequenceReader::SequenceReader(MP2KContext& ctx) 
-    : ctx(ctx)
+SequenceReader::SequenceReader(MP2KContext &ctx) : ctx(ctx)
 {
 }
 
@@ -114,7 +112,7 @@ bool SequenceReader::PlayerMain(MP2KPlayer &player)
 
 bool SequenceReader::TrackMain(MP2KPlayer &player, MP2KTrack &trk)
 {
-    const Rom& rom = ctx.rom;
+    const Rom &rom = ctx.rom;
 
     if (!trk.enabled)
         return false;
@@ -195,14 +193,7 @@ void SequenceReader::TrackVolPitchMain(MP2KTrack &trk)
     if (!trk.updateVolume && !trk.updatePitch)
         return;
 
-    TrackVolPitchSet(
-        trk,
-        trk.GetVol(),
-        trk.GetPan(),
-        trk.pitch,
-        trk.updateVolume,
-        trk.updatePitch
-    );
+    TrackVolPitchSet(trk, trk.GetVol(), trk.GetPan(), trk.pitch, trk.updateVolume, trk.updatePitch);
 
     trk.updateVolume = false;
     trk.updatePitch = false;
@@ -227,18 +218,19 @@ int SequenceReader::TickTrackNotes(MP2KTrack &trk)
 void SequenceReader::AddNoteToState(MP2KTrack &trk, const MP2KChn &chn)
 {
     trk.activeNotes[chn.note.midiKeyTrackData % NUM_NOTES] = true;
-    trk.activeVoiceTypes = static_cast<VoiceFlags>(
-        static_cast<int>(trk.activeVoiceTypes) | static_cast<int>(chn.GetVoiceType())
-    );
+    trk.activeVoiceTypes =
+        static_cast<VoiceFlags>(static_cast<int>(trk.activeVoiceTypes) | static_cast<int>(chn.GetVoiceType()));
 }
 
-void SequenceReader::TrackVolPitchSet(MP2KTrack &trk, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch)
+void SequenceReader::TrackVolPitchSet(
+    MP2KTrack &trk, uint16_t vol, int16_t pan, int16_t pitch, bool updateVolume, bool updatePitch
+)
 {
     // TODO: replace this with a normal linked list scan:
     // Why do we have to set pitch after release for SQ1 sweep sounds?
     // because after release the note is not expected to be in linked list
-    auto setFunc = [&](auto& channels) {
-        for (auto& chn : channels) {
+    auto setFunc = [&](auto &channels) {
+        for (auto &chn : channels) {
             if (chn.track == &trk) {
                 if (updateVolume)
                     chn.SetVol(vol, pan);
@@ -257,7 +249,7 @@ void SequenceReader::TrackVolPitchSet(MP2KTrack &trk, uint16_t vol, int16_t pan,
 
 void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd)
 {
-    const Rom& rom = ctx.rom;
+    const Rom &rom = ctx.rom;
 
     trk.lastNoteLen = noteLut.at(cmd);
 
@@ -333,13 +325,13 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
     // TODO the track address comparison is not well defined in terms of the relative location
     // of track from multiple players. This should be replaced by a player+track combined priority
     // prepare cgb polyphony suppression
-    auto cgbPolyphonySuppressFunc = [&](auto& channels) {
+    auto cgbPolyphonySuppressFunc = [&](auto &channels) {
         // return 'true' if a note is allowed to play, 'false' if others with higher priority are playing
         if (ctx.agbplaySoundMode.cgbPolyphony == CGBPolyphony::MONO_STRICT) {
             // only one tone should play in mono strict mode
             assert(channels.size() <= 1);
             if (channels.size() > 0) {
-                const Note& playing_note = channels.front().note;
+                const Note &playing_note = channels.front().note;
 
                 if (!channels.front().IsReleasing()) {
                     if (playing_note.priority > note.priority)
@@ -352,9 +344,9 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
             }
             channels.clear();
         } else if (ctx.agbplaySoundMode.cgbPolyphony == CGBPolyphony::MONO_SMOOTH) {
-            for (auto& chn : channels) {
+            for (auto &chn : channels) {
                 if (chn.envState < EnvState::PSEUDO_ECHO && !chn.IsFastReleasing()) {
-                    const Note& playing_note = chn.note;
+                    const Note &playing_note = chn.note;
                     if (playing_note.priority > note.priority)
                         return false;
                     if (playing_note.priority == note.priority) {
@@ -380,53 +372,36 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
         case BANKDATA_TYPE_SQ1:
             if (!cgbPolyphonySuppressFunc(ctx.sq1Channels))
                 return;
-            ctx.sq1Channels.emplace_back(
-                    ctx,
-                    &trk,
-                    instrDutyWaveNp,
-                    adsr,
-                    note,
-                    sweep);
+            ctx.sq1Channels.emplace_back(ctx, &trk, instrDutyWaveNp, adsr, note, sweep);
             chn = &ctx.sq1Channels.back();
             break;
         case BANKDATA_TYPE_SQ2:
             if (!cgbPolyphonySuppressFunc(ctx.sq2Channels))
                 return;
-            ctx.sq2Channels.emplace_back(
-                    ctx,
-                    &trk,
-                    instrDutyWaveNp,
-                    adsr,
-                    note,
-                    0);
+            ctx.sq2Channels.emplace_back(ctx, &trk, instrDutyWaveNp, adsr, note, 0);
             chn = &ctx.sq2Channels.back();
             break;
         case BANKDATA_TYPE_WAVE:
             if (!cgbPolyphonySuppressFunc(ctx.waveChannels))
                 return;
             ctx.waveChannels.emplace_back(
-                    ctx,
-                    &trk,
-                    instrDutyWaveNp,
-                    adsr,
-                    note,
-                    ctx.agbplaySoundMode.accurateCh3Volume);
+                ctx, &trk, instrDutyWaveNp, adsr, note, ctx.agbplaySoundMode.accurateCh3Volume
+            );
             chn = &ctx.waveChannels.back();
             break;
         case BANKDATA_TYPE_NOISE:
             if (!cgbPolyphonySuppressFunc(ctx.noiseChannels))
                 return;
-            ctx.noiseChannels.emplace_back(
-                    ctx,
-                    &trk,
-                    instrDutyWaveNp,
-                    adsr,
-                    note);
+            ctx.noiseChannels.emplace_back(ctx, &trk, instrDutyWaveNp, adsr, note);
             chn = &ctx.noiseChannels.back();
             break;
         default:
-            Debug::print("CGB Error: Invalid CGB Type: [{:08X}]={:02X}, instrument: [{:08X}]",
-                instrPos, rom.ReadU8(instrPos), instrPos);
+            Debug::print(
+                "CGB Error: Invalid CGB Type: [{:08X}]={:02X}, instrument: [{:08X}]",
+                instrPos,
+                rom.ReadU8(instrPos),
+                instrPos
+            );
             return;
         }
     } else {
@@ -438,8 +413,12 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
         } else if (rom.ReadU8(samplePos + 0x0) == 1) {
             sinfo.gamefreakCompressed = true;
         } else {
-            Debug::print("Sample Error: Unknown/unsupported sample mode: [{:08X}]={:02X}, instrument: [{:08X}]",
-                samplePos, rom.ReadU8(samplePos), instrPos);
+            Debug::print(
+                "Sample Error: Unknown/unsupported sample mode: [{:08X}]={:02X}, instrument: [{:08X}]",
+                samplePos,
+                rom.ReadU8(samplePos),
+                instrPos
+            );
             return;
         }
 
@@ -456,13 +435,7 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
         sinfo.samplePos = samplePos;
         sinfo.samplePtr = static_cast<const int8_t *>(rom.GetPtr(samplePos + 16));
 
-        ctx.sndChannels.emplace_back(
-                ctx,
-                &trk,
-                sinfo,
-                adsr,
-                note,
-                instrType & BANKDATA_TYPE_FIX);
+        ctx.sndChannels.emplace_back(ctx, &trk, sinfo, adsr, note, instrType & BANKDATA_TYPE_FIX);
         chn = &ctx.sndChannels.back();
     }
 
@@ -489,7 +462,8 @@ void SequenceReader::cmdPlayCommand(MP2KPlayer &player, MP2KTrack &trk, uint8_t 
         // GOTO
         if (trk.trackIdx == 0) {
             // handle agbplay's internal loop counter
-            if (ctx.agbplaySoundMode.maxLoops != LOOP_ENDLESS && numLoops++ >= ctx.agbplaySoundMode.maxLoops && !endReached) {
+            if (ctx.agbplaySoundMode.maxLoops != LOOP_ENDLESS && numLoops++ >= ctx.agbplaySoundMode.maxLoops
+                && !endReached) {
                 endReached = true;
                 ctx.mixer.StartFadeOut(SONG_FADE_OUT_TIME);
             }
@@ -647,10 +621,10 @@ void SequenceReader::cmdPlayFine(MP2KTrack &trk)
 
 void SequenceReader::cmdPlayMemacc(MP2KTrack &trk)
 {
-    const Rom& rom = ctx.rom;
+    const Rom &rom = ctx.rom;
 
     uint8_t op = rom.ReadU8(trk.pos++);
-    uint8_t& memory = ctx.memaccArea[rom.ReadU8(trk.pos++)];
+    uint8_t &memory = ctx.memaccArea[rom.ReadU8(trk.pos++)];
     uint8_t data = rom.ReadU8(trk.pos++);
 
     switch (op) {
@@ -754,7 +728,7 @@ void SequenceReader::cmdPlayMemacc(MP2KTrack &trk)
 
 void SequenceReader::cmdPlayXCmd(MP2KTrack &trk)
 {
-    const Rom& rom = ctx.rom;
+    const Rom &rom = ctx.rom;
 
     uint8_t xCmdNo = rom.ReadU8(trk.pos++);
 

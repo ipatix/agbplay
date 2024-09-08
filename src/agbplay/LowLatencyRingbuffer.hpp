@@ -1,19 +1,20 @@
 #pragma once
 
+#include "Types.hpp"
+
 #include <atomic>
+#include <condition_variable>
+#include <cstddef>
 #include <span>
 #include <vector>
-#include <cstddef>
-#include <condition_variable>
-
-#include "Types.hpp"
 
 /* This Ringbuffer dynamically adjusts its size to only buffer as much data
  * as both reader and writer need for minimum amount of buffering.
  * SetNumBuffers (default=1) can be used to create an additional safety margin
  * if low latency is not stable. */
 
-class LowLatencyRingbuffer {
+class LowLatencyRingbuffer
+{
 public:
     LowLatencyRingbuffer();
     LowLatencyRingbuffer(const LowLatencyRingbuffer &) = delete;
@@ -36,7 +37,7 @@ private:
     size_t freeCount = 0;
     size_t dataPos = 0;
     size_t dataCount = 0;
-    std::atomic<size_t> lastTake = 0; // this variable may be read without holding a lock
+    std::atomic<size_t> lastTake = 0;    // this variable may be read without holding a lock
     size_t lastPut = 0;
     size_t numBuffers = 1;
 };

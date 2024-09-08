@@ -1,11 +1,11 @@
 #pragma once
 
+#include "Constants.hpp"
+
 #include <bitset>
 #include <cstdint>
 #include <string>
 #include <vector>
-
-#include "Constants.hpp"
 
 enum class CGBType : int { SQ1 = 0, SQ2, WAVE, NOISE };
 enum class EnvState : int { INIT = 0, ATK, DEC, SUS, REL, PSEUDO_ECHO, DIE, DEAD };
@@ -35,11 +35,11 @@ enum class VoiceFlags : int {
     PSG_NOISE_15 = 0x10000,
 };
 
-ReverbType str2rev(const std::string& str);
+ReverbType str2rev(const std::string &str);
 std::string rev2str(ReverbType t);
-ResamplerType str2res(const std::string& str);
+ResamplerType str2res(const std::string &str);
 std::string res2str(ResamplerType t);
-CGBPolyphony str2cgbPoly(const std::string& str);
+CGBPolyphony str2cgbPoly(const std::string &str);
 std::string cgbPoly2str(CGBPolyphony t);
 
 struct MixingArgs
@@ -102,8 +102,8 @@ struct MP2KSoundMode
     uint8_t vol = VOL_AUTO;
     uint8_t rev = REV_AUTO;
     uint8_t freq = FREQ_AUTO;
-    uint8_t maxChannels = CHN_AUTO; // currently unused
-    uint8_t dacConfig = DAC_AUTO; // currently unused
+    uint8_t maxChannels = CHN_AUTO;    // currently unused
+    uint8_t dacConfig = DAC_AUTO;      // currently unused
 };
 
 struct AgbplaySoundMode
@@ -113,12 +113,13 @@ struct AgbplaySoundMode
     ReverbType reverbType = ReverbType::NORMAL;
     CGBPolyphony cgbPolyphony = CGBPolyphony::MONO_STRICT;
     uint32_t dmaBufferLen = 0x630;
-    int8_t maxLoops = 1; // <-- TODO maybe move this to global config
-    double padSilenceSecondsStart = 0.0; // <-- TODO maybe move this to global config
-    double padSilenceSecondsEnd = 0.0;   // <-- TODO maybe move this to global config
+    int8_t maxLoops = 1;                    // <-- TODO maybe move this to global config
+    double padSilenceSecondsStart = 0.0;    // <-- TODO maybe move this to global config
+    double padSilenceSecondsEnd = 0.0;      // <-- TODO maybe move this to global config
     bool accurateCh3Quantization = true;
     bool accurateCh3Volume = true;
-    bool emulateCgbSustainBug = true; // other places may call this 'simulate', should probably use 'emulate' everywhere
+    bool emulateCgbSustainBug =
+        true;    // other places may call this 'simulate', should probably use 'emulate' everywhere
 };
 
 struct SongTableInfo
@@ -148,7 +149,8 @@ struct SongInfo
     uint8_t playerIdx;
 };
 
-struct sample {
+struct sample
+{
     float left;
     float right;
 };
@@ -160,15 +162,15 @@ struct MP2KVisualizerStateTrack
     float envRFloat = 0.0f;
     bool isCalling = false;
     bool isMuted = false;
-    uint8_t vol = 100;              // range 0 to 127
-    uint8_t mod = 0;                // range 0 to 127
-    uint8_t prog = PROG_UNDEFINED;  // range 0 to 127
-    int8_t pan = 0;                 // range -64 to 63
-    int16_t pitch = 0;              // range -32768 to 32767
-    uint8_t envL = 0;               // range 0 to 255
-    uint8_t envR = 0;               // range 0 to 255
-    uint8_t delay = 0;              // range 0 to 96
-                                    //
+    uint8_t vol = 100;                // range 0 to 127
+    uint8_t mod = 0;                  // range 0 to 127
+    uint8_t prog = PROG_UNDEFINED;    // range 0 to 127
+    int8_t pan = 0;                   // range -64 to 63
+    int16_t pitch = 0;                // range -32768 to 32767
+    uint8_t envL = 0;                 // range 0 to 255
+    uint8_t envR = 0;                 // range 0 to 255
+    uint8_t delay = 0;                // range 0 to 96
+                                      //
     std::bitset<NUM_NOTES> activeNotes;
     VoiceFlags activeVoiceTypes = VoiceFlags::NONE;
     float volLeft = 0.0f, volRight = 0.0f;
@@ -183,7 +185,7 @@ struct MP2KVisualizerStatePlayer
     size_t time;
 };
 
-struct MP2KVisualizerState 
+struct MP2KVisualizerState
 {
     std::vector<MP2KVisualizerStatePlayer> players;
 

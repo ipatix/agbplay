@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vector>
-#include <bitset>
-
 #include "Types.hpp"
+
+#include <bitset>
+#include <vector>
 
 const uint8_t BANKDATA_TYPE_SPLIT = 0x40;
 const uint8_t BANKDATA_TYPE_RHYTHM = 0x80;

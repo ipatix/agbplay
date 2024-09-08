@@ -1,12 +1,24 @@
 #include "MP2KContext.hpp"
 
+#include "Debug.hpp"
+
 #include <algorithm>
 #include <cassert>
 
-#include "Debug.hpp"
-
-MP2KContext::MP2KContext(const Rom &rom, const MP2KSoundMode &mp2kSoundMode, const AgbplaySoundMode &agbplaySoundMode, const SongTableInfo &songTableInfo, const PlayerTableInfo &playerTableInfo)
-    : rom(rom), reader(*this), mixer(*this, STREAM_SAMPLERATE, 1.0f), mp2kSoundMode(mp2kSoundMode), agbplaySoundMode(agbplaySoundMode), songTableInfo(songTableInfo), memaccArea(256)
+MP2KContext::MP2KContext(
+    const Rom &rom,
+    const MP2KSoundMode &mp2kSoundMode,
+    const AgbplaySoundMode &agbplaySoundMode,
+    const SongTableInfo &songTableInfo,
+    const PlayerTableInfo &playerTableInfo
+) :
+    rom(rom),
+    reader(*this),
+    mixer(*this, STREAM_SAMPLERATE, 1.0f),
+    mp2kSoundMode(mp2kSoundMode),
+    agbplaySoundMode(agbplaySoundMode),
+    songTableInfo(songTableInfo),
+    memaccArea(256)
 {
     assert(playerTableInfo.size() <= 32);
 
@@ -31,9 +43,9 @@ void MP2KContext::m4aSoundMode(uint32_t mode)
         mixer.UpdateReverb();
     }
 
-    //const uint8_t channels = (mode >> 8) & 0xF;
-    //if (channels != 0)
-    //    ; // there is no channel limit in agbplay
+    // const uint8_t channels = (mode >> 8) & 0xF;
+    // if (channels != 0)
+    //     ; // there is no channel limit in agbplay
 
     const uint8_t masterVol = (mode >> 12) & 0xF;
     if (masterVol != 0) {
@@ -62,7 +74,9 @@ void MP2KContext::m4aSoundModeReverb(uint8_t reverb)
 void MP2KContext::m4aSongNumStart(uint16_t songId)
 {
     if (songId >= songTableInfo.count) {
-        Debug::print("Failed to load song, which is out of range songId={} (total count={})", songId, songTableInfo.count);
+        Debug::print(
+            "Failed to load song, which is out of range songId={} (total count={})", songId, songTableInfo.count
+        );
         m4aMPlayStart(0, 0);
         return;
     }
@@ -76,7 +90,9 @@ void MP2KContext::m4aSongNumStart(uint16_t songId)
 void MP2KContext::m4aSongNumStartOrChange(uint16_t songId)
 {
     if (songId >= songTableInfo.count) {
-        Debug::print("Failed to load song, which is out of range songId={} (total count={})", songId, songTableInfo.count);
+        Debug::print(
+            "Failed to load song, which is out of range songId={} (total count={})", songId, songTableInfo.count
+        );
         m4aMPlayStart(0, 0);
         return;
     }
@@ -94,7 +110,9 @@ void MP2KContext::m4aSongNumStartOrChange(uint16_t songId)
 void MP2KContext::m4aSongNumStartOrContinue(uint16_t songId)
 {
     if (songId >= songTableInfo.count) {
-        Debug::print("Failed to load song, which is out of range songId={} (total count={})", songId, songTableInfo.count);
+        Debug::print(
+            "Failed to load song, which is out of range songId={} (total count={})", songId, songTableInfo.count
+        );
         m4aMPlayStart(0, 0);
         return;
     }

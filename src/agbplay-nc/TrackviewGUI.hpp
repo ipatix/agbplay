@@ -1,12 +1,12 @@
 #pragma once
 
-#include <vector>
-#include <string>
-
 #include "CursesWin.hpp"
 #include "SoundData.hpp"
 
-class TrackviewGUI : public CursesWin 
+#include <string>
+#include <vector>
+
+class TrackviewGUI : public CursesWin
 {
 public:
     TrackviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos);
@@ -14,7 +14,7 @@ public:
 
     void Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) override;
     void SetState(const MP2KVisualizerState &songState);
-    void SetTitle(const std::string& name);
+    void SetTitle(const std::string &name);
     void Enter();
     void Leave();
     void PageDown();
@@ -23,13 +23,14 @@ public:
     void ScrollUp();
     void ForceUpdate();
     uint32_t GetCursorLoc() const { return cursorPos; }
+
 private:
     void update() override;
     void scrollDownNoUpdate();
     void scrollUpNoUpdate();
 
     MP2KVisualizerState disp;
-    std::string songName; 
+    std::string songName;
     uint32_t cursorPos = 0;
     size_t maxChannels = 0;
     bool cursorVisible = false;

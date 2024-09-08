@@ -1,12 +1,14 @@
-#include <cstdint>
-#include <iostream>
-#include <cstdlib>
+#include "CursesWin.hpp"
 
 #include "ColorDef.hpp"
-#include "CursesWin.hpp"
 #include "Xcept.hpp"
 
-CursesWin::CursesWin(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) {
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+
+CursesWin::CursesWin(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos)
+{
     if ((winPtr = newwin((int)height, (int)width, (int)yPos, (int)xPos)) == nullptr) {
         throw Xcept("Error while creating curses window [newwin]");
     }
@@ -14,16 +16,17 @@ CursesWin::CursesWin(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xP
     this->width = width;
 }
 
-CursesWin::~CursesWin() {
+CursesWin::~CursesWin()
+{
     if (delwin(winPtr) == ERR) {
-        //throw Xcept("Error while deleteing curses window [delwin]");
+        // throw Xcept("Error while deleteing curses window [delwin]");
         std::cerr << "FATAL ERROR: deleting window of curses window failed" << std::endl;
         std::abort();
     }
 }
 
-void CursesWin::Resize(uint32_t height, uint32_t width,
-        uint32_t yPos, uint32_t xPos) {
+void CursesWin::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos)
+{
     if (delwin(winPtr) == ERR) {
         throw Xcept("Error while resizing curses window [delwin]");
     }
@@ -34,7 +37,8 @@ void CursesWin::Resize(uint32_t height, uint32_t width,
     }
 }
 
-void CursesWin::update() {
+void CursesWin::update()
+{
     wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)));
     wclear(winPtr);
 }

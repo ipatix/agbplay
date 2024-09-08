@@ -29,16 +29,16 @@ enum class Color : int {
     TRK_LOUDNESS_MUTED,
     TRK_LOUD_SPLIT,
 
-    TRK_FGB_BGCW,   // C not pressed, C# not pressed
-    TRK_FGC_BGCW,   // C not pressed, C# pressed
+    TRK_FGB_BGCW,    // C not pressed, C# not pressed
+    TRK_FGC_BGCW,    // C not pressed, C# pressed
 
     TRK_FGB_BGW,    // D not pressed, D# not pressed
     TRK_FGC_BGW,    // D not pressed, D# pressed
     TRK_FGB_BGC,    // D pressed, D# not pressed
     TRK_FGC_BGC,    // D pressed, D# pressed
 
-    TRK_FGW_BGW,    // E not pressed, F not pressed
-    TRK_FGEC_BGW,   // E not pressed, F pressed
-    TRK_FGW_BGC,    // E pressed, F not pressed
-    TRK_FGEC_BGC,   // E pressed, F pressed
+    TRK_FGW_BGW,     // E not pressed, F not pressed
+    TRK_FGEC_BGW,    // E not pressed, F pressed
+    TRK_FGW_BGC,     // E pressed, F not pressed
+    TRK_FGEC_BGC,    // E pressed, F pressed
 };

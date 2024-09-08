@@ -1,18 +1,19 @@
-#include <string>
-#include <mutex>
-
 #include "ConsoleGUI.hpp"
+
+#include "ColorDef.hpp"
 #include "Debug.hpp"
 #include "WindowGUI.hpp"
 #include "Xcept.hpp"
-#include "ColorDef.hpp"
+
+#include <mutex>
+#include <string>
 
 /*
  * -- public --
  */
 
-ConsoleGUI::ConsoleGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
-    : CursesWin(height, width, yPos, xPos), msgQueue(32)
+ConsoleGUI::ConsoleGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) :
+    CursesWin(height, width, yPos, xPos), msgQueue(32)
 {
     textWidth = width - 2;
     textHeight = height;
@@ -20,19 +21,20 @@ ConsoleGUI::ConsoleGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t 
     Debug::set_callback(remoteWrite, this);
 }
 
-ConsoleGUI::~ConsoleGUI() 
+ConsoleGUI::~ConsoleGUI()
 {
 }
 
-void ConsoleGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
+void ConsoleGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos)
 {
     CursesWin::Resize(height, width, yPos, xPos);
     textHeight = height;
     textWidth = width - 2;
-    update();    
+    update();
 }
 
-void ConsoleGUI::Refresh() {
+void ConsoleGUI::Refresh()
+{
     std::string newText;
     bool modified = false;
     while (msgQueue.pop(newText)) {
@@ -47,10 +49,9 @@ void ConsoleGUI::Refresh() {
  * -- private --
  */
 
-void ConsoleGUI::update() 
+void ConsoleGUI::update()
 {
-    for (uint32_t i = 0; i < textHeight; i++) 
-    {
+    for (uint32_t i = 0; i < textHeight; i++) {
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::WINDOW_FRAME)) | A_REVERSE);
         mvwprintw(winPtr, (int)i, 0, ">");
         wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::DEF_DEF)) | A_REVERSE);
@@ -67,7 +68,7 @@ void ConsoleGUI::update()
     wrefresh(winPtr);
 }
 
-void ConsoleGUI::writeToBuffer(const std::string& str) 
+void ConsoleGUI::writeToBuffer(const std::string &str)
 {
     textBuffer.push_back(str);
     if (textBuffer.size() > textHeight) {
@@ -75,7 +76,7 @@ void ConsoleGUI::writeToBuffer(const std::string& str)
     }
 }
 
-void ConsoleGUI::remoteWrite(const std::string& str, void *obj)
+void ConsoleGUI::remoteWrite(const std::string &str, void *obj)
 {
     ConsoleGUI *ui = (ConsoleGUI *)obj;
 

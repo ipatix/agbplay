@@ -1,18 +1,20 @@
 #include "SonglistGUI.hpp"
-#include "Xcept.hpp"
+
 #include "ColorDef.hpp"
 #include "Debug.hpp"
+#include "Xcept.hpp"
+
+#include <algorithm>
 #include <cstring>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 /*
  * -- public --
  */
 
-SonglistGUI::SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, bool upd) 
-    : CursesWin(height, width, yPos, xPos) 
+SonglistGUI::SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, bool upd) :
+    CursesWin(height, width, yPos, xPos)
 {
     checkDimensions(height, width);
     this->viewPos = 0;
@@ -20,14 +22,15 @@ SonglistGUI::SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_
     this->cursorVisible = false;
     this->contentHeight = height - 1;
     this->contentWidth = width;
-    if (upd) update();
+    if (upd)
+        update();
 }
 
-SonglistGUI::~SonglistGUI() 
+SonglistGUI::~SonglistGUI()
 {
 }
 
-void SonglistGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
+void SonglistGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos)
 {
     checkDimensions(height, width);
     CursesWin::Resize(height, width, yPos, xPos);
@@ -36,43 +39,41 @@ void SonglistGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_
     update();
 }
 
-void SonglistGUI::Enter() 
+void SonglistGUI::Enter()
 {
     cursorVisible = true;
     update();
 }
 
-void SonglistGUI::Leave() 
+void SonglistGUI::Leave()
 {
     cursorVisible = false;
     update();
 }
 
-void SonglistGUI::ScrollDown() 
+void SonglistGUI::ScrollDown()
 {
     scrollDownNoUpdate();
     update();
 }
 
-void SonglistGUI::ScrollUp() 
+void SonglistGUI::ScrollUp()
 {
     scrollUpNoUpdate();
     update();
 }
 
-void SonglistGUI::PageDown() 
+void SonglistGUI::PageDown()
 {
-    for (uint32_t i = 0; i < contentHeight; i++) 
-    {
+    for (uint32_t i = 0; i < contentHeight; i++) {
         scrollDownNoUpdate();
     }
     update();
 }
 
-void SonglistGUI::PageUp() 
+void SonglistGUI::PageUp()
 {
-    for (uint32_t i = 0; i < contentHeight; i++) 
-    {
+    for (uint32_t i = 0; i < contentHeight; i++) {
         scrollUpNoUpdate();
     }
     update();
@@ -91,7 +92,7 @@ void SonglistGUI::AddSong(const Profile::PlaylistEntry &entry)
     update();
 }
 
-void SonglistGUI::ClearSongs() 
+void SonglistGUI::ClearSongs()
 {
     viewPos = 0;
     cursorPos = 0;
@@ -99,9 +100,10 @@ void SonglistGUI::ClearSongs()
     update();
 }
 
-void SonglistGUI::RemoveSong() 
+void SonglistGUI::RemoveSong()
 {
-    if (songlist.size() == 0) return;
+    if (songlist.size() == 0)
+        return;
     songlist.erase(songlist.begin() + cursorPos);
     if (cursorPos != 0 && cursorPos >= songlist.size()) {
         cursorPos--;
@@ -120,7 +122,7 @@ Profile::PlaylistEntry *SonglistGUI::GetSong()
  * -- private --
  */
 
-void SonglistGUI::scrollDownNoUpdate() 
+void SonglistGUI::scrollDownNoUpdate()
 {
     // return if bounds are reached
     if (cursorPos + 1 >= songlist.size())
@@ -132,7 +134,7 @@ void SonglistGUI::scrollDownNoUpdate()
         viewPos++;
 }
 
-void SonglistGUI::scrollUpNoUpdate() 
+void SonglistGUI::scrollUpNoUpdate()
 {
     // return if bounds are reached
     if (cursorPos == 0)
@@ -142,7 +144,7 @@ void SonglistGUI::scrollUpNoUpdate()
         viewPos--;
 }
 
-void SonglistGUI::update() 
+void SonglistGUI::update()
 {
     wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::WINDOW_FRAME)) | A_REVERSE);
     mvwprintw(winPtr, 0, 0, "%-*.*s", contentWidth, contentWidth, "Songlist:");
@@ -153,17 +155,23 @@ void SonglistGUI::update()
             wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::LIST_ENTRY)));
         // generate list of songs
         if (i + viewPos < songlist.size()) {
-            mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, "%-*.*s", 
-                    width, width, songlist[i + viewPos].name.c_str());
+            mvwprintw(
+                winPtr,
+                (int)(height - contentHeight + (uint32_t)i),
+                0,
+                "%-*.*s",
+                width,
+                width,
+                songlist[i + viewPos].name.c_str()
+            );
         } else {
-            mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, "%-*.*s", 
-                    width, width, "");
+            mvwprintw(winPtr, (int)(height - contentHeight + (uint32_t)i), 0, "%-*.*s", width, width, "");
         }
     }
     wrefresh(winPtr);
 }
 
-void SonglistGUI::checkDimensions(uint32_t height, uint32_t width) 
+void SonglistGUI::checkDimensions(uint32_t height, uint32_t width)
 {
     if (height <= 1)
         throw Xcept("Songlist GUI height must not be 0");

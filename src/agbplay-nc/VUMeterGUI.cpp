@@ -1,20 +1,21 @@
-#include <string>
-#include <cstring>
-#include <cmath>
-#include <algorithm>
-
 #include "VUMeterGUI.hpp"
+
 #include "ColorDef.hpp"
+#include "Debug.hpp"
 #include "Util.hpp"
 #include "Xcept.hpp"
-#include "Debug.hpp"
+
+#include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <string>
 
 /*
  * public VUMeterGUI
  */
 
-VUMeterGUI::VUMeterGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos)
-    : CursesWin(height, width, yPos, xPos)
+VUMeterGUI::VUMeterGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) :
+    CursesWin(height, width, yPos, xPos)
 {
     if (width < 10)
         throw Xcept("Can't create too narrow VU meters");
@@ -43,8 +44,8 @@ void VUMeterGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t
 
 void VUMeterGUI::SetVol(float left, float right)
 {
-    //vuLevelLeft = left <= 0.0f ? 0.0f : max(log2f(left) * (1.0f / 6.0f) + 1.0f, 0.0f);
-    //vuLevelRight = right <= 0.0f ? 0.0f : max(log2f(left) * (1.0f / 6.0f) + 1.0f, 0.0f);
+    // vuLevelLeft = left <= 0.0f ? 0.0f : max(log2f(left) * (1.0f / 6.0f) + 1.0f, 0.0f);
+    // vuLevelRight = right <= 0.0f ? 0.0f : max(log2f(left) * (1.0f / 6.0f) + 1.0f, 0.0f);
     vuLevelLeft = left;
     vuLevelRight = right;
     update();

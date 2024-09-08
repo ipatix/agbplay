@@ -1,26 +1,28 @@
-#include <algorithm>
-#include <cstring>
-
 #include "PlaylistGUI.hpp"
+
 #include "ColorDef.hpp"
+#include "Debug.hpp"
 #include "Util.hpp"
 #include "Xcept.hpp"
-#include "Debug.hpp"
+
+#include <algorithm>
+#include <cstring>
 
 /*
  * public
  */
 
-PlaylistGUI::PlaylistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, std::vector<Profile::PlaylistEntry>& playlist) 
-    : SonglistGUI(height, width, yPos, xPos, false), playlist(playlist)
+PlaylistGUI::PlaylistGUI(
+    uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, std::vector<Profile::PlaylistEntry> &playlist
+) :
+    SonglistGUI(height, width, yPos, xPos, false), playlist(playlist)
 {
     // init
     ticked.resize(playlist.size(), true);
     update();
 }
 
-
-PlaylistGUI::~PlaylistGUI() 
+PlaylistGUI::~PlaylistGUI()
 {
 }
 
@@ -31,7 +33,7 @@ void PlaylistGUI::AddSong(const Profile::PlaylistEntry &entry)
     update();
 }
 
-void PlaylistGUI::RemoveSong() 
+void PlaylistGUI::RemoveSong()
 {
     if (playlist.size() == 0)
         return;
@@ -62,12 +64,12 @@ Profile::PlaylistEntry *PlaylistGUI::GetSong()
     return &playlist.at(cursorPos);
 }
 
-const std::vector<bool>& PlaylistGUI::GetTicked() const
+const std::vector<bool> &PlaylistGUI::GetTicked() const
 {
     return ticked;
 }
 
-void PlaylistGUI::Tick() 
+void PlaylistGUI::Tick()
 {
     if (ticked.size() == 0)
         return;
@@ -75,7 +77,7 @@ void PlaylistGUI::Tick()
     update();
 }
 
-void PlaylistGUI::Untick() 
+void PlaylistGUI::Untick()
 {
     if (ticked.size() == 0)
         return;
@@ -83,7 +85,7 @@ void PlaylistGUI::Untick()
     update();
 }
 
-void PlaylistGUI::ToggleTick() 
+void PlaylistGUI::ToggleTick()
 {
     if (ticked.size() == 0)
         return;
@@ -91,7 +93,7 @@ void PlaylistGUI::ToggleTick()
     update();
 }
 
-void PlaylistGUI::ToggleDrag() 
+void PlaylistGUI::ToggleDrag()
 {
     dragging = !dragging;
     update();
@@ -108,7 +110,7 @@ bool PlaylistGUI::IsDragging()
     return dragging;
 }
 
-void PlaylistGUI::Leave() 
+void PlaylistGUI::Leave()
 {
     dragging = false;
     SonglistGUI::Leave();
@@ -118,7 +120,7 @@ void PlaylistGUI::Leave()
  * private
  */
 
-void PlaylistGUI::update() 
+void PlaylistGUI::update()
 {
     std::string bar = "Playlist:";
     bar.resize(contentWidth, ' ');
@@ -132,8 +134,7 @@ void PlaylistGUI::update()
             } else {
                 wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::LIST_ENTRY)) | A_REVERSE);
             }
-        }
-        else 
+        } else
             wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::LIST_ENTRY)));
         std::string songText;
         if (entry < playlist.size()) {
@@ -148,7 +149,7 @@ void PlaylistGUI::update()
     wrefresh(winPtr);
 }
 
-void PlaylistGUI::scrollDownNoUpdate() 
+void PlaylistGUI::scrollDownNoUpdate()
 {
     uint32_t pcursor = cursorPos;
     if (cursorPos + 1 >= playlist.size())
@@ -160,7 +161,7 @@ void PlaylistGUI::scrollDownNoUpdate()
         swapEntry(pcursor, cursorPos);
 }
 
-void PlaylistGUI::scrollUpNoUpdate() 
+void PlaylistGUI::scrollUpNoUpdate()
 {
     uint32_t pcursor = cursorPos;
     if (cursorPos == 0)
@@ -172,7 +173,7 @@ void PlaylistGUI::scrollUpNoUpdate()
         swapEntry(pcursor, cursorPos);
 }
 
-void PlaylistGUI::swapEntry(uint32_t a, uint32_t b) 
+void PlaylistGUI::swapEntry(uint32_t a, uint32_t b)
 {
     if (a >= playlist.size() || b >= playlist.size())
         return;

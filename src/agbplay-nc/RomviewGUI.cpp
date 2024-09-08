@@ -1,26 +1,29 @@
 #include "RomviewGUI.hpp"
+
 #include "ColorDef.hpp"
-#include "Util.hpp"
 #include "Debug.hpp"
 #include "Rom.hpp"
+#include "Util.hpp"
 
 /*
  * public
  */
 
-RomviewGUI::RomviewGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, const SongTableInfo &songTableInfo)
-    : CursesWin(height, width, yPos, xPos), songTableInfo(songTableInfo)
+RomviewGUI::RomviewGUI(
+    uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, const SongTableInfo &songTableInfo
+) :
+    CursesWin(height, width, yPos, xPos), songTableInfo(songTableInfo)
 {
     gameName = Rom::Instance().ReadString(0xA0, 12);
     gameCode = Rom::Instance().GetROMCode();
     update();
 }
 
-RomviewGUI::~RomviewGUI() 
+RomviewGUI::~RomviewGUI()
 {
 }
 
-void RomviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
+void RomviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos)
 {
     CursesWin::Resize(height, width, yPos, xPos);
     update();
@@ -30,7 +33,7 @@ void RomviewGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t
  * private
  */
 
-void RomviewGUI::update() 
+void RomviewGUI::update()
 {
     // clear
     wattrset(winPtr, A_NORMAL);
@@ -38,7 +41,7 @@ void RomviewGUI::update()
 
     // draw borders
     wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::WINDOW_FRAME)) | A_REVERSE);
-    mvwvline(winPtr, 1, 0, ' ', height-1);
+    mvwvline(winPtr, 1, 0, ' ', height - 1);
     mvwprintw(winPtr, 0, 0, "%-*s", width, " ROM Information");
 
     // print information

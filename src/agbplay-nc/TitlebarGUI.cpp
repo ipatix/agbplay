@@ -1,10 +1,12 @@
+#include "TitlebarGUI.hpp"
+
+#include "ColorDef.hpp"
+#include "Constants.hpp"
+#include "Xcept.hpp"
+
 #include <cstring>
 #include <string>
 #include <vector>
-#include "Constants.hpp"
-#include "TitlebarGUI.hpp"
-#include "ColorDef.hpp"
-#include "Xcept.hpp"
 
 static const std::vector<std::string> bannerText = {
     "           _         _           ",
@@ -14,8 +16,8 @@ static const std::vector<std::string> bannerText = {
     "     |___/     |_|          |__/ "
 };
 
-TitlebarGUI::TitlebarGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
-    : CursesWin(height, width, yPos, xPos) 
+TitlebarGUI::TitlebarGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) :
+    CursesWin(height, width, yPos, xPos)
 {
     if (width < bannerText[0].size())
         throw Xcept("Terminal too narrow for banner text");
@@ -26,11 +28,11 @@ TitlebarGUI::TitlebarGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_
     update();
 }
 
-TitlebarGUI::~TitlebarGUI() 
+TitlebarGUI::~TitlebarGUI()
 {
 }
 
-void TitlebarGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos) 
+void TitlebarGUI::Resize(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos)
 {
     CursesWin::Resize(height, width, yPos, xPos);
     keypad(winPtr, true);
@@ -47,23 +49,24 @@ int TitlebarGUI::GetKey()
  * private TitlebarGUI
  */
 
-void TitlebarGUI::update() 
+void TitlebarGUI::update()
 {
     uint32_t textHeight = uint32_t(bannerText.size());
     uint32_t upperPadding = uint32_t((height - textHeight) / 2);
     // unused for now
-    for (uint32_t i = 0; i < height; i++) 
-    {
+    for (uint32_t i = 0; i < height; i++) {
         // print upper padding
         if (i < upperPadding || i > height - upperPadding) {
             wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::BANNER_TEXT)));
             mvwhline(winPtr, (int)i, 0, ' ', width);
         } else {
             uint32_t leftPadding = (uint32_t)((width - bannerText[i - upperPadding].size()) / 2);
-            uint32_t rightPadding = (uint32_t)((width - bannerText[i - upperPadding].size()) / 2 +
-                    ((width - bannerText[i - upperPadding].size()) % 2));
+            uint32_t rightPadding = (uint32_t)((width - bannerText[i - upperPadding].size()) / 2
+                                               + ((width - bannerText[i - upperPadding].size()) % 2));
             wattrset(winPtr, COLOR_PAIR(static_cast<int>(Color::BANNER_TEXT)));
-            mvwprintw(winPtr, (int)i, 0, "%*s%s%*s", leftPadding, "", bannerText[i - upperPadding].c_str(), rightPadding, "");
+            mvwprintw(
+                winPtr, (int)i, 0, "%*s%s%*s", leftPadding, "", bannerText[i - upperPadding].c_str(), rightPadding, ""
+            );
         }
     }
     wrefresh(winPtr);

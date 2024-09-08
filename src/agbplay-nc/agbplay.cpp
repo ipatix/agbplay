@@ -1,17 +1,17 @@
-#include <iostream>
-#include <cstring>
-#include <cstdio>
-#include <curses.h>
-#include <portaudiocpp/AutoSystem.hxx>
-#include <clocale>
-#include <fmt/core.h>
-
 #include "Debug.hpp"
+#include "MP2KScanner.hpp"
+#include "OS.hpp"
+#include "ProfileManager.hpp"
 #include "WindowGUI.hpp"
 #include "Xcept.hpp"
-#include "OS.hpp"
-#include "MP2KScanner.hpp"
-#include "ProfileManager.hpp"
+
+#include <clocale>
+#include <cstdio>
+#include <cstring>
+#include <curses.h>
+#include <fmt/core.h>
+#include <iostream>
+#include <portaudiocpp/AutoSystem.hxx>
 
 static void usage();
 static void help();
@@ -76,9 +76,21 @@ int main(int argc, char *argv[])
                 if (d.size() == 0)
                     d = "<no description>";
                 if (p.songTableInfoConfig.pos != SongTableInfo::POS_AUTO)
-                    fmt::print(" [{}]:\n  file: {}\n  descrpiption: {}\n  tablePos=0x{:X}\n", i, p.path.string(), d, p.songTableInfoConfig.pos);
+                    fmt::print(
+                        " [{}]:\n  file: {}\n  descrpiption: {}\n  tablePos=0x{:X}\n",
+                        i,
+                        p.path.string(),
+                        d,
+                        p.songTableInfoConfig.pos
+                    );
                 else
-                    fmt::print(" [{}]:\n  file: {}\n  descrpiption: {}\n  tableIdx={}\n", i, p.path.string(), d, p.songTableInfoConfig.tableIdx);
+                    fmt::print(
+                        " [{}]:\n  file: {}\n  descrpiption: {}\n  tableIdx={}\n",
+                        i,
+                        p.path.string(),
+                        d,
+                        p.songTableInfoConfig.tableIdx
+                    );
             }
             size_t i;
             do {
@@ -116,7 +128,7 @@ int main(int argc, char *argv[])
         }
 
         pm.SaveProfiles();
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         echo();
         endwin();
         std::cerr << e.what() << std::endl;
@@ -126,31 +138,34 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-static void usage() {
+static void usage()
+{
     std::cout << "Usage: ./agbplay <ROM.gba> [table number]" << std::endl;
 }
 
-static void help() {
+static void help()
+{
     usage();
     std::cout << "\nControls:\n"
-        "  - Arrow Keys or HJKL: Navigate through the program\n"
-        "  - Tab: Change between Playlist and Songlist\n"
-        "  - A: Add the selected song to the playlist\n"
-        "  - D: Delete the selected song from the playlist\n"
-        "  - T: Toggle whether the song should be output to a file (see R and E)\n"
-        "  - G: Drag the song through the playlist for ordering\n"
-        "  - I: Force Song Restart\n"
-        "  - O: Song Play/Pause\n"
-        "  - P: Force Song Stop\n"
-        "  - +=: Double the playback speed\n"
-        "  - -: Halve the playback speed\n"
-        "  - Enter: Toggle Track Muting\n"
-        "  - M: Mute selected Track\n"
-        "  - S: Solo selected Track\n"
-        "  - U: Unmute all Tracks\n"
-        "  - N: Rename the selected song in the playlisy\n"
-        "  - E: Export selected songs to individual track files (to \"workdirectory/wav\")\n"
-        "  - R: Export selected songs to files (non-split)\n"
-        "  - B: Benchmark, Run the export program but don't write to file\n"
-        "  - Q or Ctrl-D: Exit Program\n" << std::flush;
+                 "  - Arrow Keys or HJKL: Navigate through the program\n"
+                 "  - Tab: Change between Playlist and Songlist\n"
+                 "  - A: Add the selected song to the playlist\n"
+                 "  - D: Delete the selected song from the playlist\n"
+                 "  - T: Toggle whether the song should be output to a file (see R and E)\n"
+                 "  - G: Drag the song through the playlist for ordering\n"
+                 "  - I: Force Song Restart\n"
+                 "  - O: Song Play/Pause\n"
+                 "  - P: Force Song Stop\n"
+                 "  - +=: Double the playback speed\n"
+                 "  - -: Halve the playback speed\n"
+                 "  - Enter: Toggle Track Muting\n"
+                 "  - M: Mute selected Track\n"
+                 "  - S: Solo selected Track\n"
+                 "  - U: Unmute all Tracks\n"
+                 "  - N: Rename the selected song in the playlisy\n"
+                 "  - E: Export selected songs to individual track files (to \"workdirectory/wav\")\n"
+                 "  - R: Export selected songs to files (non-split)\n"
+                 "  - B: Benchmark, Run the export program but don't write to file\n"
+                 "  - Q or Ctrl-D: Exit Program\n"
+              << std::flush;
 }

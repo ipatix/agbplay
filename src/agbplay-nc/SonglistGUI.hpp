@@ -1,13 +1,13 @@
 #pragma once
 
+#include "CursesWin.hpp"
+#include "Profile.hpp"
+
 #include <cstdint>
 #include <string>
 #include <vector>
 
-#include "CursesWin.hpp"
-#include "Profile.hpp"
-
-class SonglistGUI : public CursesWin 
+class SonglistGUI : public CursesWin
 {
 public:
     SonglistGUI(uint32_t height, uint32_t width, uint32_t yPos, uint32_t xPos, bool upd);
@@ -24,6 +24,7 @@ public:
     void PageDown();
     void PageUp();
     bool IsLast() const;
+
 protected:
     virtual void scrollDownNoUpdate();
     virtual void scrollUpNoUpdate();
@@ -34,6 +35,7 @@ protected:
     uint32_t contentHeight;
     uint32_t contentWidth;
     bool cursorVisible;
+
 private:
     std::vector<Profile::PlaylistEntry> songlist;
 };

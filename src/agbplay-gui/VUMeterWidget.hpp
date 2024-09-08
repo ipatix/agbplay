@@ -1,10 +1,10 @@
 #pragma once
 
+#include "VUBarWidget.hpp"
+
 #include <QFrame>
 #include <QGridLayout>
 #include <QLabel>
-
-#include "VUBarWidget.hpp"
 
 class VUMeterWidget : public QFrame
 {

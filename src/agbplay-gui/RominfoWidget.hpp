@@ -1,10 +1,10 @@
 #pragma once
 
 #include <QGroupBox>
-#include <QVBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QSpacerItem>
+#include <QVBoxLayout>
 
 class RominfoWidget : public QGroupBox
 {

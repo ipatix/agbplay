@@ -2,8 +2,7 @@
 
 #include <QPainter>
 
-KeyboardWidget::KeyboardWidget(QWidget *parent)
-    : QWidget(parent)
+KeyboardWidget::KeyboardWidget(QWidget *parent) : QWidget(parent)
 {
     setFixedHeight(24);
     setFixedWidth(KEYBOARD_WIDTH);
@@ -45,8 +44,8 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
 
     QPainter painter{this};
 
-    static const std::array<uint8_t, 7> W_KEY_TABLE{ 0, 2, 4, 5, 7, 9, 11 };
-    static const std::array<uint8_t, 5> B_KEY_TABLE{ 1, 3, 6, 8, 10 };
+    static const std::array<uint8_t, 7> W_KEY_TABLE{0, 2, 4, 5, 7, 9, 11};
+    static const std::array<uint8_t, 5> B_KEY_TABLE{1, 3, 6, 8, 10};
 
     static const QColor b = QColor(0, 0, 0);
     static const QColor bk = QColor(20, 20, 20);
@@ -70,14 +69,8 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
             assert(key < 128);
 
             const QRect keyRect(
-                QPoint(
-                    octaveRect.left() + wkey * WHITE_KEY_WIDTH,
-                    octaveRect.top()
-                ),
-                QSize(
-                    WHITE_KEY_WIDTH,
-                    octaveRect.height()
-                )
+                QPoint(octaveRect.left() + wkey * WHITE_KEY_WIDTH, octaveRect.top()),
+                QSize(WHITE_KEY_WIDTH, octaveRect.height())
             );
 
             QColor col;
@@ -112,14 +105,8 @@ void KeyboardWidget::paintEvent(QPaintEvent *paintEvent)
                 keyWOff += 1;
 
             const QRect keyRect(
-                QPoint(
-                    octaveRect.left() + (bkey + keyWOff) * WHITE_KEY_WIDTH - BLACK_L_HALF,
-                    octaveRect.top()
-                ),
-                QSize(
-                    BLACK_KEY_WIDTH,
-                    octaveRect.height() * 6 / 10
-                )
+                QPoint(octaveRect.left() + (bkey + keyWOff) * WHITE_KEY_WIDTH - BLACK_L_HALF, octaveRect.top()),
+                QSize(BLACK_KEY_WIDTH, octaveRect.height() * 6 / 10)
             );
 
             QColor col;

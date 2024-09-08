@@ -1,9 +1,8 @@
 #pragma once
 
 #include <bitset>
-
-#include <QWidget>
 #include <QColor>
+#include <QWidget>
 
 class KeyboardWidget : public QWidget
 {
@@ -23,7 +22,7 @@ private:
 
     const int WHITE_KEY_WIDTH = 6;
     const int BLACK_KEY_WIDTH = 5;
-    const int OCTAVE_WIDTH = WHITE_KEY_WIDTH * 7; // 7 white keys per octave
+    const int OCTAVE_WIDTH = WHITE_KEY_WIDTH * 7;    // 7 white keys per octave
     const int KEYBOARD_WIDTH = 10 * 7 * WHITE_KEY_WIDTH + 5 * WHITE_KEY_WIDTH + 1;
 
     std::bitset<128> pressed;

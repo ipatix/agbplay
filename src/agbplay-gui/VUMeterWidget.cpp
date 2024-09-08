@@ -1,13 +1,11 @@
 #include "VUMeterWidget.hpp"
 
-#include <array>
 #include <algorithm>
-
+#include <array>
 #include <QPainter>
 #include <QPalette>
 
-VUMeterWidget::VUMeterWidget(int width, int height, QWidget *parent)
-    : QFrame(parent)
+VUMeterWidget::VUMeterWidget(int width, int height, QWidget *parent) : QFrame(parent)
 {
     setFixedSize(width, height);
     setFrameStyle(QFrame::Sunken | QFrame::Panel);
@@ -54,31 +52,31 @@ void VUMeterWidget::paintEvent(QPaintEvent *paintEvent)
 {
     QPainter painter(this);
 
-    const std::array DB_POINTS = { -24, -12, 0 };
+    const std::array DB_POINTS = {-24, -12, 0};
 
     painter.fillRect(QRect(0, 0, 4, 4), QColor(255, 0, 255));
 
     /* draw scale */
-    //for (auto point : DB_POINTS) {
-    //    QRect lVURect = leftBarWidget.contentsRect();
-    //    QRect rVURect = rightBarWidget.contentsRect();
-    //    const int x = leftBarWidget.offsetOfLevel(static_cast<float>(point));
-    //    const int lx = x + lVURect.left();
-    //    const int rx = x + rVURect.left();
-    //    const int lyt = lVURect.top();
-    //    const int lyb = lVURect.top() + lVURect.height() / 3;
-    //    const int ryt = rVURect.bottom() - rVURect.height() / 3;
-    //    const int ryb = rVURect.bottom();
-    //    painter.fillRect(QRect(QPoint(lx, lyt), QPoint(lx, lyb)), QColor(255, 255, 255));
-    //    //painter.fillRect(QRect(QPoint(rx, ryt), QPoint(rx, ryb)), QColor(255, 255, 255));
+    // for (auto point : DB_POINTS) {
+    //     QRect lVURect = leftBarWidget.contentsRect();
+    //     QRect rVURect = rightBarWidget.contentsRect();
+    //     const int x = leftBarWidget.offsetOfLevel(static_cast<float>(point));
+    //     const int lx = x + lVURect.left();
+    //     const int rx = x + rVURect.left();
+    //     const int lyt = lVURect.top();
+    //     const int lyb = lVURect.top() + lVURect.height() / 3;
+    //     const int ryt = rVURect.bottom() - rVURect.height() / 3;
+    //     const int ryb = rVURect.bottom();
+    //     painter.fillRect(QRect(QPoint(lx, lyt), QPoint(lx, lyb)), QColor(255, 255, 255));
+    //     //painter.fillRect(QRect(QPoint(rx, ryt), QPoint(rx, ryb)), QColor(255, 255, 255));
 
-    //    const QRect labelRect(lx - 8, height() / 2 - 8, 16, 16);
-    //    painter.setPen(QColor(255, 255, 255));
-    //    QFont font;
-    //    font.setPointSize(7);
-    //    painter.setFont(font);
-    //    //painter.drawText(labelRect, Qt::AlignCenter, QString::number(point));
-    //}
+    // const QRect labelRect(lx - 8, height() / 2 - 8, 16, 16);
+    // painter.setPen(QColor(255, 255, 255));
+    // QFont font;
+    // font.setPointSize(7);
+    // painter.setFont(font);
+    // //painter.drawText(labelRect, Qt::AlignCenter, QString::number(point));
+    // }
 
     /* draw border */
     QFrame::paintEvent(paintEvent);

@@ -1,7 +1,6 @@
 #include "RominfoWidget.hpp"
 
-RominfoWidget::RominfoWidget(QWidget *parent)
-    : QGroupBox("ROM Info", parent)
+RominfoWidget::RominfoWidget(QWidget *parent) : QGroupBox("ROM Info", parent)
 {
     layout.addWidget(&romNameLabel);
     layout.addWidget(&romNameLineEdit);
@@ -31,15 +30,15 @@ RominfoWidget::RominfoWidget(QWidget *parent)
     soundModeGroupBoxLayout.addWidget(&pcmDacValLabel);
 
     pcmVolValLabel.setAlignment(Qt::AlignRight);
-    //pcmVolValLabel.setReadOnly(true);
+    // pcmVolValLabel.setReadOnly(true);
     pcmRevValLabel.setAlignment(Qt::AlignRight);
-    //pcmRevValLabel.setReadOnly(true);
+    // pcmRevValLabel.setReadOnly(true);
     pcmFreqValLabel.setAlignment(Qt::AlignRight);
-    //pcmFreqValLabel.setReadOnly(true);
+    // pcmFreqValLabel.setReadOnly(true);
     pcmChnValLabel.setAlignment(Qt::AlignRight);
-    //pcmChnValLabel.setReadOnly(true);
+    // pcmChnValLabel.setReadOnly(true);
     pcmDacValLabel.setAlignment(Qt::AlignRight);
-    //pcmDacValLabel.setReadOnly(true);
+    // pcmDacValLabel.setReadOnly(true);
 
     setMinimumWidth(130);
 }

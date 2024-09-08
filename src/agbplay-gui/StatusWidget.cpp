@@ -1,11 +1,10 @@
 #include "StatusWidget.hpp"
 
-#include <QPainter>
-
 #include "Types.hpp"
 
-ChordLabelWidget::ChordLabelWidget(QWidget *parent)
-    : QFrame(parent)
+#include <QPainter>
+
+ChordLabelWidget::ChordLabelWidget(QWidget *parent) : QFrame(parent)
 {
 }
 
@@ -13,8 +12,7 @@ ChordLabelWidget::~ChordLabelWidget()
 {
 }
 
-StatusWidget::StatusWidget(QWidget *parent)
-    : QFrame(parent)
+StatusWidget::StatusWidget(QWidget *parent) : QFrame(parent)
 {
     setFrameStyle(QFrame::Sunken | QFrame::Panel);
     setLineWidth(2);

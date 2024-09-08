@@ -1,16 +1,15 @@
 #pragma once
 
-#include <QWidget>
+#include "KeyboardWidget.hpp"
+#include "VUBarWidget.hpp"
+
+#include <bitset>
 #include <QGridLayout>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
-
-#include <bitset>
-
-#include "KeyboardWidget.hpp"
-#include "VUBarWidget.hpp"
+#include <QVBoxLayout>
+#include <QWidget>
 
 struct MP2KVisualizerStateTrack;
 

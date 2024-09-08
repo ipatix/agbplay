@@ -1,14 +1,12 @@
 #include "SelectProfileDialog.hpp"
 
+#include "Profile.hpp"
+
+#include <fmt/core.h>
 #include <QListWidgetItem>
 #include <QMessageBox>
 
-#include <fmt/core.h>
-
-#include "Profile.hpp"
-
-SelectProfileDialog::SelectProfileDialog(QWidget *parent)
-    : QDialog(parent)
+SelectProfileDialog::SelectProfileDialog(QWidget *parent) : QDialog(parent)
 {
     setWindowTitle("Please select profile");
     tableWidget.setMinimumSize(600, 150);
@@ -27,7 +25,7 @@ SelectProfileDialog::SelectProfileDialog(QWidget *parent)
     tableWidget.setSelectionMode(QAbstractItemView::SingleSelection);
     tableWidget.setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    connect(&cancelButton, &QPushButton::clicked, [this](bool){ done(QDialog::Rejected); });
+    connect(&cancelButton, &QPushButton::clicked, [this](bool) { done(QDialog::Rejected); });
     connect(&okButton, &QPushButton::clicked, this, &SelectProfileDialog::ok);
 }
 
@@ -93,14 +91,26 @@ void SelectProfileDialog::ok(bool)
         if (selected == -1 && i.rowCount() == 1) {
             selected = i.topRow();
         } else if ((i.rowCount() == 1 && selected != i.topRow()) || i.rowCount() > 1) {
-            QMessageBox mbox(QMessageBox::Icon::Critical, "Please select profile", "Only a single profile may be selected. Please try again.", QMessageBox::Ok, this);
+            QMessageBox mbox(
+                QMessageBox::Icon::Critical,
+                "Please select profile",
+                "Only a single profile may be selected. Please try again.",
+                QMessageBox::Ok,
+                this
+            );
             mbox.exec();
             return;
         }
     }
 
     if (selected < 0) {
-        QMessageBox mbox(QMessageBox::Icon::Critical, "Please select profile", "No profile selected. Please try again.", QMessageBox::Ok, this);
+        QMessageBox mbox(
+            QMessageBox::Icon::Critical,
+            "Please select profile",
+            "No profile selected. Please try again.",
+            QMessageBox::Ok,
+            this
+        );
         mbox.exec();
         return;
     }

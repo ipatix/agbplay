@@ -15,7 +15,9 @@ public:
         Down,
     };
 
-    VUBarWidget(Orientation orientation, bool logScale, float dbStart = -36.0f, float dbEnd = 6.0f, QWidget *parent = nullptr);
+    VUBarWidget(
+        Orientation orientation, bool logScale, float dbStart = -36.0f, float dbEnd = 6.0f, QWidget *parent = nullptr
+    );
     ~VUBarWidget() override;
 
     void setMuted(bool muted);

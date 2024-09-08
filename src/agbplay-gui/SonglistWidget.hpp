@@ -1,17 +1,16 @@
 #pragma once
 
-#include <QWidget>
-#include <QListWidget>
-#include <QLabel>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QIcon>
-#include <QCheckBox>
-#include <QPushButton>
-
 #include <cstdint>
-#include <vector>
 #include <memory>
+#include <QCheckBox>
+#include <QHBoxLayout>
+#include <QIcon>
+#include <QLabel>
+#include <QListWidget>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QWidget>
+#include <vector>
 
 class SonglistWidget : public QWidget
 {

@@ -1,11 +1,10 @@
 #include "SongWidget.hpp"
 
-#include <fmt/core.h>
-
 #include "Types.hpp"
 
-SongWidget::SongWidget(QWidget *parent)
-    : QWidget(parent)
+#include <fmt/core.h>
+
+SongWidget::SongWidget(QWidget *parent) : QWidget(parent)
 {
     setFixedHeight(16 + 2 + 32);
 

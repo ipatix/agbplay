@@ -1,10 +1,10 @@
 #pragma once
 
 #include <QDialog>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QTableWidget>
+#include <QVBoxLayout>
 
 struct Profile;
 

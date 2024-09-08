@@ -1,8 +1,8 @@
 #include "AboutWindow.hpp"
 
-#include <fmt/core.h>
-
 #include "Version.hpp"
+
+#include <fmt/core.h>
 
 static const std::string figletText = []() {
     std::string t;
@@ -23,7 +23,7 @@ static const std::string figletText = []() {
     return nt;
 }();
 
-static const std::string aboutText = [](){
+static const std::string aboutText = []() {
     std::string t;
     t += fmt::format("agbplay {}<br>", GIT_VERSION_STRING);
     t += "<br>";
@@ -36,9 +36,7 @@ static const std::string aboutText = [](){
     return t;
 }();
 
-
-AboutWindow::AboutWindow(QWidget *parent)
-    : QDialog(parent, Qt::Window)
+AboutWindow::AboutWindow(QWidget *parent) : QDialog(parent, Qt::Window)
 {
     setFixedSize(600, 220);
     setWindowTitle("About agbplay");
@@ -67,7 +65,7 @@ AboutWindow::AboutWindow(QWidget *parent)
     aboutInfoLabel.setAlignment(Qt::AlignCenter);
     aboutInfoLabel.setOpenExternalLinks(true);
 
-    connect(&okButton, &QAbstractButton::clicked, [this](bool){ accept(); });
+    connect(&okButton, &QAbstractButton::clicked, [this](bool) { accept(); });
 }
 
 AboutWindow::~AboutWindow()

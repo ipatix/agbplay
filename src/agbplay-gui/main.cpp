@@ -1,11 +1,11 @@
+#include "MainWindow.hpp"
+
+#include <portaudiocpp/AutoSystem.hxx>
 #include <QApplication>
 #include <QWidget>
 
-#include <portaudiocpp/AutoSystem.hxx>
-
-#include "MainWindow.hpp"
-
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     QApplication app(argc, argv);
 
     portaudio::AutoSystem paSystem;

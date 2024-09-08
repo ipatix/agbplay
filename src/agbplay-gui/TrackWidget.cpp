@@ -1,11 +1,10 @@
 #include "TrackWidget.hpp"
 
-#include <fmt/core.h>
-
 #include "Types.hpp"
 
-TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
-    : QWidget(parent), trackNo(trackNo)
+#include <fmt/core.h>
+
+TrackWidget::TrackWidget(size_t trackNo, QWidget *parent) : QWidget(parent), trackNo(trackNo)
 {
     setFixedHeight(36);
 
@@ -51,7 +50,7 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent)
     analyzerButton.setToolTip("Enable/Disable Chord Analyzer");
     setAnalyzer(false);
     layout.addWidget(&analyzerButton, 1, COL_BUTTONS2);
-    
+
     /* Spacer */
     layout.setColumnStretch(COL_SPACE2, 0);
     layout.setColumnMinimumWidth(COL_SPACE2, 2);
@@ -268,7 +267,7 @@ void TrackWidget::setVisualizerState(const MP2KVisualizerStateTrack &state)
 {
     if (oldTrackPtr != state.trackPtr) {
         oldTrackPtr = state.trackPtr;
-        posLabel.setFmtText("0x{:07X}", state.trackPtr); // TODO patt/pend COLOR
+        posLabel.setFmtText("0x{:07X}", state.trackPtr);    // TODO patt/pend COLOR
     }
 
     if (oldIsCalling != state.isCalling) {
@@ -334,25 +333,63 @@ void TrackWidget::setVisualizerState(const MP2KVisualizerStateTrack &state)
 
         const char *s;
         switch (state.activeVoiceTypes) {
-        case VoiceFlags::NONE: s = "-"; break;
-        case VoiceFlags::PCM: s = "PCM"; break;
-        case VoiceFlags::DPCM_GAMEFREAK: s = "DPCM"; break;
-        case VoiceFlags::ADPCM_CAMELOT: s = "ADPCM"; break;
-        case VoiceFlags::SYNTH_PWM: s = "PWM"; break;
-        case VoiceFlags::SYNTH_SAW: s = "Saw"; break;
-        case VoiceFlags::SYNTH_TRI: s = "Tri."; break;
-        case VoiceFlags::PSG_SQ_12: s = "Sq.12"; break;
-        case VoiceFlags::PSG_SQ_25: s = "Sq.25"; break;
-        case VoiceFlags::PSG_SQ_50: s = "Sq.50"; break;
-        case VoiceFlags::PSG_SQ_75: s = "Sq.75"; break;
-        case VoiceFlags::PSG_SQ_12_SWEEP: s = "Sq.12S"; break;
-        case VoiceFlags::PSG_SQ_25_SWEEP: s = "Sq.25S"; break;
-        case VoiceFlags::PSG_SQ_50_SWEEP: s = "Sq.50S"; break;
-        case VoiceFlags::PSG_SQ_75_SWEEP: s = "Sq.75S"; break;
-        case VoiceFlags::PSG_WAVE: s = "Wave"; break;
-        case VoiceFlags::PSG_NOISE_7: s = "Ns.7"; break;
-        case VoiceFlags::PSG_NOISE_15: s = "Ns.15"; break;
-        default: s = "Multi"; break;
+        case VoiceFlags::NONE:
+            s = "-";
+            break;
+        case VoiceFlags::PCM:
+            s = "PCM";
+            break;
+        case VoiceFlags::DPCM_GAMEFREAK:
+            s = "DPCM";
+            break;
+        case VoiceFlags::ADPCM_CAMELOT:
+            s = "ADPCM";
+            break;
+        case VoiceFlags::SYNTH_PWM:
+            s = "PWM";
+            break;
+        case VoiceFlags::SYNTH_SAW:
+            s = "Saw";
+            break;
+        case VoiceFlags::SYNTH_TRI:
+            s = "Tri.";
+            break;
+        case VoiceFlags::PSG_SQ_12:
+            s = "Sq.12";
+            break;
+        case VoiceFlags::PSG_SQ_25:
+            s = "Sq.25";
+            break;
+        case VoiceFlags::PSG_SQ_50:
+            s = "Sq.50";
+            break;
+        case VoiceFlags::PSG_SQ_75:
+            s = "Sq.75";
+            break;
+        case VoiceFlags::PSG_SQ_12_SWEEP:
+            s = "Sq.12S";
+            break;
+        case VoiceFlags::PSG_SQ_25_SWEEP:
+            s = "Sq.25S";
+            break;
+        case VoiceFlags::PSG_SQ_50_SWEEP:
+            s = "Sq.50S";
+            break;
+        case VoiceFlags::PSG_SQ_75_SWEEP:
+            s = "Sq.75S";
+            break;
+        case VoiceFlags::PSG_WAVE:
+            s = "Wave";
+            break;
+        case VoiceFlags::PSG_NOISE_7:
+            s = "Ns.7";
+            break;
+        case VoiceFlags::PSG_NOISE_15:
+            s = "Ns.15";
+            break;
+        default:
+            s = "Multi";
+            break;
         }
         voiceTypeLabel.setText(s);
     }

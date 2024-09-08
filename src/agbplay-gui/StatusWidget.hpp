@@ -1,19 +1,18 @@
 #pragma once
 
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGridLayout>
-#include <QPushButton>
-#include <QLabel>
-#include <QFont>
-#include <QPalette>
+#include "SongWidget.hpp"
+#include "TrackWidget.hpp"
 
 #include <array>
 #include <bitset>
-
-#include "SongWidget.hpp"
-#include "TrackWidget.hpp"
+#include <QFont>
+#include <QGridLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPalette>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QWidget>
 
 struct MP2KVisualizerState;
 

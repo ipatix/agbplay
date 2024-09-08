@@ -1,28 +1,28 @@
 #pragma once
 
-#include <atomic>
-#include <memory>
-#include <filesystem>
+#include "RominfoWidget.hpp"
+#include "SonglistWidget.hpp"
+#include "StatusWidget.hpp"
+#include "VUMeterWidget.hpp"
 
-#include <QMainWindow>
+#include <atomic>
+#include <filesystem>
+#include <memory>
 #include <QListView>
+#include <QMainWindow>
+#include <QProgressBar>
+#include <QPushButton>
+#include <QScrollArea>
+#include <QSplitter>
 #include <QTableView>
 #include <QTextEdit>
-#include <QPushButton>
-#include <QSplitter>
-#include <QProgressBar>
-#include <QScrollArea>
 #include <QTimer>
-
-#include "SonglistWidget.hpp"
-#include "RominfoWidget.hpp"
-#include "VUMeterWidget.hpp"
-#include "StatusWidget.hpp"
 
 class PlaybackEngine;
 class ProfileManager;
 struct Profile;
-namespace std {
+namespace std
+{
     class thread;
 }
 struct MP2KVisualizerState;

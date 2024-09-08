@@ -2,8 +2,8 @@
 
 #include <QPainter>
 
-VUBarWidget::VUBarWidget(Orientation orientation, bool logScale, float dbStart, float dbEnd, QWidget *parent)
-    : QFrame(parent), orientation(orientation), logScale(logScale), dbStart(dbStart), dbEnd(dbEnd)
+VUBarWidget::VUBarWidget(Orientation orientation, bool logScale, float dbStart, float dbEnd, QWidget *parent) :
+    QFrame(parent), orientation(orientation), logScale(logScale), dbStart(dbStart), dbEnd(dbEnd)
 {
     barGradientNormal.setColorAt(0.0f, QColor(0, 200, 0));
     barGradientNormal.setColorAt(0.5f, QColor(200, 200, 0));
@@ -175,7 +175,7 @@ int VUBarWidget::offsetOfLog(float level) const
     const float db = 20 * std::log10(std::max(0.0f, level));
     float tmp = (db - dbStart) / (dbEnd - dbStart);
     tmp *= static_cast<float>(barLen);
-    return std::clamp(static_cast<int>(tmp), 0, barLen); 
+    return std::clamp(static_cast<int>(tmp), 0, barLen);
 }
 
 int VUBarWidget::offsetOfLinear(float level) const

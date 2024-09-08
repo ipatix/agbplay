@@ -1,39 +1,36 @@
 #include "MainWindow.hpp"
 
-#include <QStatusBar>
+#include "AboutWindow.hpp"
+#include "Debug.hpp"
+#include "FileReader.hpp"
+#include "GlobalPreferencesWindow.hpp"
+#include "Gsf.hpp"
+#include "PlaybackEngine.hpp"
+#include "ProfileManager.hpp"
+#include "Rom.hpp"
+#include "SelectProfileDialog.hpp"
+#include "SoundExporter.hpp"
+
+#include <algorithm>
+#include <array>
+#include <fmt/core.h>
+#include <fstream>
+#include <QCloseEvent>
+#include <QDesktopServices>
+#include <QFileDialog>
+#include <QHBoxLayout>
+#include <QInputDialog>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QHBoxLayout>
+#include <QShortcut>
+#include <QStatusBar>
 #include <QTextEdit>
 #include <QToolBar>
-#include <QFileDialog>
-#include <QCloseEvent>
-#include <QDesktopServices>
-#include <QInputDialog>
-#include <QShortcut>
-
-#include <fmt/core.h>
 #include <thread>
-#include <fstream>
-#include <algorithm>
 #include <tuple>
-#include <array>
 
-#include "SelectProfileDialog.hpp"
-#include "AboutWindow.hpp"
-#include "GlobalPreferencesWindow.hpp"
-
-#include "ProfileManager.hpp"
-#include "Rom.hpp"
-#include "PlaybackEngine.hpp"
-#include "SoundExporter.hpp"
-#include "Debug.hpp"
-#include "FileReader.hpp"
-#include "Gsf.hpp"
-
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     SetupMenuBar();
     SetupToolBar();
@@ -84,7 +81,7 @@ void MainWindow::SetupMenuBar()
     QAction *fileOpenRom = fileMenu->addAction("Open ROM/GSF");
     fileOpenRom->setIcon(QIcon(":/icons/open-rom.ico"));
     fileOpenRom->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_O));
-    connect(fileOpenRom, &QAction::triggered, [this](bool){ LoadGame(); });
+    connect(fileOpenRom, &QAction::triggered, [this](bool) { LoadGame(); });
 
     fileMenu->addSeparator();
 
@@ -92,42 +89,42 @@ void MainWindow::SetupMenuBar()
     saveProfileAction->setIcon(QIcon(":/icons/profile-save.ico"));
     saveProfileAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_S));
     saveProfileAction->setEnabled(false);
-    connect(saveProfileAction, &QAction::triggered, [this](bool){ SaveProfile(); });
+    connect(saveProfileAction, &QAction::triggered, [this](bool) { SaveProfile(); });
 
     exportSongsAction = fileMenu->addAction("Export Songs by Selection");
     exportSongsAction->setIcon(QIcon(":/icons/export-audio.ico"));
     exportSongsAction->setToolTip("Export songs based on selection.");
     exportSongsAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_E));
     exportSongsAction->setEnabled(false);
-    connect(exportSongsAction, &QAction::triggered, [this](bool){ ExportAudio(false, false, false); });
+    connect(exportSongsAction, &QAction::triggered, [this](bool) { ExportAudio(false, false, false); });
 
     exportStemsAction = fileMenu->addAction("Export Stems by Selection");
     exportStemsAction->setIcon(QIcon(":/icons/export-audio.ico"));
     exportStemsAction->setToolTip("Export songs based on selection. Tracks are stored to separate stem files.");
     exportStemsAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_T));
     exportStemsAction->setEnabled(false);
-    connect(exportStemsAction, &QAction::triggered, [this](bool){ ExportAudio(false, true, false); });
+    connect(exportStemsAction, &QAction::triggered, [this](bool) { ExportAudio(false, true, false); });
 
     quickExportSongAction = fileMenu->addAction("Quick Export Song");
     quickExportSongAction->setIcon(QIcon(":/icons/export-audio.ico"));
     quickExportSongAction->setToolTip("Export single song only.");
     quickExportSongAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_E));
     quickExportSongAction->setEnabled(false);
-    connect(quickExportSongAction, &QAction::triggered, [this](bool){ ExportAudio(false, false, true); });
+    connect(quickExportSongAction, &QAction::triggered, [this](bool) { ExportAudio(false, false, true); });
 
     quickExportStemsAction = fileMenu->addAction("Quick Export Stems");
     quickExportStemsAction->setIcon(QIcon(":/icons/export-audio.ico"));
     quickExportStemsAction->setToolTip("Export single song only. Tracks are stored to separate stem files.");
     quickExportStemsAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_T));
     quickExportStemsAction->setEnabled(false);
-    connect(quickExportStemsAction, &QAction::triggered, [this](bool){ ExportAudio(false, true, true); });
+    connect(quickExportStemsAction, &QAction::triggered, [this](bool) { ExportAudio(false, true, true); });
 
     benchmarkSelectedAction = fileMenu->addAction("Run Benchmark by Selection");
-    benchmarkSelectedAction->setIcon(QIcon()); // TODO
+    benchmarkSelectedAction->setIcon(QIcon());    // TODO
     benchmarkSelectedAction->setToolTip("Render selected songs and measure the time. No files are written to disk.");
     benchmarkSelectedAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_B));
     benchmarkSelectedAction->setEnabled(false);
-    connect(benchmarkSelectedAction, &QAction::triggered, [this](bool){ ExportAudio(true, false, false); });
+    connect(benchmarkSelectedAction, &QAction::triggered, [this](bool) { ExportAudio(true, false, false); });
 
     fileMenu->addSeparator();
 
@@ -142,7 +139,7 @@ void MainWindow::SetupMenuBar()
     QMenu *editMenu = menuBar()->addMenu("&Edit");
     QAction *editPreferences = editMenu->addAction("Global Preferences");
     editPreferences->setIcon(QIcon(":/icons/preferences.ico"));
-    connect(editPreferences, &QAction::triggered, [this](bool){
+    connect(editPreferences, &QAction::triggered, [this](bool) {
         GlobalPreferencesWindow w(this);
         w.exec();
     });
@@ -168,26 +165,26 @@ void MainWindow::SetupMenuBar()
     profileMinigsfImport = profileMenu->addAction("Import GSF Playlist");
     profileMinigsfImport->setIcon(QIcon(":/icons/profile-import-minigsf.ico"));
     profileMinigsfImport->setEnabled(false);
-    connect(profileMinigsfImport, &QAction::triggered, [this](bool){ ProfileImportGsfPlaylist(); });
+    connect(profileMinigsfImport, &QAction::triggered, [this](bool) { ProfileImportGsfPlaylist(); });
     profileMenu->addSeparator();
     QAction *profileDirectory = profileMenu->addAction("Open User Profile Directory");
     profileDirectory->setIcon(QIcon(":/icons/profile-open-folder.ico"));
     connect(profileDirectory, &QAction::triggered, [](bool) {
-            const QUrl url = QUrl::fromLocalFile(QString::fromStdWString(ProfileManager::ProfileUserPath().wstring()));
-            QDesktopServices::openUrl(url);
+        const QUrl url = QUrl::fromLocalFile(QString::fromStdWString(ProfileManager::ProfileUserPath().wstring()));
+        QDesktopServices::openUrl(url);
     });
 
     /* Help */
     QMenu *helpMenu = menuBar()->addMenu("&Help");
     QAction *helpSaveLog = helpMenu->addAction("Save Log");
     helpSaveLog->setIcon(QIcon(":/icons/save-log.ico"));
-    connect(helpSaveLog, &QAction::triggered, [this](bool){ SaveLog(); });
+    connect(helpSaveLog, &QAction::triggered, [this](bool) { SaveLog(); });
     helpMenu->addSeparator();
     QAction *helpAboutAction = helpMenu->addAction("About");
     helpAboutAction->setIcon(QIcon(":/icons/about.ico"));
     connect(helpAboutAction, &QAction::triggered, [this](bool) {
-            AboutWindow w(this);
-            w.exec();
+        AboutWindow w(this);
+        w.exec();
     });
     helpAboutAction->setMenuRole(QAction::AboutRole);
 }
@@ -273,18 +270,14 @@ void MainWindow::SetupWidgets()
     /* 2. Create songlist and playlist. */
     containerLeftLayout.addWidget(&songlistWidget);
     connect(&songlistWidget.listWidget, &QAbstractItemView::doubleClicked, [this](const QModelIndex &index) {
-            SonglistSwitchSong(index.row());
+        SonglistSwitchSong(index.row());
     });
-    connect(&songlistWidget, &SonglistWidget::PlayActionTriggered, [this](int row) {
-            SonglistSwitchSong(row);
-    });
+    connect(&songlistWidget, &SonglistWidget::PlayActionTriggered, [this](int row) { SonglistSwitchSong(row); });
     containerLeftLayout.addWidget(&playlistWidget);
     connect(&playlistWidget.listWidget, &QAbstractItemView::doubleClicked, [this](const QModelIndex &index) {
-            PlaylistSwitchSong(index.row());
+        PlaylistSwitchSong(index.row());
     });
-    connect(&playlistWidget, &SonglistWidget::PlayActionTriggered, [this](int row) {
-            PlaylistSwitchSong(row);
-    });
+    connect(&playlistWidget, &SonglistWidget::PlayActionTriggered, [this](int row) { PlaylistSwitchSong(row); });
     containerLeftLayout.setContentsMargins(0, 0, 0, 0);
 
     /* 3. Create rom info and main status view. */
@@ -309,7 +302,7 @@ void MainWindow::SetupWidgets()
     containerRightSplitter.setStretchFactor(1, 1);
     containerRightLayout.setContentsMargins(0, 0, 0, 0);
     logWidget.setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
-    logWidget.setFont(QFont("Monospace")); // TODO does this work on windows?
+    logWidget.setFont(QFont("Monospace"));    // TODO does this work on windows?
     logWidget.setAcceptRichText(false);
     LogAppend("agbplay ready!");
 
@@ -326,7 +319,7 @@ void MainWindow::SetupStatusBar()
     progressBar.setMinimumWidth(128);
     progressBar.setRange(0, 100);
     progressBar.setValue(20);
-    progressBar.hide(); // progress bar is only shown on demand
+    progressBar.hide();    // progress bar is only shown on demand
 }
 
 void MainWindow::Play()
@@ -415,7 +408,16 @@ void MainWindow::JumpSong()
         return;
 
     bool ok = false;
-    int index = QInputDialog::getInt(this, "Jump to Song Index", "Index:", songlistWidget.GetSelectedSong(), 0, songlistWidget.listWidget.count()-1, 1, &ok);
+    int index = QInputDialog::getInt(
+        this,
+        "Jump to Song Index",
+        "Index:",
+        songlistWidget.GetSelectedSong(),
+        0,
+        songlistWidget.listWidget.count() - 1,
+        1,
+        &ok
+    );
     if (!ok)
         return;
 
@@ -535,9 +537,7 @@ void MainWindow::ProfileImportGsfPlaylist(const std::filesystem::path &gameFileP
 
     std::vector<std::filesystem::path> pathsToLoad;
 
-    auto miniGsfFilterFunc = [](const std::filesystem::path &p) {
-        return FileReader::cmpPathExt(p, "minigsf");
-    };
+    auto miniGsfFilterFunc = [](const std::filesystem::path &p) { return FileReader::cmpPathExt(p, "minigsf"); };
 
     if (gameFilePath.empty()) {
         /* If no path is passed, ask the user to specify them interactively */
@@ -558,7 +558,9 @@ void MainWindow::ProfileImportGsfPlaylist(const std::filesystem::path &gameFileP
             /* Main file loaded from zip file -> load minigsfs from same zip file */
             pathsToLoad.emplace_back(gameFilePath);
         } else {
-            throw std::logic_error("This case should not occur. Attempting to load MINIGSFs from invalid main file extension.");
+            throw std::logic_error(
+                "This case should not occur. Attempting to load MINIGSFs from invalid main file extension."
+            );
         }
     }
 
@@ -581,9 +583,7 @@ void MainWindow::ProfileImportGsfPlaylist(const std::filesystem::path &gameFileP
         FileReader::forEachInZipOrRaw(p, miniGsfFilterFunc, op);
 
     /* Playlist order may be random, so sort by filename like normal for MINIGSFs. */
-    auto pathCmp = [](const auto &ta, const auto &tb){
-        return std::get<0>(ta).stem() < std::get<0>(tb).stem();
-    };
+    auto pathCmp = [](const auto &ta, const auto &tb) { return std::get<0>(ta).stem() < std::get<0>(tb).stem(); };
     std::sort(songs.begin(), songs.end(), pathCmp);
 
     /* Ask the user to replace all current songs if there are any */
@@ -670,7 +670,9 @@ void MainWindow::LoadGame()
 
     infoWidget.romNameLineEdit.setText(QString::fromStdString(Rom::Instance().ReadString(0xA0, 12)));
     infoWidget.romCodeLineEdit.setText(QString::fromStdString(Rom::Instance().GetROMCode()));
-    infoWidget.songTableLineEdit.setText(QString::fromStdString(fmt::format("0x{:X}", profile->songTableInfoPlayback.pos)));
+    infoWidget.songTableLineEdit.setText(
+        QString::fromStdString(fmt::format("0x{:X}", profile->songTableInfoPlayback.pos))
+    );
     infoWidget.songCountLineEdit.setText(QString::number(profile->songTableInfoPlayback.count));
 
     UpdateSoundMode();
@@ -797,7 +799,8 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
 
     // TODO implement benchmark flag
     // TODO implement progress bar
-    exportThread = std::make_unique<std::thread>([this](std::filesystem::path tDirectory, Profile tProfile, bool tBenchmarkOnly, bool tSeparateTracks) {
+    exportThread = std::make_unique<std::thread>(
+        [this](std::filesystem::path tDirectory, Profile tProfile, bool tBenchmarkOnly, bool tSeparateTracks) {
             SoundExporter se(tDirectory, tProfile, tBenchmarkOnly, tSeparateTracks);
             se.Export();
             exportBusy = false;
@@ -815,8 +818,7 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
 void MainWindow::ExportStillInProgress()
 {
     MBoxError(
-        "Export in progress",
-        "There is already an export in progress. Please wait for the current export to complete."
+        "Export in progress", "There is already an export in progress. Please wait for the current export to complete."
     );
 }
 
@@ -882,7 +884,13 @@ int MainWindow::AskSaveProfile()
 
     const QString title = "Save changed profile?";
     const QString message = "The currentl profile has unsaved changes. Do you want to save the changes?";
-    QMessageBox mbox(QMessageBox::Icon::Question, title, message, QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Discard, this);
+    QMessageBox mbox(
+        QMessageBox::Icon::Question,
+        title,
+        message,
+        QMessageBox::Save | QMessageBox::Cancel | QMessageBox::Discard,
+        this
+    );
     return mbox.exec();
 }
 
@@ -907,10 +915,7 @@ void MainWindow::UpdateSoundMode()
     /* This table is duplicate and can be found elsewhere, but I currently don't know
      * where to put it in a common place. */
     static const std::array<uint32_t, 16> rateTable{
-        0, 5734, 7884, 10512,
-        13379, 15768, 18157, 21024,
-        26758, 31536, 36314, 40137,
-        42048, 0, 0, 0,
+        0, 5734, 7884, 10512, 13379, 15768, 18157, 21024, 26758, 31536, 36314, 40137, 42048, 0, 0, 0
     };
 
     static const std::array<const char *, 4> dacTable{
@@ -922,8 +927,9 @@ void MainWindow::UpdateSoundMode()
 
     const std::string vol = fmt::format("{}/15", profile->mp2kSoundModePlayback.vol);
     const std::string rev = fmt::format("{}/127", profile->mp2kSoundModePlayback.rev % 128);
-    const std::string freq = fmt::format("{}: {} Hz",
-            profile->mp2kSoundModePlayback.freq, rateTable[profile->mp2kSoundModePlayback.freq % 16]);
+    const std::string freq = fmt::format(
+        "{}: {} Hz", profile->mp2kSoundModePlayback.freq, rateTable[profile->mp2kSoundModePlayback.freq % 16]
+    );
     const std::string chn = fmt::format("{}/12", profile->mp2kSoundModePlayback.maxChannels);
     const std::string dac = dacTable[profile->mp2kSoundModePlayback.dacConfig % 4];
 
@@ -961,7 +967,7 @@ void MainWindow::LogCallback(const std::string &msg, void *void_this)
 {
     MainWindow *_this = static_cast<MainWindow *>(void_this);
     // Qt 6.7 only
-    //QMetaObject::invokeMethod(_this, &MainWindow::LogAppend, Qt::QueuedConnection, msg);
+    // QMetaObject::invokeMethod(_this, &MainWindow::LogAppend, Qt::QueuedConnection, msg);
     QMetaObject::invokeMethod(_this, "LogAppend", Qt::QueuedConnection, msg);
 }
 

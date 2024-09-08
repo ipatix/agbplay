@@ -1,12 +1,11 @@
 #pragma once
 
-#include <QWidget>
-#include <QGridLayout>
-#include <QLabel>
+#include "KeyboardWidget.hpp"
 
 #include <bitset>
-
-#include "KeyboardWidget.hpp"
+#include <QGridLayout>
+#include <QLabel>
+#include <QWidget>
 
 struct MP2KVisualizerStatePlayer;
 

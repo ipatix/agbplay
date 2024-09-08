@@ -1,16 +1,16 @@
 #pragma once
 
+#include <QCheckBox>
+#include <QComboBox>
 #include <QDialog>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QVBoxLayout>
-#include <QGridLayout>
-#include <QCheckBox>
-#include <QComboBox>
 #include <QPushButton>
+#include <QVBoxLayout>
 
-class GlobalPreferencesWindow : public QDialog 
+class GlobalPreferencesWindow : public QDialog
 {
     Q_OBJECT
 

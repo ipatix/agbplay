@@ -1,7 +1,6 @@
 #include "GlobalPreferencesWindow.hpp"
 
-GlobalPreferencesWindow::GlobalPreferencesWindow(QWidget *parent)
-    : QDialog(parent)
+GlobalPreferencesWindow::GlobalPreferencesWindow(QWidget *parent) : QDialog(parent)
 {
     layout.addWidget(&playbackGroupBox);
     layout.addWidget(&exportGroupBox);
@@ -20,8 +19,8 @@ GlobalPreferencesWindow::GlobalPreferencesWindow(QWidget *parent)
     exportLayout.addWidget(&exportQuickExportDirLineEdit, 2, 0, 1, 3);
     exportLayout.addWidget(&exportQuickExportDirButton, 2, 3, 1, 1);
 
-    //exportLayout.setColumnStretch(0, 1);
-    //exportLayout.setColumnStretch(1, 3);
+    // exportLayout.setColumnStretch(0, 1);
+    // exportLayout.setColumnStretch(1, 3);
 
     botButtonLayout.addWidget(&saveButton);
     botButtonLayout.addWidget(&cancelButton);

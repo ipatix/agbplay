@@ -3,8 +3,8 @@
 #include <QEvent>
 #include <QInputDialog>
 
-SonglistWidget::SonglistWidget(const QString &titleString, bool editable, QWidget *parent)
-    : QWidget(parent), editable(editable), playIcon(":/icons/playlist-play.ico"), stopIcon(":/icons/playlist-stop.ico")
+SonglistWidget::SonglistWidget(const QString &titleString, bool editable, QWidget *parent) :
+    QWidget(parent), editable(editable), playIcon(":/icons/playlist-play.ico"), stopIcon(":/icons/playlist-stop.ico")
 {
     setMinimumWidth(150);
     if (editable)
@@ -35,7 +35,8 @@ SonglistWidget::SonglistWidget(const QString &titleString, bool editable, QWidge
     selectAllCheckBox.setFixedSize(16, 16);
     connect(&selectAllCheckBox, &QAbstractButton::clicked, [this](bool) { UpdateCheckedFromCheckBox(); });
     // Qt 6.7 only
-    //connect(&selectAllCheckBox, &QCheckBox::checkStateChanged, [this](Qt::CheckState) { UpdateCheckedFromCheckBox(); });
+    // connect(&selectAllCheckBox, &QCheckBox::checkStateChanged, [this](Qt::CheckState) { UpdateCheckedFromCheckBox();
+    // });
 
     listWidget.setUniformItemSizes(true);
     listWidget.installEventFilter(this);
@@ -64,13 +65,13 @@ SonglistWidget::SonglistWidget(const QString &titleString, bool editable, QWidge
     action->setShortcut(QKeySequence(Qt::Key_Return));
     action->setShortcutContext(Qt::WidgetShortcut);
     connect(action, &QAction::triggered, [this](bool) {
-            QList<QListWidgetItem *> items = listWidget.selectedItems();
-            if (items.count() <= 0)
-                return;
-            int row = listWidget.row(items.at(0));
-            if (row < 0)
-                return;
-            emit PlayActionTriggered(row);
+        QList<QListWidgetItem *> items = listWidget.selectedItems();
+        if (items.count() <= 0)
+            return;
+        int row = listWidget.row(items.at(0));
+        if (row < 0)
+            return;
+        emit PlayActionTriggered(row);
     });
 }
 
@@ -94,14 +95,14 @@ void SonglistWidget::AddSong(const std::string &name, uint16_t id)
             item->setIcon(playing ? playIcon : stopIcon);
         }
 
-        //const auto flags = Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemNeverHasChildren;
-        //if (editable)
-        //    item->setFlags(flags | Qt::ItemIsDropEnabled);
-        //else
-        //    item->setFlags(flags);
+        // const auto flags = Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled |
+        // Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemNeverHasChildren; if (editable)
+        //     item->setFlags(flags | Qt::ItemIsDropEnabled);
+        // else
+        //     item->setFlags(flags);
 
         item->setCheckState(Qt::Checked);
-        item->setText(QString::fromStdString(name)); // TODO make name a wstring to avoid character loss on Windows
+        item->setText(QString::fromStdString(name));    // TODO make name a wstring to avoid character loss on Windows
         item->setData(Qt::UserRole, static_cast<unsigned int>(id));
         item->setToolTip("Click checkbox in order to mark song for bulk export");
     } catch (...) {

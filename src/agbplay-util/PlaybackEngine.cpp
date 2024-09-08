@@ -1,10 +1,10 @@
-#include <thread>
-#include <chrono>
-#include <cstdlib>
 #include <algorithm>
-#include <cmath>
 #include <cassert>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
 #include <cstring>
+#include <thread>
 
 #if __has_include(<pa_win_wasapi.h>)
 #include <pa_win_wasapi.h>
@@ -13,10 +13,10 @@
 #include <pa_jack.h>
 #endif
 
-#include "PlaybackEngine.hpp"
-#include "Xcept.hpp"
 #include "Debug.hpp"
+#include "PlaybackEngine.hpp"
 #include "Util.hpp"
+#include "Xcept.hpp"
 
 /*
  * set JACK client name
@@ -25,10 +25,9 @@
 /* use a global object to run the function before Pa_Initialize() */
 
 #if __has_include(<pa_jack.h>)
-struct JackNameSetter {
-    JackNameSetter() {
-        PaJack_SetClientName("agbplay");
-    }
+struct JackNameSetter
+{
+    JackNameSetter() { PaJack_SetClientName("agbplay"); }
 } jackNameSetter;
 #endif
 
@@ -55,8 +54,7 @@ const std::vector<PaHostApiTypeId> PlaybackEngine::hostApiPriority = {
  * public PlaybackEngine
  */
 
-PlaybackEngine::PlaybackEngine(const Profile &profile)
-    : profile(profile)
+PlaybackEngine::PlaybackEngine(const Profile &profile) : profile(profile)
 {
     InitContext();
     ctx->m4aSongNumStart(0);
@@ -68,7 +66,7 @@ PlaybackEngine::PlaybackEngine(const Profile &profile)
 #endif
 }
 
-PlaybackEngine::~PlaybackEngine() 
+PlaybackEngine::~PlaybackEngine()
 {
     // stop and deallocate player thread if required
     if (playerThread) {
@@ -136,7 +134,7 @@ bool PlaybackEngine::Pause()
             hasEnded = false;
             paused = false;
         }
-        //paused = !paused;
+        // paused = !paused;
     };
 
     InvokeAsPlayer(func);
@@ -339,8 +337,8 @@ void PlaybackEngine::InvokeAsPlayer(const std::function<void(void)> &func)
 void PlaybackEngine::InvokeRun()
 {
     /* This function must be called from within the player thread only! */
-    //This does not work as playerThread is not fully initialized eventhough this thread is already running
-    //assert(std::this_thread::get_id() == playerThread->get_id());
+    // This does not work as playerThread is not fully initialized eventhough this thread is already running
+    // assert(std::this_thread::get_id() == playerThread->get_id());
 
     if (!playerInvokePending)
         return;
@@ -352,8 +350,14 @@ void PlaybackEngine::InvokeRun()
     playerInvokeComplete.wait(l);
 }
 
-int PlaybackEngine::audioCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
-        const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags, void *userData)
+int PlaybackEngine::audioCallback(
+    const void *inputBuffer,
+    void *outputBuffer,
+    unsigned long framesPerBuffer,
+    const PaStreamCallbackTimeInfo *timeInfo,
+    PaStreamCallbackFlags statusFlags,
+    void *userData
+)
 {
     (void)inputBuffer;
     (void)timeInfo;
@@ -370,7 +374,8 @@ void PlaybackEngine::portaudioOpen()
     // init host api
     std::vector<PaHostApiTypeId> hostApiPrioritiesWithFallback = hostApiPriority;
     const auto &defaultHostApi = sys.defaultHostApi();
-    const auto f = std::find(hostApiPrioritiesWithFallback.begin(), hostApiPrioritiesWithFallback.end(), defaultHostApi.typeId());
+    const auto f =
+        std::find(hostApiPrioritiesWithFallback.begin(), hostApiPrioritiesWithFallback.end(), defaultHostApi.typeId());
     if (f == hostApiPrioritiesWithFallback.end())
         hostApiPrioritiesWithFallback.push_back(defaultHostApi.typeId());
 
@@ -403,7 +408,7 @@ void PlaybackEngine::portaudioOpen()
 
         portaudio::DirectionSpecificStreamParameters outPars(
             outputDevice,
-            2,  // stereo
+            2,    // stereo
             portaudio::SampleDataFormat::FLOAT32,
             true,
             outputDevice.defaultLowOutputLatency(),
@@ -419,16 +424,16 @@ void PlaybackEngine::portaudioOpen()
         );
 
         try {
-            audioStream.open(
-                pars,
-                audioCallback,
-                static_cast<void *>(this)
-            );
+            audioStream.open(pars, audioCallback, static_cast<void *>(this));
 
             audioStream.start();
         } catch (portaudio::Exception &e) {
-            Debug::print("unable to open/start stream on device {} with Host API {}: {}",
-                    outputDevice.name(), currentHostApi.name(), e.what());
+            Debug::print(
+                "unable to open/start stream on device {} with Host API {}: {}",
+                outputDevice.name(),
+                currentHostApi.name(),
+                e.what()
+            );
             continue;
         }
 

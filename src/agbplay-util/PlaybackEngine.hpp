@@ -1,25 +1,25 @@
 #pragma once
 
-#include <cstdint>
-#include <functional>
-#include <vector>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <memory>
-#include <bitset>
-#include <portaudiocpp/PortAudioCpp.hxx>
-
+#include "LowLatencyRingbuffer.hpp"
 #include "MP2KContext.hpp"
 #include "Profile.hpp"
-#include "LowLatencyRingbuffer.hpp"
 
-class PlaybackEngine 
+#include <bitset>
+#include <condition_variable>
+#include <cstdint>
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <portaudiocpp/PortAudioCpp.hxx>
+#include <thread>
+#include <vector>
+
+class PlaybackEngine
 {
 public:
     PlaybackEngine(const Profile &profile);
-    PlaybackEngine(const PlaybackEngine&) = delete;
-    PlaybackEngine& operator=(const PlaybackEngine&) = delete;
+    PlaybackEngine(const PlaybackEngine &) = delete;
+    PlaybackEngine &operator=(const PlaybackEngine &) = delete;
     ~PlaybackEngine();
 
     void LoadSong(uint16_t songIdx);
@@ -40,9 +40,14 @@ private:
     void updateVisualizerState();
     void InvokeAsPlayer(const std::function<void(void)> &func);
     void InvokeRun();
-    static int audioCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
-            const PaStreamCallbackTimeInfo *timeInfo, PaStreamCallbackFlags statusFlags,
-            void *userData);
+    static int audioCallback(
+        const void *inputBuffer,
+        void *outputBuffer,
+        unsigned long framesPerBuffer,
+        const PaStreamCallbackTimeInfo *timeInfo,
+        PaStreamCallbackFlags statusFlags,
+        void *userData
+    );
 
     void portaudioOpen();
     void portaudioClose();
@@ -51,7 +56,7 @@ private:
 
     portaudio::FunCallbackStream audioStream;
     uint32_t speedFactor = 64;
-    std::bitset<16> trackMuted; // TODO replace 16 with constant
+    std::bitset<16> trackMuted;    // TODO replace 16 with constant
     bool paused = false;
     std::unique_ptr<MP2KContext> ctx;
 
@@ -69,10 +74,10 @@ private:
     std::atomic<bool> hasEnded = false;
 
     LowLatencyRingbuffer ringbuffer;
-    //std::vector<sample> outputBuffer;
-    //std::mutex outputBufferMutex;
-    //std::condition_variable outputBufferReady;
-    //bool outputBufferValid = false;
+    // std::vector<sample> outputBuffer;
+    // std::mutex outputBufferMutex;
+    // std::condition_variable outputBufferReady;
+    // bool outputBufferValid = false;
 
     const Profile &profile;
     uint16_t songIdx = 0;

@@ -81,8 +81,10 @@ private:
 
     uint32_t oldTrackPtr = 0;
     bool oldIsCalling = false;
-    float oldEnvLFloat = 0.0f;
-    float oldEnvRFloat = 0.0f;
+    float oldRmsLeft = 0.0f;
+    float oldRmsRight = 0.0f;
+    float oldPeakLeft = 0.0f;
+    float oldPeakRight = 0.0f;
     uint8_t oldVol = 0;
     uint8_t oldMod = 0;
     uint8_t oldProg = 0;

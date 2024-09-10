@@ -230,8 +230,9 @@ void MP2KContext::GetVisualizerState(MP2KVisualizerState &visualizerState)
             auto &trk_dst = player_dst.tracks.at(trackIdx);
 
             trk_src.loudnessCalculator.CalcLoudness(trk_src.audioBuffer);
-            float volLeft, volRight;
-            trk_src.loudnessCalculator.GetLoudness(volLeft, volRight);
+            trk_src.loudnessCalculator.GetLoudness(
+                trk_dst.rmsLeft, trk_dst.rmsRight, trk_dst.peakLeft, trk_dst.peakRight
+            );
 
             trk_dst.trackPtr = static_cast<uint32_t>(trk_src.pos);
             trk_dst.isCalling = trk_src.patternLevel > 0;
@@ -241,10 +242,8 @@ void MP2KContext::GetVisualizerState(MP2KVisualizerState &visualizerState)
             trk_dst.prog = trk_src.prog;
             trk_dst.pan = trk_src.pan;
             trk_dst.pitch = trk_src.pitch;
-            trk_dst.envLFloat = volLeft;
-            trk_dst.envRFloat = volRight;
-            trk_dst.envL = uint8_t(std::clamp<uint32_t>(uint32_t(volLeft * 768.f), 0, 255));
-            trk_dst.envR = uint8_t(std::clamp<uint32_t>(uint32_t(volRight * 768.f), 0, 255));
+            trk_dst.envL = uint8_t(std::clamp<uint32_t>(uint32_t(trk_dst.rmsLeft * 768.f), 0, 255));
+            trk_dst.envR = uint8_t(std::clamp<uint32_t>(uint32_t(trk_dst.rmsRight * 768.f), 0, 255));
             trk_dst.delay = std::max<uint8_t>(0, static_cast<uint8_t>(trk_src.delay));
             trk_dst.activeNotes = trk_src.activeNotes;
             trk_dst.activeVoiceTypes = trk_src.activeVoiceTypes;
@@ -252,5 +251,10 @@ void MP2KContext::GetVisualizerState(MP2KVisualizerState &visualizerState)
     }
 
     masterLoudnessCalculator.CalcLoudness(masterAudioBuffer);
-    masterLoudnessCalculator.GetLoudness(visualizerState.masterVolLeft, visualizerState.masterVolRight);
+    masterLoudnessCalculator.GetLoudness(
+        visualizerState.masterRmsLeft,
+        visualizerState.masterRmsRight,
+        visualizerState.masterPeakLeft,
+        visualizerState.masterPeakRight
+    );
 }

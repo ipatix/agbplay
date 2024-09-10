@@ -14,7 +14,7 @@ public:
     LoudnessCalculator &operator=(const LoudnessCalculator &) = delete;
 
     void CalcLoudness(std::span<const sample> buffer);
-    void GetLoudness(float &lVol, float &rVol);
+    void GetLoudness(float &rmsLeft, float &rmsRight, float &peakLeft, float &peakRight) const;
     void Reset();
 
 private:
@@ -24,6 +24,8 @@ private:
     float avgVolLeftSq = 0.0f;
     float avgVolRightSq = 0.0f;
 
-    float volLeft = 0.0f;
-    float volRight = 0.0f;
+    float rmsLeft = 0.0f;
+    float rmsRight = 0.0f;
+    float peakLeft = 0.0f;
+    float peakRight = 0.0f;
 };

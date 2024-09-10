@@ -954,7 +954,12 @@ void MainWindow::StatusUpdate()
         return;
 
     playbackEngine->GetVisualizerState(*visualizerState);
-    vuMeter.SetLevel(visualizerState->masterVolLeft, visualizerState->masterVolRight, 1.0f, 1.0f);
+    vuMeter.SetLevel(
+        visualizerState->masterRmsLeft,
+        visualizerState->masterRmsRight,
+        visualizerState->masterPeakLeft,
+        visualizerState->masterPeakRight
+    );
     statusWidget.setVisualizerState(*visualizerState);
 
     if (playing && playbackEngine->HasEnded()) {

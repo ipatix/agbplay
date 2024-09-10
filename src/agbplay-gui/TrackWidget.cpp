@@ -278,14 +278,18 @@ void TrackWidget::setVisualizerState(const MP2KVisualizerStateTrack &state)
             posLabel.setPalette(posCallPalette);
     }
 
-    if (oldEnvLFloat != state.envLFloat) {
-        oldEnvLFloat = state.envLFloat;
-        vuBarWidgetLeft.setLevel(state.envLFloat * 3.0f, 1.0f);
+    const float gainAdj = 3.0f;
+
+    if (oldRmsLeft != state.rmsLeft || oldPeakLeft != state.peakLeft) {
+        oldRmsLeft = state.rmsLeft;
+        oldPeakLeft = state.peakLeft;
+        vuBarWidgetLeft.setLevel(state.rmsLeft * gainAdj, state.peakLeft * gainAdj);
     }
 
-    if (oldEnvRFloat != state.envRFloat) {
-        oldEnvRFloat = state.envRFloat;
-        vuBarWidgetRight.setLevel(state.envRFloat * 3.0f, 1.0f);
+    if (oldRmsRight != state.rmsRight || oldPeakRight != state.peakRight) {
+        oldRmsRight = state.rmsRight;
+        oldPeakRight = state.peakRight;
+        vuBarWidgetRight.setLevel(state.rmsRight * gainAdj, state.peakRight * gainAdj);
     }
 
     if (oldVol != state.vol) {

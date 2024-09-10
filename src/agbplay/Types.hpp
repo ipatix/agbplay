@@ -158,8 +158,6 @@ struct sample
 struct MP2KVisualizerStateTrack
 {
     uint32_t trackPtr = 0;
-    float envLFloat = 0.0f;
-    float envRFloat = 0.0f;
     bool isCalling = false;
     bool isMuted = false;
     uint8_t vol = 100;                // range 0 to 127
@@ -173,7 +171,8 @@ struct MP2KVisualizerStateTrack
                                       //
     std::bitset<NUM_NOTES> activeNotes;
     VoiceFlags activeVoiceTypes = VoiceFlags::NONE;
-    float volLeft = 0.0f, volRight = 0.0f;
+    float rmsLeft = 0.0f, rmsRight = 0.0f;
+    float peakLeft = 0.0f, peakRight = 0.0f;
 };
 
 struct MP2KVisualizerStatePlayer
@@ -189,7 +188,8 @@ struct MP2KVisualizerState
 {
     std::vector<MP2KVisualizerStatePlayer> players;
 
-    float masterVolLeft = 0.0f, masterVolRight = 0.0f;
+    float masterRmsLeft = 0.0f, masterRmsRight = 0.0f;
+    float masterPeakLeft = 0.0f, masterPeakRight = 0.0f;
     size_t activeChannels = 0;
     uint8_t primaryPlayer = 0;
 };

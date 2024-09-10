@@ -697,7 +697,7 @@ void WindowGUI::updateWindowSize()
 void WindowGUI::updateVisualizerState()
 {
     mplay->GetVisualizerState(visualizerState);
-    meterUI->SetVol(visualizerState.masterVolLeft, visualizerState.masterVolRight);
+    meterUI->SetVol(visualizerState.masterRmsLeft, visualizerState.masterRmsRight);
     trackUI->SetState(visualizerState);
 }
 

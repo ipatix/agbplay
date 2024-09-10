@@ -17,6 +17,7 @@ public:
     virtual ~ReverbEffect();
     void Process(std::span<sample> buffer);
     void SetLevel(uint8_t level);
+    virtual void Reset();
 
     static std::unique_ptr<ReverbEffect>
         MakeReverb(ReverbType reverbType, uint8_t intensity, size_t sampleRate, uint8_t numDmaBuffers);
@@ -35,6 +36,7 @@ class ReverbGS1 : public ReverbEffect
 public:
     ReverbGS1(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers);
     ~ReverbGS1() override;
+    void Reset() override;
 
 protected:
     size_t ProcessInternal(std::span<sample> buffer) override;
@@ -46,6 +48,7 @@ class ReverbGS2 : public ReverbEffect
 public:
     ReverbGS2(uint8_t intesity, size_t streamRate, uint8_t numAgbBuffers, float rPrimFac, float rSecFac);
     ~ReverbGS2() override;
+    void Reset() override;
 
 protected:
     size_t ProcessInternal(std::span<sample> buffer) override;

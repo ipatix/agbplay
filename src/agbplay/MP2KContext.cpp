@@ -186,6 +186,12 @@ void MP2KContext::m4aSoundClear()
     sq2Channels.clear();
     waveChannels.clear();
     noiseChannels.clear();
+
+    for (MP2KPlayer &player : players) {
+        for (MP2KTrack &trk : player.tracks) {
+            trk.reverb->Reset();
+        }
+    }
 }
 
 uint8_t MP2KContext::m4aSongNumPlayerGet(uint16_t songId) const

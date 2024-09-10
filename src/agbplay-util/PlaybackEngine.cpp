@@ -302,6 +302,7 @@ void PlaybackEngine::threadWorker()
         /* Stop all players after loop fadeout (or end). */
         if (ctx->HasEnded() && !hasEnded) {
             ctx->m4aMPlayAllStop();
+            ctx->m4aSoundClear();
             hasEnded = true;
         }
     }

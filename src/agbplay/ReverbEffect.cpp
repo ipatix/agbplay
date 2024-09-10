@@ -38,6 +38,11 @@ void ReverbEffect::SetLevel(uint8_t level)
     intensity = level / 128.0f;
 }
 
+void ReverbEffect::Reset()
+{
+    std::fill(reverbBuffer.begin(), reverbBuffer.end(), sample{0.0f, 0.0f});
+}
+
 std::unique_ptr<ReverbEffect>
     ReverbEffect::MakeReverb(ReverbType reverbType, uint8_t intensity, size_t sampleRate, uint8_t numDmaBuffers)
 {
@@ -106,6 +111,12 @@ ReverbGS1::~ReverbGS1()
 {
 }
 
+void ReverbGS1::Reset()
+{
+    ReverbEffect::Reset();
+    std::fill(gsBuffer.begin(), gsBuffer.end(), sample{0.0f, 0.0f});
+}
+
 size_t ReverbGS1::ProcessInternal(std::span<sample> buffer)
 {
     std::vector<sample> &rbuf = reverbBuffer;
@@ -161,6 +172,12 @@ ReverbGS2::ReverbGS2(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers
 
 ReverbGS2::~ReverbGS2()
 {
+}
+
+void ReverbGS2::Reset()
+{
+    ReverbEffect::Reset();
+    std::fill(gs2Buffer.begin(), gs2Buffer.end(), sample{0.0f, 0.0f});
 }
 
 size_t ReverbGS2::ProcessInternal(std::span<sample> buffer)

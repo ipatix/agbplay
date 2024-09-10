@@ -93,6 +93,7 @@ private:
     void solo();
     void tutti();
     void rename();
+    void save();
 
     void updateWindowSize();
     void updateVisualizerState();

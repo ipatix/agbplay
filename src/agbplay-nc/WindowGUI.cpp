@@ -69,9 +69,11 @@ WindowGUI::WindowGUI(Profile &profile) : profile(profile)
         PLAYLIST_HEIGHT(height, width),
         PLAYLIST_WIDTH(height, width),
         PLAYLIST_YPOS(height, width),
-        PLAYLIST_XPOS(height, width),
-        profile.playlist
+        PLAYLIST_XPOS(height, width)
     );
+
+    for (const Profile::PlaylistEntry &entry : profile.playlist)
+        playUI->AddSong(entry);
 
     titleUI = std::make_unique<TitlebarGUI>(
         TITLEBAR_HEIGHT(height, width),
@@ -218,8 +220,8 @@ bool WindowGUI::Handle()
             tutti();
             break;
         case 'f':
-            Debug::print("Manual save is currently unimplemented");
-            // TODO save profile
+            Debug::print("Saving will take place on close.");
+            save();
             break;
         case '!':
             songInfo();
@@ -233,7 +235,7 @@ bool WindowGUI::Handle()
                 break;
 
             Debug::print("Exiting...");
-            // TODO save profile
+            save();
             mplay->Stop();
             return false;
         }    // end key handling switch
@@ -242,6 +244,7 @@ bool WindowGUI::Handle()
     if (play && mplay->HasEnded()) {
         if ((cursorl != PLAYLIST && cursorl != SONGLIST) || isLastSong()) {
             play = false;
+            mplay->Stop();
         } else {
             scrollDown();
             mplay->Play();
@@ -676,6 +679,12 @@ void WindowGUI::rename()
     if (delwin(renWin) == ERR) {
         throw Xcept("Error while deleting renaming window");
     }
+}
+
+void WindowGUI::save()
+{
+    profile.playlist = playUI->GetSongs();
+    profile.dirty = true;
 }
 
 void WindowGUI::updateWindowSize()

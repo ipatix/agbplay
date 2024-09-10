@@ -118,6 +118,11 @@ Profile::PlaylistEntry *SonglistGUI::GetSong()
     return &songlist[cursorPos];
 }
 
+const std::vector<Profile::PlaylistEntry> &SonglistGUI::GetSongs() const
+{
+    return songlist;
+}
+
 /*
  * -- private --
  */

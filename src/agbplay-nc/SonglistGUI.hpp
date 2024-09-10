@@ -16,7 +16,8 @@ public:
     virtual void AddSong(const Profile::PlaylistEntry &entry);
     virtual void RemoveSong();
     virtual void ClearSongs();
-    virtual Profile::PlaylistEntry *GetSong();
+    Profile::PlaylistEntry *GetSong();
+    const std::vector<Profile::PlaylistEntry> &GetSongs() const;
     void Enter();
     virtual void Leave();
     void ScrollDown();
@@ -35,7 +36,5 @@ protected:
     uint32_t contentHeight;
     uint32_t contentWidth;
     bool cursorVisible;
-
-private:
     std::vector<Profile::PlaylistEntry> songlist;
 };

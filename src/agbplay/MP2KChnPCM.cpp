@@ -55,7 +55,7 @@ MP2KChnPCM::MP2KChnPCM(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADS
         type = Type::CAMELOT_ADPCM;
         // flip it to it's intended length
         this->sInfo.endPos = -this->sInfo.endPos;
-        if (!ctx.rom.ValidRange(sInfo.samplePos, 16 + sInfo.endPos / 2u)) {
+        if (!ctx.rom.ValidRange(sInfo.samplePos, 16 + this->sInfo.endPos / 2u)) {
             Debug::print("Sample Error: ADPCM data reaches beyond end of file: [{:#08x}]", sInfo.samplePos);
             envState = EnvState::DEAD;
             return;

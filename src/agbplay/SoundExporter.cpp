@@ -4,6 +4,7 @@
 #include "Debug.hpp"
 #include "MP2KContext.hpp"
 #include "OS.hpp"
+#include "Profile.hpp"
 #include "Util.hpp"
 #include "Xcept.hpp"
 

@@ -1,14 +1,10 @@
 #pragma once
 
-#include "Profile.hpp"
-#include "SoundData.hpp"
-
 #include <cstdint>
 #include <filesystem>
-#include <string>
-#include <vector>
 
 struct sf_private_tag;
+struct Profile;
 
 // TODO this class does not really hold useful state, remove class and replace
 // with functions only.

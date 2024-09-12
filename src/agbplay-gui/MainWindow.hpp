@@ -20,6 +20,7 @@
 
 class PlaybackEngine;
 class ProfileManager;
+struct Settings;
 struct Profile;
 namespace std
 {
@@ -137,6 +138,7 @@ private:
     /* MP2K Objects */
     QTimer statusUpdateTimer{this};
     std::unique_ptr<ProfileManager> pm;
+    std::unique_ptr<Settings> settings;
     std::shared_ptr<Profile> profile;
     std::unique_ptr<PlaybackEngine> playbackEngine;
     std::unique_ptr<MP2KVisualizerState> visualizerState;

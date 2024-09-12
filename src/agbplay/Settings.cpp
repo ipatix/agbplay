@@ -8,6 +8,7 @@
 #include <nlohmann/json.hpp>
 
 static const std::filesystem::path CONFIG_PATH = OS::GetLocalConfigDirectory() / "agbplay" / "config.json";
+static const std::filesystem::path DEFAULT_EXPORT_DIRECTORY = OS::GetMusicDirectory() / "agbplay";
 static const uint32_t DEFAULT_SAMPLERATE = 48000;
 static const bool DEFAULT_QUICK_EXPORT_ASK = true;
 
@@ -22,7 +23,7 @@ void Settings::Load()
             /* If the config does not exist, this is a normal use case and we silently initialize a standard config. */
             playbackSampleRate = DEFAULT_SAMPLERATE;
             exportSampleRate = DEFAULT_SAMPLERATE;
-            exportQuickExportDirectory = OS::GetMusicDirectory();
+            exportQuickExportDirectory = DEFAULT_EXPORT_DIRECTORY;
             exportQuickExportAsk = DEFAULT_QUICK_EXPORT_ASK;
             return;
         }
@@ -49,7 +50,7 @@ void Settings::Load()
         exportQuickExportDirectory =
             reinterpret_cast<const char8_t *>(std::string(j["exportQuickExportDirectory"]).c_str());
     } else {
-        exportQuickExportDirectory = OS::GetMusicDirectory();
+        exportQuickExportDirectory = DEFAULT_EXPORT_DIRECTORY;
     }
 
     if (j.contains("exportQuickExportAsk") && j["exportQuickExportAsk"].is_boolean()) {

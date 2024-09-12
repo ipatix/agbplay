@@ -3,6 +3,7 @@
 #include "ColorDef.hpp"
 #include "Constants.hpp"
 #include "Debug.hpp"
+#include "Settings.hpp"
 #include "SoundExporter.hpp"
 #include "Util.hpp"
 #include "Xcept.hpp"
@@ -108,6 +109,8 @@ WindowGUI::WindowGUI(Profile &profile) : profile(profile)
 
     profile.dirty = true;
     trackUI->SetTitle("0000");
+
+    settings.Load();
 }
 
 WindowGUI::~WindowGUI()
@@ -728,11 +731,12 @@ void WindowGUI::exportLaunch(bool benchmarkOnly, bool separate)
     exportBusy.store(true);
 
     exportThread = std::make_unique<std::thread>(
-        [this](Profile profile, bool tBenchmarkOnly, bool tSeparate) {
-            SoundExporter se(SoundExporter::DefaultDirectory(), profile, tBenchmarkOnly, tSeparate);
+        [this](std::filesystem::path dir, Profile profile, bool tBenchmarkOnly, bool tSeparate) {
+            SoundExporter se(dir, profile, tBenchmarkOnly, tSeparate);
             se.Export();
             exportBusy.store(false);
         },
+        settings.exportQuickExportDirectory,
         profileToExport,
         benchmarkOnly,
         separate

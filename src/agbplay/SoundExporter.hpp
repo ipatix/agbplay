@@ -16,7 +16,6 @@ public:
     SoundExporter(const SoundExporter &) = delete;
     SoundExporter &operator=(const SoundExporter &) = delete;
 
-    static std::filesystem::path DefaultDirectory();
     void Export();
 
 private:

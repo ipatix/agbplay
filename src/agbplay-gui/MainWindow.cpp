@@ -9,6 +9,7 @@
 #include "ProfileManager.hpp"
 #include "Rom.hpp"
 #include "SelectProfileDialog.hpp"
+#include "Settings.hpp"
 #include "SoundExporter.hpp"
 
 #include <algorithm>
@@ -39,6 +40,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     pm = std::make_unique<ProfileManager>();
     pm->LoadProfiles();
+
+    settings = std::make_unique<Settings>();
+    settings->Load();
+
     connect(&statusUpdateTimer, &QTimer::timeout, this, &MainWindow::StatusUpdate);
     statusUpdateTimer.setTimerType(Qt::PreciseTimer);
     statusUpdateTimer.setInterval(16);
@@ -742,7 +747,7 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
     /* Select directory to export to. */
     QFileDialog fileDialog{this};
     fileDialog.setFileMode(QFileDialog::Directory);
-    fileDialog.setDirectory(QString::fromStdWString(SoundExporter::DefaultDirectory().wstring()));
+    fileDialog.setDirectory(QString::fromStdWString(settings->exportQuickExportDirectory.wstring()));
 
     if (!fileDialog.exec())
         return;

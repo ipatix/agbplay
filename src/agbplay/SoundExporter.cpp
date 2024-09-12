@@ -30,11 +30,6 @@ SoundExporter::SoundExporter(
 {
 }
 
-std::filesystem::path SoundExporter::DefaultDirectory()
-{
-    return OS::GetMusicDirectory() / "agbplay";
-}
-
 void SoundExporter::Export()
 {
     Debug::print("Starting export to directory: {}", directory.string());

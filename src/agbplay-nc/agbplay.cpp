@@ -2,6 +2,7 @@
 #include "MP2KScanner.hpp"
 #include "OS.hpp"
 #include "ProfileManager.hpp"
+#include "Settings.hpp"
 #include "WindowGUI.hpp"
 #include "Xcept.hpp"
 

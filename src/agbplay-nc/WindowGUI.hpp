@@ -53,6 +53,7 @@
 #include "PlaylistGUI.hpp"
 #include "Profile.hpp"
 #include "RomviewGUI.hpp"
+#include "Settings.hpp"
 #include "SonglistGUI.hpp"
 #include "TitlebarGUI.hpp"
 #include "TrackviewGUI.hpp"
@@ -120,6 +121,7 @@ private:
     // other
     Profile &profile;
     MP2KVisualizerState visualizerState;
+    Settings settings;
 
     // ncurses windows
     WINDOW *containerWin;

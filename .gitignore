@@ -15,7 +15,8 @@ asan.log*
 /gmon.out
 /analysis*
 
-# ignore build directories
+# ignore build directories and files
+/CMakeLists.txt.user
 /build
 /build_dbg
 

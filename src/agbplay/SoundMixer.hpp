@@ -23,7 +23,6 @@ public:
 
     void Process();
     size_t GetSamplesPerBuffer() const;
-    uint32_t GetSampleRate() const;
     void ResetFade();
     void StartFadeOut(float millis);
     void StartFadeIn(float millis);

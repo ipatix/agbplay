@@ -149,11 +149,6 @@ size_t SoundMixer::GetSamplesPerBuffer() const
     return samplesPerBuffer;
 }
 
-uint32_t SoundMixer::GetSampleRate() const
-{
-    return sampleRate;
-}
-
 void SoundMixer::ResetFade()
 {
     fadePos = 0.0f;

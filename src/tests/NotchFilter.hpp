@@ -1,10 +1,11 @@
-#include <numbers>
 #include <cmath>
 #include <fmt/core.h>
+#include <numbers>
 
-template<typename OT, typename IT>
-struct NotchFilter {
-    void setParameters(IT samplerate, IT notchFreq, IT Q) {
+template<typename OT, typename IT> struct NotchFilter
+{
+    void setParameters(IT samplerate, IT notchFreq, IT Q)
+    {
         const IT omega0 = 2.0f * std::numbers::pi_v<IT> * notchFreq / samplerate;
         const IT alpha = std::sin(omega0) * std::sinh(0.5f / Q);
 
@@ -28,14 +29,15 @@ struct NotchFilter {
         zfb_2 = 0.0f;
     }
 
-    OT process(OT input) {
-        // biquad: direct form ii: transposed 
+    OT process(OT input)
+    {
+        // biquad: direct form ii: transposed
         const IT output = input * b0 + zfb_1;
         zfb_1 = input * b1 + zfb_2 - a1 * output;
         zfb_2 = input * b2 - a2 * output;
-        //const T output = std::fma(input, b0, zfb_1);
-        //zfb_1 = std::fma(input, b1, std::fma(-a1, output, zfb_2));
-        //zfb_2 = std::fma(input, b2, -a2 * output);
+        // const T output = std::fma(input, b0, zfb_1);
+        // zfb_1 = std::fma(input, b1, std::fma(-a1, output, zfb_2));
+        // zfb_2 = std::fma(input, b2, -a2 * output);
         return static_cast<OT>(output);
     }
 

@@ -1,23 +1,20 @@
+#include "NotchFilter.hpp"
 #include "Resampler.hpp"
 
-#include "NotchFilter.hpp"
-
 #include <algorithm>
-#include <numbers>
-#include <vector>
 #include <cmath>
 #include <cstdint>
-#include <span>
-
 #include <fmt/core.h>
+#include <numbers>
+#include <span>
+#include <vector>
 
 typedef float PRECISION;
 const float SAMPLERATE = 48000.0f;
 const float TEST_LEN_S = 2.0f;
 const float TEST_FREQ = 22000.0f;
 
-template<typename T>
-void printSig(std::span<T> buffer)
+template<typename T> void printSig(std::span<T> buffer)
 {
     for (size_t i = 0; i < buffer.size(); i++)
         fmt::print("signal[{}] = {}\n", i, buffer[i]);
@@ -28,17 +25,15 @@ long double toDB(long double x)
     return 20.0 * std::log10(x);
 }
 
-template<typename T>
-void genSine(std::span<T> buffer, T sampleRate, T toneFreq)
+template<typename T> void genSine(std::span<T> buffer, T sampleRate, T toneFreq)
 {
     for (size_t i = 0; i < buffer.size(); i++) {
-        const T omega0 = 2.0f * std::numbers::pi_v<T> * (toneFreq/sampleRate);
+        const T omega0 = 2.0f * std::numbers::pi_v<T> * (toneFreq / sampleRate);
         buffer[i] = std::sin(static_cast<T>(i) * omega0);
     }
 }
 
-template<typename T>
-void applyWindow(std::span<T> buffer)
+template<typename T> void applyWindow(std::span<T> buffer)
 {
     const T scale = std::numbers::pi_v<T> / static_cast<T>(buffer.size());
     for (size_t i = 0; i < buffer.size(); i++) {
@@ -46,8 +41,7 @@ void applyWindow(std::span<T> buffer)
     }
 }
 
-template<typename T>
-void applyNotch(std::span<T> buffer, T sampleRate, T filterFreq)
+template<typename T> void applyNotch(std::span<T> buffer, T sampleRate, T filterFreq)
 {
     const T Q = 10.0f;
 
@@ -59,8 +53,7 @@ void applyNotch(std::span<T> buffer, T sampleRate, T filterFreq)
     }
 }
 
-template<typename T>
-long double calcRms(std::span<T> buffer)
+template<typename T> long double calcRms(std::span<T> buffer)
 {
     long double square = 0.0;
     for (size_t i = 100; i < buffer.size(); i++) {
@@ -82,7 +75,7 @@ int main()
 
     size_t pos = 0;
 
-    auto sampleFetchFunc = [&](std::vector<float>& fetchBuffer, size_t samplesRequired) {
+    auto sampleFetchFunc = [&](std::vector<float> &fetchBuffer, size_t samplesRequired) {
         if (fetchBuffer.size() >= samplesRequired)
             return true;
 
@@ -118,8 +111,8 @@ int main()
     res.Process(resampledBuffer, 1.0f / resampledRatio, sampleFetchFunc);
     fmt::print("rms of resampled sine: {:.4f} dB\n", toDB(calcRms<PRECISION>(resampledBuffer)));
 
-    //applyWindow<PRECISION>(buffer);
-    //fmt::print("rms of window: {:.4f} dB\n", toDB(calcRms<PRECISION>(buffer)));
+    // applyWindow<PRECISION>(buffer);
+    // fmt::print("rms of window: {:.4f} dB\n", toDB(calcRms<PRECISION>(buffer)));
 
     applyNotch<PRECISION>(buffer, SAMPLERATE, TEST_FREQ);
     applyNotch<PRECISION>(resampledBuffer, resampledRate, TEST_FREQ);

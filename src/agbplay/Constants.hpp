@@ -10,7 +10,6 @@
 // for increased quality we process in subframes (including the base frame)
 #define INTERFRAMES 4
 
-#define STREAM_SAMPLERATE  48000
 #define SONG_FADE_OUT_TIME 10000
 #define SONG_FINISH_TIME   1000
 
@@ -18,3 +17,5 @@
 #define WINDOW_MIN_HEIGHT 24
 #define WINDOW_MAX_WIDTH  512
 #define WINDOW_MAX_HEIGHT 128
+
+#define LOUDNESS_LP_FREQ 5.0f

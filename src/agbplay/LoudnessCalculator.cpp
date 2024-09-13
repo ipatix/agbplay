@@ -7,7 +7,8 @@
 #include <cmath>
 #include <numbers>
 
-LoudnessCalculator::LoudnessCalculator(const float lowpassFreq) : lpAlpha(calcAlpha(lowpassFreq))
+LoudnessCalculator::LoudnessCalculator(float lowpassFreq, uint32_t sampleRate) :
+    lpAlpha(calcAlpha(lowpassFreq, sampleRate))
 {
 }
 
@@ -51,9 +52,9 @@ void LoudnessCalculator::Reset()
     peakRight = 0.0f;
 }
 
-float LoudnessCalculator::calcAlpha(float lowpassFreq)
+float LoudnessCalculator::calcAlpha(float lowpassFreq, uint32_t sampleRate)
 {
     const float rc = 1.0f / (lowpassFreq * 2.0f * std::numbers::pi_v<float>);
-    const float dt = 1.0f / static_cast<float>(STREAM_SAMPLERATE);
+    const float dt = 1.0f / static_cast<float>(sampleRate);
     return dt / (rc + dt);
 }

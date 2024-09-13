@@ -863,7 +863,7 @@ void MP2KChnPSGNoise::Process(std::span<sample> buffer, MixingArgs &args)
         return rs->Process({&fetchBuffer[i], samplesToFetch}, interStep, cbNearest);
     };
 
-    srs->Process(ctx.mixer.scratchBuffer, noiseFreq / float(STREAM_SAMPLERATE), cbSinc);
+    srs->Process(ctx.mixer.scratchBuffer, noiseFreq / float(ctx.sampleRate), cbSinc);
 
     for (size_t i = 0; i < buffer.size(); i++) {
         const float samp = ctx.mixer.scratchBuffer[i];

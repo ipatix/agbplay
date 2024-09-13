@@ -682,7 +682,7 @@ void MainWindow::LoadGame()
 
     UpdateSoundMode();
 
-    playbackEngine = std::make_unique<PlaybackEngine>(*profile);
+    playbackEngine = std::make_unique<PlaybackEngine>(settings->playbackSampleRate, *profile);
     visualizerState = std::make_unique<MP2KVisualizerState>();
 
     exportSongsAction->setEnabled(true);
@@ -805,12 +805,19 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
     // TODO implement benchmark flag
     // TODO implement progress bar
     exportThread = std::make_unique<std::thread>(
-        [this](std::filesystem::path tDirectory, Profile tProfile, bool tBenchmarkOnly, bool tSeparateTracks) {
-            SoundExporter se(tDirectory, tProfile, tBenchmarkOnly, tSeparateTracks);
+        [this](
+            std::filesystem::path tDirectory,
+            uint32_t tSampleRate,
+            Profile tProfile,
+            bool tBenchmarkOnly,
+            bool tSeparateTracks
+        ) {
+            SoundExporter se(tDirectory, tSampleRate, tProfile, tBenchmarkOnly, tSeparateTracks);
             se.Export();
             exportBusy = false;
         },
         directory,
+        settings->exportSampleRate,
         profileToExport,
         benchmarkOnly,
         separateTracks

@@ -1,11 +1,13 @@
 #include "MP2KTrack.hpp"
 
 #include "MP2KChn.hpp"
+#include "MP2KContext.hpp"
 #include "ReverbEffect.hpp"
 
 #include <cassert>
 
-MP2KTrack::MP2KTrack(uint8_t trackIdx) : trackIdx(trackIdx)
+MP2KTrack::MP2KTrack(const MP2KContext &ctx, uint8_t trackIdx) :
+    loudnessCalculator(LOUDNESS_LP_FREQ, ctx.sampleRate), trackIdx(trackIdx)
 {
     Init(0);
 }

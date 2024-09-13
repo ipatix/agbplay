@@ -16,11 +16,12 @@
 enum class MODT : int { PITCH = 0, VOL, PAN };
 
 struct MP2KChn;
+struct MP2KContext;
 class ReverbEffect;
 
 struct MP2KTrack
 {
-    MP2KTrack(uint8_t trackIdx);
+    MP2KTrack(const MP2KContext &ctx, uint8_t trackIdx);
     MP2KTrack(const MP2KTrack &) = delete;
     MP2KTrack(MP2KTrack &&) = default;
     MP2KTrack &operator=(const MP2KTrack &) = delete;
@@ -37,7 +38,7 @@ struct MP2KTrack
     VoiceFlags activeVoiceTypes;
     std::vector<sample> audioBuffer;
     std::unique_ptr<ReverbEffect> reverb;
-    LoudnessCalculator loudnessCalculator{5.0f};
+    LoudnessCalculator loudnessCalculator;
 
     size_t pos;
     size_t returnPos[TRACK_CALL_STACK_SIZE];

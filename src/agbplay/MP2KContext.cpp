@@ -1,11 +1,13 @@
 #include "MP2KContext.hpp"
 
+#include "Constants.hpp"
 #include "Debug.hpp"
 
 #include <algorithm>
 #include <cassert>
 
 MP2KContext::MP2KContext(
+    uint32_t sampleRate,
     const Rom &rom,
     const MP2KSoundMode &mp2kSoundMode,
     const AgbplaySoundMode &agbplaySoundMode,
@@ -14,16 +16,18 @@ MP2KContext::MP2KContext(
 ) :
     rom(rom),
     reader(*this),
-    mixer(*this, STREAM_SAMPLERATE, 1.0f),
+    mixer(*this, sampleRate, 1.0f),
+    sampleRate(sampleRate),
     mp2kSoundMode(mp2kSoundMode),
     agbplaySoundMode(agbplaySoundMode),
     songTableInfo(songTableInfo),
-    memaccArea(256)
+    memaccArea(256),
+    masterLoudnessCalculator(LOUDNESS_LP_FREQ, sampleRate)
 {
     assert(playerTableInfo.size() <= 32);
 
     for (size_t i = 0; i < playerTableInfo.size(); i++)
-        players.emplace_back(playerTableInfo.at(i), static_cast<uint8_t>(i));
+        players.emplace_back(*this, playerTableInfo.at(i), static_cast<uint8_t>(i));
 
     mixer.UpdateFixedModeRate();
     mixer.UpdateReverb();

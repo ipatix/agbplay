@@ -105,12 +105,12 @@ WindowGUI::WindowGUI(Profile &profile) : profile(profile)
         VUMETER_XPOS(height, width)
     );
 
-    mplay = std::make_unique<PlaybackEngine>(profile);
+    settings.Load();
+
+    mplay = std::make_unique<PlaybackEngine>(settings.playbackSampleRate, profile);
 
     profile.dirty = true;
     trackUI->SetTitle("0000");
-
-    settings.Load();
 }
 
 WindowGUI::~WindowGUI()
@@ -731,12 +731,13 @@ void WindowGUI::exportLaunch(bool benchmarkOnly, bool separate)
     exportBusy.store(true);
 
     exportThread = std::make_unique<std::thread>(
-        [this](std::filesystem::path dir, Profile profile, bool tBenchmarkOnly, bool tSeparate) {
-            SoundExporter se(dir, profile, tBenchmarkOnly, tSeparate);
+        [this](std::filesystem::path dir, uint32_t sampleRate, Profile profile, bool tBenchmarkOnly, bool tSeparate) {
+            SoundExporter se(dir, sampleRate, profile, tBenchmarkOnly, tSeparate);
             se.Export();
             exportBusy.store(false);
         },
         settings.exportQuickExportDirectory,
+        settings.exportSampleRate,
         profileToExport,
         benchmarkOnly,
         separate

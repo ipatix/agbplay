@@ -4,11 +4,11 @@
 #include "ReverbEffect.hpp"
 #include "Rom.hpp"    // TODO remove once Rom is deglobalized
 
-MP2KPlayer::MP2KPlayer(const PlayerInfo &playerInfo, uint8_t playerIdx) :
+MP2KPlayer::MP2KPlayer(const MP2KContext &ctx, const PlayerInfo &playerInfo, uint8_t playerIdx) :
     trackLimit(playerInfo.maxTracks), playerIdx(playerIdx), usePriority(playerInfo.usePriority)
 {
     for (uint8_t i = 0; i < trackLimit; i++)
-        tracks.emplace_back(i);
+        tracks.emplace_back(ctx, i);
 }
 
 void MP2KPlayer::Init(const Rom &rom, size_t songHeaderPos)

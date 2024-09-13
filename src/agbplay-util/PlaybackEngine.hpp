@@ -17,7 +17,7 @@
 class PlaybackEngine
 {
 public:
-    PlaybackEngine(const Profile &profile);
+    PlaybackEngine(uint32_t sampleRate, const Profile &profile);
     PlaybackEngine(const PlaybackEngine &) = delete;
     PlaybackEngine &operator=(const PlaybackEngine &) = delete;
     ~PlaybackEngine();
@@ -35,7 +35,7 @@ public:
     void GetVisualizerState(MP2KVisualizerState &visualizerState);
 
 private:
-    void InitContext();
+    void InitContext(uint32_t sampleRate);
     void threadWorker();
     void updateVisualizerState();
     void InvokeAsPlayer(const std::function<void(void)> &func);

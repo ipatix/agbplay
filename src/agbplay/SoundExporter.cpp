@@ -24,9 +24,13 @@
  */
 
 SoundExporter::SoundExporter(
-    const std::filesystem::path &directory, const Profile &profile, bool benchmarkOnly, bool seperate
+    const std::filesystem::path &directory,
+    uint32_t sampleRate,
+    const Profile &profile,
+    bool benchmarkOnly,
+    bool seperate
 ) :
-    directory(directory), profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
+    directory(directory), sampleRate(sampleRate), profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
 {
 }
 
@@ -106,7 +110,7 @@ void SoundExporter::writeSilence(SNDFILE *ofile, double seconds)
 {
     if (seconds <= 0.0)
         return;
-    size_t samples = static_cast<size_t>(std::round(STREAM_SAMPLERATE * seconds));
+    size_t samples = static_cast<size_t>(std::round(sampleRate * seconds));
     std::vector<sample> silence(samples, {0.0f, 0.0f});
     sf_writef_float(ofile, reinterpret_cast<float *>(silence.data()), static_cast<sf_count_t>(silence.size()));
 }
@@ -114,6 +118,7 @@ void SoundExporter::writeSilence(SNDFILE *ofile, double seconds)
 size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t uid)
 {
     MP2KContext ctx(
+        sampleRate,
         Rom::Instance(),
         profile.mp2kSoundModePlayback,
         profile.agbplaySoundMode,
@@ -138,7 +143,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
 
             for (size_t i = 0; i < nTracks; i++) {
                 memset(&oinfos[i], 0, sizeof(oinfos[i]));
-                oinfos[i].samplerate = STREAM_SAMPLERATE;
+                oinfos[i].samplerate = sampleRate;
                 oinfos[i].channels = 2;    // stereo
                 oinfos[i].format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
                 std::filesystem::path finalFilePath = filePath;
@@ -183,7 +188,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
         } else {
             SF_INFO oinfo;
             memset(&oinfo, 0, sizeof(oinfo));
-            oinfo.samplerate = STREAM_SAMPLERATE;
+            oinfo.samplerate = sampleRate;
             oinfo.channels = 2;    // sterep
             oinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
             std::filesystem::path finalFilePath = filePath;

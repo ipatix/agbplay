@@ -12,17 +12,24 @@ struct Profile;
 class SoundExporter
 {
 public:
-    SoundExporter(const std::filesystem::path &directory, const Profile &profile, bool benchmarkOnly, bool seperate);
+    SoundExporter(
+        const std::filesystem::path &directory,
+        uint32_t sampleRate,
+        const Profile &profile,
+        bool benchmarkOnly,
+        bool seperate
+    );
     SoundExporter(const SoundExporter &) = delete;
     SoundExporter &operator=(const SoundExporter &) = delete;
 
     void Export();
 
 private:
-    static void writeSilence(sf_private_tag *ofile, double seconds);
+    void writeSilence(sf_private_tag *ofile, double seconds);
     size_t exportSong(const std::filesystem::path &filePath, uint16_t uid);
 
     const std::filesystem::path directory;
+    const uint32_t sampleRate;
     const Profile &profile;
 
     const bool benchmarkOnly;

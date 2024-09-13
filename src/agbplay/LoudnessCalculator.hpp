@@ -3,12 +3,13 @@
 #include "Types.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <span>
 
 class LoudnessCalculator
 {
 public:
-    LoudnessCalculator(const float lowpassFreq);
+    LoudnessCalculator(float lowpassFreq, uint32_t sampleRate);
     LoudnessCalculator(const LoudnessCalculator &) = delete;
     LoudnessCalculator(LoudnessCalculator &&) = default;
     LoudnessCalculator &operator=(const LoudnessCalculator &) = delete;
@@ -18,7 +19,7 @@ public:
     void Reset();
 
 private:
-    static float calcAlpha(float lowpassFreq);
+    static float calcAlpha(float lowpassFreq, uint32_t sampleRate);
 
     float lpAlpha;
     float avgVolLeftSq = 0.0f;

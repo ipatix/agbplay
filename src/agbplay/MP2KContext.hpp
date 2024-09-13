@@ -8,6 +8,7 @@
 #include "SequenceReader.hpp"
 #include "SoundMixer.hpp"
 
+#include <cstdint>
 #include <list>
 #include <vector>
 
@@ -19,6 +20,7 @@
 struct MP2KContext
 {
     MP2KContext(
+        uint32_t sampleRate,
         const Rom &rom,
         const MP2KSoundMode &mp2kSoundMode,
         const AgbplaySoundMode &agbplaySoundMode,
@@ -55,13 +57,14 @@ struct MP2KContext
     const Rom &rom;
     SequenceReader reader;
     SoundMixer mixer;
+    const uint32_t sampleRate;
     MP2KSoundMode mp2kSoundMode;
     AgbplaySoundMode agbplaySoundMode;
     SongTableInfo songTableInfo;
     std::vector<MP2KPlayer> players;
     std::vector<uint8_t> memaccArea;    // TODO, this will have to be accessible from outside for emulator support
     std::vector<sample> masterAudioBuffer;
-    LoudnessCalculator masterLoudnessCalculator{5.0f};
+    LoudnessCalculator masterLoudnessCalculator;
 
     // sound channels
     std::list<MP2KChnPCM> sndChannels;

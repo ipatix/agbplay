@@ -54,9 +54,9 @@ const std::vector<PaHostApiTypeId> PlaybackEngine::hostApiPriority = {
  * public PlaybackEngine
  */
 
-PlaybackEngine::PlaybackEngine(const Profile &profile) : profile(profile)
+PlaybackEngine::PlaybackEngine(uint32_t sampleRate, const Profile &profile) : profile(profile)
 {
-    InitContext();
+    InitContext(sampleRate);
     ctx->m4aSongNumStart(0);
     ctx->m4aSongNumStop(0);
     portaudioOpen();
@@ -267,9 +267,10 @@ void PlaybackEngine::GetVisualizerState(MP2KVisualizerState &visualizerState)
  * private PlaybackEngine
  */
 
-void PlaybackEngine::InitContext()
+void PlaybackEngine::InitContext(uint32_t sampleRate)
 {
     ctx = std::make_unique<MP2KContext>(
+        sampleRate,
         Rom::Instance(),
         profile.mp2kSoundModePlayback,
         profile.agbplaySoundMode,
@@ -419,7 +420,7 @@ void PlaybackEngine::portaudioOpen()
         portaudio::StreamParameters pars(
             portaudio::DirectionSpecificStreamParameters::null(),
             outPars,
-            ctx->mixer.GetSampleRate(),
+            ctx->sampleRate,
             paFramesPerBufferUnspecified,
             paNoFlag
         );

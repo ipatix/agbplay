@@ -8,10 +8,11 @@
 #include <vector>
 
 class Rom;
+struct MP2KContext;
 
 struct MP2KPlayer
 {
-    MP2KPlayer(const PlayerInfo &playerInfo, uint8_t playerIdx);
+    MP2KPlayer(const MP2KContext &ctx, const PlayerInfo &playerInfo, uint8_t playerIdx);
     MP2KPlayer(const MP2KPlayer &) = delete;
     MP2KPlayer(MP2KPlayer &&) = default;
     MP2KPlayer &operator=(const MP2KPlayer &) = delete;

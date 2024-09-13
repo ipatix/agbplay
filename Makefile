@@ -1,4 +1,4 @@
-.PHONY: all clean
+.PHONY: all clean format
 
 all: release
 
@@ -15,3 +15,6 @@ debug:
 
 install:
 	cmake --install build
+
+format:
+	clang-format -i src/*/*.hpp src/*/*.cpp

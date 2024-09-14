@@ -90,8 +90,6 @@ bool SincResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
     }
 
     fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
-    /* not sure if this is needed, but if not inserted automatically, we may get performance penalties. */
-    _mm256_zeroupper();
     return continuePlayback;
 }
 
@@ -192,7 +190,6 @@ bool BlepResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
     }
 
     fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
-    _mm256_zeroupper();
     return continuePlayback;
 }
 
@@ -267,7 +264,6 @@ bool BlampResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const 
     }
 
     fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
-    _mm256_zeroupper();
     return continuePlayback;
 }
 

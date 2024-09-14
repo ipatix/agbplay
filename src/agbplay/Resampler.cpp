@@ -258,12 +258,12 @@ static const std::vector<float> win_lut = []() {
 }();
 */
 
-float SincResampler::fast_sinf(float t)
+inline float SincResampler::fast_sinf(float t)
 {
     return SincResampler::fast_cosf(t - float(M_PI / 2.0));
 }
 
-float SincResampler::fast_cosf(float t)
+inline float SincResampler::fast_cosf(float t)
 {
     t = std::abs(t);
     t *= float(double(INTERP_FILTER_LUT_SIZE) / (2.0 * M_PI));
@@ -274,7 +274,7 @@ float SincResampler::fast_cosf(float t)
     return cosLut[left_index] + fraction * (cosLut[right_index] - cosLut[left_index]);
 }
 
-float SincResampler::fast_sincf(float t)
+inline float SincResampler::fast_sincf(float t)
 {
     t = std::abs(t);
     // assert(t <= INTERP_FILTER_SIZE);
@@ -285,7 +285,7 @@ float SincResampler::fast_sincf(float t)
     return sincLut[left_index] + fraction * (sincLut[right_index] - sincLut[left_index]);
 }
 
-float SincResampler::window_func(float t)
+inline float SincResampler::window_func(float t)
 {
     // assert(t >= -float(INTERP_FILTER_SIZE));
     // assert(t <= +float(INTERP_FILTER_SIZE));
@@ -383,7 +383,7 @@ const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE + 2> BlepResampler::Si
     return l;
 }();
 
-float BlepResampler::fast_Si(float t)
+inline float BlepResampler::fast_Si(float t)
 {
     float signed_t = t;
     t = std::abs(t);
@@ -485,7 +485,7 @@ const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE + 2> BlampResampler::T
     return l;
 }();
 
-float BlampResampler::fast_Ti(float t)
+inline float BlampResampler::fast_Ti(float t)
 {
     t = std::abs(t);
     const float old_t = t;

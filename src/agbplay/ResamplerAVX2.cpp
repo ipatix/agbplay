@@ -93,12 +93,12 @@ bool SincResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
     return continuePlayback;
 }
 
-__m256 SincResamplerAVX2::fast_sinf(__m256 t)
+inline __m256 SincResamplerAVX2::fast_sinf(__m256 t)
 {
     return SincResamplerAVX2::fast_cosf(_mm256_sub_ps(t, _mm256_set1_ps(float(M_PI / 2.0))));
 }
 
-__m256 SincResamplerAVX2::fast_cosf(__m256 t)
+inline __m256 SincResamplerAVX2::fast_cosf(__m256 t)
 {
     t = avx2_abs(t);
     t = _mm256_mul_ps(t, _mm256_set1_ps(float(double(INTERP_FILTER_LUT_SIZE) / (2.0 * M_PI))));
@@ -113,7 +113,7 @@ __m256 SincResamplerAVX2::fast_cosf(__m256 t)
     return _mm256_add_ps(leftFetch, _mm256_mul_ps(fraction, _mm256_sub_ps(rightFetch, leftFetch)));
 }
 
-__m256 SincResamplerAVX2::fast_sincf(__m256 t)
+inline __m256 SincResamplerAVX2::fast_sincf(__m256 t)
 {
     t = avx2_abs(t);
     t = _mm256_mul_ps(t, _mm256_set1_ps(float(double(INTERP_FILTER_LUT_SIZE) / double(INTERP_FILTER_SIZE))));
@@ -125,7 +125,7 @@ __m256 SincResamplerAVX2::fast_sincf(__m256 t)
     return _mm256_add_ps(leftFetch, _mm256_mul_ps(fraction, _mm256_sub_ps(rightFetch, leftFetch)));
 }
 
-__m256 SincResamplerAVX2::window_func(__m256 t)
+inline __m256 SincResamplerAVX2::window_func(__m256 t)
 {
     t = avx2_abs(t);
     t = _mm256_mul_ps(t, _mm256_set1_ps(float(double(INTERP_FILTER_LUT_SIZE) / double(INTERP_FILTER_SIZE))));
@@ -193,7 +193,7 @@ bool BlepResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
     return continuePlayback;
 }
 
-__m256 BlepResamplerAVX2::fast_Si(__m256 t)
+inline __m256 BlepResamplerAVX2::fast_Si(__m256 t)
 {
     __m256 signed_t = t;
     t = avx2_abs(t);
@@ -267,7 +267,7 @@ bool BlampResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const 
     return continuePlayback;
 }
 
-__m256 BlampResamplerAVX2::fast_Ti(__m256 t)
+inline __m256 BlampResamplerAVX2::fast_Ti(__m256 t)
 {
     t = avx2_abs(t);
     __m256 old_t = t;

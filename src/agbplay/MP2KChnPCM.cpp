@@ -19,7 +19,7 @@
 MP2KChnPCM::MP2KChnPCM(MP2KContext &ctx, MP2KTrack *track, SampleInfo sInfo, ADSR env, const Note &note, bool fixed) :
     MP2KChn(track, note, env), ctx(ctx), sInfo(sInfo), fixed(fixed)
 {
-    if (sInfo.loopEnabled == true && sInfo.loopPos == 0 && sInfo.endPos == 0) {
+    if (sInfo.loopPos == 0 && sInfo.endPos == 0) {
         if (!ctx.rom.ValidRange(sInfo.samplePos, 16 + 8)) {
             Debug::print("Sample Error: Sample data reaches beyond end of file: [{:#08x}]", sInfo.samplePos);
             envState = EnvState::DEAD;

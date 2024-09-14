@@ -427,6 +427,15 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
         sinfo.loopPos = rom.ReadU32(samplePos + 8);
         sinfo.endPos = rom.ReadU32(samplePos + 12);
 
+        /* Fix malformed loops found in some romhacks */
+        if (sinfo.loopPos > sinfo.endPos) {
+            Debug::print("Sample Warning: Loop start is after loop end, instrument: [{:#08X}]", samplePos);
+            sinfo.loopPos = 0;
+        }
+        if (sinfo.loopPos == sinfo.endPos) {
+            sinfo.loopEnabled = false;
+        }
+
         if (!rom.ValidRange(samplePos, 16)) {
             Debug::print("Sample Error: Sample header reaches beyond end of file: instrument: [{:08X}]", instrPos);
             return;

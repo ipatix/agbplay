@@ -76,11 +76,11 @@ bool NearestResampler::Process(std::span<float> buffer, float phaseInc, const Fe
     samplesRequired += 1;
     const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
 
-    size_t fi = 0;
+    int32_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
-        buffer[i] = fetchBuffer[fi];
+        buffer[i] = fetchBuffer[static_cast<size_t>(fi)];
         phase += phaseInc;
-        size_t istep = static_cast<size_t>(phase);
+        const int32_t istep = static_cast<int32_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
     }
@@ -120,13 +120,13 @@ bool LinearResampler::Process(std::span<float> buffer, float phaseInc, const Fet
     samplesRequired += 1;
     const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
 
-    size_t fi = 0;
+    int32_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
-        float a = fetchBuffer[fi];
-        float b = fetchBuffer[fi + 1];
+        float a = fetchBuffer[static_cast<size_t>(fi)];
+        float b = fetchBuffer[static_cast<size_t>(fi) + 1];
         buffer[i] = a + phase * (b - a);
         phase += phaseInc;
-        size_t istep = static_cast<size_t>(phase);
+        const int32_t istep = static_cast<int32_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
     }
@@ -170,7 +170,7 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
 
     //_print_debug("phaseInc=%f sincStep=%f", phaseInc, sincStep);
 
-    size_t fi = 0;
+    int32_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
         float sampleSum = 0.0f;
         float kernelSum = 0.0f;
@@ -184,13 +184,13 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
             // float s = triangle(sincIndex);
             // float w = 1.0f;
             float kernel = s * w;
-            sampleSum += kernel * fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1];
+            sampleSum += kernel * fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1];
             kernelSum += kernel;
             //_print_debug("s=%f w=%f fetchBuffer[fi + wi]=%f", s, w, fetchBuffer[fi + wi]);
         }
         //_print_debug("sum=%f", sum);
         phase += phaseInc;
-        size_t istep = static_cast<size_t>(phase);
+        const int32_t istep = static_cast<int32_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
 
@@ -330,7 +330,7 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
     const float sincStep = INTERP_FILTER_CUTOFF_FREQ / phaseInc;
 
-    size_t fi = 0;
+    int32_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
         float sampleSum = 0.0f;
         float kernelSum = 0.0f;
@@ -341,12 +341,12 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
             float sl = fast_Si(SiIndexLeft);
             float sr = fast_Si(SiIndexRight);
             float kernel = sr - sl;
-            sampleSum += kernel * fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1];
+            sampleSum += kernel * fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1];
             kernelSum += kernel;
         }
 
         phase += phaseInc;
-        size_t istep = static_cast<size_t>(phase);
+        const int32_t istep = static_cast<int32_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
 
@@ -427,7 +427,7 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
     const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
     const float sincStep = INTERP_FILTER_CUTOFF_FREQ / phaseInc;
 
-    size_t fi = 0;
+    int32_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
         float sampleSum = 0.0f;
         float kernelSum = 0.0f;
@@ -440,12 +440,12 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
             float sm = fast_Ti(TiIndexMiddle);
             float sr = fast_Ti(TiIndexRight);
             float kernel = sr - 2.0f * sm + sl;
-            sampleSum += kernel * fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1];
+            sampleSum += kernel * fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1];
             kernelSum += kernel;
         }
 
         phase += phaseInc;
-        size_t istep = static_cast<size_t>(phase);
+        const int32_t istep = static_cast<int32_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
 

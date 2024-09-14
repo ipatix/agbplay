@@ -57,7 +57,7 @@ bool SincResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
     const __m256 sincStepV = _mm256_set1_ps(sincStep);
     const __m256i sincWinSizeV = _mm256_set1_epi32(INTERP_FILTER_SIZE);
 
-    size_t fi = 0;
+    int32_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
         __m256 sampleSumV = _mm256_set1_ps(0.0f);
         __m256 kernelSumV = _mm256_set1_ps(0.0f);
@@ -73,7 +73,7 @@ bool SincResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
             const __m256 wV = window_func(windowIndexV);
             const __m256 kernelV = _mm256_mul_ps(sV, wV);
             const __m256 fetchedSampleV =
-                _mm256_loadu_ps(&fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1]);
+                _mm256_loadu_ps(&fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1]);
             sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
             kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
         }
@@ -82,7 +82,7 @@ bool SincResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
         avx2_hsum2(kernelSumV, sampleSumV, kernelSum, sampleSum);
 
         phase += phaseInc;
-        size_t istep = static_cast<size_t>(phase);
+        const int32_t istep = static_cast<int32_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
 
@@ -158,7 +158,7 @@ bool BlepResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
     const __m256 sincStepV = _mm256_set1_ps(sincStep);
     const __m256i sincWinSizeV = _mm256_set1_epi32(INTERP_FILTER_SIZE);
 
-    size_t fi = 0;
+    int32_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
         __m256 sampleSumV = _mm256_set1_ps(0.0f);
         __m256 kernelSumV = _mm256_set1_ps(0.0f);
@@ -174,7 +174,7 @@ bool BlepResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
             const __m256 srV = fast_Si(SiIndexRightV);
             const __m256 kernelV = _mm256_sub_ps(srV, slV);
             const __m256 fetchedSampleV =
-                _mm256_loadu_ps(&fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1]);
+                _mm256_loadu_ps(&fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1]);
             sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
             kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
         }
@@ -182,7 +182,7 @@ bool BlepResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
         float kernelSum, sampleSum;
         avx2_hsum2(kernelSumV, sampleSumV, kernelSum, sampleSum);
         phase += phaseInc;
-        size_t istep = static_cast<size_t>(phase);
+        const int32_t istep = static_cast<int32_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
 
@@ -229,7 +229,7 @@ bool BlampResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const 
     const __m256 sincStepV = _mm256_set1_ps(sincStep);
     const __m256i sincWinSizeV = _mm256_set1_epi32(INTERP_FILTER_SIZE);
 
-    size_t fi = 0;
+    int32_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
         __m256 sampleSumV = _mm256_set1_ps(0.0f);
         __m256 kernelSumV = _mm256_set1_ps(0.0f);
@@ -247,7 +247,7 @@ bool BlampResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const 
             const __m256 srV = fast_Ti(TiIndexRightV);
             const __m256 kernelV = _mm256_add_ps(_mm256_sub_ps(_mm256_sub_ps(srV, smV), smV), slV);
             const __m256 fetchedSampleV =
-                _mm256_loadu_ps(&fetchBuffer[fi + static_cast<size_t>(wi + INTERP_FILTER_SIZE) - 1]);
+                _mm256_loadu_ps(&fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1]);
             sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
             kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
         }
@@ -256,7 +256,7 @@ bool BlampResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const 
         avx2_hsum2(kernelSumV, sampleSumV, kernelSum, sampleSum);
 
         phase += phaseInc;
-        size_t istep = static_cast<size_t>(phase);
+        const int32_t istep = static_cast<int32_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
 

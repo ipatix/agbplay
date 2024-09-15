@@ -35,15 +35,27 @@ void Settings::Load()
     fileStream.close();
 
     if (j.contains("playbackSampleRate") && j["playbackSampleRate"].is_number()) {
-        playbackSampleRate = j["playbackSampleRate"];
+        playbackSampleRate = std::max<uint32_t>(1u, j["playbackSampleRate"]);
     } else {
         playbackSampleRate = DEFAULT_SAMPLERATE;
     }
 
     if (j.contains("exportSampleRate") && j["exportSampleRate"].is_number()) {
-        exportSampleRate = j["exportSampleRate"];
+        exportSampleRate = std::max<uint32_t>(1u, j["exportSampleRate"]);
     } else {
         exportSampleRate = DEFAULT_SAMPLERATE;
+    }
+
+    if (j.contains("exportPadStart") && j["exportPadStart"].is_number()) {
+        exportPadStart = j["exportPadStart"];
+    } else {
+        exportPadStart = 0.0;
+    }
+
+    if (j.contains("exportPadEnd") && j["exportPadEnd"].is_number()) {
+        exportPadEnd = j["exportPadEnd"];
+    } else {
+        exportPadEnd = 0.0;
     }
 
     if (j.contains("exportQuickExportDirectory") && j["exportQuickExportDirectory"].is_string()) {
@@ -67,6 +79,8 @@ void Settings::Save()
     json j;
     j["playbackSampleRate"] = playbackSampleRate;
     j["exportSampleRate"] = exportSampleRate;
+    j["exportPadStart"] = exportPadStart;
+    j["exportPadEnd"] = exportPadEnd;
     j["exportQuickExportDirectory"] = exportQuickExportDirectory;
     j["exportQuickExportAsk"] = exportQuickExportAsk;
 

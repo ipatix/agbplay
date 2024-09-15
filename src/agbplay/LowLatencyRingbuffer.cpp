@@ -32,42 +32,25 @@ void LowLatencyRingbuffer::Put(std::span<sample> inBuffer)
     lastPut = inBuffer.size();
     std::unique_lock l(mtx);
 
-    const size_t bufferedNumBuffers = numBuffers;
-    const size_t bufferedLastTake = lastTake;
-    const size_t requiredBufferSize = bufferedNumBuffers * bufferedLastTake + lastPut;
-
     /* Increase buffer size if last put an last take can't fit in the buffer.
      * This avoids a stuck ringbuffer when the input/output chunks become to large. */
-    if (buffer.size() < requiredBufferSize) {
+    size_t bufferedNumBuffers = numBuffers;
+    size_t bufferedLastTake = lastTake;
+    size_t requiredBufferSize = bufferedNumBuffers * bufferedLastTake + lastPut;
 
-        /* first we have to move the data of the current buffer to the beginning to avoid
-         * silence inserted at the wraparound address. This has some oveheader, but it
-         * shouldn't occur often, and if it does occur, it never occurs again
-         * (unless the chunk sizes increase once again). */
-        std::vector<sample> backupBuffer(dataCount);
-        const size_t beforeWraparoundSize = std::min<size_t>(dataCount, buffer.size() - dataPos);
-        std::span<sample> beforeWraparound(buffer.begin() + dataPos, beforeWraparoundSize);
-        const size_t afterWraparoundSize = dataCount - beforeWraparoundSize;
-        std::span<sample> afterWraparound(buffer.begin(), afterWraparoundSize);
-        std::copy_n(buffer.begin() + dataPos, beforeWraparoundSize, backupBuffer.begin());
-        std::copy_n(buffer.begin(), afterWraparoundSize, backupBuffer.begin() + beforeWraparoundSize);
-        assert(beforeWraparoundSize + afterWraparoundSize == dataCount);
-        assert(dataCount <= requiredBufferSize);
-
-        /* resize buffer and restore data */
-        buffer.resize(requiredBufferSize);
-        std::copy_n(backupBuffer.begin(), dataCount, buffer.begin());
-        std::fill(buffer.begin() + dataCount, buffer.end(), sample{0.0f, 0.0f});
-        // dataCount remains unchanged
-        dataPos = 0;
-        freeCount = buffer.size() - dataCount;
-        freePos = dataCount;
-    }
+    if (buffer.size() < requiredBufferSize)
+        IncreaseBufferSize(requiredBufferSize);
 
     /* Wait as long there is still data in the ringbuffer and the receiver is able to read
      * at least an entire chunk (or multiples). */
-    while (dataCount > bufferedNumBuffers * bufferedLastTake)
+    while (dataCount > bufferedNumBuffers * bufferedLastTake) {
         cv.wait(l);
+        bufferedNumBuffers = numBuffers;
+        bufferedLastTake = lastTake;
+        requiredBufferSize = bufferedNumBuffers * bufferedLastTake + lastPut;
+        if (buffer.size() < requiredBufferSize)
+            IncreaseBufferSize(requiredBufferSize);
+    }
 
     while (inBuffer.size() > 0) {
         const size_t elementsPut = PutSome(inBuffer);
@@ -140,4 +123,34 @@ size_t LowLatencyRingbuffer::TakeSome(std::span<sample> outBuffer)
     assert(dataCount >= takeCount);
     dataCount -= takeCount;
     return takeCount;
+}
+
+void LowLatencyRingbuffer::IncreaseBufferSize(size_t requiredBufferSize)
+{
+    /* mtx LOCK MUST BE HELD WHEN CALLING THIS FUNCTION. */
+    if (buffer.size() >= requiredBufferSize)
+        return;
+
+    /* First we have to move the data of the current buffer to the beginning to avoid
+     * silence inserted at the wraparound address. This has some oveheader, but it
+     * shouldn't occur often, and if it does occur, it never occurs again
+     * (unless the chunk sizes increase once again). */
+    std::vector<sample> backupBuffer(dataCount);
+    const size_t beforeWraparoundSize = std::min<size_t>(dataCount, buffer.size() - dataPos);
+    std::span<sample> beforeWraparound(buffer.begin() + dataPos, beforeWraparoundSize);
+    const size_t afterWraparoundSize = dataCount - beforeWraparoundSize;
+    std::span<sample> afterWraparound(buffer.begin(), afterWraparoundSize);
+    std::copy_n(buffer.begin() + dataPos, beforeWraparoundSize, backupBuffer.begin());
+    std::copy_n(buffer.begin(), afterWraparoundSize, backupBuffer.begin() + beforeWraparoundSize);
+    assert(beforeWraparoundSize + afterWraparoundSize == dataCount);
+    assert(dataCount <= requiredBufferSize);
+
+    /* resize buffer and restore data */
+    buffer.resize(requiredBufferSize);
+    std::copy_n(backupBuffer.begin(), dataCount, buffer.begin());
+    std::fill(buffer.begin() + dataCount, buffer.end(), sample{0.0f, 0.0f});
+    // dataCount remains unchanged
+    dataPos = 0;
+    freeCount = buffer.size() - dataCount;
+    freePos = dataCount;
 }

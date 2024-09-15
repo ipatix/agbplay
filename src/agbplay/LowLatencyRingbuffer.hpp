@@ -29,6 +29,7 @@ public:
 private:
     size_t PutSome(std::span<sample> inBuffer);
     size_t TakeSome(std::span<sample> outBuffer);
+    void IncreaseBufferSize(size_t requiredBufferSize);
 
     std::mutex mtx;
     std::condition_variable cv;

@@ -802,7 +802,6 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
 
     exportBusy = true;
 
-    // TODO implement benchmark flag
     // TODO implement progress bar
     exportThread = std::make_unique<std::thread>(
         [this](

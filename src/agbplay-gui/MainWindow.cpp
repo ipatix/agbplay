@@ -749,12 +749,16 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
     fileDialog.setFileMode(QFileDialog::Directory);
     fileDialog.setDirectory(QString::fromStdWString(settings->exportQuickExportDirectory.wstring()));
 
-    if (!fileDialog.exec())
-        return;
+    std::filesystem::path directory;
+    if (quick && !settings->exportQuickExportAsk) {
+        directory = settings->exportQuickExportDirectory;
+    } else {
+        if (!fileDialog.exec())
+            return;
 
-    assert(fileDialog.selectedFiles().size() == 1);
-
-    const std::filesystem::path directory = fileDialog.selectedFiles().at(0).toStdWString();
+        assert(fileDialog.selectedFiles().size() == 1);
+        directory = fileDialog.selectedFiles().at(0).toStdWString();
+    }
 
     /* Make a Profile copy for use in export thread.
      * That way we do not overwrite it while exporting. */

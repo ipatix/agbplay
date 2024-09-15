@@ -431,7 +431,7 @@ void PlaybackEngine::portaudioOpen()
             audioStream.start();
         } catch (portaudio::Exception &e) {
             Debug::print(
-                "unable to open/start stream on device {} with Host API {}: {}",
+                "unable to open/start stream on device <{}> with Host API <{}>: {}",
                 outputDevice.name(),
                 currentHostApi.name(),
                 e.what()

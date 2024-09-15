@@ -3,13 +3,13 @@
 #include "AboutWindow.hpp"
 #include "Debug.hpp"
 #include "FileReader.hpp"
-#include "GlobalPreferencesWindow.hpp"
 #include "Gsf.hpp"
 #include "PlaybackEngine.hpp"
 #include "ProfileManager.hpp"
 #include "Rom.hpp"
 #include "SelectProfileDialog.hpp"
 #include "Settings.hpp"
+#include "SettingsWindow.hpp"
 #include "SoundExporter.hpp"
 
 #include <algorithm>
@@ -145,7 +145,7 @@ void MainWindow::SetupMenuBar()
     QAction *editPreferences = editMenu->addAction("Global Preferences");
     editPreferences->setIcon(QIcon(":/icons/preferences.ico"));
     connect(editPreferences, &QAction::triggered, [this](bool) {
-        GlobalPreferencesWindow w(this);
+        SettingsWindow w(this, *settings);
         w.exec();
     });
 

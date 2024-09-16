@@ -145,7 +145,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
 
             for (size_t i = 0; i < nTracks; i++) {
                 memset(&oinfos[i], 0, sizeof(oinfos[i]));
-                oinfos[i].samplerate = sampleRate;
+                oinfos[i].samplerate = static_cast<int>(sampleRate);
                 oinfos[i].channels = 2;    // stereo
                 oinfos[i].format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
                 std::filesystem::path finalFilePath = filePath;
@@ -190,7 +190,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
         } else {
             SF_INFO oinfo;
             memset(&oinfo, 0, sizeof(oinfo));
-            oinfo.samplerate = sampleRate;
+            oinfo.samplerate = static_cast<int>(sampleRate);
             oinfo.channels = 2;    // sterep
             oinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
             std::filesystem::path finalFilePath = filePath;

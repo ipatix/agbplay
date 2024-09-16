@@ -52,7 +52,7 @@ void Debug::puts(const std::string &msg)
     const auto curTimeT = std::chrono::system_clock::to_time_t(curTime);
     const auto curTimeTM = *std::localtime(&curTimeT);
     std::ostringstream curTimeStream;
-    curTimeStream << "[" << std::put_time(&curTimeTM, "%T") << "] " << msg;
+    curTimeStream << "[" << std::put_time(&curTimeTM, "%H:%M:%S") << "] " << msg << std::flush;
     const std::string finalMsg = curTimeStream.str();
     // std::string finalMsg = std::format("[{:%T}] {}", std::chrono::system_clock::now(), msg);
 

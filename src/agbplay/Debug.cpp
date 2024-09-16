@@ -3,9 +3,11 @@
 #include <chrono>
 #include <cstdarg>
 #include <cstdio>
-#include <format>
+#include <ctime>
+#include <iomanip>
 #include <iostream>
 #include <mutex>
+#include <sstream>
 #include <string>
 
 static FILE *debug_file = nullptr;
@@ -45,8 +47,14 @@ void Debug::set_callback(void (*cb)(const std::string &, void *), void *obj)
 
 void Debug::puts(const std::string &msg)
 {
-    /* not sure why this requires std::format instead of fmt::format */
-    std::string finalMsg = std::format("[{:%T}] {}", std::chrono::system_clock::now(), msg);
+    /* gcc/libstdc++ 12 does not yet support std::format, use C fallback for now */
+    const auto curTime = std::chrono::system_clock::now();
+    const auto curTimeT = std::chrono::system_clock::to_time_t(curTime);
+    const auto curTimeTM = *std::localtime(&curTimeT);
+    std::ostringstream curTimeStream;
+    curTimeStream << "[" << std::put_time(&curTimeTM, "%T") << "] " << msg;
+    const std::string finalMsg = curTimeStream.str();
+    // std::string finalMsg = std::format("[{:%T}] {}", std::chrono::system_clock::now(), msg);
 
     if (debug_file) {
         fprintf(debug_file, "%s\n", finalMsg.c_str());

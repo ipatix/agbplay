@@ -36,14 +36,16 @@ SoundExporter::SoundExporter(
 
 void SoundExporter::Export()
 {
-    Debug::print("Starting export to directory: {}", directory.string());
-    /* create directories for file export */
-    if (std::filesystem::exists(directory)) {
-        if (!std::filesystem::is_directory(directory)) {
-            throw Xcept("Output directory exists but isn't a directory");
+    if (!benchmarkOnly) {
+        Debug::print("Starting export to directory: {}", directory.string());
+        /* create directories for file export */
+        if (std::filesystem::exists(directory)) {
+            if (!std::filesystem::is_directory(directory)) {
+                throw Xcept("Output directory exists but isn't a directory");
+            }
+        } else if (!std::filesystem::create_directories(directory)) {
+            throw Xcept("Creating output directory failed");
         }
-    } else if (!std::filesystem::create_directories(directory)) {
-        throw Xcept("Creating output directory failed");
     }
 
     /* setup export thread worker function */

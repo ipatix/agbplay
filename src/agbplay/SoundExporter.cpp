@@ -131,7 +131,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
     const uint8_t playerIdx = ctx.m4aSongNumPlayerGet(uid);
     size_t samplesRendered = 0;
     size_t samplesPerBuffer = ctx.mixer.GetSamplesPerBuffer();
-    size_t nTracks = ctx.players.at(playerIdx).tracks.size();
+    size_t nTracks = ctx.players.at(playerIdx).tracksUsed;
     const double padSecondsStart = profile.agbplaySoundMode.padSilenceSecondsStart;
     const double padSecondsEnd = profile.agbplaySoundMode.padSilenceSecondsEnd;
 

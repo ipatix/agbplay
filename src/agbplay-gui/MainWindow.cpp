@@ -71,6 +71,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     setWindowTitle("agbplay");
     setWindowIcon(QIcon(":/icons/main-logo.ico"));
+
+    /* Use a signal instead of QMetaObject::invokeMethod for pre Qt 6.7 compatibility. */
+    connect(this, &MainWindow::LogMessageReceived, this, &MainWindow::LogAppend, Qt::QueuedConnection);
 }
 
 MainWindow::~MainWindow()
@@ -988,7 +991,7 @@ void MainWindow::LogCallback(const std::string &msg, void *void_this)
     MainWindow *_this = static_cast<MainWindow *>(void_this);
     // Qt 6.7 only
     // QMetaObject::invokeMethod(_this, &MainWindow::LogAppend, Qt::QueuedConnection, msg);
-    QMetaObject::invokeMethod(_this, "LogAppend", Qt::QueuedConnection, msg);
+    emit _this->LogMessageReceived(msg);
 }
 
 void MainWindow::LogAppend(std::string msg)

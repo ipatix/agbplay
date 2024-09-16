@@ -149,4 +149,8 @@ private:
     /* File Export */
     std::unique_ptr<std::thread> exportThread;
     std::atomic<bool> exportBusy = false;
+
+signals:
+    /* Use a signal instead of QMetaObject::invokeMethod for pre Qt 6.7 compatibility. */
+    void LogMessageReceived(const std::string &msg);
 };

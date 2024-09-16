@@ -753,7 +753,9 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
     fileDialog.setDirectory(QString::fromStdWString(settings->exportQuickExportDirectory.wstring()));
 
     std::filesystem::path directory;
-    if (quick && !settings->exportQuickExportAsk) {
+    if (benchmarkOnly) {
+        directory.clear();
+    } else if (quick && !settings->exportQuickExportAsk) {
         directory = settings->exportQuickExportDirectory;
     } else {
         if (!fileDialog.exec())

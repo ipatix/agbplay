@@ -778,7 +778,7 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
         if (item) {
             const std::string name = item->text().toStdString();
             const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
-            profileToExport.playlist.emplace_back(name, id);
+            profileToExport.playlist.emplace_back(Profile::PlaylistEntry{name, id});
         }
     } else {
         for (int i = 0; i < songlistWidget.listWidget.count(); i++) {
@@ -789,7 +789,7 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
             const std::string name = item->text().toStdString();
             const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
             if (item->checkState() == Qt::Checked)
-                profileToExport.playlist.emplace_back(name, id);
+                profileToExport.playlist.emplace_back(Profile::PlaylistEntry{name, id});
         }
 
         for (int i = 0; i < playlistWidget.listWidget.count(); i++) {
@@ -800,7 +800,7 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
             const std::string name = item->text().toStdString();
             const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
             if (item->checkState() == Qt::Checked)
-                profileToExport.playlist.emplace_back(name, id);
+                profileToExport.playlist.emplace_back(Profile::PlaylistEntry{name, id});
         }
     }
 
@@ -873,7 +873,7 @@ void MainWindow::SaveProfile()
 
         const std::string title = item->text().toStdString();
         const uint16_t id = static_cast<uint16_t>(item->data(Qt::UserRole).toUInt());
-        profile->playlist.emplace_back(title, id);
+        profile->playlist.emplace_back(Profile::PlaylistEntry{title, id});
     }
 
     saveButton.setEnabled(false);

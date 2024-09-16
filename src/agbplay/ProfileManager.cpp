@@ -241,7 +241,7 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
             if (id < std::numeric_limits<uint16_t>::min() || id > std::numeric_limits<uint16_t>::max())
                 continue;
 
-            p.playlist.emplace_back(name, id);
+            p.playlist.emplace_back(Profile::PlaylistEntry{name, static_cast<uint16_t>(id)});
         }
     }
 

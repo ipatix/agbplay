@@ -251,10 +251,10 @@ bool BlampResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const 
              wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
             const __m256 wiMPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
             const __m256 TiIndexRightV = _mm256_mul_ps(_mm256_add_ps(wiMPhaseV, _mm256_set1_ps(1.0f)), sincStepV);
-            const __m256 srV = fast_Ti(TiIndexRightV);                              // {7, 6, 5, 4, 3, 2, 1, 0}
-            const __m256 srRotV = _mm256_permutevar8x32_ps(srV, rotateLeft2Const);  // {5, 4, 3, 2, 1, 0, 7, 6}
-            const __m256 slV = _mm256_blend_ps(srRotV, slNextLoV, 0x03);               // {5, 4, 3, 2, 1, 0, -1, -2}
-            const __m256 smV = _mm256_shuffle_ps(slV, srV, 0b10011001);             // {6, 5, 4, 3, 2, 1, 0, -1}
+            const __m256 srV = fast_Ti(TiIndexRightV);                                // {7, 6, 5, 4, 3, 2, 1, 0}
+            const __m256 srRotV = _mm256_permutevar8x32_ps(srV, rotateLeft2Const);    // {5, 4, 3, 2, 1, 0, 7, 6}
+            const __m256 slV = _mm256_blend_ps(srRotV, slNextLoV, 0x03);              // {5, 4, 3, 2, 1, 0, -1, -2}
+            const __m256 smV = _mm256_shuffle_ps(slV, srV, 0b10011001);               // {6, 5, 4, 3, 2, 1, 0, -1}
             const __m256 kernelV = _mm256_add_ps(_mm256_sub_ps(_mm256_sub_ps(srV, smV), smV), slV);
             const __m256 fetchedSampleV =
                 _mm256_loadu_ps(&fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1]);

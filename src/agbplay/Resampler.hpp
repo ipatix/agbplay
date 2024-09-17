@@ -96,7 +96,8 @@ public:
     void Reset() override;
 
 protected:
-    static inline float fast_Si(float t) {
+    static inline float fast_Si(float t)
+    {
         const float signed_t = t;
         t = std::abs(t);
         t = std::min(t, float(INTERP_FILTER_SIZE));
@@ -120,7 +121,8 @@ public:
     void Reset() override;
 
 protected:
-    static float fast_Ti(float t) {
+    static float fast_Ti(float t)
+    {
         t = std::abs(t);
         const float old_t = t;
         t = std::min(t, float(INTERP_FILTER_SIZE));

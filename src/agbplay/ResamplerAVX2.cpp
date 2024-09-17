@@ -36,6 +36,9 @@ static inline void avx2_hsum2(__m256 va, __m256 vb, float &a, float &b)
     a = _mm_cvtss_f32(_mm_shuffle_ps(tmp4, tmp4, 0b00000010));
 }
 
+static const __m256i rotateLeftConst = _mm256_set_epi32(6, 5, 4, 3, 2, 1, 0, 7);
+static const __m256i rotateLeft2Const = _mm256_set_epi32(5, 4, 3, 2, 1, 0, 7, 6);
+
 SincResamplerAVX2::~SincResamplerAVX2()
 {
 }
@@ -165,21 +168,22 @@ bool BlepResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
         const __m256 phaseV = _mm256_set1_ps(phase);
         __m256i wiV = _mm256_sub_epi32(_mm256_set_epi32(8, 7, 6, 5, 4, 3, 2, 1), sincWinSizeV);
 
-        const __m256 wi0MPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
-        const __m256 SiIndexInitialV = _mm256_mul_ps(_mm256_sub_ps(wi0MPhaseV, _mm256_set1_ps(0.5f)), sincStepV);
-        __m256 slV = fast_Si(SiIndexInitialV);
+        const float sl = BlepResampler::fast_Si((float(-INTERP_FILTER_SIZE + 1) - phase - 0.5f) * sincStep);
+        __m256 slNextLoV = _mm256_set_ps(0, 0, 0, 0, 0, 0, 0, sl);
 
         for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE;
              wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
             const __m256 wiMPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
             const __m256 SiIndexRightV = _mm256_mul_ps(_mm256_add_ps(wiMPhaseV, _mm256_set1_ps(0.5f)), sincStepV);
             const __m256 srV = fast_Si(SiIndexRightV);
+            const __m256 srRotV = _mm256_permutevar8x32_ps(srV, rotateLeftConst);
+            const __m256 slV = _mm256_blend_ps(srRotV, slNextLoV, 0x01);
             const __m256 kernelV = _mm256_sub_ps(srV, slV);
             const __m256 fetchedSampleV =
                 _mm256_loadu_ps(&fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1]);
             sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
             kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
-            slV = srV;
+            slNextLoV = srRotV;
         }
 
         float kernelSum, sampleSum;
@@ -239,24 +243,24 @@ bool BlampResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const 
         const __m256 phaseV = _mm256_set1_ps(phase);
         __m256i wiV = _mm256_sub_epi32(_mm256_set_epi32(8, 7, 6, 5, 4, 3, 2, 1), sincWinSizeV);
 
-        const __m256 wi0MPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
-        const __m256 TiIndexInitialLeftV = _mm256_mul_ps(_mm256_sub_ps(wi0MPhaseV, _mm256_set1_ps(1.0f)), sincStepV);
-        const __m256 TiIndexInitialMiddleV = _mm256_mul_ps(wi0MPhaseV, sincStepV);
-        __m256 slV = fast_Ti(TiIndexInitialLeftV);
-        __m256 smV = fast_Ti(TiIndexInitialMiddleV);
+        const float sl = BlampResampler::fast_Ti((float(-INTERP_FILTER_SIZE + 1) - phase - 1.0f) * sincStep);
+        const float sm = BlampResampler::fast_Ti((float(-INTERP_FILTER_SIZE + 1) - phase) * sincStep);
+        __m256 slNextLoV = _mm256_set_ps(0, 0, 0, 0, 0, 0, sm, sl);
 
         for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE;
              wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
             const __m256 wiMPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
             const __m256 TiIndexRightV = _mm256_mul_ps(_mm256_add_ps(wiMPhaseV, _mm256_set1_ps(1.0f)), sincStepV);
-            const __m256 srV = fast_Ti(TiIndexRightV);
+            const __m256 srV = fast_Ti(TiIndexRightV);                              // {7, 6, 5, 4, 3, 2, 1, 0}
+            const __m256 srRotV = _mm256_permutevar8x32_ps(srV, rotateLeft2Const);  // {5, 4, 3, 2, 1, 0, 7, 6}
+            const __m256 slV = _mm256_blend_ps(srRotV, slNextLoV, 0x03);               // {5, 4, 3, 2, 1, 0, -1, -2}
+            const __m256 smV = _mm256_shuffle_ps(slV, srV, 0b10011001);             // {6, 5, 4, 3, 2, 1, 0, -1}
             const __m256 kernelV = _mm256_add_ps(_mm256_sub_ps(_mm256_sub_ps(srV, smV), smV), slV);
             const __m256 fetchedSampleV =
                 _mm256_loadu_ps(&fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1]);
             sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
             kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
-            slV = smV;
-            smV = srV;
+            slNextLoV = srRotV;
         }
 
         float kernelSum, sampleSum;

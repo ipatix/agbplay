@@ -3,6 +3,7 @@
 #include "Types.hpp"
 
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -94,10 +95,19 @@ public:
     virtual bool Process(std::span<float> buffer, float phaseInc, const FetchCallback &fetchCallback) override;
     void Reset() override;
 
-private:
-    static float fast_Si(float t);
-
 protected:
+    static inline float fast_Si(float t) {
+        const float signed_t = t;
+        t = std::abs(t);
+        t = std::min(t, float(INTERP_FILTER_SIZE));
+        t *= float(double(INTERP_FILTER_LUT_SIZE) / double(INTERP_FILTER_SIZE));
+        const uint32_t left_index = static_cast<uint32_t>(t);
+        const float fraction = t - static_cast<float>(left_index);
+        const uint32_t right_index = left_index + 1;
+        const float retval = SiLut[left_index] + fraction * (SiLut[right_index] - SiLut[left_index]);
+        return std::copysignf(retval, signed_t);
+    }
+
     static const std::array<float, INTERP_FILTER_LUT_SIZE + 2> SiLut;
 };
 
@@ -109,9 +119,21 @@ public:
     bool Process(std::span<float> buffer, float phaseInc, const FetchCallback &fetchCallback) override;
     void Reset() override;
 
-private:
-    static float fast_Ti(float t);
-
 protected:
+    static float fast_Ti(float t) {
+        t = std::abs(t);
+        const float old_t = t;
+        t = std::min(t, float(INTERP_FILTER_SIZE));
+        t *= float(double(INTERP_FILTER_LUT_SIZE) / double(INTERP_FILTER_SIZE));
+        const uint32_t left_index = static_cast<uint32_t>(t);
+        const float fraction = t - static_cast<float>(left_index);
+        const uint32_t right_index = left_index + 1;
+        const float retval = TiLut[left_index] + fraction * (TiLut[right_index] - TiLut[left_index]);
+        if (old_t > float(INTERP_FILTER_SIZE))
+            return old_t * 0.5f;
+        else
+            return retval;
+    }
+
     static const std::array<float, INTERP_FILTER_LUT_SIZE + 2> TiLut;
 };

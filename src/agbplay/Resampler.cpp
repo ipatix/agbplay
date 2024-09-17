@@ -353,19 +353,6 @@ const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE + 2> BlepResampler::Si
     return l;
 }();
 
-inline float BlepResampler::fast_Si(float t)
-{
-    const float signed_t = t;
-    t = std::abs(t);
-    t = std::min(t, float(INTERP_FILTER_SIZE));
-    t *= float(double(INTERP_FILTER_LUT_SIZE) / double(INTERP_FILTER_SIZE));
-    const uint32_t left_index = static_cast<uint32_t>(t);
-    const float fraction = t - static_cast<float>(left_index);
-    const uint32_t right_index = left_index + 1;
-    const float retval = SiLut[left_index] + fraction * (SiLut[right_index] - SiLut[left_index]);
-    return copysignf(retval, signed_t);
-}
-
 BlampResampler::BlampResampler()
 {
     Reset();
@@ -456,19 +443,3 @@ const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE + 2> BlampResampler::T
     l[INTERP_FILTER_LUT_SIZE + 1] = static_cast<float>(((INTERP_FILTER_LUT_SIZE + 1) * step_per_index) * 0.5);
     return l;
 }();
-
-inline float BlampResampler::fast_Ti(float t)
-{
-    t = std::abs(t);
-    const float old_t = t;
-    t = std::min(t, float(INTERP_FILTER_SIZE));
-    t *= float(double(INTERP_FILTER_LUT_SIZE) / double(INTERP_FILTER_SIZE));
-    const uint32_t left_index = static_cast<uint32_t>(t);
-    const float fraction = t - static_cast<float>(left_index);
-    const uint32_t right_index = left_index + 1;
-    const float retval = TiLut[left_index] + fraction * (TiLut[right_index] - TiLut[left_index]);
-    if (old_t > float(INTERP_FILTER_SIZE))
-        return old_t * 0.5f;
-    else
-        return retval;
-}

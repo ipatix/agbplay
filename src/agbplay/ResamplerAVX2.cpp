@@ -165,18 +165,21 @@ bool BlepResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const F
         const __m256 phaseV = _mm256_set1_ps(phase);
         __m256i wiV = _mm256_sub_epi32(_mm256_set_epi32(8, 7, 6, 5, 4, 3, 2, 1), sincWinSizeV);
 
+        const __m256 wi0MPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
+        const __m256 SiIndexInitialV = _mm256_mul_ps(_mm256_sub_ps(wi0MPhaseV, _mm256_set1_ps(0.5f)), sincStepV);
+        __m256 slV = fast_Si(SiIndexInitialV);
+
         for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE;
              wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
             const __m256 wiMPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
-            const __m256 SiIndexLeftV = _mm256_mul_ps(_mm256_sub_ps(wiMPhaseV, _mm256_set1_ps(0.5f)), sincStepV);
-            const __m256 SiIndexRightV = _mm256_mul_ps(_mm256_add_ps(wiMPhaseV, _mm256_set1_ps(0.5)), sincStepV);
-            const __m256 slV = fast_Si(SiIndexLeftV);
+            const __m256 SiIndexRightV = _mm256_mul_ps(_mm256_add_ps(wiMPhaseV, _mm256_set1_ps(0.5f)), sincStepV);
             const __m256 srV = fast_Si(SiIndexRightV);
             const __m256 kernelV = _mm256_sub_ps(srV, slV);
             const __m256 fetchedSampleV =
                 _mm256_loadu_ps(&fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1]);
             sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
             kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
+            slV = srV;
         }
 
         float kernelSum, sampleSum;
@@ -236,20 +239,24 @@ bool BlampResamplerAVX2::Process(std::span<float> buffer, float phaseInc, const 
         const __m256 phaseV = _mm256_set1_ps(phase);
         __m256i wiV = _mm256_sub_epi32(_mm256_set_epi32(8, 7, 6, 5, 4, 3, 2, 1), sincWinSizeV);
 
+        const __m256 wi0MPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
+        const __m256 TiIndexInitialLeftV = _mm256_mul_ps(_mm256_sub_ps(wi0MPhaseV, _mm256_set1_ps(1.0f)), sincStepV);
+        const __m256 TiIndexInitialMiddleV = _mm256_mul_ps(wi0MPhaseV, sincStepV);
+        __m256 slV = fast_Ti(TiIndexInitialLeftV);
+        __m256 smV = fast_Ti(TiIndexInitialMiddleV);
+
         for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE;
              wi += 8, wiV = _mm256_add_epi32(wiV, _mm256_set1_epi32(8))) {
             const __m256 wiMPhaseV = _mm256_sub_ps(_mm256_cvtepi32_ps(wiV), phaseV);
-            const __m256 TiIndexLeftV = _mm256_mul_ps(_mm256_sub_ps(wiMPhaseV, _mm256_set1_ps(1.0f)), sincStepV);
-            const __m256 TiIndexMiddleV = _mm256_mul_ps(wiMPhaseV, sincStepV);
             const __m256 TiIndexRightV = _mm256_mul_ps(_mm256_add_ps(wiMPhaseV, _mm256_set1_ps(1.0f)), sincStepV);
-            const __m256 slV = fast_Ti(TiIndexLeftV);
-            const __m256 smV = fast_Ti(TiIndexMiddleV);
             const __m256 srV = fast_Ti(TiIndexRightV);
             const __m256 kernelV = _mm256_add_ps(_mm256_sub_ps(_mm256_sub_ps(srV, smV), smV), slV);
             const __m256 fetchedSampleV =
                 _mm256_loadu_ps(&fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1]);
             sampleSumV = _mm256_add_ps(sampleSumV, _mm256_mul_ps(kernelV, fetchedSampleV));
             kernelSumV = _mm256_add_ps(kernelSumV, kernelV);
+            slV = smV;
+            smV = srV;
         }
 
         float kernelSum, sampleSum;

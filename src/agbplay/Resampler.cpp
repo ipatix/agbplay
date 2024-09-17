@@ -306,14 +306,14 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
         float sampleSum = 0.0f;
         float kernelSum = 0.0f;
 
+        float sl = fast_Si((float(-INTERP_FILTER_SIZE + 1) - phase - 0.5f) * sincStep);
+
         for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE; wi++) {
-            const float SiIndexLeft = (float(wi) - phase - 0.5f) * sincStep;
-            const float SiIndexRight = (float(wi) - phase + 0.5f) * sincStep;
-            const float sl = fast_Si(SiIndexLeft);
-            const float sr = fast_Si(SiIndexRight);
+            const float sr = fast_Si((float(wi) - phase + 0.5f) * sincStep);
             const float kernel = sr - sl;
             sampleSum += kernel * fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1];
             kernelSum += kernel;
+            sl = sr;
         }
 
         phase += phaseInc;
@@ -402,16 +402,17 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
         float sampleSum = 0.0f;
         float kernelSum = 0.0f;
 
+        float sl = fast_Ti((float(-INTERP_FILTER_SIZE + 1) - phase - 1.0f) * sincStep);
+        float sm = fast_Ti((float(-INTERP_FILTER_SIZE + 1) - phase) * sincStep);
+
         for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE; wi++) {
-            const float TiIndexLeft = (float(wi) - phase - 1.0f) * sincStep;
-            const float TiIndexMiddle = (float(wi) - phase) * sincStep;
             const float TiIndexRight = (float(wi) - phase + 1.0f) * sincStep;
-            const float sl = fast_Ti(TiIndexLeft);
-            const float sm = fast_Ti(TiIndexMiddle);
             const float sr = fast_Ti(TiIndexRight);
             const float kernel = sr - 2.0f * sm + sl;
             sampleSum += kernel * fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1];
             kernelSum += kernel;
+            sl = sm;
+            sm = sr;
         }
 
         phase += phaseInc;

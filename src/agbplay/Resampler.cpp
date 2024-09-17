@@ -10,7 +10,7 @@ const bool AVX2_SUPPORTED = []() {
 #if defined(__x86_64__) || defined(i386) || defined(__i386__) || defined(__386)
     __builtin_cpu_init();
     if (__builtin_cpu_supports("avx2"))
-        return true;
+        return std::getenv("AGBPLAY_NO_AVX") ? false : true;
     else
         return false;
 #elif defined(_M_X64) || defined(_M_IX86)

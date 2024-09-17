@@ -122,8 +122,8 @@ bool LinearResampler::Process(std::span<float> buffer, float phaseInc, const Fet
 
     int32_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
-        float a = fetchBuffer[static_cast<size_t>(fi)];
-        float b = fetchBuffer[static_cast<size_t>(fi) + 1];
+        const float a = fetchBuffer[static_cast<size_t>(fi)];
+        const float b = fetchBuffer[static_cast<size_t>(fi) + 1];
         buffer[i] = a + phase * (b - a);
         phase += phaseInc;
         const int32_t istep = static_cast<int32_t>(phase);
@@ -168,36 +168,29 @@ bool SincResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
     const bool continuePlayback = fetchCallback(fetchBuffer, samplesRequired);
     const float sincStep = phaseInc > INTERP_FILTER_CUTOFF_FREQ ? INTERP_FILTER_CUTOFF_FREQ / phaseInc : 1.00f;
 
-    //_print_debug("phaseInc=%f sincStep=%f", phaseInc, sincStep);
-
     int32_t fi = 0;
     for (size_t i = 0; i < buffer.size(); i++) {
         float sampleSum = 0.0f;
         float kernelSum = 0.0f;
 
         for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE; wi++) {
-            float sincIndex = (float(wi) - phase) * sincStep;
-            float windowIndex = float(wi) - phase;
-            //_print_debug("wi=%zu phase=%f sincStep=%f sincIndex=%f", wi, phase, sincStep, sincIndex);
-            float s = fast_sincf(sincIndex);
-            float w = window_func(windowIndex);
-            // float s = triangle(sincIndex);
-            // float w = 1.0f;
-            float kernel = s * w;
+            const float sincIndex = (float(wi) - phase) * sincStep;
+            const float windowIndex = float(wi) - phase;
+            const float s = fast_sincf(sincIndex);
+            const float w = window_func(windowIndex);
+            const float kernel = s * w;
             sampleSum += kernel * fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1];
             kernelSum += kernel;
-            //_print_debug("s=%f w=%f fetchBuffer[fi + wi]=%f", s, w, fetchBuffer[fi + wi]);
         }
-        //_print_debug("sum=%f", sum);
+
         phase += phaseInc;
         const int32_t istep = static_cast<int32_t>(phase);
         phase -= static_cast<float>(istep);
         fi += istep;
 
         buffer[i] = sampleSum / kernelSum;
-        //*outData++ = sampleSum;
-        //_print_debug("kernel sum: %f\n", kernelSum);
     }
+
     // remove first fi elements from the fetch buffer since they are no longer needed
     fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
@@ -238,26 +231,6 @@ const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE + 2> SincResampler::wi
     return l;
 }();
 
-/*
-static const std::vector<float> win_lut = []() {
-    // nuttall window, experimental, performs worse than hann ?
-    std::vector<float> l(INTERP_FILTER_LUT_SIZE+2);
-    for (size_t i = 0; i < INTERP_FILTER_LUT_SIZE+1; i++) {
-        const double a0 = 0.355768;
-        const double a1 = 0.487396;
-        const double a2 = 0.144232;
-        const double a3 = 0.012604;
-        const double N = static_cast<double>(INTERP_FILTER_LUT_SIZE);
-        const double pi_i_N = 0.5 * M_PI + static_cast<double>(i) * M_PI / (2.0 * N);
-        const double coeff = a0 - a1 * cos(2.0 * pi_i_N) + a2 * cos(4.0 * pi_i_N) - a3 * cos(6.0 * pi_i_N);
-        l[i] = static_cast<float>(coeff);
-    }
-    l[INTERP_FILTER_LUT_SIZE+1] = l[INTERP_FILTER_LUT_SIZE];
-    l.shrink_to_fit();
-    return l;
-}();
-*/
-
 inline float SincResampler::fast_sinf(float t)
 {
     return SincResampler::fast_cosf(t - float(M_PI / 2.0));
@@ -268,8 +241,8 @@ inline float SincResampler::fast_cosf(float t)
     t = std::abs(t);
     t *= float(double(INTERP_FILTER_LUT_SIZE) / (2.0 * M_PI));
     uint32_t left_index = static_cast<uint32_t>(t);
-    float fraction = t - static_cast<float>(left_index);
-    uint32_t right_index = (left_index + 1) % INTERP_FILTER_LUT_SIZE;
+    const float fraction = t - static_cast<float>(left_index);
+    const uint32_t right_index = (left_index + 1) % INTERP_FILTER_LUT_SIZE;
     left_index %= INTERP_FILTER_LUT_SIZE;
     return cosLut[left_index] + fraction * (cosLut[right_index] - cosLut[left_index]);
 }
@@ -279,9 +252,9 @@ inline float SincResampler::fast_sincf(float t)
     t = std::abs(t);
     // assert(t <= INTERP_FILTER_SIZE);
     t *= float(double(INTERP_FILTER_LUT_SIZE) / double(INTERP_FILTER_SIZE));
-    uint32_t left_index = static_cast<uint32_t>(t);
-    float fraction = t - static_cast<float>(left_index);
-    uint32_t right_index = left_index + 1;
+    const uint32_t left_index = static_cast<uint32_t>(t);
+    const float fraction = t - static_cast<float>(left_index);
+    const uint32_t right_index = left_index + 1;
     return sincLut[left_index] + fraction * (sincLut[right_index] - sincLut[left_index]);
 }
 
@@ -289,13 +262,11 @@ inline float SincResampler::window_func(float t)
 {
     // assert(t >= -float(INTERP_FILTER_SIZE));
     // assert(t <= +float(INTERP_FILTER_SIZE));
-    // return 0.42659f - 0.49656f * cosf(2.0f * PI_F * t / float(INTERP_FILTER_SIZE - 1)) +
-    //     0.076849f * cosf(4.0f * PI_F * t / float(INTERP_FILTER_SIZE - 1));
     t = std::abs(t);
     t *= float(double(INTERP_FILTER_LUT_SIZE) / double(INTERP_FILTER_SIZE));
-    uint32_t left_index = static_cast<uint32_t>(t);
-    float fraction = t - static_cast<float>(left_index);
-    uint32_t right_index = left_index + 1;
+    const uint32_t left_index = static_cast<uint32_t>(t);
+    const float fraction = t - static_cast<float>(left_index);
+    const uint32_t right_index = left_index + 1;
     return winLut[left_index] + fraction * (winLut[right_index] - winLut[left_index]);
 }
 
@@ -336,11 +307,11 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
         float kernelSum = 0.0f;
 
         for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE; wi++) {
-            float SiIndexLeft = (float(wi) - phase - 0.5f) * sincStep;
-            float SiIndexRight = (float(wi) - phase + 0.5f) * sincStep;
-            float sl = fast_Si(SiIndexLeft);
-            float sr = fast_Si(SiIndexRight);
-            float kernel = sr - sl;
+            const float SiIndexLeft = (float(wi) - phase - 0.5f) * sincStep;
+            const float SiIndexRight = (float(wi) - phase + 0.5f) * sincStep;
+            const float sl = fast_Si(SiIndexLeft);
+            const float sr = fast_Si(SiIndexRight);
+            const float kernel = sr - sl;
             sampleSum += kernel * fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1];
             kernelSum += kernel;
         }
@@ -351,9 +322,8 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
         fi += istep;
 
         buffer[i] = sampleSum / kernelSum;
-        //*outData++ = sampleSum;
-        //_print_debug("kernel sum: %f\n", kernelSum);
     }
+
     // remove first i elements from the fetch buffer since they are no longer needed
     fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
@@ -363,8 +333,8 @@ bool BlepResampler::Process(std::span<float> buffer, float phaseInc, const Fetch
 const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE + 2> BlepResampler::SiLut = []() {
     std::array<float, INTERP_FILTER_LUT_SIZE + 2> l;
     double acc = 0.0;
-    double step_per_index = double(INTERP_FILTER_SIZE) / double(INTERP_FILTER_LUT_SIZE);
-    double integration_inc = step_per_index / double(INTEGRAL_RESOLUTION);
+    const double step_per_index = double(INTERP_FILTER_SIZE) / double(INTERP_FILTER_LUT_SIZE);
+    const double integration_inc = step_per_index / double(INTEGRAL_RESOLUTION);
     double index = 0.0;
     double prev_value = 1.0;
 
@@ -385,14 +355,14 @@ const std::array<float, Resampler::INTERP_FILTER_LUT_SIZE + 2> BlepResampler::Si
 
 inline float BlepResampler::fast_Si(float t)
 {
-    float signed_t = t;
+    const float signed_t = t;
     t = std::abs(t);
     t = std::min(t, float(INTERP_FILTER_SIZE));
     t *= float(double(INTERP_FILTER_LUT_SIZE) / double(INTERP_FILTER_SIZE));
-    uint32_t left_index = static_cast<uint32_t>(t);
-    float fraction = t - static_cast<float>(left_index);
-    uint32_t right_index = left_index + 1;
-    float retval = SiLut[left_index] + fraction * (SiLut[right_index] - SiLut[left_index]);
+    const uint32_t left_index = static_cast<uint32_t>(t);
+    const float fraction = t - static_cast<float>(left_index);
+    const uint32_t right_index = left_index + 1;
+    const float retval = SiLut[left_index] + fraction * (SiLut[right_index] - SiLut[left_index]);
     return copysignf(retval, signed_t);
 }
 
@@ -433,13 +403,13 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
         float kernelSum = 0.0f;
 
         for (int wi = -INTERP_FILTER_SIZE + 1; wi <= INTERP_FILTER_SIZE; wi++) {
-            float TiIndexLeft = (float(wi) - phase - 1.0f) * sincStep;
-            float TiIndexMiddle = (float(wi) - phase) * sincStep;
-            float TiIndexRight = (float(wi) - phase + 1.0f) * sincStep;
-            float sl = fast_Ti(TiIndexLeft);
-            float sm = fast_Ti(TiIndexMiddle);
-            float sr = fast_Ti(TiIndexRight);
-            float kernel = sr - 2.0f * sm + sl;
+            const float TiIndexLeft = (float(wi) - phase - 1.0f) * sincStep;
+            const float TiIndexMiddle = (float(wi) - phase) * sincStep;
+            const float TiIndexRight = (float(wi) - phase + 1.0f) * sincStep;
+            const float sl = fast_Ti(TiIndexLeft);
+            const float sm = fast_Ti(TiIndexMiddle);
+            const float sr = fast_Ti(TiIndexRight);
+            const float kernel = sr - 2.0f * sm + sl;
             sampleSum += kernel * fetchBuffer[static_cast<size_t>(fi + wi + INTERP_FILTER_SIZE) - 1];
             kernelSum += kernel;
         }
@@ -451,6 +421,7 @@ bool BlampResampler::Process(std::span<float> buffer, float phaseInc, const Fetc
 
         buffer[i] = sampleSum / kernelSum;
     }
+
     // remove first i elements from the fetch buffer since they are no longer needed
     fetchBuffer.erase(fetchBuffer.begin(), fetchBuffer.begin() + fi);
 
@@ -491,10 +462,10 @@ inline float BlampResampler::fast_Ti(float t)
     const float old_t = t;
     t = std::min(t, float(INTERP_FILTER_SIZE));
     t *= float(double(INTERP_FILTER_LUT_SIZE) / double(INTERP_FILTER_SIZE));
-    uint32_t left_index = static_cast<uint32_t>(t);
-    float fraction = t - static_cast<float>(left_index);
-    uint32_t right_index = left_index + 1;
-    float retval = TiLut[left_index] + fraction * (TiLut[right_index] - TiLut[left_index]);
+    const uint32_t left_index = static_cast<uint32_t>(t);
+    const float fraction = t - static_cast<float>(left_index);
+    const uint32_t right_index = left_index + 1;
+    const float retval = TiLut[left_index] + fraction * (TiLut[right_index] - TiLut[left_index]);
     if (old_t > float(INTERP_FILTER_SIZE))
         return old_t * 0.5f;
     else

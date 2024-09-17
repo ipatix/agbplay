@@ -5,6 +5,7 @@
 
 struct sf_private_tag;
 struct Profile;
+struct Settings;
 
 // TODO this class does not really hold useful state, remove class and replace
 // with functions only.
@@ -14,7 +15,7 @@ class SoundExporter
 public:
     SoundExporter(
         const std::filesystem::path &directory,
-        uint32_t sampleRate,
+        const Settings &settings,
         const Profile &profile,
         bool benchmarkOnly,
         bool seperate
@@ -29,7 +30,7 @@ private:
     size_t exportSong(const std::filesystem::path &filePath, uint16_t uid);
 
     const std::filesystem::path directory;
-    const uint32_t sampleRate;
+    const Settings &settings;
     const Profile &profile;
 
     const bool benchmarkOnly;

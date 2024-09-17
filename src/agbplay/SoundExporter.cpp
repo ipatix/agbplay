@@ -5,6 +5,7 @@
 #include "MP2KContext.hpp"
 #include "OS.hpp"
 #include "Profile.hpp"
+#include "Settings.hpp"
 #include "Util.hpp"
 #include "Xcept.hpp"
 
@@ -25,12 +26,12 @@
 
 SoundExporter::SoundExporter(
     const std::filesystem::path &directory,
-    uint32_t sampleRate,
+    const Settings &settings,
     const Profile &profile,
     bool benchmarkOnly,
     bool seperate
 ) :
-    directory(directory), sampleRate(sampleRate), profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
+    directory(directory), settings(settings), profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
 {
 }
 
@@ -112,7 +113,7 @@ void SoundExporter::writeSilence(SNDFILE *ofile, double seconds)
 {
     if (seconds <= 0.0)
         return;
-    size_t samples = static_cast<size_t>(std::round(sampleRate * seconds));
+    const size_t samples = static_cast<size_t>(std::round(settings.exportSampleRate * seconds));
     std::vector<sample> silence(samples, {0.0f, 0.0f});
     sf_writef_float(ofile, reinterpret_cast<float *>(silence.data()), static_cast<sf_count_t>(silence.size()));
 }
@@ -120,7 +121,7 @@ void SoundExporter::writeSilence(SNDFILE *ofile, double seconds)
 size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t uid)
 {
     MP2KContext ctx(
-        sampleRate,
+        settings.exportSampleRate,
         Rom::Instance(),
         profile.mp2kSoundModePlayback,
         profile.agbplaySoundMode,
@@ -145,7 +146,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
 
             for (size_t i = 0; i < nTracks; i++) {
                 memset(&oinfos[i], 0, sizeof(oinfos[i]));
-                oinfos[i].samplerate = static_cast<int>(sampleRate);
+                oinfos[i].samplerate = static_cast<int>(settings.exportSampleRate);
                 oinfos[i].channels = 2;    // stereo
                 oinfos[i].format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
                 std::filesystem::path finalFilePath = filePath;
@@ -190,7 +191,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
         } else {
             SF_INFO oinfo;
             memset(&oinfo, 0, sizeof(oinfo));
-            oinfo.samplerate = static_cast<int>(sampleRate);
+            oinfo.samplerate = static_cast<int>(settings.exportSampleRate);
             oinfo.channels = 2;    // sterep
             oinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
             std::filesystem::path finalFilePath = filePath;

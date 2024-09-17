@@ -815,17 +815,17 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
     exportThread = std::make_unique<std::thread>(
         [this](
             std::filesystem::path tDirectory,
-            uint32_t tSampleRate,
+            Settings tSettings,
             Profile tProfile,
             bool tBenchmarkOnly,
             bool tSeparateTracks
         ) {
-            SoundExporter se(tDirectory, tSampleRate, tProfile, tBenchmarkOnly, tSeparateTracks);
+            SoundExporter se(tDirectory, tSettings, tProfile, tBenchmarkOnly, tSeparateTracks);
             se.Export();
             exportBusy = false;
         },
         directory,
-        settings->exportSampleRate,
+        *settings,
         profileToExport,
         benchmarkOnly,
         separateTracks

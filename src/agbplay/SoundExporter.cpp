@@ -135,8 +135,8 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
     size_t samplesRendered = 0;
     size_t samplesPerBuffer = ctx.mixer.GetSamplesPerBuffer();
     size_t nTracks = ctx.players.at(playerIdx).tracksUsed;
-    const double padSecondsStart = profile.agbplaySoundMode.padSilenceSecondsStart;
-    const double padSecondsEnd = profile.agbplaySoundMode.padSilenceSecondsEnd;
+    const double padSecondsStart = settings.exportPadStart;
+    const double padSecondsEnd = settings.exportPadEnd;
 
     if (!benchmarkOnly) {
         /* save each track to a separate file */

@@ -22,8 +22,12 @@ endif()
 add_executable(agbplay-gui WIN32 ${AGBPLAY_GUI_SOURCES} ${AGBPLAY_GUI_HEADERS} ${AGBPLAY_GUI_UIS} ${AGBPLAY_GUI_QRC} ${AGBPLAY_GUI_WIN32_RC})
 
 target_compile_options(agbplay-gui PRIVATE -Wall -Wextra -Wconversion)
-#target_compile_options(agbplay-gui PRIVATE -Wall -Wextra -Wconversion -fsanitize=address)
-#target_link_options(agbplay-gui PRIVATE -fsanitize=address)
+
+if(ENABLE_ADDRESS_SANITIZER)
+    target_compile_options(agbplay-gui PRIVATE -fsanitize=address)
+    target_link_options(agbplay-gui PRIVATE -fsanitize=address)
+endif()
+
 target_link_libraries(agbplay-gui
     PRIVATE
     agbplay

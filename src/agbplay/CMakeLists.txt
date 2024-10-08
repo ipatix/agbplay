@@ -31,8 +31,12 @@ add_library(agbplay SHARED ${AGBPLAY_SOURCES})
 
 target_compile_options(agbplay PRIVATE -Wall -Wextra -Wconversion)
 set_source_files_properties(${AGBPLAY_SOURCES_AVX2} PROPERTIES COMPILE_FLAGS -mavx2)
-#target_compile_options(agbplay PRIVATE -Wall -Wextra -Wconversion -fsanitize=address)
-#target_link_options(agbplay PRIVATE -fsanitize=address)
+
+if(ENABLE_ADDRESS_SANITIZER)
+    target_compile_options(agbplay PRIVATE -fsanitize=address)
+    target_link_options(agbplay PRIVATE -fsanitize=address)
+endif()
+
 target_include_directories(agbplay PUBLIC "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(agbplay
     PUBLIC

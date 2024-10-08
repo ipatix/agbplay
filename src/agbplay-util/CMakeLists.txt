@@ -12,6 +12,12 @@ add_library(agbplay-util STATIC ${AGBPLAY_UTIL_SOURCES})
 
 target_compile_options(agbplay-util PRIVATE -Wall -Wextra -Wconversion)
 target_include_directories(agbplay-util PUBLIC "${CMAKE_CURRENT_LIST_DIR}")
+
+if(ENABLE_ADDRESS_SANITIZER)
+    target_compile_options(agbplay-util PRIVATE -fsanitize=address)
+    target_link_options(agbplay-util PRIVATE -fsanitize=address)
+endif()
+
 target_link_libraries(agbplay-util
     PRIVATE
     agbplay

@@ -86,6 +86,7 @@ private:
     QAction *quickExportStemsAction = nullptr;
     QAction *benchmarkSelectedAction = nullptr;
     QAction *saveProfileAction = nullptr;
+    QAction *profileSettings = nullptr;
     QAction *profileMinigsfImport = nullptr;
 
     /* tool bar */

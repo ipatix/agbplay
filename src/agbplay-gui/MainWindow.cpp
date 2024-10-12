@@ -6,6 +6,7 @@
 #include "Gsf.hpp"
 #include "PlaybackEngine.hpp"
 #include "ProfileManager.hpp"
+#include "ProfileSettingsWindow.hpp"
 #include "Rom.hpp"
 #include "SelectProfileDialog.hpp"
 #include "Settings.hpp"
@@ -154,22 +155,13 @@ void MainWindow::SetupMenuBar()
 
     /* Profile */
     QMenu *profileMenu = menuBar()->addMenu("&Profile");
-    QAction *profileSelect = profileMenu->addAction("Load Profile");
-    profileSelect->setIcon(QIcon(":/icons/profile-select.ico"));
-    profileSelect->setEnabled(false);
-    QAction *profileCreate = profileMenu->addAction("Create New Profile");
-    profileCreate->setIcon(QIcon(":/icons/profile-create.ico"));
-    profileCreate->setEnabled(false);
-    QAction *profileDuplicate = profileMenu->addAction("Duplicate Current Profile");
-    profileDuplicate->setIcon(QIcon(":/icons/profile-duplicate.ico"));
-    profileDuplicate->setEnabled(false);
-    QAction *profileDelete = profileMenu->addAction("Delete Current Profile");
-    profileDelete->setIcon(QIcon(":/icons/profile-delete.ico"));
-    profileDelete->setEnabled(false);
-    profileMenu->addSeparator();
-    QAction *profileSettings = profileMenu->addAction("Profile Settings");
+    profileSettings = profileMenu->addAction("Profile Settings");
     profileSettings->setIcon(QIcon(":/icons/profile-settings.ico"));
     profileSettings->setEnabled(false);
+    connect(profileSettings, &QAction::triggered, [this](bool) {
+        ProfileSettingsWindow w(this);
+        w.exec();
+    });
     profileMinigsfImport = profileMenu->addAction("Import GSF Playlist");
     profileMinigsfImport->setIcon(QIcon(":/icons/profile-import-minigsf.ico"));
     profileMinigsfImport->setEnabled(false);
@@ -693,6 +685,7 @@ void MainWindow::LoadGame()
     quickExportSongAction->setEnabled(true);
     quickExportStemsAction->setEnabled(true);
     benchmarkSelectedAction->setEnabled(true);
+    profileSettings->setEnabled(true);
     profileMinigsfImport->setEnabled(true);
 }
 
@@ -727,6 +720,7 @@ bool MainWindow::CloseGame()
     quickExportSongAction->setEnabled(false);
     quickExportStemsAction->setEnabled(false);
     benchmarkSelectedAction->setEnabled(false);
+    profileSettings->setEnabled(false);
     profileMinigsfImport->setEnabled(false);
     return true;
 }

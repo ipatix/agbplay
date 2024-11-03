@@ -194,6 +194,11 @@ std::vector<std::shared_ptr<Profile>>
     return profilesToReturn;
 }
 
+std::vector<std::shared_ptr<Profile>> &ProfileManager::GetAllProfiles()
+{
+    return profiles;
+}
+
 std::shared_ptr<Profile> &ProfileManager::CreateProfile(const std::string &gameCode, size_t tableIdx)
 {
     const std::string profileName = fmt::format("{}.{}.json", gameCode, tableIdx);
@@ -360,9 +365,16 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
     }
 
     /* load description */
-    if (j.contains("description") && j["description"].is_string()) {
+    if (j.contains("name") && j["name"].is_string())
+        p.name = j["name"];
+    if (j.contains("author") && j["author"].is_string())
+        p.author = j["author"];
+    if (j.contains("gameStudio") && j["gameStudio"].is_string())
+        p.gameStudio = j["gameStudio"];
+    if (j.contains("description") && j["description"].is_string())
         p.description = j["description"];
-    }
+    if (j.contains("notes") && j["notes"].is_string())
+        p.notes = j["notes"];
 
     profiles.emplace_back(std::make_shared<Profile>(std::move(p)));
 }
@@ -455,9 +467,17 @@ void ProfileManager::SaveProfile(std::shared_ptr<Profile> &p)
     }
     j["gameMatch"] = jgm;
 
-    /* save description */
+    /* save profile description */
+    if (p->name.size() > 0)
+        j["name"] = p->name;
+    if (p->author.size() > 0)
+        j["author"] = p->author;
+    if (p->gameStudio.size() > 0)
+        j["gameStudio"] = p->gameStudio;
     if (p->description.size() > 0)
         j["description"] = p->description;
+    if (p->notes.size() > 0)
+        j["notes"] = p->notes;
 
     /* save JSON to disk */
     if (!p->path.empty()) {

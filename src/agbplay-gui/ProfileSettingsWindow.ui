@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>656</width>
-    <height>386</height>
+    <width>627</width>
+    <height>392</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,6 +20,9 @@
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <widget class="QTreeWidget" name="treeWidget">
+         <property name="columnCount">
+          <number>1</number>
+         </property>
          <column>
           <property name="text">
            <string notr="true">1</string>
@@ -132,52 +135,62 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_4">
         <attribute name="title">
          <string>Proile Information</string>
         </attribute>
         <layout class="QFormLayout" name="formLayout_3">
-         <item row="0" column="0">
+         <item row="1" column="0">
           <widget class="QLabel" name="label_2">
            <property name="text">
             <string>Profile Author</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="lineEdit_2"/>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="lineEditProfileAuthor"/>
          </item>
-         <item row="2" column="0">
+         <item row="3" column="0">
           <widget class="QLabel" name="label_3">
            <property name="text">
             <string>Description</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="lineEdit_3"/>
-         </item>
          <item row="3" column="1">
-          <widget class="QPlainTextEdit" name="plainTextEdit"/>
+          <widget class="QLineEdit" name="lineEditDescription"/>
          </item>
-         <item row="3" column="0">
+         <item row="4" column="1">
+          <widget class="QPlainTextEdit" name="plainTextEditNotes"/>
+         </item>
+         <item row="4" column="0">
           <widget class="QLabel" name="label_4">
            <property name="text">
             <string>Notes</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="2" column="0">
           <widget class="QLabel" name="label_5">
            <property name="text">
             <string>Game Studio</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="lineEdit_4"/>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="lineEditGameStudio"/>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="lineEditProfileName"/>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>Profile Name</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>

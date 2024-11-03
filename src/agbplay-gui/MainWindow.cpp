@@ -159,7 +159,9 @@ void MainWindow::SetupMenuBar()
     profileSettings->setIcon(QIcon(":/icons/profile-settings.ico"));
     profileSettings->setEnabled(false);
     connect(profileSettings, &QAction::triggered, [this](bool) {
-        ProfileSettingsWindow w(this);
+        if (!pm)
+            return;
+        ProfileSettingsWindow w(this, *pm, profile);
         w.exec();
     });
     profileMinigsfImport = profileMenu->addAction("Import GSF Playlist");

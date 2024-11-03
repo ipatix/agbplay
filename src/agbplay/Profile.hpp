@@ -36,7 +36,11 @@ struct Profile
     AgbplaySoundMode agbplaySoundMode;
     GameMatch gameMatch;
     // sound hooks / patches, TODO
+    std::string name;
+    std::string author;
+    std::string gameStudio;
     std::string description;
+    std::string notes;
     // tags, profiles
 
     std::filesystem::path path;

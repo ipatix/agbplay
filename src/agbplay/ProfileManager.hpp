@@ -20,6 +20,7 @@ public:
     static std::filesystem::path ProfileUserPath();
     std::vector<std::shared_ptr<Profile>>
         GetProfiles(const Rom &rom, const std::vector<MP2KScanner::Result> scanResults);
+    std::vector<std::shared_ptr<Profile>> &GetAllProfiles();
     std::shared_ptr<Profile> &CreateProfile(const std::string &gameCode, size_t tableIdx);
 
 private:

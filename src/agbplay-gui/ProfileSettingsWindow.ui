@@ -135,7 +135,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab_4">
         <attribute name="title">
@@ -200,49 +200,49 @@
         </attribute>
         <layout class="QFormLayout" name="formLayout_2">
          <item row="0" column="0">
-          <widget class="QCheckBox" name="checkBox_3">
+          <widget class="QCheckBox" name="checkBoxVol">
            <property name="text">
             <string>Manual PCM volume</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QSpinBox" name="spinBox_3">
+          <widget class="QSpinBox" name="spinBoxVol">
            <property name="maximum">
             <number>15</number>
            </property>
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QCheckBox" name="checkBox_4">
+          <widget class="QCheckBox" name="checkBoxRev">
            <property name="text">
             <string>Manual reverb depth</string>
            </property>
           </widget>
          </item>
          <item row="2" column="0">
-          <widget class="QCheckBox" name="checkBox_5">
+          <widget class="QCheckBox" name="checkBoxFreq">
            <property name="text">
             <string>Manual PCM frequency</string>
            </property>
           </widget>
          </item>
          <item row="3" column="0">
-          <widget class="QCheckBox" name="checkBox_6">
+          <widget class="QCheckBox" name="checkBoxChn">
            <property name="text">
             <string>Manual PCM channels</string>
            </property>
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QSpinBox" name="spinBox_4">
+          <widget class="QSpinBox" name="spinBoxRev">
            <property name="maximum">
             <number>127</number>
            </property>
           </widget>
          </item>
          <item row="3" column="1">
-          <widget class="QSpinBox" name="spinBox_6">
+          <widget class="QSpinBox" name="spinBoxChn">
            <property name="minimum">
             <number>1</number>
            </property>
@@ -252,17 +252,17 @@
           </widget>
          </item>
          <item row="4" column="0">
-          <widget class="QCheckBox" name="checkBox_7">
+          <widget class="QCheckBox" name="checkBoxDac">
            <property name="text">
             <string>Manual DAC config</string>
            </property>
           </widget>
          </item>
          <item row="4" column="1">
-          <widget class="QComboBox" name="comboBox"/>
+          <widget class="QComboBox" name="comboBoxDac"/>
          </item>
          <item row="2" column="1">
-          <widget class="QComboBox" name="comboBox_2"/>
+          <widget class="QComboBox" name="comboBoxFreq"/>
          </item>
         </layout>
        </widget>
@@ -440,6 +440,40 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>treeWidget</tabstop>
+  <tabstop>pushButton</tabstop>
+  <tabstop>pushButton_2</tabstop>
+  <tabstop>pushButton_3</tabstop>
+  <tabstop>pushButton_4</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>lineEditProfileName</tabstop>
+  <tabstop>lineEditProfileAuthor</tabstop>
+  <tabstop>lineEditGameStudio</tabstop>
+  <tabstop>lineEditDescription</tabstop>
+  <tabstop>plainTextEditNotes</tabstop>
+  <tabstop>checkBoxVol</tabstop>
+  <tabstop>spinBoxVol</tabstop>
+  <tabstop>checkBoxRev</tabstop>
+  <tabstop>checkBoxFreq</tabstop>
+  <tabstop>checkBoxChn</tabstop>
+  <tabstop>spinBoxRev</tabstop>
+  <tabstop>spinBoxChn</tabstop>
+  <tabstop>checkBoxDac</tabstop>
+  <tabstop>comboBoxDac</tabstop>
+  <tabstop>comboBoxFreq</tabstop>
+  <tabstop>checkBox</tabstop>
+  <tabstop>lineEdit</tabstop>
+  <tabstop>checkBox_2</tabstop>
+  <tabstop>spinBox</tabstop>
+  <tabstop>spinBox_2</tabstop>
+  <tabstop>groupBox_2</tabstop>
+  <tabstop>pushButton_5</tabstop>
+  <tabstop>pushButton_7</tabstop>
+  <tabstop>tableWidget</tabstop>
+  <tabstop>listWidget</tabstop>
+  <tabstop>lineEdit_5</tabstop>
+ </tabstops>
  <resources>
   <include location="resources/resources.qrc"/>
  </resources>

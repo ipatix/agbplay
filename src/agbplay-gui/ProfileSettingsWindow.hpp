@@ -6,6 +6,7 @@
 
 struct Profile;
 class ProfileManager;
+class QAbstractButton;
 
 namespace Ui
 {
@@ -21,9 +22,13 @@ public:
     ~ProfileSettingsWindow();
 
 private:
+    void InitButtonBar();
     void InitTreeWidget();
     void InitProfileInfo();
+    void InitSoundMode();
     void UpdateProfileList();
+    void Apply();
+    void buttonBoxButtonPressed(QAbstractButton *button);
 
     Ui::ProfileSettingsWindow *ui;
     ProfileManager &pm;

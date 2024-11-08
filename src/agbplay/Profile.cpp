@@ -7,6 +7,7 @@ void Profile::ApplyScanToPlayback(
 )
 {
     /* SongTableInfo */
+    songTableInfoScanned = songTableInfoScan;
     songTableInfoPlayback = songTableInfoConfig;
     if (songTableInfoConfig.pos == SongTableInfo::POS_AUTO)
         songTableInfoPlayback.pos = songTableInfoScan.pos;
@@ -14,6 +15,7 @@ void Profile::ApplyScanToPlayback(
         songTableInfoPlayback.count = songTableInfoScan.count;
 
     /* PlayerTableInfo */
+    playerTableScanned = playerTableScan;
     playerTablePlayback.clear();
     if (playerTableConfig.size() == 0) {
         playerTablePlayback = playerTableScan;
@@ -23,6 +25,7 @@ void Profile::ApplyScanToPlayback(
     }
 
     /* MP2KSoundMode */
+    mp2kSoundModeScanned = mp2kSoundModeScan;
     mp2kSoundModePlayback = mp2kSoundModeConfig;
     if (mp2kSoundModeConfig.vol == MP2KSoundMode::VOL_AUTO)
         mp2kSoundModePlayback.vol = mp2kSoundModeScan.vol;

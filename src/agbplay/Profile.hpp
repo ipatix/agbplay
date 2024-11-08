@@ -28,10 +28,13 @@ struct Profile
 
     std::vector<PlaylistEntry> playlist;
     SongTableInfo songTableInfoConfig;
+    SongTableInfo songTableInfoScanned;
     SongTableInfo songTableInfoPlayback;
     PlayerTableInfo playerTableConfig;
+    PlayerTableInfo playerTableScanned;
     PlayerTableInfo playerTablePlayback;
     MP2KSoundMode mp2kSoundModeConfig;
+    MP2KSoundMode mp2kSoundModeScanned;
     MP2KSoundMode mp2kSoundModePlayback;
     AgbplaySoundMode agbplaySoundMode;
     GameMatch gameMatch;

@@ -53,7 +53,7 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
     assert(exportComboBoxIndex >= 0);
     ui->exportSampleRateComboBox->setCurrentIndex(exportComboBoxIndex);
 
-    /* init bits per sample combo box */
+    /* init bit depth combo box */
     for (const auto v : standardBits) {
         const auto s = QString::fromStdString(fmt::format("{}-bit", v));
         ui->exportBitDepthComboBox->addItem(s, QVariant(v));

@@ -1,5 +1,4 @@
 #include "SettingsWindow.hpp"
-
 #include "Settings.hpp"
 #include "ui_SettingsWindow.h"
 
@@ -13,9 +12,10 @@
 
 static const std::vector<uint32_t> standardRates = {22050, 32000, 44100, 48000, 96000, 192000};
 static const uint32_t RATE_CUSTOM = 0u;
+static const std::vector<uint32_t> standardBits = {16, 24, 32};
 
 SettingsWindow::SettingsWindow(QWidget *parent, Settings &settings) :
-    QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
+QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
 {
     ui->setupUi(this);
 
@@ -52,6 +52,17 @@ SettingsWindow::SettingsWindow(QWidget *parent, Settings &settings) :
     exportComboBoxIndex = ui->exportSampleRateComboBox->findData(QVariant(settings.exportSampleRate));
     assert(exportComboBoxIndex >= 0);
     ui->exportSampleRateComboBox->setCurrentIndex(exportComboBoxIndex);
+
+    /* init bits per sample combo box */
+    for (const auto v : standardBits) {
+        const auto s = QString::fromStdString(fmt::format("{}-bit", v));
+        ui->exportBitDepthComboBox->addItem(s, QVariant(v));
+    }
+
+    it = std::find(standardBits.begin(), standardBits.end(), settings.exportBitDepth);
+    exportComboBoxIndex = ui->exportBitDepthComboBox->findData(QVariant(settings.exportBitDepth));
+    assert(exportBitDepthComboBoxIndex = 0);
+    ui->exportBitDepthComboBox->setCurrentIndex(exportComboBoxIndex);
 
     /* init other fields */
     ui->exportPadStartSpinBox->setValue(settings.exportPadStart);
@@ -170,6 +181,7 @@ void SettingsWindow::buttonBoxButtonPressed(QAbstractButton *button)
     /* if OK or apply was pressed, apply changes to settings */
     settings.playbackSampleRate = std::max(1u, ui->playbackSampleRateComboBox->currentData().toUInt());
     settings.exportSampleRate = std::max(1u, ui->exportSampleRateComboBox->currentData().toUInt());
+    settings.exportBitDepth = std::max(1u, ui->exportBitDepthComboBox->currentData().toUInt());
     settings.exportPadStart = std::clamp(ui->exportPadStartSpinBox->value(), 0.0, 100.0);
     settings.exportPadEnd = std::clamp(ui->exportPadEndSpinBox->value(), 0.0, 100.0);
     settings.exportQuickExportDirectory = ui->exportFolderLineEdit->text().toStdWString();

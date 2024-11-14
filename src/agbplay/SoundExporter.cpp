@@ -137,6 +137,15 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
     size_t nTracks = ctx.players.at(playerIdx).tracksUsed;
     const double padSecondsStart = settings.exportPadStart;
     const double padSecondsEnd = settings.exportPadEnd;
+    int bitDepth = SF_FORMAT_PCM_16;
+
+    if (settings.exportBitDepth == 16) {
+        bitDepth = SF_FORMAT_PCM_16;
+    } else if (settings.exportBitDepth == 24) {
+        bitDepth = SF_FORMAT_PCM_24;
+    } else {
+        bitDepth = SF_FORMAT_FLOAT;
+    }
 
     if (!benchmarkOnly) {
         /* save each track to a separate file */
@@ -148,7 +157,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
                 memset(&oinfos[i], 0, sizeof(oinfos[i]));
                 oinfos[i].samplerate = static_cast<int>(settings.exportSampleRate);
                 oinfos[i].channels = 2;    // stereo
-                oinfos[i].format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
+                oinfos[i].format = SF_FORMAT_WAV | bitDepth;
                 std::filesystem::path finalFilePath = filePath;
                 finalFilePath += fmt::format(".{:02d}.wav", i);
 #ifdef _WIN32
@@ -193,7 +202,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
             memset(&oinfo, 0, sizeof(oinfo));
             oinfo.samplerate = static_cast<int>(settings.exportSampleRate);
             oinfo.channels = 2;    // sterep
-            oinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
+            oinfo.format = SF_FORMAT_WAV | bitDepth;
             std::filesystem::path finalFilePath = filePath;
             finalFilePath += fmt::format(".wav");
 #ifdef _WIN32

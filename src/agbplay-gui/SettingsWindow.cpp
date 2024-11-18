@@ -61,7 +61,6 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
 
     it = std::find(standardBits.begin(), standardBits.end(), settings.exportBitDepth);
     exportComboBoxIndex = ui->exportBitDepthComboBox->findData(QVariant(settings.exportBitDepth));
-    assert(exportBitDepthComboBoxIndex = 0);
     ui->exportBitDepthComboBox->setCurrentIndex(exportComboBoxIndex);
 
     /* init other fields */

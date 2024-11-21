@@ -18,6 +18,7 @@ ProfileSettingsWindow::ProfileSettingsWindow(QWidget *parent, ProfileManager &pm
     InitTreeWidget();
     InitProfileInfo();
     InitSoundMode();
+    InitGameTables();
 }
 
 void ProfileSettingsWindow::InitButtonBar()
@@ -87,11 +88,131 @@ void ProfileSettingsWindow::InitProfileInfo()
     ui->plainTextEditNotes->appendPlainText(QString::fromStdString(profile->notes));
 }
 
+void ProfileSettingsWindow::InitGameTables()
+{
+    /* songtable pos & index */
+    if (profile->songTableInfoConfig.pos == SongTableInfo::POS_AUTO) {
+        ui->spinBoxSongTable->setValue(static_cast<int>(profile->songTableInfoScanned.pos));
+        ui->checkBoxSongTable->setCheckState(Qt::Unchecked);
+        ui->spinBoxSongTable->setEnabled(false);
+        ui->spinBoxTableIndex->setValue(profile->songTableInfoScanned.tableIdx);
+        ui->spinBoxTableIndex->setEnabled(true);
+    } else {
+        ui->spinBoxSongTable->setValue(static_cast<int>(profile->songTableInfoConfig.pos));
+        ui->checkBoxSongTable->setCheckState(Qt::Checked);
+        ui->spinBoxSongTable->setEnabled(true);
+        ui->spinBoxTableIndex->setValue(profile->songTableInfoConfig.tableIdx);
+        ui->spinBoxTableIndex->setEnabled(false);
+    }
+
+    connect(ui->checkBoxSongTable, &QCheckBox::stateChanged, [this](int state){
+        if (state == Qt::Checked) {
+            ui->spinBoxSongTable->setEnabled(true);
+            ui->spinBoxTableIndex->setEnabled(false);
+        } else {
+            ui->spinBoxSongTable->setValue(static_cast<int>(profile->songTableInfoScanned.pos));
+            ui->spinBoxSongTable->setEnabled(false);
+            ui->spinBoxTableIndex->setValue(profile->songTableInfoScanned.tableIdx);
+            ui->spinBoxTableIndex->setEnabled(true);
+        }
+    });
+
+    /* song  entry count */
+    if (profile->songTableInfoConfig.count == SongTableInfo::COUNT_AUTO) {
+        ui->spinBoxSongCount->setValue(profile->songTableInfoScanned.count);
+        ui->checkBoxSongCount->setCheckState(Qt::Unchecked);
+        ui->spinBoxSongCount->setEnabled(false);
+    } else {
+        ui->spinBoxSongCount->setValue(profile->songTableInfoConfig.count);
+        ui->checkBoxSongCount->setCheckState(Qt::Checked);
+        ui->spinBoxSongCount->setEnabled(true);
+    }
+
+    connect(ui->checkBoxSongCount, &QCheckBox::stateChanged, [this](int state){
+        if (state == Qt::Checked) {
+            ui->spinBoxSongCount->setEnabled(true);
+        } else {
+            ui->spinBoxSongCount->setValue(profile->songTableInfoScanned.count);
+            ui->spinBoxSongCount->setEnabled(false);
+        }
+    });
+
+    /* player table */
+    ui->tableWidgetPlayers->setSelectionMode(QAbstractItemView::NoSelection);
+    ui->tableWidgetPlayers->setColumnCount(COL_PLT_COUNT);
+    ui->tableWidgetPlayers->setHorizontalHeaderItem(COL_PLT_TRACKS, new QTableWidgetItem("Max Tracks"));
+    ui->tableWidgetPlayers->setHorizontalHeaderItem(COL_PLT_PRIO, new QTableWidgetItem("Use Priority"));
+
+    connect(ui->tableWidgetPlayers, &QTableWidget::cellChanged, [this](int row, int column) {
+        /* We validate the content:
+         * Remove non-number characters, except a blank string, which is equal to 0. */
+        assert(column < COL_PLT_COUNT);
+
+        QTableWidgetItem *item = ui->tableWidgetPlayers->item(row, column);
+        assert(item);
+
+        // TODO use global define mor maximum tracks of 16
+        int limit = 0;
+        if (column == COL_PLT_TRACKS) {
+            limit = 16;
+        } else {
+            limit = 1;
+        }
+        QString newString = item->text().remove(QRegularExpression("[^0-9]"));
+        if (newString.size() == 0)
+            newString = "0";
+        if (newString.toInt() > limit)
+            newString = QString::number(limit);
+        item->setText(newString);
+    });
+
+    auto populateTable = [this](const PlayerTableInfo &plt) {
+        ui->tableWidgetPlayers->setRowCount(0);
+        for (size_t i = 0; i < plt.size(); i++) {
+            const int row = ui->tableWidgetPlayers->rowCount();
+            ui->tableWidgetPlayers->insertRow(row);
+            ui->tableWidgetPlayers->setItem(row, COL_PLT_TRACKS, new QTableWidgetItem(QString::number(plt.at(i).maxTracks)));
+            ui->tableWidgetPlayers->setItem(row, COL_PLT_PRIO, new QTableWidgetItem(QString::number(plt.at(i).usePriority)));
+            ui->tableWidgetPlayers->setVerticalHeaderItem(row, new QTableWidgetItem(QString::fromStdString(std::format("Player {}", row))));
+        }
+    };
+
+    if (profile->playerTableConfig.size() == 0) {
+        populateTable(profile->playerTableScanned);
+        ui->groupBoxPlayerTable->setChecked(false);
+    } else {
+        populateTable(profile->playerTableConfig);
+        ui->groupBoxPlayerTable->setChecked(true);
+    }
+
+    connect(ui->groupBoxPlayerTable, &QGroupBox::clicked, [this, populateTable](bool checked) {
+        if (!checked)
+            populateTable(profile->playerTableScanned);
+    });
+
+    connect(ui->pushButtonPlayerAdd, &QPushButton::clicked, [this](bool) {
+        const int row = ui->tableWidgetPlayers->rowCount();
+        // TODO replace 16 with constant of max players
+        if (row >= 32)
+            return;
+        ui->tableWidgetPlayers->insertRow(row);
+        ui->tableWidgetPlayers->setItem(row, COL_PLT_TRACKS, new QTableWidgetItem("16")); // TODO replace 16 with constant
+        ui->tableWidgetPlayers->setItem(row, COL_PLT_PRIO, new QTableWidgetItem("0"));
+        ui->tableWidgetPlayers->setVerticalHeaderItem(row, new QTableWidgetItem(QString::fromStdString(std::format("Player {}", row))));
+    });
+
+    connect(ui->pushButtonPlayerRemove, &QPushButton::clicked, [this](bool) {
+        const int rows = ui->tableWidgetPlayers->rowCount();
+        if (rows == 0)
+            return;
+        ui->tableWidgetPlayers->removeRow(rows - 1);
+    });
+}
+
 void ProfileSettingsWindow::InitSoundMode()
 {
     /* volume */
     if (profile->mp2kSoundModeConfig.vol == MP2KSoundMode::VOL_AUTO) {
-        printf("scanned vol: %d\n", profile->mp2kSoundModeScanned.vol);
         ui->spinBoxVol->setValue(profile->mp2kSoundModeScanned.vol);
         ui->spinBoxVol->setEnabled(false);
         ui->checkBoxVol->setCheckState(Qt::Unchecked);
@@ -136,7 +257,7 @@ void ProfileSettingsWindow::InitSoundMode()
     };
 
     for (unsigned int i = 0; i < sampleRates.size(); i++)
-        ui->comboBoxFreq->addItem(QString::number(sampleRates.at(i)), i + 1);
+        ui->comboBoxFreq->addItem(QString::fromStdString(std::format("{} Hz", sampleRates.at(i))), i + 1);
 
     if (profile->mp2kSoundModeConfig.freq == MP2KSoundMode::FREQ_AUTO) {
         assert(profile->mp2kSoundModePlayback.freq > 0);

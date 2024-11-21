@@ -135,7 +135,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_4">
         <attribute name="title">
@@ -281,7 +281,7 @@
            </property>
            <layout class="QFormLayout" name="formLayout">
             <item row="0" column="0">
-             <widget class="QCheckBox" name="checkBox">
+             <widget class="QCheckBox" name="checkBoxSongTable">
               <property name="toolTip">
                <string>Enable to not use the automatic songtable scanner. Requires the songtable's position.</string>
               </property>
@@ -290,11 +290,8 @@
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
-             <widget class="QLineEdit" name="lineEdit"/>
-            </item>
             <item row="1" column="0">
-             <widget class="QCheckBox" name="checkBox_2">
+             <widget class="QCheckBox" name="checkBoxSongCount">
               <property name="toolTip">
                <string>Enable to not use the automatic songtable scanner. Requires the amount of songs the song table contains.</string>
               </property>
@@ -304,7 +301,11 @@
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QSpinBox" name="spinBox"/>
+             <widget class="QSpinBox" name="spinBoxSongCount">
+              <property name="maximum">
+               <number>65534</number>
+              </property>
+             </widget>
             </item>
             <item row="2" column="0">
              <widget class="QLabel" name="label">
@@ -317,13 +318,33 @@
              </widget>
             </item>
             <item row="2" column="1">
-             <widget class="QSpinBox" name="spinBox_2"/>
+             <widget class="QSpinBox" name="spinBoxTableIndex">
+              <property name="maximum">
+               <number>8</number>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QSpinBox" name="spinBoxSongTable">
+              <property name="prefix">
+               <string notr="true">0x</string>
+              </property>
+              <property name="maximum">
+               <number>33554424</number>
+              </property>
+              <property name="singleStep">
+               <number>4</number>
+              </property>
+              <property name="displayIntegerBase">
+               <number>16</number>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox_2">
+          <widget class="QGroupBox" name="groupBoxPlayerTable">
            <property name="toolTip">
             <string>Enable to manually specify the music player config. Change with caution!</string>
            </property>
@@ -333,9 +354,12 @@
            <property name="checkable">
             <bool>true</bool>
            </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
            <layout class="QGridLayout" name="gridLayout">
             <item row="1" column="3">
-             <widget class="QPushButton" name="pushButton_5">
+             <widget class="QPushButton" name="pushButtonPlayerRemove">
               <property name="text">
                <string/>
               </property>
@@ -359,7 +383,7 @@
              </spacer>
             </item>
             <item row="1" column="2">
-             <widget class="QPushButton" name="pushButton_7">
+             <widget class="QPushButton" name="pushButtonPlayerAdd">
               <property name="text">
                <string/>
               </property>
@@ -377,7 +401,7 @@
              </widget>
             </item>
             <item row="0" column="0" colspan="4">
-             <widget class="QTableWidget" name="tableWidget"/>
+             <widget class="QTableWidget" name="tableWidgetPlayers"/>
             </item>
            </layout>
           </widget>
@@ -462,15 +486,14 @@
   <tabstop>checkBoxDac</tabstop>
   <tabstop>comboBoxDac</tabstop>
   <tabstop>comboBoxFreq</tabstop>
-  <tabstop>checkBox</tabstop>
-  <tabstop>lineEdit</tabstop>
-  <tabstop>checkBox_2</tabstop>
-  <tabstop>spinBox</tabstop>
-  <tabstop>spinBox_2</tabstop>
-  <tabstop>groupBox_2</tabstop>
-  <tabstop>pushButton_5</tabstop>
-  <tabstop>pushButton_7</tabstop>
-  <tabstop>tableWidget</tabstop>
+  <tabstop>checkBoxSongTable</tabstop>
+  <tabstop>checkBoxSongCount</tabstop>
+  <tabstop>spinBoxSongCount</tabstop>
+  <tabstop>spinBoxTableIndex</tabstop>
+  <tabstop>groupBoxPlayerTable</tabstop>
+  <tabstop>pushButtonPlayerRemove</tabstop>
+  <tabstop>pushButtonPlayerAdd</tabstop>
+  <tabstop>tableWidgetPlayers</tabstop>
   <tabstop>listWidget</tabstop>
   <tabstop>lineEdit_5</tabstop>
  </tabstops>

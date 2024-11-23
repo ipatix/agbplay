@@ -3,6 +3,7 @@
 #include "ui_ProfileSettingsWindow.h"
 
 #include <QAbstractButton>
+#include <QMessageBox>
 
 #include "Profile.hpp"
 #include "ProfileManager.hpp"
@@ -20,6 +21,7 @@ ProfileSettingsWindow::ProfileSettingsWindow(QWidget *parent, ProfileManager &pm
     InitSoundMode();
     InitEnhancements();
     InitGameTables();
+    InitProfileAssignment();
 }
 
 void ProfileSettingsWindow::InitButtonBar()
@@ -209,6 +211,65 @@ void ProfileSettingsWindow::InitGameTables()
             return;
         ui->tableWidgetPlayers->removeRow(rows - 1);
     });
+}
+
+void ProfileSettingsWindow::InitProfileAssignment()
+{
+    /* game codes */
+    static const auto defaultFlags = Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled;
+
+    ui->listWidgetGameCodes->clear();
+    for (const std::string &c : profile->gameMatch.gameCodes) {
+        QListWidgetItem *item = nullptr;
+        try {
+            item = new QListWidgetItem(QString::fromStdString(c));
+            item->setFlags(defaultFlags);
+            ui->listWidgetGameCodes->addItem(item);
+        } catch (...) {
+            delete item;
+            throw;
+        }
+    }
+
+    connect(ui->listWidgetGameCodes, &QListWidget::itemChanged, [this](QListWidgetItem *item){
+        /* only allow game codes with capital letters and numbers up to 4 length. */
+        QString oldText = item->text();
+        QString newText = oldText; // We have to copy string since remove() appears to be destructive
+        (void)newText.remove(QRegularExpression("[^A-Z0-9]"));
+        newText = newText.left(4);
+        if (newText != oldText)
+            item->setText(newText);
+    });
+
+    connect(ui->pushButtonCodeAdd, &QAbstractButton::clicked, [this](bool) {
+        QListWidgetItem *item = nullptr;
+        try {
+            item = new QListWidgetItem("0000");
+            item->setFlags(defaultFlags);
+            ui->listWidgetGameCodes->addItem(item);
+        } catch (...) {
+            delete item;
+            throw;
+        }
+    });
+
+    connect(ui->pushButtonCodeRemove, &QAbstractButton::clicked, [this](bool) {
+        auto items = ui->listWidgetGameCodes->selectedItems();
+        if (items.size() == 0) {
+            QMessageBox mbox(QMessageBox::Icon::Critical, "Game Code Matches", "Please select a game code to remove", QMessageBox::Ok, this);
+            mbox.exec();
+            return;
+        }
+
+        for (QListWidgetItem *item : items)
+            ui->listWidgetGameCodes->takeItem(ui->listWidgetGameCodes->row(item));
+    });
+
+    /* magic bytes */
+    QStringList byteStringList;
+    for (uint8_t byte : profile->gameMatch.magicBytes)
+        byteStringList << QString::fromStdString(std::format("{:02x}", byte));
+    ui->lineEditMagicBytes->setText(byteStringList.join(" "));
 }
 
 void ProfileSettingsWindow::InitSoundMode()

@@ -28,6 +28,7 @@ private:
     void InitSoundMode();
     void InitEnhancements();
     void InitGameTables();
+    void InitProfileAssignment();
     void UpdateProfileList();
     void Apply();
     void buttonBoxButtonPressed(QAbstractButton *button);

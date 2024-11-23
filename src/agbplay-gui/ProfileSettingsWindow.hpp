@@ -26,6 +26,7 @@ private:
     void InitTreeWidget();
     void InitProfileInfo();
     void InitSoundMode();
+    void InitEnhancements();
     void InitGameTables();
     void UpdateProfileList();
     void Apply();

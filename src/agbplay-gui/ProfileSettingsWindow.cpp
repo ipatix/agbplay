@@ -18,6 +18,7 @@ ProfileSettingsWindow::ProfileSettingsWindow(QWidget *parent, ProfileManager &pm
     InitTreeWidget();
     InitProfileInfo();
     InitSoundMode();
+    InitEnhancements();
     InitGameTables();
 }
 
@@ -323,6 +324,134 @@ void ProfileSettingsWindow::InitSoundMode()
             ui->comboBoxDac->setCurrentIndex(profile->mp2kSoundModeScanned.dacConfig % 4);
             ui->comboBoxDac->setEnabled(false);
         }
+    });
+}
+
+void ProfileSettingsWindow::InitEnhancements()
+{
+    /* Resampler combo boxes */
+    for (QComboBox *comboBox : { ui->comboBoxResTypeNormal, ui->comboBoxResTypeFixed }) {
+        comboBox->clear();
+        comboBox->addItem("Nearest (fast)", static_cast<int>(ResamplerType::NEAREST));
+        comboBox->addItem("Linear (fast)", static_cast<int>(ResamplerType::LINEAR));
+        comboBox->addItem("Sinc (slow)", static_cast<int>(ResamplerType::SINC));
+        comboBox->addItem("Blep (slow)", static_cast<int>(ResamplerType::BLEP));
+        comboBox->addItem("Blamp (slow)", static_cast<int>(ResamplerType::BLAMP));
+    }
+
+    ui->comboBoxResTypeNormal->setCurrentIndex(static_cast<int>(profile->agbplaySoundMode.resamplerTypeNormal));
+    ui->comboBoxResTypeFixed->setCurrentIndex(static_cast<int>(profile->agbplaySoundMode.resamplerTypeFixed));
+
+    static const QString resToolTip = "Specify resampler type:\n"
+        "- Nearest sounds harsh, while linear sounds a bit smoother.\n"
+        "- However, both lower quality due to aliasing artifacts.\n"
+        "- Sinc has least aliasing, but may sound muffled.\n"
+        "- Blep mimics the sound of nearest, but uses bandlimited rectangular pulses, which avoids aliasing.\n"
+        "- Blamp mimics the sound of linear, but uses bandlimited triangular pulses, which avoids aliasing.";
+
+    ui->comboBoxResTypeNormal->setToolTip(resToolTip);
+    ui->comboBoxResTypeFixed->setToolTip(resToolTip);
+
+    connect(ui->pushButtonResTypeNormal, &QPushButton::clicked, [this](bool){
+        ui->comboBoxResTypeNormal->setCurrentIndex(static_cast<int>(ResamplerType::BLAMP));
+    });
+
+    connect(ui->pushButtonResTypeFixed, &QPushButton::clicked, [this](bool){
+        ui->comboBoxResTypeFixed->setCurrentIndex(static_cast<int>(ResamplerType::BLEP));
+    });
+
+    /* reverb type */
+    ui->comboBoxRevAlgo->clear();
+    ui->comboBoxRevAlgo->addItem("Normal", static_cast<int>(ReverbType::NORMAL));
+    ui->comboBoxRevAlgo->addItem("Golden Sun", static_cast<int>(ReverbType::GS1));
+    ui->comboBoxRevAlgo->addItem("Golden Sun - The Lost Age", static_cast<int>(ReverbType::GS2));
+    ui->comboBoxRevAlgo->addItem("Mario Golf - Advance Tour", static_cast<int>(ReverbType::MGAT));
+    ui->comboBoxRevAlgo->addItem("Test (development only)", static_cast<int>(ReverbType::TEST));
+    ui->comboBoxRevAlgo->addItem("None", static_cast<int>(ReverbType::NONE));
+
+    ui->comboBoxRevAlgo->setCurrentIndex(static_cast<int>(profile->agbplaySoundMode.reverbType));
+
+    static const QString revToolTip = "Specify reverb algorithm:\n"
+        "- 'Normal' is the standard reverb used in most games. This is the only algorithm affected by depth setting.\n"
+        "- 'Golden Sun', 'Goldeun Sun - The Lost Age', and 'Mario Golf - Advance Tour' are the algorithms of their respective games.\n"
+        "- 'Mario Tennis - Power Tour' uses the same reverb algorithm as used in 'Mario Golf - Advance Tour'\n"
+        "- 'Test' should be used for development purpose only.";
+
+    ui->comboBoxRevAlgo->setToolTip(revToolTip);
+
+    connect(ui->pushButtonRevAlgo, &QPushButton::clicked, [this](bool){
+        ui->comboBoxRevAlgo->setCurrentIndex(static_cast<int>(ReverbType::NORMAL));
+    });
+
+    /* PCM DMA buffer size */
+    ui->spinBoxDmaBufLen->setValue(static_cast<int>(profile->agbplaySoundMode.dmaBufferLen));
+
+    static const QString dmaBufLenToolTip = "Specify PCM DMA reverb buffer len:\n"
+        "This is 1584 (0x630) for all known commercial GBA games.\n"
+        "Increasing this increases the duration of the reverb echoes fromt the 'Normal' reverb type";
+
+    ui->spinBoxDmaBufLen->setToolTip(dmaBufLenToolTip);
+
+    connect(ui->pushButtonDmaBufLen, &QPushButton::clicked, [this](bool){
+        ui->spinBoxDmaBufLen->setValue(0x630);  // TODO change this to a more global define
+    });
+
+    /* accurate ch3 quantization */
+    ui->checkBoxCh3Quant->setCheckState(profile->agbplaySoundMode.accurateCh3Quantization ? Qt::Checked : Qt::Unchecked);
+
+    static const QString quantToolTip = "Accurate PSG CH3 quantization:\n"
+        "On real GBA hardware, the volume of PSG CH3 will affect the quantization, thus change the timbre.\n"
+        "Disable this to get 'better than hardware' sound, but for low volumes it may noticeably change the timbre.";
+
+    ui->checkBoxCh3Quant->setToolTip(quantToolTip);
+
+    connect(ui->pushButtonCh3Quant, &QPushButton::clicked, [this](bool){
+        ui->checkBoxCh3Quant->setCheckState(Qt::Checked);
+    });
+
+    /* accurate ch3 volume */
+    ui->checkBoxCh3Vol->setCheckState(profile->agbplaySoundMode.accurateCh3Volume ? Qt::Checked : Qt::Unchecked);
+
+    static const QString volToolTip = "On real GBA hardware, the PSG CH3 volume is limited to 0%, 25%, 50%, 75%, an 100%.\n"
+        "Disable this to get full 16 steps of volume like other PSG channels.";
+
+    ui->checkBoxCh3Vol->setToolTip(volToolTip);
+
+    connect(ui->pushButtonCh3Vol, &QPushButton::clicked, [this](bool){
+        ui->checkBoxCh3Vol->setCheckState(Qt::Checked);
+    });
+
+    /* emulate PSG sustain bug */
+    ui->checkBoxPsgSus->setCheckState(profile->agbplaySoundMode.emulateCgbSustainBug ? Qt::Checked : Qt::Unchecked);
+
+    static const QString susToolTip = "The original engine code has a bug, which causes the volume of all PSGs to not be updated correctly during sustain.\n"
+        "Disable this to correct volume/sustain according to song data.\n"
+        "However, some songs may run into this bug quite often and will have excessive or silent volume at specific times.";
+
+    ui->checkBoxPsgSus->setToolTip(susToolTip);
+
+    connect(ui->pushButtonPsgSus, &QPushButton::clicked, [this](bool){
+        ui->checkBoxPsgSus->setCheckState(Qt::Checked);
+    });
+
+    /* PSG polyphony */
+    ui->comboBoxPsgPoly->clear();
+    ui->comboBoxPsgPoly->addItem("Monophonic (strict)", static_cast<int>(CGBPolyphony::MONO_STRICT));
+    ui->comboBoxPsgPoly->addItem("Monophonic (smooth)", static_cast<int>(CGBPolyphony::MONO_SMOOTH));
+    ui->comboBoxPsgPoly->addItem("Polyphonic", static_cast<int>(CGBPolyphony::POLY));
+
+    static const QString psgPolyToopTip = "Specify polyphony for PSGs:\n"
+        "- Monophonic (strict) hard limits polyphony to one note.\n"
+        "- Monophonic (smooth) limits polyphony to one note, but allows for a short smooth transition.\n"
+        "  This allows for a less abrupt transition between two PSG notes, but can sometimes cause phasing artifacts.\n"
+        "- Polyphonic allows unlimited simultaneous PSG notes.";
+
+    ui->comboBoxPsgPoly->setToolTip(psgPolyToopTip);
+
+    ui->comboBoxPsgPoly->setCurrentIndex(static_cast<int>(profile->agbplaySoundMode.cgbPolyphony));
+
+    connect(ui->pushButtonPsgPoly, &QAbstractButton::clicked, [this](bool){
+        ui->comboBoxPsgPoly->setCurrentIndex(static_cast<int>(CGBPolyphony::MONO_STRICT));
     });
 }
 

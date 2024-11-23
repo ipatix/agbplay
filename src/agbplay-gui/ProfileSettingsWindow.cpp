@@ -159,7 +159,8 @@ void ProfileSettingsWindow::InitGameTables()
         } else {
             limit = 1;
         }
-        QString newString = item->text().remove(QRegularExpression("[^0-9]"));
+        QString newString = item->text();
+        (void)newString.remove(QRegularExpression("[^0-9]"));
         if (newString.size() == 0)
             newString = "0";
         if (newString.toInt() > limit)

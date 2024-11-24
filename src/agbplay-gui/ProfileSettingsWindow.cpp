@@ -568,8 +568,62 @@ void ProfileSettingsWindow::InitProfileAssignment()
     /* magic bytes */
     QStringList byteStringList;
     for (uint8_t byte : profile->gameMatch.magicBytes)
-        byteStringList << QString::fromStdString(std::format("{:02x}", byte));
+        byteStringList << QString::fromStdString(std::format("{:02X}", byte));
     ui->lineEditMagicBytes->setText(byteStringList.join(" "));
+    prevMagicBytes = ui->lineEditMagicBytes->text();
+
+    connect(ui->lineEditMagicBytes, &QLineEdit::textEdited, [this](const QString &text){
+        /* make sure the string stays in format '04 AC 8D FF 11 ...' */
+        const QString oldText = text;
+        
+        QString nospaceText;
+        int cursorPos = -1;
+
+        /* 1. remove all illegal characters and save adjuted cursor position. */
+        for (int i = 0; i < oldText.size(); i++) {
+            bool deleteSpace = false;
+            if (i == ui->lineEditMagicBytes->cursorPosition()) {
+                if (i < prevMagicBytes.size() && prevMagicBytes.at(i) == QChar(' '))
+                    deleteSpace = true;
+                cursorPos = static_cast<int>(nospaceText.size());
+            }
+
+            const QChar &c = oldText.at(i);
+            static const QString allowedChars = "0123456789ABCDEF";
+
+            if (!allowedChars.contains(c, Qt::CaseInsensitive))
+                continue;
+
+            /* BUG: We cannot determine here if delete or backspace was pressed.
+             * The current behavior is correct for backspace, but if delete key is pressed,
+             * we would have to skip inserting 'c' instead of erasing the previously added
+             * character. */
+            if (deleteSpace && nospaceText.size() > 0)
+                nospaceText.erase(nospaceText.end() - 1);
+
+            nospaceText += c.toUpper();
+        }
+
+        QString newText;
+        bool odd = false;
+
+        /* 2. insert spaces according to new formatting and set cursor appropriately. */
+        for (const QChar &c : nospaceText) {
+            if (!odd && newText.size() > 0)
+                newText += " ";
+            newText += c;
+            odd = !odd;
+        }
+
+        /* 3. set text and cursor if it has actually changed. */
+        if (newText != oldText) {
+            ui->lineEditMagicBytes->setText(newText);
+            if (cursorPos >= 0)
+                ui->lineEditMagicBytes->setCursorPosition(cursorPos);
+        }
+
+        prevMagicBytes = ui->lineEditMagicBytes->text();
+    });
 }
 
 void ProfileSettingsWindow::MarkPending()
@@ -633,6 +687,47 @@ void ProfileSettingsWindow::Apply()
     profile->agbplaySoundMode.accurateCh3Quantization = ui->checkBoxCh3Quant->checkState() == Qt::Checked;
     profile->agbplaySoundMode.accurateCh3Volume = ui->checkBoxCh3Vol->checkState() == Qt::Checked;
     profile->agbplaySoundMode.emulateCgbSustainBug = ui->checkBoxPsgSus->checkState() == Qt::Checked;
+
+    /* game tables (song table and player table) */
+    if (ui->checkBoxSongTable->checkState() == Qt::Checked) {
+        profile->songTableInfoConfig.pos = static_cast<size_t>(ui->spinBoxSongTable->value());
+        profile->songTableInfoConfig.tableIdx = 0;
+    } else {
+        profile->songTableInfoConfig.pos = SongTableInfo::POS_AUTO;
+        profile->songTableInfoConfig.tableIdx = static_cast<uint8_t>(ui->spinBoxTableIndex->value());
+    }
+
+    if (ui->checkBoxSongCount->checkState() == Qt::Checked)
+        profile->songTableInfoConfig.count = static_cast<uint16_t>(ui->spinBoxSongCount->value());
+    else
+        profile->songTableInfoConfig.count = SongTableInfo::COUNT_AUTO;
+
+    if (ui->groupBoxPlayerTable->isChecked()) {
+        profile->playerTableConfig.clear();
+        for (int row = 0; row < ui->tableWidgetPlayers->rowCount(); row++) {
+            QTableWidgetItem *maxTracksItem = ui->tableWidgetPlayers->item(row, COL_PLT_TRACKS);
+            QTableWidgetItem *usePrioItem = ui->tableWidgetPlayers->item(row, COL_PLT_PRIO);
+            const uint8_t maxTracks = static_cast<uint8_t>(maxTracksItem->text().toInt());
+            const uint8_t usePrio = static_cast<uint8_t>(usePrioItem->text().toInt());
+            profile->playerTableConfig.emplace_back(maxTracks, usePrio);
+        }
+    } else {
+        profile->playerTableConfig.clear();
+    }
+
+    /* profile assignments */
+    profile->gameMatch.gameCodes.clear();
+    for (int i = 0; i < ui->listWidgetGameCodes->count(); i++) {
+        QListWidgetItem *item = ui->listWidgetGameCodes->item(i);
+        profile->gameMatch.gameCodes.emplace_back(item->text().toStdString());
+    }
+
+    profile->gameMatch.magicBytes.clear();
+    QStringList byteStrList = ui->lineEditMagicBytes->text().split(" ");
+    for (const QString &byteStr : byteStrList) {
+        const uint8_t byte = static_cast<uint8_t>(byteStr.toInt(nullptr, 16));
+        profile->gameMatch.magicBytes.emplace_back(byte);
+    }
 
     // TODO apply config+scan to playback, or should we do that somewhere else?
     profile->dirty = true;

@@ -48,6 +48,11 @@ private:
     enum {
         COL_PLT_TRACKS = 0, COL_PLT_PRIO, COL_PLT_COUNT
     };
+
+    /* This string is only needed to keep track of changes in the magic byte
+     * QLineEdit. It is used to check if a space was deleted at the cursor position in
+     * order to also delete the previous character. */
+    QString prevMagicBytes;
 };
 
 #endif    // PROFILESETTINGSWINDOW_H

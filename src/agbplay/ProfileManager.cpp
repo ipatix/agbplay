@@ -59,13 +59,17 @@ void ProfileManager::ApplyScanResultsToProfiles(
             if (profileCandidate->songTableInfoConfig.pos != SongTableInfo::POS_AUTO) {
                 if (profileCandidate->songTableInfoConfig.count == SongTableInfo::COUNT_AUTO)
                     throw Xcept("Cannot load profile with manual songtable but no song count.");
-                profileCandidate->ApplyScanToPlayback(SongTableInfo{}, PlayerTableInfo{}, MP2KSoundMode{});
+                profileCandidate->songTableInfoScanned = SongTableInfo{};
+                profileCandidate->playerTableScanned = PlayerTableInfo{};
+                profileCandidate->mp2kSoundModeScanned = MP2KSoundMode{};
+                profileCandidate->ApplyScanToPlayback();
                 continue;
             }
             if (profileCandidate->songTableInfoConfig.tableIdx == tableIdx) {
-                profileCandidate->ApplyScanToPlayback(
-                    scanResult.songTableInfo, scanResult.playerTableInfo, scanResult.mp2kSoundMode
-                );
+                profileCandidate->songTableInfoScanned = scanResult.songTableInfo;
+                profileCandidate->playerTableScanned = scanResult.playerTableInfo;
+                profileCandidate->mp2kSoundModeScanned = scanResult.mp2kSoundMode;
+                profileCandidate->ApplyScanToPlayback();
                 profileExists = true;
                 break;
             }
@@ -76,7 +80,10 @@ void ProfileManager::ApplyScanResultsToProfiles(
             std::string code = rom.GetROMCode();
             std::shared_ptr<Profile> &p = profiles.emplace_back(CreateProfile(code, tableIdx));
             p->songTableInfoConfig.tableIdx = static_cast<uint8_t>(tableIdx);
-            p->ApplyScanToPlayback(scanResult.songTableInfo, scanResult.playerTableInfo, scanResult.mp2kSoundMode);
+            p->songTableInfoScanned = scanResult.songTableInfo;
+            p->playerTableScanned = scanResult.playerTableInfo;
+            p->mp2kSoundModeScanned = scanResult.mp2kSoundMode;
+            p->ApplyScanToPlayback();
         }
     }
 }

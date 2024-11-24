@@ -24,6 +24,11 @@ ProfileSettingsWindow::ProfileSettingsWindow(QWidget *parent, ProfileManager &pm
     InitProfileAssignment();
 }
 
+ProfileSettingsWindow::~ProfileSettingsWindow()
+{
+    delete ui;
+}
+
 void ProfileSettingsWindow::InitButtonBar()
 {
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -62,6 +67,9 @@ void ProfileSettingsWindow::InitTreeWidget()
 
 void ProfileSettingsWindow::Apply()
 {
+    if (!pendingChanges)
+        return;
+
     profile->name = ui->lineEditProfileName->text().toStdString();
     profile->author = ui->lineEditProfileAuthor->text().toStdString();
     profile->gameStudio = ui->lineEditGameStudio->text().toStdString();
@@ -84,11 +92,16 @@ void ProfileSettingsWindow::buttonBoxButtonPressed(QAbstractButton *button)
 void ProfileSettingsWindow::InitProfileInfo()
 {
     ui->lineEditProfileName->setText(QString::fromStdString(profile->name));
+    connect(ui->lineEditProfileName, &QLineEdit::textChanged, [this](auto){ MarkPending(); });
     ui->lineEditProfileAuthor->setText(QString::fromStdString(profile->author));
+    connect(ui->lineEditProfileAuthor, &QLineEdit::textChanged, [this](auto){ MarkPending(); });
     ui->lineEditGameStudio->setText(QString::fromStdString(profile->gameStudio));
+    connect(ui->lineEditGameStudio, &QLineEdit::textChanged, [this](auto){ MarkPending(); });
     ui->lineEditDescription->setText(QString::fromStdString(profile->description));
+    connect(ui->lineEditDescription, &QLineEdit::textChanged, [this](auto){ MarkPending(); });
     ui->plainTextEditNotes->clear();
     ui->plainTextEditNotes->appendPlainText(QString::fromStdString(profile->notes));
+    connect(ui->plainTextEditNotes, &QPlainTextEdit::textChanged, [this](){ MarkPending(); });
 }
 
 void ProfileSettingsWindow::InitGameTables()
@@ -118,7 +131,11 @@ void ProfileSettingsWindow::InitGameTables()
             ui->spinBoxTableIndex->setValue(profile->songTableInfoScanned.tableIdx);
             ui->spinBoxTableIndex->setEnabled(true);
         }
+        MarkPending();
     });
+
+    connect(ui->spinBoxSongTable, &QSpinBox::valueChanged, [this](auto){ MarkPending(); });
+    connect(ui->spinBoxTableIndex, &QSpinBox::valueChanged, [this](auto){ MarkPending(); });
 
     /* song  entry count */
     if (profile->songTableInfoConfig.count == SongTableInfo::COUNT_AUTO) {
@@ -138,7 +155,10 @@ void ProfileSettingsWindow::InitGameTables()
             ui->spinBoxSongCount->setValue(profile->songTableInfoScanned.count);
             ui->spinBoxSongCount->setEnabled(false);
         }
+        MarkPending();
     });
+
+    connect(ui->spinBoxSongCount, &QSpinBox::valueChanged, [this](auto){ MarkPending(); });
 
     /* player table */
     ui->tableWidgetPlayers->setSelectionMode(QAbstractItemView::NoSelection);
@@ -168,6 +188,7 @@ void ProfileSettingsWindow::InitGameTables()
         if (newString.toInt() > limit)
             newString = QString::number(limit);
         item->setText(newString);
+        MarkPending();
     });
 
     auto populateTable = [this](const PlayerTableInfo &plt) {
@@ -192,6 +213,7 @@ void ProfileSettingsWindow::InitGameTables()
     connect(ui->groupBoxPlayerTable, &QGroupBox::clicked, [this, populateTable](bool checked) {
         if (!checked)
             populateTable(profile->playerTableScanned);
+        MarkPending();
     });
 
     connect(ui->pushButtonPlayerAdd, &QPushButton::clicked, [this](bool) {
@@ -203,6 +225,7 @@ void ProfileSettingsWindow::InitGameTables()
         ui->tableWidgetPlayers->setItem(row, COL_PLT_TRACKS, new QTableWidgetItem("16")); // TODO replace 16 with constant
         ui->tableWidgetPlayers->setItem(row, COL_PLT_PRIO, new QTableWidgetItem("0"));
         ui->tableWidgetPlayers->setVerticalHeaderItem(row, new QTableWidgetItem(QString::fromStdString(std::format("Player {}", row))));
+        MarkPending();
     });
 
     connect(ui->pushButtonPlayerRemove, &QPushButton::clicked, [this](bool) {
@@ -210,6 +233,7 @@ void ProfileSettingsWindow::InitGameTables()
         if (rows == 0)
             return;
         ui->tableWidgetPlayers->removeRow(rows - 1);
+        MarkPending();
     });
 }
 
@@ -239,6 +263,7 @@ void ProfileSettingsWindow::InitProfileAssignment()
         newText = newText.left(4);
         if (newText != oldText)
             item->setText(newText);
+        MarkPending();
     });
 
     connect(ui->pushButtonCodeAdd, &QAbstractButton::clicked, [this](bool) {
@@ -251,6 +276,7 @@ void ProfileSettingsWindow::InitProfileAssignment()
             delete item;
             throw;
         }
+        MarkPending();
     });
 
     connect(ui->pushButtonCodeRemove, &QAbstractButton::clicked, [this](bool) {
@@ -263,6 +289,7 @@ void ProfileSettingsWindow::InitProfileAssignment()
 
         for (QListWidgetItem *item : items)
             ui->listWidgetGameCodes->takeItem(ui->listWidgetGameCodes->row(item));
+        MarkPending();
     });
 
     /* magic bytes */
@@ -292,7 +319,10 @@ void ProfileSettingsWindow::InitSoundMode()
             ui->spinBoxVol->setValue(profile->mp2kSoundModeScanned.vol);
             ui->spinBoxVol->setEnabled(false);
         }
+        MarkPending();
     });
+
+    connect(ui->spinBoxVol, &QSpinBox::valueChanged, [this](int) { MarkPending(); });
 
     /* reverb */
     if (profile->mp2kSoundModeConfig.rev == MP2KSoundMode::REV_AUTO) {
@@ -312,7 +342,10 @@ void ProfileSettingsWindow::InitSoundMode()
             ui->spinBoxRev->setValue(profile->mp2kSoundModeScanned.rev);
             ui->spinBoxRev->setEnabled(false);
         }
+        MarkPending();
     });
+
+    connect(ui->spinBoxRev, &QSpinBox::valueChanged, [this](int) { MarkPending(); });
 
     /* sample rate */
     static const std::array sampleRates{
@@ -341,7 +374,10 @@ void ProfileSettingsWindow::InitSoundMode()
             ui->comboBoxFreq->setCurrentIndex(profile->mp2kSoundModeScanned.freq - 1);
             ui->comboBoxFreq->setEnabled(false);
         }
+        MarkPending();
     });
+
+    connect(ui->comboBoxFreq, &QComboBox::currentIndexChanged, [this](int) { MarkPending(); });
 
     /* max channels */
     if (profile->mp2kSoundModeConfig.maxChannels == MP2KSoundMode::CHN_AUTO) {
@@ -361,7 +397,10 @@ void ProfileSettingsWindow::InitSoundMode()
             ui->spinBoxChn->setValue(profile->mp2kSoundModeScanned.maxChannels);
             ui->spinBoxChn->setEnabled(false);
         }
+        MarkPending();
     });
+
+    connect(ui->spinBoxChn, &QSpinBox::valueChanged, [this](int) { MarkPending(); });
 
     /* DAC config */
     ui->comboBoxDac->addItem("32 kHz @ 9 bit", 8);
@@ -386,7 +425,10 @@ void ProfileSettingsWindow::InitSoundMode()
             ui->comboBoxDac->setCurrentIndex(profile->mp2kSoundModeScanned.dacConfig % 4);
             ui->comboBoxDac->setEnabled(false);
         }
+        MarkPending();
     });
+
+    connect(ui->comboBoxDac, &QComboBox::currentIndexChanged, [this](int) { MarkPending(); });
 }
 
 void ProfileSettingsWindow::InitEnhancements()
@@ -416,11 +458,16 @@ void ProfileSettingsWindow::InitEnhancements()
 
     connect(ui->pushButtonResTypeNormal, &QPushButton::clicked, [this](bool){
         ui->comboBoxResTypeNormal->setCurrentIndex(static_cast<int>(ResamplerType::BLAMP));
+        MarkPending();
     });
 
     connect(ui->pushButtonResTypeFixed, &QPushButton::clicked, [this](bool){
         ui->comboBoxResTypeFixed->setCurrentIndex(static_cast<int>(ResamplerType::BLEP));
+        MarkPending();
     });
+
+    connect(ui->comboBoxResTypeNormal, &QComboBox::currentIndexChanged, [this](int) { MarkPending(); });
+    connect(ui->comboBoxResTypeFixed, &QComboBox::currentIndexChanged, [this](int) { MarkPending(); });
 
     /* reverb type */
     ui->comboBoxRevAlgo->clear();
@@ -443,7 +490,10 @@ void ProfileSettingsWindow::InitEnhancements()
 
     connect(ui->pushButtonRevAlgo, &QPushButton::clicked, [this](bool){
         ui->comboBoxRevAlgo->setCurrentIndex(static_cast<int>(ReverbType::NORMAL));
+        MarkPending();
     });
+
+    connect(ui->comboBoxRevAlgo, &QComboBox::currentIndexChanged, [this](int) { MarkPending(); });
 
     /* PCM DMA buffer size */
     ui->spinBoxDmaBufLen->setValue(static_cast<int>(profile->agbplaySoundMode.dmaBufferLen));
@@ -456,45 +506,10 @@ void ProfileSettingsWindow::InitEnhancements()
 
     connect(ui->pushButtonDmaBufLen, &QPushButton::clicked, [this](bool){
         ui->spinBoxDmaBufLen->setValue(0x630);  // TODO change this to a more global define
+        MarkPending();
     });
 
-    /* accurate ch3 quantization */
-    ui->checkBoxCh3Quant->setCheckState(profile->agbplaySoundMode.accurateCh3Quantization ? Qt::Checked : Qt::Unchecked);
-
-    static const QString quantToolTip = "Accurate PSG CH3 quantization:\n"
-        "On real GBA hardware, the volume of PSG CH3 will affect the quantization, thus change the timbre.\n"
-        "Disable this to get 'better than hardware' sound, but for low volumes it may noticeably change the timbre.";
-
-    ui->checkBoxCh3Quant->setToolTip(quantToolTip);
-
-    connect(ui->pushButtonCh3Quant, &QPushButton::clicked, [this](bool){
-        ui->checkBoxCh3Quant->setCheckState(Qt::Checked);
-    });
-
-    /* accurate ch3 volume */
-    ui->checkBoxCh3Vol->setCheckState(profile->agbplaySoundMode.accurateCh3Volume ? Qt::Checked : Qt::Unchecked);
-
-    static const QString volToolTip = "On real GBA hardware, the PSG CH3 volume is limited to 0%, 25%, 50%, 75%, an 100%.\n"
-        "Disable this to get full 16 steps of volume like other PSG channels.";
-
-    ui->checkBoxCh3Vol->setToolTip(volToolTip);
-
-    connect(ui->pushButtonCh3Vol, &QPushButton::clicked, [this](bool){
-        ui->checkBoxCh3Vol->setCheckState(Qt::Checked);
-    });
-
-    /* emulate PSG sustain bug */
-    ui->checkBoxPsgSus->setCheckState(profile->agbplaySoundMode.emulateCgbSustainBug ? Qt::Checked : Qt::Unchecked);
-
-    static const QString susToolTip = "The original engine code has a bug, which causes the volume of all PSGs to not be updated correctly during sustain.\n"
-        "Disable this to correct volume/sustain according to song data.\n"
-        "However, some songs may run into this bug quite often and will have excessive or silent volume at specific times.";
-
-    ui->checkBoxPsgSus->setToolTip(susToolTip);
-
-    connect(ui->pushButtonPsgSus, &QPushButton::clicked, [this](bool){
-        ui->checkBoxPsgSus->setCheckState(Qt::Checked);
-    });
+    connect(ui->spinBoxDmaBufLen, &QSpinBox::valueChanged, [this](int) { MarkPending(); });
 
     /* PSG polyphony */
     ui->comboBoxPsgPoly->clear();
@@ -514,12 +529,67 @@ void ProfileSettingsWindow::InitEnhancements()
 
     connect(ui->pushButtonPsgPoly, &QAbstractButton::clicked, [this](bool){
         ui->comboBoxPsgPoly->setCurrentIndex(static_cast<int>(CGBPolyphony::MONO_STRICT));
+        MarkPending();
     });
+
+    connect(ui->comboBoxPsgPoly, &QComboBox::currentIndexChanged, [this](int) { MarkPending(); });
+
+    /* accurate ch3 quantization */
+    ui->checkBoxCh3Quant->setCheckState(profile->agbplaySoundMode.accurateCh3Quantization ? Qt::Checked : Qt::Unchecked);
+
+    static const QString quantToolTip = "Accurate PSG CH3 quantization:\n"
+        "On real GBA hardware, the volume of PSG CH3 will affect the quantization, thus change the timbre.\n"
+        "Disable this to get 'better than hardware' sound, but for low volumes it may noticeably change the timbre.";
+
+    ui->checkBoxCh3Quant->setToolTip(quantToolTip);
+
+    connect(ui->pushButtonCh3Quant, &QPushButton::clicked, [this](bool){
+        ui->checkBoxCh3Quant->setCheckState(Qt::Checked);
+        MarkPending();
+    });
+
+    connect(ui->checkBoxCh3Quant, &QCheckBox::stateChanged, [this](int) { MarkPending(); });
+
+    /* accurate ch3 volume */
+    ui->checkBoxCh3Vol->setCheckState(profile->agbplaySoundMode.accurateCh3Volume ? Qt::Checked : Qt::Unchecked);
+
+    static const QString volToolTip = "On real GBA hardware, the PSG CH3 volume is limited to 0%, 25%, 50%, 75%, an 100%.\n"
+        "Disable this to get full 16 steps of volume like other PSG channels.";
+
+    ui->checkBoxCh3Vol->setToolTip(volToolTip);
+
+    connect(ui->pushButtonCh3Vol, &QPushButton::clicked, [this](bool){
+        ui->checkBoxCh3Vol->setCheckState(Qt::Checked);
+        MarkPending();
+    });
+
+    connect(ui->checkBoxCh3Vol, &QCheckBox::stateChanged, [this](int) { MarkPending(); });
+
+    /* emulate PSG sustain bug */
+    ui->checkBoxPsgSus->setCheckState(profile->agbplaySoundMode.emulateCgbSustainBug ? Qt::Checked : Qt::Unchecked);
+
+    static const QString susToolTip = "The original engine code has a bug, which causes the volume of all PSGs to not be updated correctly during sustain.\n"
+        "Disable this to correct volume/sustain according to song data.\n"
+        "However, some songs may run into this bug quite often and will have excessive or silent volume at specific times.";
+
+    ui->checkBoxPsgSus->setToolTip(susToolTip);
+
+    connect(ui->pushButtonPsgSus, &QPushButton::clicked, [this](bool){
+        ui->checkBoxPsgSus->setCheckState(Qt::Checked);
+        MarkPending();
+    });
+
+    connect(ui->checkBoxPsgSus, &QCheckBox::stateChanged, [this](int) { MarkPending(); });
 }
 
-ProfileSettingsWindow::~ProfileSettingsWindow()
+void ProfileSettingsWindow::MarkPending()
 {
-    delete ui;
+    pendingChanges = true;
+}
+
+void ProfileSettingsWindow::ClearPending()
+{
+    pendingChanges = false;
 }
 
 void ProfileSettingsWindow::UpdateProfileList()

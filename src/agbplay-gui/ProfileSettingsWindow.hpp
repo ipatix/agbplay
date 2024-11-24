@@ -29,13 +29,19 @@ private:
     void InitEnhancements();
     void InitGameTables();
     void InitProfileAssignment();
+
+    void MarkPending();
+    void ClearPending();
     void UpdateProfileList();
+
     void Apply();
+
     void buttonBoxButtonPressed(QAbstractButton *button);
 
     Ui::ProfileSettingsWindow *ui;
     ProfileManager &pm;
     std::shared_ptr<Profile> &profile;
+    bool pendingChanges = false;
 
     enum {
         COL_CODES = 0, COL_NAME, COL_AUTHOR, COL_STUDIO, COL_COUNT

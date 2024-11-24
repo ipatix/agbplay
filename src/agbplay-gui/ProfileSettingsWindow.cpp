@@ -554,6 +554,12 @@ void ProfileSettingsWindow::InitProfileAssignment()
             return;
         }
 
+        if (ui->listWidgetGameCodes->count() <= 1) {
+            QMessageBox mbox(QMessageBox::Icon::Critical, "Game Code Matches", "Cannot unassign last remaining game code", QMessageBox::Ok, this);
+            mbox.exec();
+            return;
+        }
+
         for (QListWidgetItem *item : items)
             ui->listWidgetGameCodes->takeItem(ui->listWidgetGameCodes->row(item));
         MarkPending();

@@ -394,10 +394,14 @@ void ProfileSettingsWindow::InitGameTables()
     connect(ui->checkBoxSongTable, &QCheckBox::stateChanged, [this](int state){
         if (state == Qt::Checked) {
             ui->spinBoxSongTable->setEnabled(true);
+            ui->checkBoxSongCount->setCheckState(Qt::Checked);
+            ui->checkBoxSongCount->setEnabled(false);
             ui->spinBoxTableIndex->setEnabled(false);
         } else {
             ui->spinBoxSongTable->setValue(static_cast<int>(profile->songTableInfoScanned.pos));
             ui->spinBoxSongTable->setEnabled(false);
+            ui->checkBoxSongCount->setCheckState(Qt::Unchecked);
+            ui->checkBoxSongCount->setEnabled(true);
             ui->spinBoxTableIndex->setValue(profile->songTableInfoScanned.tableIdx);
             ui->spinBoxTableIndex->setEnabled(true);
         }

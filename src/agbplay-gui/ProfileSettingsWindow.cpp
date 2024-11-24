@@ -585,10 +585,41 @@ void ProfileSettingsWindow::Apply()
     if (!pendingChanges)
         return;
 
+    /* profile info */
     profile->name = ui->lineEditProfileName->text().toStdString();
     profile->author = ui->lineEditProfileAuthor->text().toStdString();
     profile->gameStudio = ui->lineEditGameStudio->text().toStdString();
     profile->description = ui->lineEditDescription->text().toStdString();
     profile->notes = ui->plainTextEditNotes->toPlainText().toStdString();
+
+    /* sound mode */
+    if (ui->checkBoxVol->checkState() == Qt::Checked)
+        profile->mp2kSoundModeConfig.vol = static_cast<uint8_t>(ui->spinBoxVol->value());
+    else
+        profile->mp2kSoundModeConfig.vol = MP2KSoundMode::VOL_AUTO;
+
+    if (ui->checkBoxRev->checkState() == Qt::Checked)
+        profile->mp2kSoundModeConfig.rev = static_cast<uint8_t>(ui->spinBoxRev->value());
+    else
+        profile->mp2kSoundModeConfig.rev = MP2KSoundMode::REV_AUTO;
+
+    if (ui->checkBoxFreq->checkState() == Qt::Checked)
+        profile->mp2kSoundModeConfig.freq = static_cast<uint8_t>(ui->comboBoxFreq->currentData().toInt());
+    else
+        profile->mp2kSoundModeConfig.freq = MP2KSoundMode::FREQ_AUTO;
+
+    if (ui->checkBoxChn->checkState() == Qt::Checked)
+        profile->mp2kSoundModeConfig.maxChannels = static_cast<uint8_t>(ui->spinBoxChn->value());
+    else
+        profile->mp2kSoundModeConfig.maxChannels = MP2KSoundMode::CHN_AUTO;
+
+    if (ui->checkBoxDac->checkState() == Qt::Checked)
+        profile->mp2kSoundModeConfig.dacConfig = static_cast<uint8_t>(ui->comboBoxDac->currentData().toInt());
+    else
+        profile->mp2kSoundModeConfig.dacConfig = MP2KSoundMode::DAC_AUTO;
+
+
+    // TODO apply config+scan to playback, or should we do that somewhere else?
     profile->dirty = true;
+    ClearPending();
 }

@@ -49,6 +49,7 @@ struct Profile
     std::filesystem::path path;
     bool dirty = false;
 
+    // TODO use new internal scan variables instead of parameters
     void ApplyScanToPlayback(
         const SongTableInfo &songTableInfoScan,
         const PlayerTableInfo &playerTableInfoScan,

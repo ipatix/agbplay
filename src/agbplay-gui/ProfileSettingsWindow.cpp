@@ -284,22 +284,6 @@ void ProfileSettingsWindow::InitEnhancements()
 
     connect(ui->comboBoxRevAlgo, &QComboBox::currentIndexChanged, [this](int) { MarkPending(); });
 
-    /* PCM DMA buffer size */
-    ui->spinBoxDmaBufLen->setValue(static_cast<int>(profile->agbplaySoundMode.dmaBufferLen));
-
-    static const QString dmaBufLenToolTip = "Specify PCM DMA reverb buffer len:\n"
-        "This is 1584 (0x630) for all known commercial GBA games.\n"
-        "Increasing this increases the duration of the reverb echoes fromt the 'Normal' reverb type";
-
-    ui->spinBoxDmaBufLen->setToolTip(dmaBufLenToolTip);
-
-    connect(ui->pushButtonDmaBufLen, &QPushButton::clicked, [this](bool){
-        ui->spinBoxDmaBufLen->setValue(0x630);  // TODO change this to a more global define
-        MarkPending();
-    });
-
-    connect(ui->spinBoxDmaBufLen, &QSpinBox::valueChanged, [this](int) { MarkPending(); });
-
     /* PSG polyphony */
     ui->comboBoxPsgPoly->clear();
     ui->comboBoxPsgPoly->addItem("Monophonic (strict)", static_cast<int>(CGBPolyphony::MONO_STRICT));
@@ -323,6 +307,22 @@ void ProfileSettingsWindow::InitEnhancements()
 
     connect(ui->comboBoxPsgPoly, &QComboBox::currentIndexChanged, [this](int) { MarkPending(); });
 
+
+    /* PCM DMA buffer size */
+    ui->spinBoxDmaBufLen->setValue(static_cast<int>(profile->agbplaySoundMode.dmaBufferLen));
+
+    static const QString dmaBufLenToolTip = "Specify PCM DMA reverb buffer len:\n"
+        "This is 1584 (0x630) for all known commercial GBA games.\n"
+        "Increasing this increases the duration of the reverb echoes fromt the 'Normal' reverb type";
+
+    ui->spinBoxDmaBufLen->setToolTip(dmaBufLenToolTip);
+
+    connect(ui->pushButtonDmaBufLen, &QPushButton::clicked, [this](bool){
+        ui->spinBoxDmaBufLen->setValue(0x630);  // TODO change this to a more global define
+        MarkPending();
+    });
+
+    connect(ui->spinBoxDmaBufLen, &QSpinBox::valueChanged, [this](int) { MarkPending(); });
     /* accurate ch3 quantization */
     ui->checkBoxCh3Quant->setCheckState(profile->agbplaySoundMode.accurateCh3Quantization ? Qt::Checked : Qt::Unchecked);
 
@@ -622,8 +622,8 @@ void ProfileSettingsWindow::Apply()
     profile->agbplaySoundMode.resamplerTypeNormal = static_cast<ResamplerType>(ui->comboBoxResTypeNormal->currentData().toInt());
     profile->agbplaySoundMode.resamplerTypeFixed = static_cast<ResamplerType>(ui->comboBoxResTypeFixed->currentData().toInt());
     profile->agbplaySoundMode.reverbType = static_cast<ReverbType>(ui->comboBoxRevAlgo->currentData().toInt());
-    profile->agbplaySoundMode.dmaBufferLen = static_cast<uint32_t>(ui->spinBoxDmaBufLen->value());
     profile->agbplaySoundMode.cgbPolyphony = static_cast<CGBPolyphony>(ui->comboBoxPsgPoly->currentData().toInt());
+    profile->agbplaySoundMode.dmaBufferLen = static_cast<uint32_t>(ui->spinBoxDmaBufLen->value());
     profile->agbplaySoundMode.accurateCh3Quantization = ui->checkBoxCh3Quant->checkState() == Qt::Checked;
     profile->agbplaySoundMode.accurateCh3Volume = ui->checkBoxCh3Vol->checkState() == Qt::Checked;
     profile->agbplaySoundMode.emulateCgbSustainBug = ui->checkBoxPsgSus->checkState() == Qt::Checked;

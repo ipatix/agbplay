@@ -36,8 +36,6 @@ private:
 
     void Apply();
 
-    void buttonBoxButtonPressed(QAbstractButton *button);
-
     Ui::ProfileSettingsWindow *ui;
     ProfileManager &pm;
     std::shared_ptr<Profile> &profile;

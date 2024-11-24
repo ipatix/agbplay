@@ -33,7 +33,15 @@ void ProfileSettingsWindow::InitButtonBar()
 {
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-    connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &ProfileSettingsWindow::buttonBoxButtonPressed);
+    connect(ui->buttonBox, &QDialogButtonBox::clicked, [this](QAbstractButton *button){
+        const auto *okButton = ui->buttonBox->button(QDialogButtonBox::Ok);
+        const auto *applyButton = ui->buttonBox->button(QDialogButtonBox::Apply);
+
+        if (button != okButton && button != applyButton)
+            return;
+
+        Apply();
+    });
 }
 
 void ProfileSettingsWindow::InitTreeWidget()
@@ -65,30 +73,6 @@ void ProfileSettingsWindow::InitTreeWidget()
     ui->treeWidget->sortByColumn(COL_CODES, Qt::AscendingOrder);
 }
 
-void ProfileSettingsWindow::Apply()
-{
-    if (!pendingChanges)
-        return;
-
-    profile->name = ui->lineEditProfileName->text().toStdString();
-    profile->author = ui->lineEditProfileAuthor->text().toStdString();
-    profile->gameStudio = ui->lineEditGameStudio->text().toStdString();
-    profile->description = ui->lineEditDescription->text().toStdString();
-    profile->notes = ui->plainTextEditNotes->toPlainText().toStdString();
-    profile->dirty = true;
-}
-
-void ProfileSettingsWindow::buttonBoxButtonPressed(QAbstractButton *button)
-{
-    const auto *okButton = ui->buttonBox->button(QDialogButtonBox::Ok);
-    const auto *applyButton = ui->buttonBox->button(QDialogButtonBox::Apply);
-
-    if (button != okButton && button != applyButton)
-        return;
-
-    Apply();
-}
-
 void ProfileSettingsWindow::InitProfileInfo()
 {
     ui->lineEditProfileName->setText(QString::fromStdString(profile->name));
@@ -102,201 +86,6 @@ void ProfileSettingsWindow::InitProfileInfo()
     ui->plainTextEditNotes->clear();
     ui->plainTextEditNotes->appendPlainText(QString::fromStdString(profile->notes));
     connect(ui->plainTextEditNotes, &QPlainTextEdit::textChanged, [this](){ MarkPending(); });
-}
-
-void ProfileSettingsWindow::InitGameTables()
-{
-    /* songtable pos & index */
-    if (profile->songTableInfoConfig.pos == SongTableInfo::POS_AUTO) {
-        ui->spinBoxSongTable->setValue(static_cast<int>(profile->songTableInfoScanned.pos));
-        ui->checkBoxSongTable->setCheckState(Qt::Unchecked);
-        ui->spinBoxSongTable->setEnabled(false);
-        ui->spinBoxTableIndex->setValue(profile->songTableInfoScanned.tableIdx);
-        ui->spinBoxTableIndex->setEnabled(true);
-    } else {
-        ui->spinBoxSongTable->setValue(static_cast<int>(profile->songTableInfoConfig.pos));
-        ui->checkBoxSongTable->setCheckState(Qt::Checked);
-        ui->spinBoxSongTable->setEnabled(true);
-        ui->spinBoxTableIndex->setValue(profile->songTableInfoConfig.tableIdx);
-        ui->spinBoxTableIndex->setEnabled(false);
-    }
-
-    connect(ui->checkBoxSongTable, &QCheckBox::stateChanged, [this](int state){
-        if (state == Qt::Checked) {
-            ui->spinBoxSongTable->setEnabled(true);
-            ui->spinBoxTableIndex->setEnabled(false);
-        } else {
-            ui->spinBoxSongTable->setValue(static_cast<int>(profile->songTableInfoScanned.pos));
-            ui->spinBoxSongTable->setEnabled(false);
-            ui->spinBoxTableIndex->setValue(profile->songTableInfoScanned.tableIdx);
-            ui->spinBoxTableIndex->setEnabled(true);
-        }
-        MarkPending();
-    });
-
-    connect(ui->spinBoxSongTable, &QSpinBox::valueChanged, [this](auto){ MarkPending(); });
-    connect(ui->spinBoxTableIndex, &QSpinBox::valueChanged, [this](auto){ MarkPending(); });
-
-    /* song  entry count */
-    if (profile->songTableInfoConfig.count == SongTableInfo::COUNT_AUTO) {
-        ui->spinBoxSongCount->setValue(profile->songTableInfoScanned.count);
-        ui->checkBoxSongCount->setCheckState(Qt::Unchecked);
-        ui->spinBoxSongCount->setEnabled(false);
-    } else {
-        ui->spinBoxSongCount->setValue(profile->songTableInfoConfig.count);
-        ui->checkBoxSongCount->setCheckState(Qt::Checked);
-        ui->spinBoxSongCount->setEnabled(true);
-    }
-
-    connect(ui->checkBoxSongCount, &QCheckBox::stateChanged, [this](int state){
-        if (state == Qt::Checked) {
-            ui->spinBoxSongCount->setEnabled(true);
-        } else {
-            ui->spinBoxSongCount->setValue(profile->songTableInfoScanned.count);
-            ui->spinBoxSongCount->setEnabled(false);
-        }
-        MarkPending();
-    });
-
-    connect(ui->spinBoxSongCount, &QSpinBox::valueChanged, [this](auto){ MarkPending(); });
-
-    /* player table */
-    ui->tableWidgetPlayers->setSelectionMode(QAbstractItemView::NoSelection);
-    ui->tableWidgetPlayers->setColumnCount(COL_PLT_COUNT);
-    ui->tableWidgetPlayers->setHorizontalHeaderItem(COL_PLT_TRACKS, new QTableWidgetItem("Max Tracks"));
-    ui->tableWidgetPlayers->setHorizontalHeaderItem(COL_PLT_PRIO, new QTableWidgetItem("Use Priority"));
-
-    connect(ui->tableWidgetPlayers, &QTableWidget::cellChanged, [this](int row, int column) {
-        /* We validate the content:
-         * Remove non-number characters, except a blank string, which is equal to 0. */
-        assert(column < COL_PLT_COUNT);
-
-        QTableWidgetItem *item = ui->tableWidgetPlayers->item(row, column);
-        assert(item);
-
-        // TODO use global define mor maximum tracks of 16
-        int limit = 0;
-        if (column == COL_PLT_TRACKS) {
-            limit = 16;
-        } else {
-            limit = 1;
-        }
-        QString newString = item->text();
-        (void)newString.remove(QRegularExpression("[^0-9]"));
-        if (newString.size() == 0)
-            newString = "0";
-        if (newString.toInt() > limit)
-            newString = QString::number(limit);
-        item->setText(newString);
-        MarkPending();
-    });
-
-    auto populateTable = [this](const PlayerTableInfo &plt) {
-        ui->tableWidgetPlayers->setRowCount(0);
-        for (size_t i = 0; i < plt.size(); i++) {
-            const int row = ui->tableWidgetPlayers->rowCount();
-            ui->tableWidgetPlayers->insertRow(row);
-            ui->tableWidgetPlayers->setItem(row, COL_PLT_TRACKS, new QTableWidgetItem(QString::number(plt.at(i).maxTracks)));
-            ui->tableWidgetPlayers->setItem(row, COL_PLT_PRIO, new QTableWidgetItem(QString::number(plt.at(i).usePriority)));
-            ui->tableWidgetPlayers->setVerticalHeaderItem(row, new QTableWidgetItem(QString::fromStdString(std::format("Player {}", row))));
-        }
-    };
-
-    if (profile->playerTableConfig.size() == 0) {
-        populateTable(profile->playerTableScanned);
-        ui->groupBoxPlayerTable->setChecked(false);
-    } else {
-        populateTable(profile->playerTableConfig);
-        ui->groupBoxPlayerTable->setChecked(true);
-    }
-
-    connect(ui->groupBoxPlayerTable, &QGroupBox::clicked, [this, populateTable](bool checked) {
-        if (!checked)
-            populateTable(profile->playerTableScanned);
-        MarkPending();
-    });
-
-    connect(ui->pushButtonPlayerAdd, &QPushButton::clicked, [this](bool) {
-        const int row = ui->tableWidgetPlayers->rowCount();
-        // TODO replace 16 with constant of max players
-        if (row >= 32)
-            return;
-        ui->tableWidgetPlayers->insertRow(row);
-        ui->tableWidgetPlayers->setItem(row, COL_PLT_TRACKS, new QTableWidgetItem("16")); // TODO replace 16 with constant
-        ui->tableWidgetPlayers->setItem(row, COL_PLT_PRIO, new QTableWidgetItem("0"));
-        ui->tableWidgetPlayers->setVerticalHeaderItem(row, new QTableWidgetItem(QString::fromStdString(std::format("Player {}", row))));
-        MarkPending();
-    });
-
-    connect(ui->pushButtonPlayerRemove, &QPushButton::clicked, [this](bool) {
-        const int rows = ui->tableWidgetPlayers->rowCount();
-        if (rows == 0)
-            return;
-        ui->tableWidgetPlayers->removeRow(rows - 1);
-        MarkPending();
-    });
-}
-
-void ProfileSettingsWindow::InitProfileAssignment()
-{
-    /* game codes */
-    static const auto defaultFlags = Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled;
-
-    ui->listWidgetGameCodes->clear();
-    for (const std::string &c : profile->gameMatch.gameCodes) {
-        QListWidgetItem *item = nullptr;
-        try {
-            item = new QListWidgetItem(QString::fromStdString(c));
-            item->setFlags(defaultFlags);
-            ui->listWidgetGameCodes->addItem(item);
-        } catch (...) {
-            delete item;
-            throw;
-        }
-    }
-
-    connect(ui->listWidgetGameCodes, &QListWidget::itemChanged, [this](QListWidgetItem *item){
-        /* only allow game codes with capital letters and numbers up to 4 length. */
-        QString oldText = item->text();
-        QString newText = oldText; // We have to copy string since remove() appears to be destructive
-        (void)newText.remove(QRegularExpression("[^A-Z0-9]"));
-        newText = newText.left(4);
-        if (newText != oldText)
-            item->setText(newText);
-        MarkPending();
-    });
-
-    connect(ui->pushButtonCodeAdd, &QAbstractButton::clicked, [this](bool) {
-        QListWidgetItem *item = nullptr;
-        try {
-            item = new QListWidgetItem("0000");
-            item->setFlags(defaultFlags);
-            ui->listWidgetGameCodes->addItem(item);
-        } catch (...) {
-            delete item;
-            throw;
-        }
-        MarkPending();
-    });
-
-    connect(ui->pushButtonCodeRemove, &QAbstractButton::clicked, [this](bool) {
-        auto items = ui->listWidgetGameCodes->selectedItems();
-        if (items.size() == 0) {
-            QMessageBox mbox(QMessageBox::Icon::Critical, "Game Code Matches", "Please select a game code to remove", QMessageBox::Ok, this);
-            mbox.exec();
-            return;
-        }
-
-        for (QListWidgetItem *item : items)
-            ui->listWidgetGameCodes->takeItem(ui->listWidgetGameCodes->row(item));
-        MarkPending();
-    });
-
-    /* magic bytes */
-    QStringList byteStringList;
-    for (uint8_t byte : profile->gameMatch.magicBytes)
-        byteStringList << QString::fromStdString(std::format("{:02x}", byte));
-    ui->lineEditMagicBytes->setText(byteStringList.join(" "));
 }
 
 void ProfileSettingsWindow::InitSoundMode()
@@ -582,6 +371,201 @@ void ProfileSettingsWindow::InitEnhancements()
     connect(ui->checkBoxPsgSus, &QCheckBox::stateChanged, [this](int) { MarkPending(); });
 }
 
+void ProfileSettingsWindow::InitGameTables()
+{
+    /* songtable pos & index */
+    if (profile->songTableInfoConfig.pos == SongTableInfo::POS_AUTO) {
+        ui->spinBoxSongTable->setValue(static_cast<int>(profile->songTableInfoScanned.pos));
+        ui->checkBoxSongTable->setCheckState(Qt::Unchecked);
+        ui->spinBoxSongTable->setEnabled(false);
+        ui->spinBoxTableIndex->setValue(profile->songTableInfoScanned.tableIdx);
+        ui->spinBoxTableIndex->setEnabled(true);
+    } else {
+        ui->spinBoxSongTable->setValue(static_cast<int>(profile->songTableInfoConfig.pos));
+        ui->checkBoxSongTable->setCheckState(Qt::Checked);
+        ui->spinBoxSongTable->setEnabled(true);
+        ui->spinBoxTableIndex->setValue(profile->songTableInfoConfig.tableIdx);
+        ui->spinBoxTableIndex->setEnabled(false);
+    }
+
+    connect(ui->checkBoxSongTable, &QCheckBox::stateChanged, [this](int state){
+        if (state == Qt::Checked) {
+            ui->spinBoxSongTable->setEnabled(true);
+            ui->spinBoxTableIndex->setEnabled(false);
+        } else {
+            ui->spinBoxSongTable->setValue(static_cast<int>(profile->songTableInfoScanned.pos));
+            ui->spinBoxSongTable->setEnabled(false);
+            ui->spinBoxTableIndex->setValue(profile->songTableInfoScanned.tableIdx);
+            ui->spinBoxTableIndex->setEnabled(true);
+        }
+        MarkPending();
+    });
+
+    connect(ui->spinBoxSongTable, &QSpinBox::valueChanged, [this](auto){ MarkPending(); });
+    connect(ui->spinBoxTableIndex, &QSpinBox::valueChanged, [this](auto){ MarkPending(); });
+
+    /* song  entry count */
+    if (profile->songTableInfoConfig.count == SongTableInfo::COUNT_AUTO) {
+        ui->spinBoxSongCount->setValue(profile->songTableInfoScanned.count);
+        ui->checkBoxSongCount->setCheckState(Qt::Unchecked);
+        ui->spinBoxSongCount->setEnabled(false);
+    } else {
+        ui->spinBoxSongCount->setValue(profile->songTableInfoConfig.count);
+        ui->checkBoxSongCount->setCheckState(Qt::Checked);
+        ui->spinBoxSongCount->setEnabled(true);
+    }
+
+    connect(ui->checkBoxSongCount, &QCheckBox::stateChanged, [this](int state){
+        if (state == Qt::Checked) {
+            ui->spinBoxSongCount->setEnabled(true);
+        } else {
+            ui->spinBoxSongCount->setValue(profile->songTableInfoScanned.count);
+            ui->spinBoxSongCount->setEnabled(false);
+        }
+        MarkPending();
+    });
+
+    connect(ui->spinBoxSongCount, &QSpinBox::valueChanged, [this](auto){ MarkPending(); });
+
+    /* player table */
+    ui->tableWidgetPlayers->setSelectionMode(QAbstractItemView::NoSelection);
+    ui->tableWidgetPlayers->setColumnCount(COL_PLT_COUNT);
+    ui->tableWidgetPlayers->setHorizontalHeaderItem(COL_PLT_TRACKS, new QTableWidgetItem("Max Tracks"));
+    ui->tableWidgetPlayers->setHorizontalHeaderItem(COL_PLT_PRIO, new QTableWidgetItem("Use Priority"));
+
+    connect(ui->tableWidgetPlayers, &QTableWidget::cellChanged, [this](int row, int column) {
+        /* We validate the content:
+         * Remove non-number characters, except a blank string, which is equal to 0. */
+        assert(column < COL_PLT_COUNT);
+
+        QTableWidgetItem *item = ui->tableWidgetPlayers->item(row, column);
+        assert(item);
+
+        // TODO use global define mor maximum tracks of 16
+        int limit = 0;
+        if (column == COL_PLT_TRACKS) {
+            limit = 16;
+        } else {
+            limit = 1;
+        }
+        QString newString = item->text();
+        (void)newString.remove(QRegularExpression("[^0-9]"));
+        if (newString.size() == 0)
+            newString = "0";
+        if (newString.toInt() > limit)
+            newString = QString::number(limit);
+        item->setText(newString);
+        MarkPending();
+    });
+
+    auto populateTable = [this](const PlayerTableInfo &plt) {
+        ui->tableWidgetPlayers->setRowCount(0);
+        for (size_t i = 0; i < plt.size(); i++) {
+            const int row = ui->tableWidgetPlayers->rowCount();
+            ui->tableWidgetPlayers->insertRow(row);
+            ui->tableWidgetPlayers->setItem(row, COL_PLT_TRACKS, new QTableWidgetItem(QString::number(plt.at(i).maxTracks)));
+            ui->tableWidgetPlayers->setItem(row, COL_PLT_PRIO, new QTableWidgetItem(QString::number(plt.at(i).usePriority)));
+            ui->tableWidgetPlayers->setVerticalHeaderItem(row, new QTableWidgetItem(QString::fromStdString(std::format("Player {}", row))));
+        }
+    };
+
+    if (profile->playerTableConfig.size() == 0) {
+        populateTable(profile->playerTableScanned);
+        ui->groupBoxPlayerTable->setChecked(false);
+    } else {
+        populateTable(profile->playerTableConfig);
+        ui->groupBoxPlayerTable->setChecked(true);
+    }
+
+    connect(ui->groupBoxPlayerTable, &QGroupBox::clicked, [this, populateTable](bool checked) {
+        if (!checked)
+            populateTable(profile->playerTableScanned);
+        MarkPending();
+    });
+
+    connect(ui->pushButtonPlayerAdd, &QPushButton::clicked, [this](bool) {
+        const int row = ui->tableWidgetPlayers->rowCount();
+        // TODO replace 16 with constant of max players
+        if (row >= 32)
+            return;
+        ui->tableWidgetPlayers->insertRow(row);
+        ui->tableWidgetPlayers->setItem(row, COL_PLT_TRACKS, new QTableWidgetItem("16")); // TODO replace 16 with constant
+        ui->tableWidgetPlayers->setItem(row, COL_PLT_PRIO, new QTableWidgetItem("0"));
+        ui->tableWidgetPlayers->setVerticalHeaderItem(row, new QTableWidgetItem(QString::fromStdString(std::format("Player {}", row))));
+        MarkPending();
+    });
+
+    connect(ui->pushButtonPlayerRemove, &QPushButton::clicked, [this](bool) {
+        const int rows = ui->tableWidgetPlayers->rowCount();
+        if (rows == 0)
+            return;
+        ui->tableWidgetPlayers->removeRow(rows - 1);
+        MarkPending();
+    });
+}
+
+void ProfileSettingsWindow::InitProfileAssignment()
+{
+    /* game codes */
+    static const auto defaultFlags = Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsEnabled;
+
+    ui->listWidgetGameCodes->clear();
+    for (const std::string &c : profile->gameMatch.gameCodes) {
+        QListWidgetItem *item = nullptr;
+        try {
+            item = new QListWidgetItem(QString::fromStdString(c));
+            item->setFlags(defaultFlags);
+            ui->listWidgetGameCodes->addItem(item);
+        } catch (...) {
+            delete item;
+            throw;
+        }
+    }
+
+    connect(ui->listWidgetGameCodes, &QListWidget::itemChanged, [this](QListWidgetItem *item){
+        /* only allow game codes with capital letters and numbers up to 4 length. */
+        QString oldText = item->text();
+        QString newText = oldText; // We have to copy string since remove() appears to be destructive
+        (void)newText.remove(QRegularExpression("[^A-Z0-9]"));
+        newText = newText.left(4);
+        if (newText != oldText)
+            item->setText(newText);
+        MarkPending();
+    });
+
+    connect(ui->pushButtonCodeAdd, &QAbstractButton::clicked, [this](bool) {
+        QListWidgetItem *item = nullptr;
+        try {
+            item = new QListWidgetItem("0000");
+            item->setFlags(defaultFlags);
+            ui->listWidgetGameCodes->addItem(item);
+        } catch (...) {
+            delete item;
+            throw;
+        }
+        MarkPending();
+    });
+
+    connect(ui->pushButtonCodeRemove, &QAbstractButton::clicked, [this](bool) {
+        auto items = ui->listWidgetGameCodes->selectedItems();
+        if (items.size() == 0) {
+            QMessageBox mbox(QMessageBox::Icon::Critical, "Game Code Matches", "Please select a game code to remove", QMessageBox::Ok, this);
+            mbox.exec();
+            return;
+        }
+
+        for (QListWidgetItem *item : items)
+            ui->listWidgetGameCodes->takeItem(ui->listWidgetGameCodes->row(item));
+        MarkPending();
+    });
+
+    /* magic bytes */
+    QStringList byteStringList;
+    for (uint8_t byte : profile->gameMatch.magicBytes)
+        byteStringList << QString::fromStdString(std::format("{:02x}", byte));
+    ui->lineEditMagicBytes->setText(byteStringList.join(" "));
+}
+
 void ProfileSettingsWindow::MarkPending()
 {
     pendingChanges = true;
@@ -594,4 +578,17 @@ void ProfileSettingsWindow::ClearPending()
 
 void ProfileSettingsWindow::UpdateProfileList()
 {
+}
+
+void ProfileSettingsWindow::Apply()
+{
+    if (!pendingChanges)
+        return;
+
+    profile->name = ui->lineEditProfileName->text().toStdString();
+    profile->author = ui->lineEditProfileAuthor->text().toStdString();
+    profile->gameStudio = ui->lineEditGameStudio->text().toStdString();
+    profile->description = ui->lineEditDescription->text().toStdString();
+    profile->notes = ui->plainTextEditNotes->toPlainText().toStdString();
+    profile->dirty = true;
 }

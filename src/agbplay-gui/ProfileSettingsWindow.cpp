@@ -497,7 +497,7 @@ void ProfileSettingsWindow::InitGameTables()
 
     connect(ui->pushButtonPlayerRemove, &QPushButton::clicked, [this](bool) {
         const int rows = ui->tableWidgetPlayers->rowCount();
-        if (rows == 0)
+        if (rows <= 1)
             return;
         ui->tableWidgetPlayers->removeRow(rows - 1);
         MarkPending();

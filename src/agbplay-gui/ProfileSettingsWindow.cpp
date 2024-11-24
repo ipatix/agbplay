@@ -618,6 +618,15 @@ void ProfileSettingsWindow::Apply()
     else
         profile->mp2kSoundModeConfig.dacConfig = MP2KSoundMode::DAC_AUTO;
 
+    /* enhancements */
+    profile->agbplaySoundMode.resamplerTypeNormal = static_cast<ResamplerType>(ui->comboBoxResTypeNormal->currentData().toInt());
+    profile->agbplaySoundMode.resamplerTypeFixed = static_cast<ResamplerType>(ui->comboBoxResTypeFixed->currentData().toInt());
+    profile->agbplaySoundMode.reverbType = static_cast<ReverbType>(ui->comboBoxRevAlgo->currentData().toInt());
+    profile->agbplaySoundMode.dmaBufferLen = static_cast<uint32_t>(ui->spinBoxDmaBufLen->value());
+    profile->agbplaySoundMode.cgbPolyphony = static_cast<CGBPolyphony>(ui->comboBoxPsgPoly->currentData().toInt());
+    profile->agbplaySoundMode.accurateCh3Quantization = ui->checkBoxCh3Quant->checkState() == Qt::Checked;
+    profile->agbplaySoundMode.accurateCh3Volume = ui->checkBoxCh3Vol->checkState() == Qt::Checked;
+    profile->agbplaySoundMode.emulateCgbSustainBug = ui->checkBoxPsgSus->checkState() == Qt::Checked;
 
     // TODO apply config+scan to playback, or should we do that somewhere else?
     profile->dirty = true;

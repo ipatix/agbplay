@@ -16,12 +16,15 @@ ProfileSettingsWindow::ProfileSettingsWindow(QWidget *parent, ProfileManager &pm
     : QDialog(parent), ui(new Ui::ProfileSettingsWindow), pm(pm), profile(profile)
 {
     ui->setupUi(this);
+    InitButtonBar();
     InitTreeWidget();
     InitProfileInfo();
     InitSoundMode();
     InitEnhancements();
     InitGameTables();
     InitProfileAssignment();
+
+    ClearPending();
 }
 
 ProfileSettingsWindow::~ProfileSettingsWindow()

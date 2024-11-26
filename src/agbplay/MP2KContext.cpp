@@ -42,29 +42,20 @@ void MP2KContext::m4aSoundMain()
 void MP2KContext::m4aSoundMode(uint32_t mode)
 {
     const uint8_t reverb = (mode >> 0) & 0xFF;
-    if (reverb & 0x80) {
-        mp2kSoundMode.rev = reverb;
-        mixer.UpdateReverb();
-    }
+    m4aSoundModeReverb(reverb);
 
     // const uint8_t channels = (mode >> 8) & 0xF;
     // if (channels != 0)
     //     ; // there is no channel limit in agbplay
 
     const uint8_t masterVol = (mode >> 12) & 0xF;
-    if (masterVol != 0) {
-        mp2kSoundMode.vol = masterVol;
-    }
+    m4aSoundModePCMVol(masterVol);
 
     const uint8_t freq = (mode >> 16) & 0xF;
-    if (freq != 0) {
-        mp2kSoundMode.freq = freq;
-        mixer.UpdateFixedModeRate();
-    }
+    m4aSoundModePCMFreq(freq);
 
     const uint8_t dac = (mode >> 20) & 0xF;
-    if (dac != 0)
-        mp2kSoundMode.dacConfig = dac;
+    m4aSoundModeDacConfig(dac);
 }
 
 void MP2KContext::m4aSoundModeReverb(uint8_t reverb)
@@ -73,6 +64,26 @@ void MP2KContext::m4aSoundModeReverb(uint8_t reverb)
         mp2kSoundMode.rev = reverb;
         mixer.UpdateReverb();
     }
+}
+
+void MP2KContext::m4aSoundModePCMVol(uint8_t vol)
+{
+    if (vol != 0)
+        mp2kSoundMode.vol = vol;
+}
+
+void MP2KContext::m4aSoundModePCMFreq(uint8_t freq)
+{
+    if (freq != 0) {
+        mp2kSoundMode.freq = freq;
+        mixer.UpdateFixedModeRate();
+    }
+}
+
+void MP2KContext::m4aSoundModeDacConfig(uint8_t dacConfig)
+{
+    if (dacConfig != 0)
+        mp2kSoundMode.dacConfig = dacConfig;
 }
 
 void MP2KContext::m4aSongNumStart(uint16_t songId)

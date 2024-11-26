@@ -56,7 +56,14 @@ const std::vector<PaHostApiTypeId> PlaybackEngine::hostApiPriority = {
 
 PlaybackEngine::PlaybackEngine(uint32_t sampleRate, const Profile &profile) : profile(profile)
 {
-    InitContext(sampleRate);
+    ctx = std::make_unique<MP2KContext>(
+        sampleRate,
+        Rom::Instance(),
+        profile.mp2kSoundModePlayback,
+        profile.agbplaySoundMode,
+        profile.songTableInfoPlayback,
+        profile.playerTablePlayback
+    );
     ctx->m4aSongNumStart(0);
     ctx->m4aSongNumStop(0);
     portaudioOpen();
@@ -267,18 +274,6 @@ void PlaybackEngine::GetVisualizerState(MP2KVisualizerState &visualizerState)
  * private PlaybackEngine
  */
 
-void PlaybackEngine::InitContext(uint32_t sampleRate)
-{
-    ctx = std::make_unique<MP2KContext>(
-        sampleRate,
-        Rom::Instance(),
-        profile.mp2kSoundModePlayback,
-        profile.agbplaySoundMode,
-        profile.songTableInfoPlayback,
-        profile.playerTablePlayback
-    );
-}
-
 void PlaybackEngine::threadWorker()
 {
     std::vector<sample> silenceBuffer(ctx->mixer.GetSamplesPerBuffer());
@@ -307,6 +302,10 @@ void PlaybackEngine::threadWorker()
             hasEnded = true;
         }
     }
+
+    // TODO we need to catch exceptions and forward the error
+    // to whatever UI is working with us. Otherwise we end up in the situation where
+    // the UI might lock up because all calls to InvokeAsPlayer will block endlessly.
 }
 
 void PlaybackEngine::updateVisualizerState()

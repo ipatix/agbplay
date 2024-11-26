@@ -35,7 +35,6 @@ public:
     void GetVisualizerState(MP2KVisualizerState &visualizerState);
 
 private:
-    void InitContext(uint32_t sampleRate);
     void threadWorker();
     void updateVisualizerState();
     void InvokeAsPlayer(const std::function<void(void)> &func);

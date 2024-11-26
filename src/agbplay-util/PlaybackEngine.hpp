@@ -32,6 +32,7 @@ public:
     void ToggleMute(size_t index);
     void Mute(size_t index, bool mute);
     SongInfo GetSongInfo();
+    void UpdateSoundMode();
     void GetVisualizerState(MP2KVisualizerState &visualizerState);
 
 private:

@@ -261,6 +261,26 @@ SongInfo PlaybackEngine::GetSongInfo()
     return songInfo;
 }
 
+void PlaybackEngine::UpdateSoundMode()
+{
+    /* Update the sound mode live. This may happen if the used has edited
+     * the profile in the profile editor. No reloading is required and changes should
+     * apply immediately. */
+
+    auto func = [this]() {
+        ctx->mp2kSoundMode = profile.mp2kSoundModePlayback;
+        ctx->m4aSoundModeReverb(profile.mp2kSoundModePlayback.rev);
+        ctx->m4aSoundModePCMVol(profile.mp2kSoundModePlayback.vol);
+        ctx->m4aSoundModePCMFreq(profile.mp2kSoundModePlayback.freq);
+        ctx->m4aSoundModeDacConfig(profile.mp2kSoundModePlayback.dacConfig);
+        /* Do not update the playertable since it may cause playback issues.
+         * The user is supposed to reload the game if that was changed with the
+         * profile editor. */
+    };
+
+    InvokeAsPlayer(func);
+}
+
 void PlaybackEngine::GetVisualizerState(MP2KVisualizerState &visualizerState)
 {
     /* We do not use InvokeAsPlayer, as that would block the call until the background thread

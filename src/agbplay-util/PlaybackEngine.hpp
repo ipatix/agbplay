@@ -74,10 +74,6 @@ private:
     std::atomic<bool> songEnded = false;
 
     LowLatencyRingbuffer ringbuffer;
-    // std::vector<sample> outputBuffer;
-    // std::mutex outputBufferMutex;
-    // std::condition_variable outputBufferReady;
-    // bool outputBufferValid = false;
 
     const Profile &profile;
     uint16_t songIdx = 0;

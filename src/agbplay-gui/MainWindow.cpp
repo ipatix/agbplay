@@ -129,7 +129,7 @@ void MainWindow::SetupMenuBar()
     connect(quickExportStemsAction, &QAction::triggered, [this](bool) { ExportAudio(false, true, true); });
 
     benchmarkSelectedAction = fileMenu->addAction("Run Benchmark by Selection");
-    benchmarkSelectedAction->setIcon(QIcon());    // TODO
+    benchmarkSelectedAction->setIcon(QIcon(":/icons/benchmark.ico"));
     benchmarkSelectedAction->setToolTip("Render selected songs and measure the time. No files are written to disk.");
     benchmarkSelectedAction->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_B));
     benchmarkSelectedAction->setEnabled(false);

@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/about.ico</file>
+        <file>icons/benchmark.ico</file>
         <file>icons/exit.ico</file>
         <file>icons/export-audio.ico</file>
         <file>icons/export-midi.ico</file>

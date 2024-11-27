@@ -69,7 +69,7 @@ private:
     std::condition_variable playerInvokeComplete;
     std::atomic<bool> playerInvokePending = false;
     std::unique_ptr<std::thread> playerThread;
-    std::atomic<bool> playerThreadQuit = false;
+    std::atomic<bool> playerThreadQuitRequest = false;
 
     std::atomic<bool> songEnded = false;
 

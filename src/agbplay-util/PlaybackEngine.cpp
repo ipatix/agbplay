@@ -77,7 +77,7 @@ PlaybackEngine::~PlaybackEngine()
 {
     // stop and deallocate player thread if required
     if (playerThread) {
-        playerThreadQuit = true;
+        playerThreadQuitRequest = true;
         playerThread->join();
     }
 
@@ -298,7 +298,7 @@ void PlaybackEngine::threadWorker()
 {
     std::vector<sample> silenceBuffer(ctx->mixer.GetSamplesPerBuffer());
 
-    while (!playerThreadQuit) {
+    while (!playerThreadQuitRequest) {
         /* Run events from main thread. */
         InvokeRun();
 

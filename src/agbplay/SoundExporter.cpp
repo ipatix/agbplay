@@ -171,7 +171,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
 
             while (true) {
                 ctx.m4aSoundMain();
-                if (ctx.HasEnded())
+                if (ctx.SongEnded())
                     break;
 
                 assert(ctx.players.at(playerIdx).tracks.size() == nTracks);
@@ -219,7 +219,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
 
             while (true) {
                 ctx.m4aSoundMain();
-                if (ctx.HasEnded())
+                if (ctx.SongEnded())
                     break;
 
                 sf_count_t processed = 0;
@@ -243,7 +243,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
         while (true) {
             ctx.m4aSoundMain();
             samplesRendered += samplesPerBuffer;
-            if (ctx.HasEnded())
+            if (ctx.SongEnded())
                 break;
         }
     }

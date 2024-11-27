@@ -244,7 +244,7 @@ bool WindowGUI::Handle()
         }    // end key handling switch
     }    // end key loop
 
-    if (play && mplay->HasEnded()) {
+    if (play && mplay->SongEnded()) {
         if ((cursorl != PLAYLIST && cursorl != SONGLIST) || isLastSong()) {
             play = false;
             mplay->Stop();

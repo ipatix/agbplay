@@ -28,7 +28,7 @@ public:
     void Stop();
     void SpeedDouble();
     void SpeedHalve();
-    bool HasEnded() const;
+    bool SongEnded() const;
     void ToggleMute(size_t index);
     void Mute(size_t index, bool mute);
     SongInfo GetSongInfo();
@@ -71,7 +71,7 @@ private:
     std::unique_ptr<std::thread> playerThread;
     std::atomic<bool> playerThreadQuit = false;
 
-    std::atomic<bool> hasEnded = false;
+    std::atomic<bool> songEnded = false;
 
     LowLatencyRingbuffer ringbuffer;
     // std::vector<sample> outputBuffer;

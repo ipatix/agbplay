@@ -54,7 +54,7 @@ struct MP2KContext
     uint8_t m4aSongNumPlayerGet(uint16_t songId) const;
     bool m4aMPlayIsPlaying(uint8_t playerIdx) const;
 
-    bool HasEnded() const;
+    bool SongEnded() const;
     void GetVisualizerState(MP2KVisualizerState &visualizerState);
 
     const Rom &rom;

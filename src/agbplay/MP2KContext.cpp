@@ -219,7 +219,7 @@ bool MP2KContext::m4aMPlayIsPlaying(uint8_t playerIdx) const
     return players.at(playerIdx).playing;
 }
 
-bool MP2KContext::HasEnded() const
+bool MP2KContext::SongEnded() const
 {
     return reader.EndReached() && mixer.IsFadeDone();
 }

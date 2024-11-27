@@ -991,7 +991,7 @@ void MainWindow::StatusUpdate()
     );
     statusWidget.setVisualizerState(*visualizerState);
 
-    if (playing && playbackEngine->HasEnded()) {
+    if (playing && playbackEngine->SongEnded()) {
         /* AdvanceSong automatically stops if this was the last song in the list. */
         AdvanceSong(1);
     }

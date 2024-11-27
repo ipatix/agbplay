@@ -116,7 +116,7 @@ void PlaybackEngine::Play()
             ctx->m4aMPlayStart(playerIdx, player.songHeaderPos);
             for (size_t i = 0; i < std::min(player.tracks.size(), trackMuted.size()); i++)
                 player.tracks.at(i).muted = trackMuted[i];
-            hasEnded = false;
+            songEnded = false;
         }
     };
 
@@ -138,7 +138,7 @@ bool PlaybackEngine::Pause()
             ctx->m4aMPlayStart(playerIdx, ctx->players.at(playerIdx).songHeaderPos);
             for (size_t i = 0; i < std::min(player.tracks.size(), trackMuted.size()); i++)
                 player.tracks.at(i).muted = trackMuted[i];
-            hasEnded = false;
+            songEnded = false;
             paused = false;
         }
         // paused = !paused;
@@ -160,7 +160,7 @@ void PlaybackEngine::Stop()
         ctx->m4aMPlayAllStop();
         ctx->m4aMPlayStart(playerIdx, ctx->players.at(playerIdx).songHeaderPos);
         ctx->m4aMPlayStop(playerIdx);
-        hasEnded = false;
+        songEnded = false;
         paused = false;
     };
 
@@ -195,9 +195,9 @@ void PlaybackEngine::SpeedHalve()
     InvokeAsPlayer(func);
 }
 
-bool PlaybackEngine::HasEnded() const
+bool PlaybackEngine::SongEnded() const
 {
-    return hasEnded;
+    return songEnded;
 }
 
 void PlaybackEngine::ToggleMute(size_t index)
@@ -316,10 +316,10 @@ void PlaybackEngine::threadWorker()
         }
 
         /* Stop all players after loop fadeout (or end). */
-        if (ctx->HasEnded() && !hasEnded) {
+        if (ctx->SongEnded() && !songEnded) {
             ctx->m4aMPlayAllStop();
             ctx->m4aSoundClear();
-            hasEnded = true;
+            songEnded = true;
         }
     }
 

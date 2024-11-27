@@ -168,6 +168,11 @@ void MainWindow::SetupMenuBar()
         profile->ApplyScanToPlayback();
         UpdateSoundMode();
         playbackEngine->UpdateSoundMode();
+
+        if (profile->dirty) {
+            saveButton.setEnabled(true);
+            saveProfileAction->setEnabled(true);
+        }
     });
     profileMinigsfImport = profileMenu->addAction("Import GSF Playlist");
     profileMinigsfImport->setIcon(QIcon(":/icons/profile-import-minigsf.ico"));
@@ -606,8 +611,11 @@ void MainWindow::ProfileImportGsfPlaylist(const std::filesystem::path &gameFileP
     for (auto &[_, title, id] : songs)
         playlistWidget.AddSong(title, id);
 
-    if (songs.size() > 0)
+    if (songs.size() > 0) {
         profile->dirty = true;
+        saveButton.setEnabled(true);
+        saveProfileAction->setEnabled(true);
+    }
 }
 
 void MainWindow::LoadGame()

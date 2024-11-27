@@ -163,6 +163,11 @@ void MainWindow::SetupMenuBar()
             return;
         ProfileSettingsWindow w(this, *pm, profile);
         w.exec();
+
+        /* apply relevant changes to current running program. */
+        profile->ApplyScanToPlayback();
+        UpdateSoundMode();
+        playbackEngine->UpdateSoundMode();
     });
     profileMinigsfImport = profileMenu->addAction("Import GSF Playlist");
     profileMinigsfImport->setIcon(QIcon(":/icons/profile-import-minigsf.ico"));

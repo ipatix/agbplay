@@ -268,7 +268,7 @@ void PlaybackEngine::UpdateSoundMode()
      * apply immediately. */
 
     auto func = [this]() {
-        ctx->mp2kSoundMode = profile.mp2kSoundModePlayback;
+        ctx->agbplaySoundMode = profile.agbplaySoundMode;
         ctx->m4aSoundModeReverb(profile.mp2kSoundModePlayback.rev);
         ctx->m4aSoundModePCMVol(profile.mp2kSoundModePlayback.vol);
         ctx->m4aSoundModePCMFreq(profile.mp2kSoundModePlayback.freq);

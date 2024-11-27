@@ -296,36 +296,41 @@ void PlaybackEngine::GetVisualizerState(MP2KVisualizerState &visualizerState)
 
 void PlaybackEngine::threadWorker()
 {
-    std::vector<sample> silenceBuffer(ctx->mixer.GetSamplesPerBuffer());
+    try {
+        std::vector<sample> silenceBuffer(ctx->mixer.GetSamplesPerBuffer());
 
-    while (!playerThreadQuitRequest) {
-        /* Run events from main thread. */
-        InvokeRun();
+        while (!playerThreadQuitRequest) {
+            /* Run events from main thread. */
+            InvokeRun();
 
-        if (paused) {
-            /* Silence output buffer. */
-            ringbuffer.Put(silenceBuffer);
-        } else {
-            /* Run sound engine. */
-            ctx->m4aSoundMain();
-            updateVisualizerState();
+            if (paused) {
+                /* Silence output buffer. */
+                ringbuffer.Put(silenceBuffer);
+            } else {
+                /* Run sound engine. */
+                ctx->m4aSoundMain();
+                updateVisualizerState();
 
-            /* Write audio data to portaudio ringbuffer. */
-            assert(ctx->masterAudioBuffer.size() == ctx->mixer.GetSamplesPerBuffer());
-            ringbuffer.Put(ctx->masterAudioBuffer);
+                /* Write audio data to portaudio ringbuffer. */
+                assert(ctx->masterAudioBuffer.size() == ctx->mixer.GetSamplesPerBuffer());
+                ringbuffer.Put(ctx->masterAudioBuffer);
+            }
+
+            /* Stop all players after loop fadeout (or end). */
+            if (ctx->SongEnded() && !songEnded) {
+                ctx->m4aMPlayAllStop();
+                ctx->m4aSoundClear();
+                songEnded = true;
+            }
         }
 
-        /* Stop all players after loop fadeout (or end). */
-        if (ctx->SongEnded() && !songEnded) {
-            ctx->m4aMPlayAllStop();
-            ctx->m4aSoundClear();
-            songEnded = true;
-        }
+        playerThreadQuitError.clear();
+    } catch (std::exception &e) {
+        playerThreadQuitError = e.what();
     }
 
-    // TODO we need to catch exceptions and forward the error
-    // to whatever UI is working with us. Otherwise we end up in the situation where
-    // the UI might lock up because all calls to InvokeAsPlayer will block endlessly.
+    std::unique_lock l(playerInvokeMutex);
+    playerThreadQuitComplete = true;
 }
 
 void PlaybackEngine::updateVisualizerState()
@@ -365,6 +370,15 @@ void PlaybackEngine::InvokeRun()
         return;
 
     std::unique_lock l(playerInvokeMutex);
+
+    if (playerThreadQuitComplete) [[unlikely]] {
+        /* if the player thread has exited already, we can't invoke
+         * a function as we'll wait forever for the thread to become ready. */
+        if (playerThreadQuitError.size() > 0)
+            throw Xcept("Playback thread has crashed: {}", playerThreadQuitError);
+        throw Xcept("Unable to send request to playback thread, which is not running.");
+    }
+
     playerInvokeReady.notify_one();
 
     /* wait for remote invocation to complete... */

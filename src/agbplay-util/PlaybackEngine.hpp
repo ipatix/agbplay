@@ -70,6 +70,8 @@ private:
     std::atomic<bool> playerInvokePending = false;
     std::unique_ptr<std::thread> playerThread;
     std::atomic<bool> playerThreadQuitRequest = false;
+    std::string playerThreadQuitError;
+    bool playerThreadQuitComplete = false;
 
     std::atomic<bool> songEnded = false;
 

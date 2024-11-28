@@ -3,7 +3,6 @@
 #include "Types.hpp"
 
 #include <filesystem>
-#include <optional>
 #include <vector>
 
 /* The Profile struct contains two "Config" and "Playback" states.

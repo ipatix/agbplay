@@ -161,7 +161,7 @@ void MainWindow::SetupMenuBar()
     connect(profileSettings, &QAction::triggered, [this](bool) {
         if (!pm)
             return;
-        ProfileSettingsWindow w(this, *pm, profile);
+        ProfileSettingsWindow w(this, *pm, profile, Rom::Instance().GetROMCode());
         w.exec();
 
         /* apply relevant changes to current running program. */
@@ -878,6 +878,9 @@ void MainWindow::SaveProfile()
 {
     if (!profile || !profile->dirty)
         return;
+
+    // TODO handle saving when profile is no longer in profile list, do not save.
+    // TODO ask (on close?) if it should be added back to the list.
 
     profile->playlist.clear();
     for (int i = 0; i < playlistWidget.listWidget.count(); i++) {

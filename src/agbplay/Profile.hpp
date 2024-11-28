@@ -49,7 +49,7 @@ struct Profile
 
     std::filesystem::path path;
     static std::atomic<uint32_t> sessionIdCounter;
-    uint32_t sessionId = sessionIdCounter.fetch_add(1);
+    const uint32_t sessionId = sessionIdCounter.fetch_add(1);
     bool dirty = false;
 
     void ApplyScanToPlayback();

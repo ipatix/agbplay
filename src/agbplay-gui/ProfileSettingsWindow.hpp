@@ -18,7 +18,7 @@ class ProfileSettingsWindow : public QDialog
     Q_OBJECT
 
 public:
-    explicit ProfileSettingsWindow(QWidget *parent, ProfileManager &pm, std::shared_ptr<Profile> &profile);
+    explicit ProfileSettingsWindow(QWidget *parent, ProfileManager &pm, std::shared_ptr<Profile> &profile, const std::string &gameCode);
     ~ProfileSettingsWindow();
 
 private:
@@ -39,6 +39,7 @@ private:
     Ui::ProfileSettingsWindow *ui;
     ProfileManager &pm;
     std::shared_ptr<Profile> &profile;
+    std::string gameCode;
     bool pendingChanges = false;
 
     enum {

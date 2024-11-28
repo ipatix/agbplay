@@ -46,7 +46,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="pushButtonProfileLoad">
            <property name="maximumSize">
             <size>
              <width>25</width>
@@ -69,7 +69,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_2">
+          <widget class="QPushButton" name="pushButtonProfileCopy">
            <property name="maximumSize">
             <size>
              <width>25</width>
@@ -89,7 +89,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_3">
+          <widget class="QPushButton" name="pushButtonProfileDelete">
            <property name="maximumSize">
             <size>
              <width>25</width>
@@ -109,7 +109,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_4">
+          <widget class="QPushButton" name="pushButtonProfileNew">
            <property name="maximumSize">
             <size>
              <width>25</width>
@@ -682,10 +682,10 @@
  </widget>
  <tabstops>
   <tabstop>treeWidget</tabstop>
-  <tabstop>pushButton</tabstop>
-  <tabstop>pushButton_2</tabstop>
-  <tabstop>pushButton_3</tabstop>
-  <tabstop>pushButton_4</tabstop>
+  <tabstop>pushButtonProfileLoad</tabstop>
+  <tabstop>pushButtonProfileCopy</tabstop>
+  <tabstop>pushButtonProfileDelete</tabstop>
+  <tabstop>pushButtonProfileNew</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>lineEditProfileName</tabstop>
   <tabstop>lineEditProfileAuthor</tabstop>

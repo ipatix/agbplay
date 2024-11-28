@@ -12,8 +12,8 @@ static QColor profileColCur = QColor::fromHsv(210, 70, 255);
 static QColor profileColAvail = QColor::fromHsv(120, 70, 255);
 static QColor profileColUnavail = QColor::fromHsv(0, 70, 255);
 
-ProfileSettingsWindow::ProfileSettingsWindow(QWidget *parent, ProfileManager &pm, std::shared_ptr<Profile> &profile)
-    : QDialog(parent), ui(new Ui::ProfileSettingsWindow), pm(pm), profile(profile)
+ProfileSettingsWindow::ProfileSettingsWindow(QWidget *parent, ProfileManager &pm, std::shared_ptr<Profile> &profile, const std::string &gameCode)
+    : QDialog(parent), ui(new Ui::ProfileSettingsWindow), pm(pm), profile(profile), gameCode(gameCode)
 {
     ui->setupUi(this);
     InitButtonBar();
@@ -50,30 +50,111 @@ void ProfileSettingsWindow::InitButtonBar()
 void ProfileSettingsWindow::InitTreeWidget()
 {
     /* tree widget itself */
+    auto addProfileToTreeWidget = [this](const Profile &profileToInsert) {
+        QTreeWidgetItem *profileItem = new QTreeWidgetItem(ui->treeWidget, QTreeWidgetItem::Type);
+
+        QStringList slist;
+        for (const std::string &s : profileToInsert.gameMatch.gameCodes)
+            slist.append(QString::fromStdString(s));
+        profileItem->setText(COL_CODES, slist.join(", "));
+        profileItem->setText(COL_NAME, QString::fromStdString(profileToInsert.name));
+        profileItem->setText(COL_AUTHOR, QString::fromStdString(profileToInsert.author));
+        profileItem->setText(COL_STUDIO, QString::fromStdString(profileToInsert.gameStudio));
+
+        const auto &codes = profileToInsert.gameMatch.gameCodes;
+        if (profileToInsert.sessionId == profile->sessionId)
+            profileItem->setBackground(COL_CODES, profileColCur);
+        else if (gameCode.size() > 0 && std::find(codes.begin(), codes.end(), gameCode) != codes.end())
+            profileItem->setBackground(COL_CODES, profileColAvail);
+        else
+            profileItem->setBackground(COL_CODES, profileColUnavail);
+
+        profileItem->setData(0, Qt::UserRole, profileToInsert.sessionId);
+    };
+
+    ui->treeWidget->clear();
     ui->treeWidget->setColumnCount(COL_COUNT);
     ui->treeWidget->setHeaderLabels(QStringList{"Game Code", "Name", "Author", "Game Studio"});
     ui->treeWidget->setColumnWidth(COL_CODES, 90);
 
-    for (std::shared_ptr<Profile> &profileToInsert : pm.GetAllProfiles()) {
-        QTreeWidgetItem *profileItem = new QTreeWidgetItem(ui->treeWidget, QTreeWidgetItem::Type);
-
-        QStringList slist;
-        for (const std::string &s : profileToInsert->gameMatch.gameCodes)
-            slist.append(QString::fromStdString(s));
-        profileItem->setText(COL_CODES, slist.join(", "));
-        profileItem->setText(COL_NAME, QString::fromStdString(profileToInsert->name));
-        profileItem->setText(COL_AUTHOR, QString::fromStdString(profileToInsert->author));
-        profileItem->setText(COL_STUDIO, QString::fromStdString(profileToInsert->gameStudio));
-
-        if (profileToInsert == profile)
-            profileItem->setBackground(COL_CODES, profileColCur);
-        else
-            profileItem->setBackground(COL_CODES, profileColUnavail);
-    }
+    for (std::shared_ptr<Profile> &profileToInsert : pm.GetAllProfiles())
+        addProfileToTreeWidget(*profileToInsert);
 
     ui->treeWidget->setRootIsDecorated(false);
     ui->treeWidget->setSortingEnabled(true);
     ui->treeWidget->sortByColumn(COL_CODES, Qt::AscendingOrder);
+
+    /* load profile button */
+    connect(ui->pushButtonProfileLoad, &QAbstractButton::clicked, [this](bool){
+        // TODO
+    });
+
+    /* copy profile button */
+    connect(ui->pushButtonProfileCopy, &QAbstractButton::clicked, [this](bool){
+        // TODO
+    });
+
+    /* delete profile button */
+    connect(ui->pushButtonProfileDelete, &QAbstractButton::clicked, [this](bool){
+        QTreeWidgetItem *item = ui->treeWidget->currentItem();
+        if (!item)
+            return;
+
+        const uint32_t idToDelete = item->data(0, Qt::UserRole).toUInt();
+
+        auto &profiles = pm.GetAllProfiles();
+        auto profileToDeleteIt = profiles.end();
+        for (size_t i = 0; i < profiles.size(); i++) {
+            if (profiles.at(i)->sessionId == idToDelete) {
+                profileToDeleteIt = profiles.begin() + i;
+            }
+        }
+
+        if (profileToDeleteIt == profiles.end())
+            return;
+
+        QMessageBox mbox(
+            QMessageBox::Icon::Question,
+            "Delete Profile",
+            "Are you sure you want to delete the selected profile?",
+            QMessageBox::Yes | QMessageBox::No,
+            this
+        );
+        if (mbox.exec() == QMessageBox::No)
+            return;
+
+        std::shared_ptr<Profile> profileToDelete = *profileToDeleteIt;
+
+        if (profileToDelete->sessionId == profile->sessionId) {
+            QMessageBox mbox2(
+                QMessageBox::Icon::Warning,
+                "Delete Profile",
+                "The profile you want to delete is currently loaded, do you want to proceeed anyway?",
+                QMessageBox::Yes | QMessageBox::No,
+                this
+            );
+            if (mbox2.exec() == QMessageBox::No)
+                return;
+            profileToDelete->dirty = true;
+        }
+
+        profiles.erase(profileToDeleteIt);
+        delete item;
+        std::filesystem::remove(profileToDelete->path);
+    });
+
+    /* new profile button */
+    connect(ui->pushButtonProfileNew, &QAbstractButton::clicked, [this, addProfileToTreeWidget](bool){
+        const std::shared_ptr<Profile> &newProfile = pm.GetAllProfiles().emplace_back();
+        if (gameCode.size() > 0) {
+            newProfile->gameMatch.gameCodes.emplace_back(gameCode);
+        } else {
+            for (const auto &code : profile->gameMatch.gameCodes)
+                newProfile->gameMatch.gameCodes.emplace_back(code);
+        }
+        addProfileToTreeWidget(*newProfile);
+    });
+
 }
 
 void ProfileSettingsWindow::InitProfileInfo()

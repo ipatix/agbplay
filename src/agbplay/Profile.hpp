@@ -2,8 +2,10 @@
 
 #include "Types.hpp"
 
+#include <atomic>
 #include <filesystem>
 #include <vector>
+#include <cstdint>
 
 /* The Profile struct contains two "Config" and "Playback" states.
  * Only the "Config" state is actually saved to disk.
@@ -46,6 +48,8 @@ struct Profile
     // tags, profiles
 
     std::filesystem::path path;
+    static std::atomic<uint32_t> sessionIdCounter;
+    uint32_t sessionId = sessionIdCounter.fetch_add(1);
     bool dirty = false;
 
     void ApplyScanToPlayback();

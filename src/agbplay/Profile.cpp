@@ -1,5 +1,7 @@
 #include "Profile.hpp"
 
+std::atomic<uint32_t> Profile::sessionIdCounter = 1;
+
 void Profile::ApplyScanToPlayback()
 {
     /* SongTableInfo */

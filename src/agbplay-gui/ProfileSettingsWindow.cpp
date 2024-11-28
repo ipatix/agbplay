@@ -49,7 +49,7 @@ void ProfileSettingsWindow::InitButtonBar()
 
 void ProfileSettingsWindow::InitTreeWidget()
 {
-    QStringList hlist;
+    /* tree widget itself */
     ui->treeWidget->setColumnCount(COL_COUNT);
     ui->treeWidget->setHeaderLabels(QStringList{"Game Code", "Name", "Author", "Game Studio"});
     ui->treeWidget->setColumnWidth(COL_CODES, 90);

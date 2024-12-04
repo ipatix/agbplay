@@ -27,6 +27,8 @@ struct Profile
         std::vector<uint8_t> magicBytes;
     };
 
+    // IMPORTANT: When adding a member, please add it to the assignment operator in Profile.cpp
+
     std::vector<PlaylistEntry> playlist;
     SongTableInfo songTableInfoConfig;
     SongTableInfo songTableInfoScanned;
@@ -51,6 +53,10 @@ struct Profile
     static std::atomic<uint32_t> sessionIdCounter;
     const uint32_t sessionId = sessionIdCounter.fetch_add(1);
     bool dirty = false;
+
+    Profile() = default;
+    Profile(const Profile &rhs);
+    Profile &operator=(const Profile &rhs);
 
     void ApplyScanToPlayback();
 };

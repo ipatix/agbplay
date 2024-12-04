@@ -2,6 +2,37 @@
 
 std::atomic<uint32_t> Profile::sessionIdCounter = 1;
 
+/* We define custom copy and assignment constructors.
+ * Because each profile has a unique ID, we cannot simply perform a member-wise copy. */
+
+Profile::Profile(const Profile &rhs)
+{
+    *this = rhs;
+}
+
+Profile &Profile::operator=(const Profile &rhs)
+{
+    playlist = rhs.playlist;
+    songTableInfoConfig = rhs.songTableInfoConfig;
+    songTableInfoScanned = rhs.songTableInfoScanned;
+    songTableInfoPlayback = rhs.songTableInfoPlayback;
+    playerTableConfig = rhs.playerTableConfig;
+    playerTableScanned = rhs.playerTableScanned;
+    playerTablePlayback = rhs.playerTablePlayback;
+    mp2kSoundModeConfig = rhs.mp2kSoundModeConfig;
+    mp2kSoundModeScanned = rhs.mp2kSoundModeScanned;
+    mp2kSoundModePlayback = rhs.mp2kSoundModePlayback;
+    agbplaySoundMode = rhs.agbplaySoundMode;
+    gameMatch = rhs.gameMatch;
+    name = rhs.name;
+    author = rhs.author;
+    gameStudio = rhs.gameStudio;
+    description = rhs.description;
+    notes = rhs.notes;
+    dirty = true;
+    return *this;
+}
+
 void Profile::ApplyScanToPlayback()
 {
     /* SongTableInfo */

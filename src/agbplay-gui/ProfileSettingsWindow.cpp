@@ -3,6 +3,7 @@
 #include "ui_ProfileSettingsWindow.h"
 
 #include <QAbstractButton>
+#include <QFileDialog>
 #include <QMessageBox>
 
 #include "Profile.hpp"
@@ -90,8 +91,43 @@ void ProfileSettingsWindow::InitTreeWidget()
     });
 
     /* copy profile button */
-    connect(ui->pushButtonProfileCopy, &QAbstractButton::clicked, [this](bool){
-        // TODO
+    auto selectProfilePath = [this]() {
+        QFileDialog dialog(this);
+        dialog.setFileMode(QFileDialog::AnyFile);
+        dialog.setAcceptMode(QFileDialog::AcceptSave);
+        dialog.setNameFilter("agbplay Profile (*.json)");
+        dialog.setDefaultSuffix("json");
+        dialog.setDirectory(QString::fromStdWString(ProfileManager::ProfileUserPath().wstring()));
+
+        if (!dialog.exec())
+            return std::filesystem::path();
+
+        assert(dialog.selectedFiles().size() == 1);
+        return std::filesystem::path(dialog.selectedFiles().at(0).toStdWString());
+    };
+
+    auto createProfile = [this, addProfileToTreeWidget, selectProfilePath](bool copy) {
+        const auto profilePath = selectProfilePath();
+        if (profilePath.empty())
+            return;
+
+        std::shared_ptr<Profile> &newProfile = pm.GetAllProfiles().emplace_back(std::make_shared<Profile>());
+        if (gameCode.size() > 0) {
+            newProfile->gameMatch.gameCodes.emplace_back(gameCode);
+        } else {
+            for (const auto &code : profile->gameMatch.gameCodes)
+                newProfile->gameMatch.gameCodes.emplace_back(code);
+        }
+        newProfile->path = profilePath;
+
+        if (copy)
+            *newProfile = *profile;
+
+        addProfileToTreeWidget(*newProfile);
+    };
+
+    connect(ui->pushButtonProfileCopy, &QAbstractButton::clicked, [this, createProfile](bool){
+        createProfile(true);
     });
 
     /* delete profile button */
@@ -144,15 +180,8 @@ void ProfileSettingsWindow::InitTreeWidget()
     });
 
     /* new profile button */
-    connect(ui->pushButtonProfileNew, &QAbstractButton::clicked, [this, addProfileToTreeWidget](bool){
-        const std::shared_ptr<Profile> &newProfile = pm.GetAllProfiles().emplace_back();
-        if (gameCode.size() > 0) {
-            newProfile->gameMatch.gameCodes.emplace_back(gameCode);
-        } else {
-            for (const auto &code : profile->gameMatch.gameCodes)
-                newProfile->gameMatch.gameCodes.emplace_back(code);
-        }
-        addProfileToTreeWidget(*newProfile);
+    connect(ui->pushButtonProfileNew, &QAbstractButton::clicked, [this, createProfile](bool){
+        createProfile(false);
     });
 
 }

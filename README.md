@@ -1,11 +1,47 @@
-## agbplay
-__agbplay__ is a music player with Terminal interface for GBA ROMs that use
-the most common (mp2k/m4a) sound engine format. The code itself is written in
-C++.
+# agbplay
+__agbplay__ is a music player with Qt GUI for GBA ROMs that use
+the most common (mp2k/m4a) sound engine format.
 
-### Quick overview
+## Qt GUI Version
+
+### Info
+
+Since 2024 agbplay also has a Qt GUI version available.
+Currently it is still in pre-relase state and it may still have some bugs.
+This readme also needs more details.
+
+![agbplay](.github/data/gui.png)
+
+### Building
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build
+```
+
+Do not use the pure debug build unless you're debugging.
+Performance may be really bad with the high quality resamplers.
+
+### Running
+
+```bash
+./build/src/agbplay-gui/agbplay-gui
+```
+
+### How to use
+
+TODO
+
+## Legacy Curses Version
+
+### Info
+
+For the majority of its lifetime agbplay only had a curses based UI.
+Since 2024 there a Qt GUI is available and is intended to replace the curses UI.
+While the curses UI is not removed it won't get any new features.
+In the chapters below you can find the info about the curses version.
+
 ![agbplay](https://user-images.githubusercontent.com/8502545/95079441-e9e97c00-0716-11eb-8ea2-5240a19614ae.png)
-
 
 ### Controls
 - Arrow Keys or HJKL: Navigate through the program
@@ -42,6 +78,8 @@ C++.
 - Change to an audio library that doesn't print ANYTHING messages on stdout
 
 ### Dependencies
+
+TODO: These are known to be obsolete.
 
 Debian | Arch | Cygwin
 --- | --- | ---

@@ -127,7 +127,7 @@ void SongWidget::reset()
     bpmFactorLabel.setText("(x 1)");
     chnLabel.setText("0/0 Chn");
     timeLabel.setText("00:00");
-    chordLabel.setText("C Maj 7");
+    chordLabel.setText("---");
 }
 
 void SongWidget::resetMaxChannels()

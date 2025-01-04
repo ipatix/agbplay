@@ -113,12 +113,135 @@ void SongWidget::setVisualizerState(const MP2KVisualizerStatePlayer &state, size
     }
 }
 
-#undef setFmtText
-
 void SongWidget::setPressed(const std::bitset<128> &pressed)
 {
     keyboardWidget.setPressedKeys(pressed);
+    setChord(pressed);
 }
+
+static bool isChord(uint32_t unifiedOctave, const std::vector<uint8_t> &keysToTest, size_t &keyResult, size_t start, size_t end)
+{
+    /* Find which chord is pressed:
+     * - search only the lowest 12 keys of unifiedOctave
+     * - test cyclically if all keysToTest are set for each base key */
+
+    /* Make wraparound logic easier by just duplicating all pressed bits to one octave above. */
+    unifiedOctave |= unifiedOctave << 12;
+
+    /* Actually check whether the pressed keys correspond to the match candidate. */
+    for (size_t key = start; key < end; key++) {
+        bool success = true;
+        for (uint8_t keyToTest : keysToTest) {
+            if (!(unifiedOctave & (1 << (keyToTest + key)))) {
+                success = false;
+                break;
+            }
+        }
+
+        if (success) {
+            keyResult = key;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+struct ChordMatch {
+    const char *suffix;
+    std::vector<uint8_t> keysToTest;
+    bool ignoreRoot;
+};
+
+void SongWidget::setChord(const std::bitset<128> &pressed)
+{
+    static const char *keyTable[12] = {
+        "C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B",
+    };
+
+    /* Check if no key is pressed. We impliclty also do this in the loop below, but any() uses popcnt and is faster. */
+    if (!pressed.any()) {
+        chordLabel.setText("");
+        return;
+    }
+
+    /* C++20 does not yet have bit operators on bitfields, so perform manually on uint32_t.
+     * We merge the 'pressed' bitfield into just a single octave, which discards octave information.
+     * Octave information is for the most part irrelevant to determine chords for us. */
+    size_t rootKey = pressed.size();
+    uint32_t unifiedOctave = 0;
+
+    for (size_t key = 0, wrappedKey = 0; key < pressed.size(); key++, wrappedKey++) {
+        if (wrappedKey >= 12)
+            wrappedKey -= 12;
+
+        /* Because we checked earlier, at least one key must be pressed */
+        if (rootKey == pressed.size() && pressed[key])
+            rootKey = wrappedKey;
+
+        unifiedOctave |= pressed[key] << wrappedKey;
+    }
+
+    size_t numKeysUnifiedOctave = 0;
+    for (size_t i = 0; i < 12; i++) {
+        if (unifiedOctave & (1 << i))
+            numKeysUnifiedOctave += 1;
+    }
+
+    static const std::vector<std::vector<ChordMatch>> chordMatches = {
+        {   // 0 pressed keys
+            ChordMatch{"PRECONDITION ERROR", {}, false},
+        },
+        {   // 1 pressed key
+            ChordMatch{" (pure)", {0}, false},
+        },
+        {   // 2 pressed keys
+            ChordMatch{"5", {0, 7}, true},
+        },
+        {   // 3 pressed keys
+            ChordMatch{"", {0, 4, 7}, true},
+            ChordMatch{"m", {0, 3, 7}, true},
+            ChordMatch{"sus2", {0, 2, 7}, false},
+            ChordMatch{"sus4", {0, 5, 7}, true},
+            ChordMatch{"dim", {0, 3, 6}, true},
+            ChordMatch{"aug", {0, 4, 8}, true},
+        },
+        {   // 4 pressed keys
+            ChordMatch{"maj7", {0, 4, 7, 11}, true},
+            ChordMatch{"6", {0, 3, 7, 10}, false},
+            ChordMatch{"min7", {0, 3, 7, 10}, true},
+            ChordMatch{"7", {0, 4, 7, 10}, true},
+            ChordMatch{"dim7", {0, 3, 6, 9}, false},
+            ChordMatch{"min7b5", {0, 3, 6, 10}, true},
+            ChordMatch{"minmaj7", {0, 3, 7, 11}, true},
+        },
+    };
+
+    if (numKeysUnifiedOctave >= chordMatches.size()) {
+        chordLabel.setText("");
+        return;
+    }
+
+    for (const ChordMatch &m : chordMatches.at(numKeysUnifiedOctave)) {
+        size_t identifiedKey;
+        size_t keySearchStart = 0;
+        size_t keySearchEnd = 12;
+
+        if (!m.ignoreRoot) {
+            keySearchStart = rootKey;
+            keySearchEnd = rootKey + 1;
+        }
+
+        if (isChord(unifiedOctave, m.keysToTest, identifiedKey, keySearchStart, keySearchEnd)) {
+            chordLabel.setFmtText("{}{}", keyTable[identifiedKey], m.suffix);
+            return;
+        }
+    }
+
+    chordLabel.setText("");
+}
+
+#undef setFmtText
 
 void SongWidget::reset()
 {

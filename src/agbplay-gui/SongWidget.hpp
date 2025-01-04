@@ -29,6 +29,8 @@ public:
     QLabel titleLabel{this};
 
 private:
+    void setChord(const std::bitset<128> &pressed);
+
     QLabel bpmLabel{this};
     QLabel bpmFactorLabel{this};
     QLabel chnLabel{this};

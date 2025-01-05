@@ -197,16 +197,23 @@ void SongWidget::setChord(const std::bitset<128> &pressed)
         },
         {   // 2 pressed keys
             ChordMatch{"5", {0, 7}, true},
+            ChordMatch{"", {0, 4}, false},      // without perfect fifth
+            ChordMatch{"min", {0, 3}, false},   // without perfect fifth
         },
         {   // 3 pressed keys
             ChordMatch{"", {0, 4, 7}, true},
-            ChordMatch{"m", {0, 3, 7}, true},
+            ChordMatch{"min", {0, 3, 7}, true},
             ChordMatch{"sus2", {0, 2, 7}, false},
             ChordMatch{"sus4", {0, 5, 7}, true},
             ChordMatch{"dim", {0, 3, 6}, true},
             ChordMatch{"aug", {0, 4, 8}, true},
+            ChordMatch{"#4", {0, 6, 7}, true}, // lydian
+            ChordMatch{"b2", {0, 1, 7}, true}, // phyrgian
+            ChordMatch{"5addb7", {0, 7, 10}, true}, // C7 or Cmin7 without third
+            ChordMatch{"5add7", {0, 7, 11}, true}, // Cmaj7 without major third
         },
         {   // 4 pressed keys
+            ChordMatch{"add9", {0, 2, 4, 7}, true},
             ChordMatch{"maj7", {0, 4, 7, 11}, true},
             ChordMatch{"6", {0, 3, 7, 10}, false},
             ChordMatch{"min7", {0, 3, 7, 10}, true},
@@ -215,10 +222,17 @@ void SongWidget::setChord(const std::bitset<128> &pressed)
             ChordMatch{"min7b5", {0, 3, 6, 10}, true},
             ChordMatch{"minmaj7", {0, 3, 7, 11}, true},
         },
+        {
+            // 5 pressed keys
+            ChordMatch{"maj9", {0, 4, 7, 11, 2}, true},
+            ChordMatch{"9", {0, 4, 7, 10, 2}, true},
+            ChordMatch{"min9", {0, 3, 7, 10, 2}, true},
+        },
+        // TODO implement more
     };
 
     if (numKeysUnifiedOctave >= chordMatches.size()) {
-        chordLabel.setText("");
+        chordLabel.setText("?");
         return;
     }
 
@@ -238,7 +252,7 @@ void SongWidget::setChord(const std::bitset<128> &pressed)
         }
     }
 
-    chordLabel.setText("");
+    chordLabel.setText("?");
 }
 
 #undef setFmtText

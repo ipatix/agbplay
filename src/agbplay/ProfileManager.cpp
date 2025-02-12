@@ -41,6 +41,8 @@ void ProfileManager::ApplyScanResultsToProfiles(
         /* If no scan results are found make sure profiles are restricted to the ones,
          * which have a manual song table and song count. */
         auto filterFunc = [](std::shared_ptr<Profile> &profile) {
+            // TODO, this filters only profiles with manual songtable.
+            // This may need to change once we change the scanner to support partial scanning
             const bool manualTable = profile->songTableInfoConfig.pos != SongTableInfo::POS_AUTO;
             const bool manualCount = profile->songTableInfoConfig.count != SongTableInfo::COUNT_AUTO;
             return !(manualTable && manualCount);
@@ -50,6 +52,8 @@ void ProfileManager::ApplyScanResultsToProfiles(
             throw Xcept(
                 "Scanner could not find MP2K data. Existing matching profiles were found, but none manually specify song table and song count."
             );
+        for (std::shared_ptr<Profile> &profileCandidate : profiles)
+            profileCandidate->ApplyScanToPlayback();
     }
 
     for (size_t tableIdx = 0; tableIdx < scanResults.size(); tableIdx++) {

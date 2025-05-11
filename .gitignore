@@ -19,6 +19,7 @@ asan.log*
 /CMakeLists.txt.user
 /build
 /build_dbg
+/build_artifacts
 
 # vscode always wants a little extra attention
 /.vscode

@@ -1,0 +1,75 @@
+name: Windows Build (MinGW)
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - 'master'
+      - 'ci-test'
+  workflow_dispatch:
+
+# MSYS2 How To:
+# https://github.com/marketplace/actions/setup-msys2
+
+jobs:
+  build:
+    name: Build Windows with MinGW (64 Bit)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    strategy:
+      matrix:
+        # ucrt64 currently has problem inizializing Qt, disable for now
+        # clang64 currently has problems compiling agbplay (we can probably fix that)
+        # clangarm64 not tested
+        sys: [ mingw64 ]
+
+    steps:
+      - name: Check repository
+        uses: actions/checkout@v4
+
+      - name: Setup msys2/mingw64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          install: |
+            git
+            make
+          pacboy: |
+            boost:p
+            cmake:p
+            fmt:p
+            gcc:p
+            nlohmann-json:p
+            pkgconf:p
+            pcre2:p
+            portaudio:p
+            qt6-static:p
+            qt6:p
+            zlib:p
+            libsndfile:p
+            libzip:p
+
+      - name: Configure CMake project
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/mingw64/qt6-static/lib/cmake
+
+      - name: Compile CMake project
+        run: cmake --build build
+
+      - name: Package build artifacts
+        run: |
+          mkdir -p build_artifacts/agbplay
+          cp build/src/agbplay-gui/agbplay-gui.exe build_artifacts/agbplay/
+          cp build/src/agbplay/libagbplay.dll build_artifacts/agbplay/
+
+      - name: Copy dependencies
+        run: ldd build_artifacts/agbplay/agbplay-gui.exe | awk '{print $3}' | grep /${{matrix.sys}}/bin/ | uniq | xargs cp -t build_artifacts/agbplay/
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: agbplay-windows-${{matrix.sys}}
+          path: build_artifacts/

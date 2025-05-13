@@ -6,7 +6,6 @@ on:
       - 'v*'
     branches:
       - 'master'
-      - 'ci-test'
   workflow_dispatch:
 
 # MSYS2 How To:

@@ -22,3 +22,6 @@ asan.log*
 
 # vscode always wants a little extra attention
 /.vscode
+
+# as well as clangd
+/.cache

@@ -22,6 +22,26 @@ cmake --build build
 Do not use the pure debug build unless you're debugging.
 Performance may be really bad with the high quality resamplers.
 
+### Dependencies
+
+Package       | Debian/Ubuntu      | Arch          | MinGW
+---           | ---                | ---           | ---
+libfmt        | libfmt-dev         | fmt           | fmt
+nlohmann JSON | nlohmann-json3-dev | nlohmann-json | nlohmann-json
+Boost         | libboost-all-dev   | boost         | boost
+libzip        | libzip-dev         | libzip        | libzip
+zlib          | zlib1g-dev         | zlib          | zlib
+ncurses       | libncurses-dev     | ncurses       | N/A (curses UI not available)
+portaudio     | portaudio19-dev    | portaudio     | portaudio
+Qt6           | qt6-base-dev       | qt6-base      | qt6
+
+Because the ncurses UI is not available on Windows, no package for MinGW is listed.
+The package names shown for MinGW are not exact and they need to be expanded to the following schema: `mingw-w64-$ARCH-$PACKAGE`.
+Alternatively, you can use `pacboy` on MinGW to install the package for the environment currently running under.
+Only x86_64 is known to work, i686, ucrt, and clang currently don't work.
+I don't remember what as preventing those to work.
+There isn't anything in the code, which should prevent those to work, but I just didn't spent the time investigating the cause.
+
 ### Running
 
 ```bash

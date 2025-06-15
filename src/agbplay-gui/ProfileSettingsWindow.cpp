@@ -214,7 +214,7 @@ void ProfileSettingsWindow::InitSoundMode()
         ui->checkBoxVol->setCheckState(Qt::Checked);
     }
 
-    connect(ui->checkBoxVol, &QCheckBox::stateChanged, [this](int state){
+    connect(ui->checkBoxVol, &QCheckBox::checkStateChanged, [this](int state){
         if (state == Qt::Checked) {
             ui->spinBoxVol->setEnabled(true);
         } else {
@@ -237,7 +237,7 @@ void ProfileSettingsWindow::InitSoundMode()
         ui->checkBoxRev->setCheckState(Qt::Checked);
     }
 
-    connect(ui->checkBoxRev, &QCheckBox::stateChanged, [this](int state){
+    connect(ui->checkBoxRev, &QCheckBox::checkStateChanged, [this](int state){
         if (state == Qt::Checked) {
             ui->spinBoxRev->setEnabled(true);
         } else {
@@ -269,7 +269,7 @@ void ProfileSettingsWindow::InitSoundMode()
         ui->checkBoxFreq->setCheckState(Qt::Checked);
     }
 
-    connect(ui->checkBoxFreq, &QCheckBox::stateChanged, [this](int state){
+    connect(ui->checkBoxFreq, &QCheckBox::checkStateChanged, [this](int state){
         if (state == Qt::Checked) {
             ui->comboBoxFreq->setEnabled(true);
         } else {
@@ -292,7 +292,7 @@ void ProfileSettingsWindow::InitSoundMode()
         ui->checkBoxChn->setCheckState(Qt::Checked);
     }
 
-    connect(ui->checkBoxChn, &QCheckBox::stateChanged, [this](int state){
+    connect(ui->checkBoxChn, &QCheckBox::checkStateChanged, [this](int state){
         if (state == Qt::Checked) {
             ui->spinBoxChn->setEnabled(true);
         } else {
@@ -320,7 +320,7 @@ void ProfileSettingsWindow::InitSoundMode()
         ui->checkBoxDac->setCheckState(Qt::Checked);
     }
 
-    connect(ui->checkBoxDac, &QCheckBox::stateChanged, [this](int state){
+    connect(ui->checkBoxDac, &QCheckBox::checkStateChanged, [this](int state){
         if (state == Qt::Checked) {
             ui->comboBoxDac->setEnabled(true);
         } else {
@@ -450,7 +450,7 @@ void ProfileSettingsWindow::InitEnhancements()
         MarkPending();
     });
 
-    connect(ui->checkBoxCh3Quant, &QCheckBox::stateChanged, [this](int) { MarkPending(); });
+    connect(ui->checkBoxCh3Quant, &QCheckBox::checkStateChanged, [this](int) { MarkPending(); });
 
     /* accurate ch3 volume */
     ui->checkBoxCh3Vol->setCheckState(profile->agbplaySoundMode.accurateCh3Volume ? Qt::Checked : Qt::Unchecked);
@@ -465,7 +465,7 @@ void ProfileSettingsWindow::InitEnhancements()
         MarkPending();
     });
 
-    connect(ui->checkBoxCh3Vol, &QCheckBox::stateChanged, [this](int) { MarkPending(); });
+    connect(ui->checkBoxCh3Vol, &QCheckBox::checkStateChanged, [this](int) { MarkPending(); });
 
     /* emulate PSG sustain bug */
     ui->checkBoxPsgSus->setCheckState(profile->agbplaySoundMode.emulateCgbSustainBug ? Qt::Checked : Qt::Unchecked);
@@ -481,7 +481,7 @@ void ProfileSettingsWindow::InitEnhancements()
         MarkPending();
     });
 
-    connect(ui->checkBoxPsgSus, &QCheckBox::stateChanged, [this](int) { MarkPending(); });
+    connect(ui->checkBoxPsgSus, &QCheckBox::checkStateChanged, [this](int) { MarkPending(); });
 }
 
 void ProfileSettingsWindow::InitGameTables()
@@ -501,7 +501,7 @@ void ProfileSettingsWindow::InitGameTables()
         ui->spinBoxTableIndex->setEnabled(false);
     }
 
-    connect(ui->checkBoxSongTable, &QCheckBox::stateChanged, [this](int state){
+    connect(ui->checkBoxSongTable, &QCheckBox::checkStateChanged, [this](int state){
         if (state == Qt::Checked) {
             ui->spinBoxSongTable->setEnabled(true);
             ui->checkBoxSongCount->setCheckState(Qt::Checked);
@@ -532,7 +532,7 @@ void ProfileSettingsWindow::InitGameTables()
         ui->spinBoxSongCount->setEnabled(true);
     }
 
-    connect(ui->checkBoxSongCount, &QCheckBox::stateChanged, [this](int state){
+    connect(ui->checkBoxSongCount, &QCheckBox::checkStateChanged, [this](int state){
         if (state == Qt::Checked) {
             ui->spinBoxSongCount->setEnabled(true);
         } else {

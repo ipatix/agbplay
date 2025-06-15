@@ -52,7 +52,7 @@ void VUMeterWidget::paintEvent(QPaintEvent *paintEvent)
 {
     QPainter painter(this);
 
-    const std::array DB_POINTS = {-24, -12, 0};
+    // const std::array DB_POINTS = {-24, -12, 0};
 
     painter.fillRect(QRect(0, 0, 4, 4), QColor(255, 0, 255));
 

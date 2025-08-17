@@ -22,7 +22,8 @@ public:
 
 private:
     void playbackComboBoxActivated(int index);
-    void exportComboBoxActivated(int index);
+    void exportSampleRateComboBox(int index);
+    void exportBitDepthComboBoxActivated(int index);
     void updateComboBoxRate(QComboBox *comboBox, int &index, const int indexActivated);
     void exportPushButtonPressed(bool);
     void buttonBoxButtonPressed(QAbstractButton *button);

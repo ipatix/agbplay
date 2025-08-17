@@ -11,6 +11,7 @@ static const std::filesystem::path CONFIG_PATH = OS::GetLocalConfigDirectory() /
 static const std::filesystem::path DEFAULT_EXPORT_DIRECTORY = OS::GetMusicDirectory() / "agbplay";
 static const uint32_t DEFAULT_SAMPLERATE = 48000;
 static const uint32_t DEFAULT_BIT_DEPTH = 32;
+static const std::string DEFAULT_BIT_FORMAT = "FP";
 static const bool DEFAULT_QUICK_EXPORT_ASK = true;
 
 void Settings::Load()
@@ -25,6 +26,7 @@ void Settings::Load()
             playbackSampleRate = DEFAULT_SAMPLERATE;
             exportSampleRate = DEFAULT_SAMPLERATE;
             exportBitDepth = DEFAULT_BIT_DEPTH;
+            exportBitFormat = DEFAULT_BIT_FORMAT;
             exportQuickExportDirectory = DEFAULT_EXPORT_DIRECTORY;
             exportQuickExportAsk = DEFAULT_QUICK_EXPORT_ASK;
             return;
@@ -52,6 +54,12 @@ void Settings::Load()
         exportBitDepth = std::max<uint32_t>(1u, j["exportBitDepth"]);
     } else {
         exportBitDepth = DEFAULT_BIT_DEPTH;
+    }
+
+    if (j.contains("exportBitFormat") && j["exportBitFormat"].is_string()) {
+        exportBitFormat = j["exportBitFormat"];
+    } else {
+        exportBitFormat = DEFAULT_BIT_FORMAT;
     }
 
     if (j.contains("exportPadStart") && j["exportPadStart"].is_number()) {
@@ -88,6 +96,7 @@ void Settings::Save()
     j["playbackSampleRate"] = playbackSampleRate;
     j["exportSampleRate"] = exportSampleRate;
     j["exportBitDepth"] = exportBitDepth;
+    j["exportBitFormat"] = exportBitFormat;
     j["exportPadStart"] = exportPadStart;
     j["exportPadEnd"] = exportPadEnd;
     j["exportQuickExportDirectory"] = exportQuickExportDirectory;

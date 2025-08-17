@@ -31,7 +31,7 @@ SoundExporter::SoundExporter(
     bool benchmarkOnly,
     bool seperate
 ) :
-    directory(directory), settings(settings), profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
+directory(directory), settings(settings), profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
 {
 }
 
@@ -92,15 +92,15 @@ void SoundExporter::Export()
         Debug::print("Successfully wrote {} files", profile.playlist.size());
     } else {
         const uint64_t secondsTotal =
-            static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count());
+        static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count());
         const uint64_t microSecondsTotal =
-            static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count());
+        static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count());
         const uint64_t samplesPerSecond = totalSamplesRendered * 1000000 / microSecondsTotal;
         Debug::print(
             "Successfully wrote {} files at {} samples per second ({} seconds total)",
-            profile.playlist.size(),
-            samplesPerSecond,
-            secondsTotal
+                     profile.playlist.size(),
+                     samplesPerSecond,
+                     secondsTotal
         );
     }
 }
@@ -108,6 +108,16 @@ void SoundExporter::Export()
 /*
  * private SoundExporter
  */
+
+inline float SoundExporter::normalizeSampleRange(float sample) {
+    if (sample >= 1.0f) return 1.0f;
+    if (sample <= -1.0f) return -1.0f;
+    return sample;
+}
+
+inline int32_t SoundExporter::floatToPCM32(float sample) {
+    return static_cast<int32_t>(std::lrint(sample * 2147483647.0));
+}
 
 void SoundExporter::writeSilence(SNDFILE *ofile, double seconds)
 {
@@ -123,10 +133,10 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
     MP2KContext ctx(
         settings.exportSampleRate,
         Rom::Instance(),
-        profile.mp2kSoundModePlayback,
-        profile.agbplaySoundMode,
-        profile.songTableInfoPlayback,
-        profile.playerTablePlayback
+                    profile.mp2kSoundModePlayback,
+                    profile.agbplaySoundMode,
+                    profile.songTableInfoPlayback,
+                    profile.playerTablePlayback
     );
 
     ctx.m4aSongNumStart(uid);
@@ -137,14 +147,32 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
     size_t nTracks = ctx.players.at(playerIdx).tracksUsed;
     const double padSecondsStart = settings.exportPadStart;
     const double padSecondsEnd = settings.exportPadEnd;
-    int bitDepth = SF_FORMAT_PCM_16;
+    bool useIntWrite = false;
 
-    if (settings.exportBitDepth == 16) {
-        bitDepth = SF_FORMAT_PCM_16;
-    } else if (settings.exportBitDepth == 24) {
-        bitDepth = SF_FORMAT_PCM_24;
-    } else {
-        bitDepth = SF_FORMAT_FLOAT;
+    int dataFormat;
+    switch(settings.exportBitDepth) {
+        case 8:
+            dataFormat = SF_FORMAT_PCM_U8;
+            useIntWrite = true;
+            break;
+        case 16:
+            dataFormat = SF_FORMAT_PCM_16;
+            useIntWrite = true;
+            break;
+        case 24:
+            dataFormat = SF_FORMAT_PCM_24;
+            useIntWrite = true;
+            break;
+        case 32:
+            if (settings.exportBitFormat == "PCM") {
+                dataFormat = SF_FORMAT_PCM_32;
+                useIntWrite = true;
+            } else {
+                dataFormat = SF_FORMAT_FLOAT;
+            }
+            break;
+        default:
+            dataFormat = SF_FORMAT_FLOAT;
     }
 
     if (!benchmarkOnly) {
@@ -157,14 +185,14 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
                 memset(&oinfos[i], 0, sizeof(oinfos[i]));
                 oinfos[i].samplerate = static_cast<int>(settings.exportSampleRate);
                 oinfos[i].channels = 2;    // stereo
-                oinfos[i].format = SF_FORMAT_WAV | bitDepth;
+                oinfos[i].format = SF_FORMAT_WAV | dataFormat;
                 std::filesystem::path finalFilePath = filePath;
                 finalFilePath += fmt::format(".{:02d}.wav", i);
-#ifdef _WIN32
+                #ifdef _WIN32
                 ofiles[i] = sf_wchar_open(finalFilePath.wstring().c_str(), SFM_WRITE, &oinfos[i]);
-#else
+                #else
                 ofiles[i] = sf_open(finalFilePath.string().c_str(), SFM_WRITE, &oinfos[i]);
-#endif
+                #endif
                 if (ofiles[i] == NULL)
                     Debug::print("Error: {}", sf_strerror(NULL));
             }
@@ -180,14 +208,40 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
                     // do not write to invalid files
                     if (ofiles[i] == NULL)
                         continue;
+
+                    if (settings.exportBitFormat == "PCM") {
+                        for (size_t s = 0; s < samplesPerBuffer; s++) {
+                            ctx.players.at(playerIdx).tracks.at(i).audioBuffer[s].left  =
+                            normalizeSampleRange(ctx.players.at(playerIdx).tracks.at(i).audioBuffer[s].left);
+                            ctx.players.at(playerIdx).tracks.at(i).audioBuffer[s].right =
+                            normalizeSampleRange(ctx.players.at(playerIdx).tracks.at(i).audioBuffer[s].right);
+                        }
+                    }
+
                     sf_count_t processed = 0;
-                    do {
-                        processed += sf_writef_float(
-                            ofiles[i],
-                            &ctx.players.at(playerIdx).tracks.at(i).audioBuffer[processed].left,
-                            sf_count_t(samplesPerBuffer) - processed
-                        );
-                    } while (processed < sf_count_t(samplesPerBuffer));
+
+                    if (useIntWrite) {
+                        std::vector<int32_t> pcmBuffer(samplesPerBuffer * 2);
+                        for (size_t s = 0; s < samplesPerBuffer; s++) {
+                                pcmBuffer[2*s]   = floatToPCM32(ctx.players.at(playerIdx).tracks.at(i).audioBuffer[s].left);
+                                pcmBuffer[2*s+1] = floatToPCM32(ctx.players.at(playerIdx).tracks.at(i).audioBuffer[s].right);
+                        }
+                        do {
+                            processed += sf_writef_int(
+                                ofiles[i],
+                                pcmBuffer.data() + 2*processed,
+                                                       sf_count_t(samplesPerBuffer) - processed
+                            );
+                        } while (processed < sf_count_t(samplesPerBuffer));
+                    } else {
+                        do {
+                            processed += sf_writef_float(
+                                ofiles[i],
+                                &ctx.players.at(playerIdx).tracks.at(i).audioBuffer[processed].left,
+                                sf_count_t(samplesPerBuffer) - processed
+                            );
+                        } while (processed < sf_count_t(samplesPerBuffer));
+                    }
                 }
                 samplesRendered += samplesPerBuffer;
             }
@@ -201,15 +255,15 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
             SF_INFO oinfo;
             memset(&oinfo, 0, sizeof(oinfo));
             oinfo.samplerate = static_cast<int>(settings.exportSampleRate);
-            oinfo.channels = 2;    // sterep
-            oinfo.format = SF_FORMAT_WAV | bitDepth;
+            oinfo.channels = 2;    // stereo
+            oinfo.format = SF_FORMAT_WAV | dataFormat;
             std::filesystem::path finalFilePath = filePath;
             finalFilePath += fmt::format(".wav");
-#ifdef _WIN32
+            #ifdef _WIN32
             SNDFILE *ofile = sf_wchar_open(finalFilePath.wstring().c_str(), SFM_WRITE, &oinfo);
-#else
+            #else
             SNDFILE *ofile = sf_open(finalFilePath.string().c_str(), SFM_WRITE, &oinfo);
-#endif
+            #endif
             if (ofile == NULL) {
                 Debug::print("Error: {}", sf_strerror(NULL));
                 return 0;
@@ -222,12 +276,40 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
                 if (ctx.SongEnded())
                     break;
 
+                if (settings.exportBitFormat == "PCM") {
+                    for (size_t s = 0; s < samplesPerBuffer; s++) {
+                        ctx.masterAudioBuffer[s].left  =
+                        normalizeSampleRange(ctx.masterAudioBuffer[s].left);
+                        ctx.masterAudioBuffer[s].right =
+                        normalizeSampleRange(ctx.masterAudioBuffer[s].right);
+                    }
+                }
+
                 sf_count_t processed = 0;
-                do {
-                    processed += sf_writef_float(
-                        ofile, &ctx.masterAudioBuffer[processed].left, sf_count_t(samplesPerBuffer) - processed
-                    );
-                } while (processed < sf_count_t(samplesPerBuffer));
+
+                if (useIntWrite) {
+                    std::vector<int32_t> pcmBuffer(samplesPerBuffer * 2);
+                    for (size_t s = 0; s < samplesPerBuffer; s++) {
+                            pcmBuffer[2*s]   = floatToPCM32(ctx.masterAudioBuffer[s].left);
+                            pcmBuffer[2*s+1] = floatToPCM32(ctx.masterAudioBuffer[s].right);
+                    }
+                    do {
+                        processed += sf_writef_int(
+                            ofile,
+                            pcmBuffer.data() + 2*processed,
+                            sf_count_t(samplesPerBuffer) - processed
+                        );
+                    } while (processed < sf_count_t(samplesPerBuffer));
+
+                } else {
+                    do {
+                        processed += sf_writef_float(
+                            ofile,
+                            &ctx.masterAudioBuffer[processed].left,
+                            sf_count_t(samplesPerBuffer) - processed
+                        );
+                    } while (processed < sf_count_t(samplesPerBuffer));
+                }
                 samplesRendered += samplesPerBuffer;
             }
 

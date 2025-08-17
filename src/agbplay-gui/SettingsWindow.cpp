@@ -12,7 +12,25 @@
 
 static const std::vector<uint32_t> standardRates = {22050, 32000, 44100, 48000, 96000, 192000};
 static const uint32_t RATE_CUSTOM = 0u;
-static const std::vector<uint32_t> standardBits = {16, 24, 32};
+static const std::vector<uint32_t> standardPCMBitDepths = {8, 16, 24, 32};
+static const std::vector<uint32_t> standardFlotingPointBitDepths = {32};
+
+void SettingsWindow::exportBitDepthComboBoxActivated(int index)
+{
+    if (index < 0) {
+        return;
+    }
+
+    settings.exportBitDepth = ui->exportBitDepthComboBox->itemData(index).toUInt();
+
+    QString text = ui->exportBitDepthComboBox->itemText(index);
+    if (text.contains("PCM")) {
+        settings.exportBitFormat = "PCM";
+    }
+    else {
+        settings.exportBitFormat = "FP";
+    }
+}
 
 SettingsWindow::SettingsWindow(QWidget *parent, Settings &settings) :
 QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
@@ -54,14 +72,33 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
     ui->exportSampleRateComboBox->setCurrentIndex(exportComboBoxIndex);
 
     /* init bit depth combo box */
-    for (const auto v : standardBits) {
-        const auto s = QString::fromStdString(fmt::format("{}-bit", v));
+    for (const auto v : standardPCMBitDepths) {
+        QString s = QString::fromStdString(fmt::format("{}-bit PCM", v));
+        ui->exportBitDepthComboBox->addItem(s, QVariant(v));
+    }
+    for (const auto v : standardFlotingPointBitDepths) {
+        QString s = QString::fromStdString(fmt::format("{}-bit FP", v));
         ui->exportBitDepthComboBox->addItem(s, QVariant(v));
     }
 
-    it = std::find(standardBits.begin(), standardBits.end(), settings.exportBitDepth);
-    exportComboBoxIndex = ui->exportBitDepthComboBox->findData(QVariant(settings.exportBitDepth));
-    ui->exportBitDepthComboBox->setCurrentIndex(exportComboBoxIndex);
+    int bitDepthIndex = -1;
+    for (int i = 0; i < ui->exportBitDepthComboBox->count(); ++i) {
+        int data = ui->exportBitDepthComboBox->itemData(i).toInt();
+        QString text = ui->exportBitDepthComboBox->itemText(i);
+        if (data == static_cast<int>(settings.exportBitDepth)) {
+            if ((settings.exportBitFormat == "PCM" && text.contains("PCM")) ||
+                (settings.exportBitFormat == "FP" && text.contains("FP"))) {
+                bitDepthIndex = i;
+            break;
+                }
+        }
+    }
+
+    if (bitDepthIndex >= 0) {
+        ui->exportBitDepthComboBox->setCurrentIndex(bitDepthIndex);
+    } else {
+        ui->exportBitDepthComboBox->setCurrentIndex(0);
+    }
 
     /* init other fields */
     ui->exportPadStartSpinBox->setValue(settings.exportPadStart);
@@ -72,7 +109,8 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
 
     /* setup handlers */
     connect(ui->playbackSampleRateComboBox, &QComboBox::activated, this, &SettingsWindow::playbackComboBoxActivated);
-    connect(ui->exportSampleRateComboBox, &QComboBox::activated, this, &SettingsWindow::exportComboBoxActivated);
+    connect(ui->exportSampleRateComboBox, &QComboBox::activated, this, &SettingsWindow::exportSampleRateComboBox);
+    connect(ui->exportBitDepthComboBox, QOverload<int>::of(&QComboBox::activated), this, &SettingsWindow::exportBitDepthComboBoxActivated);
     connect(ui->exportFolderGroupBox, &QGroupBox::toggled, [this](bool on) {
         ui->exportFolderLineEdit->setEnabled(on);
         ui->exportFolderPushButton->setEnabled(on);
@@ -93,7 +131,7 @@ void SettingsWindow::playbackComboBoxActivated(int index)
     updateComboBoxRate(ui->playbackSampleRateComboBox, playbackComboBoxIndex, index);
 }
 
-void SettingsWindow::exportComboBoxActivated(int index)
+void SettingsWindow::exportSampleRateComboBox(int index)
 {
     updateComboBoxRate(ui->exportSampleRateComboBox, exportComboBoxIndex, index);
 }

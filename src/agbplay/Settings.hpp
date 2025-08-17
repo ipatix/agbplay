@@ -13,6 +13,8 @@ struct Settings
 
     uint32_t exportSampleRate = 0;
     uint32_t exportBitDepth = 0;
+    std::string exportBitFormat = "";
+    void exportBitDepthComboBoxActivated(int index);
     double exportPadStart = 0.0;
     double exportPadEnd = 0.0;
     std::filesystem::path exportQuickExportDirectory;

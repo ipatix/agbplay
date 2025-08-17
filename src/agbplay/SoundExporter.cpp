@@ -153,15 +153,12 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
     switch(settings.exportBitDepth) {
         case 8:
             dataFormat = SF_FORMAT_PCM_U8;
-            useIntWrite = true;
             break;
         case 16:
             dataFormat = SF_FORMAT_PCM_16;
-            useIntWrite = true;
             break;
         case 24:
             dataFormat = SF_FORMAT_PCM_24;
-            useIntWrite = true;
             break;
         case 32:
             if (settings.exportBitFormat == "PCM") {

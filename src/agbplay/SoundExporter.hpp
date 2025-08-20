@@ -26,8 +26,6 @@ public:
     void Export();
 
 private:
-    float normalizeSampleRange(float sample);
-    int32_t floatToPCM32(float sample);
     void writeSilence(sf_private_tag *ofile, double seconds);
     size_t exportSong(const std::filesystem::path &filePath, uint16_t uid);
 

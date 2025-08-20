@@ -92,15 +92,15 @@ void SoundExporter::Export()
         Debug::print("Successfully wrote {} files", profile.playlist.size());
     } else {
         const uint64_t secondsTotal =
-        static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count());
+            static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count());
         const uint64_t microSecondsTotal =
-        static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count());
+            static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count());
         const uint64_t samplesPerSecond = totalSamplesRendered * 1000000 / microSecondsTotal;
         Debug::print(
             "Successfully wrote {} files at {} samples per second ({} seconds total)",
-                     profile.playlist.size(),
-                     samplesPerSecond,
-                     secondsTotal
+            profile.playlist.size(),
+            samplesPerSecond,
+            secondsTotal
         );
     }
 }
@@ -123,10 +123,10 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
     MP2KContext ctx(
         settings.exportSampleRate,
         Rom::Instance(),
-                    profile.mp2kSoundModePlayback,
-                    profile.agbplaySoundMode,
-                    profile.songTableInfoPlayback,
-                    profile.playerTablePlayback
+        profile.mp2kSoundModePlayback,
+        profile.agbplaySoundMode,
+        profile.songTableInfoPlayback,
+        profile.playerTablePlayback
     );
 
     ctx.m4aSongNumStart(uid);
@@ -173,11 +173,11 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
                 oinfos[i].format = SF_FORMAT_WAV | dataFormat;
                 std::filesystem::path finalFilePath = filePath;
                 finalFilePath += fmt::format(".{:02d}.wav", i);
-                #ifdef _WIN32
+#ifdef _WIN32
                 ofiles[i] = sf_wchar_open(finalFilePath.wstring().c_str(), SFM_WRITE, &oinfos[i]);
-                #else
+#else
                 ofiles[i] = sf_open(finalFilePath.string().c_str(), SFM_WRITE, &oinfos[i]);
-                #endif
+#endif
                 if (ofiles[i] == NULL)
                     Debug::print("Error: {}", sf_strerror(NULL));
                 else
@@ -221,11 +221,11 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
             oinfo.format = SF_FORMAT_WAV | dataFormat;
             std::filesystem::path finalFilePath = filePath;
             finalFilePath += fmt::format(".wav");
-            #ifdef _WIN32
+#ifdef _WIN32
             SNDFILE *ofile = sf_wchar_open(finalFilePath.wstring().c_str(), SFM_WRITE, &oinfo);
-            #else
+#else
             SNDFILE *ofile = sf_open(finalFilePath.string().c_str(), SFM_WRITE, &oinfo);
-            #endif
+#endif
             if (ofile == NULL) {
                 Debug::print("Error: {}", sf_strerror(NULL));
                 return 0;

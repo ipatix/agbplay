@@ -56,6 +56,7 @@ struct Profile
 
     Profile() = default;
     Profile(const Profile &rhs);
+    Profile(Profile &&) = default;
     Profile &operator=(const Profile &rhs);
 
     void ApplyScanToPlayback();

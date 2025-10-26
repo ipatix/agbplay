@@ -170,7 +170,7 @@ void Gsf::GetSongInfo(std::span<const uint8_t> gsfData, std::string &name, uint1
     }
 
     if (name.empty())
-        throw Xcept("Gsf::GetSongInfo(): unable to find title in minigsf tags");
+        name = "<no title in GSF>";
 }
 
 std::string Gsf::GuessGameCodeFromPath(const std::filesystem::path &p)

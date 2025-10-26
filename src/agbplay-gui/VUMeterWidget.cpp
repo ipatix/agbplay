@@ -52,7 +52,8 @@ void VUMeterWidget::paintEvent(QPaintEvent *paintEvent)
 {
     QPainter painter(this);
 
-    const std::array DB_POINTS = {-24, -12, 0};
+    // TODO Perhaps at some point I should implement the markers again.
+    // const std::array DB_POINTS = {-24, -12, 0};
 
     painter.fillRect(QRect(0, 0, 4, 4), QColor(255, 0, 255));
 

@@ -52,10 +52,11 @@ void SoundExporter::Export()
     /* setup export thread worker function */
     std::atomic<size_t> currentSong = 0;
     std::atomic<size_t> totalSamplesRendered = 0;
+    std::atomic<bool> cancel = false;
 
     std::function<void(void)> threadFunc = [&]() {
         OS::LowerThreadPriority();
-        while (true) {
+        while (!cancel) {
             size_t i = currentSong++;    // atomic ++
             if (i >= profile.playlist.size())
                 return;
@@ -68,7 +69,13 @@ void SoundExporter::Export()
             std::filesystem::path filePath = directory;
             filePath /= fmt::format("{:03d} - ", i + 1);
             filePath += u8name;
-            totalSamplesRendered += exportSong(filePath, profile.playlist.at(i).id);
+
+            try {
+                totalSamplesRendered += exportSong(filePath, profile.playlist.at(i).id);
+            } catch (std::exception &e) {
+                Debug::print("Exception while exporting song '{}':\n{}", filePath.string(), e.what());
+                cancel = true;
+            }
         }
     };
 
@@ -137,8 +144,8 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
     size_t nTracks = ctx.players.at(playerIdx).tracksUsed;
     const double padSecondsStart = settings.exportPadStart;
     const double padSecondsEnd = settings.exportPadEnd;
-    int bitDepth = SF_FORMAT_PCM_16;
 
+    int bitDepth;
     if (settings.exportBitDepth == 16) {
         bitDepth = SF_FORMAT_PCM_16;
     } else if (settings.exportBitDepth == 24) {
@@ -148,25 +155,43 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
     }
 
     if (!benchmarkOnly) {
-        /* save each track to a separate file */
+        bool closeFailed = false;
+
+        auto sndfileDeleter = [&closeFailed] (SNDFILE *f) {
+            int err = sf_close(f);
+            if (err != SF_ERR_NO_ERROR) {
+                Debug::print("Unable to close file: {}", sf_error_number(err));
+                closeFailed = true;
+            }
+        };
+
         if (seperate) {
-            std::vector<SNDFILE *> ofiles(nTracks, nullptr);
-            std::vector<SF_INFO> oinfos(nTracks);
+            /* save each track to a separate file */
+            std::vector<std::unique_ptr<SNDFILE, decltype(sndfileDeleter)>> ofiles;
+            std::vector<SF_INFO> oinfos;
 
             for (size_t i = 0; i < nTracks; i++) {
+                oinfos.emplace_back();
+
                 memset(&oinfos[i], 0, sizeof(oinfos[i]));
                 oinfos[i].samplerate = static_cast<int>(settings.exportSampleRate);
                 oinfos[i].channels = 2;    // stereo
                 oinfos[i].format = SF_FORMAT_WAV | bitDepth;
                 std::filesystem::path finalFilePath = filePath;
                 finalFilePath += fmt::format(".{:02d}.wav", i);
+
 #ifdef _WIN32
-                ofiles[i] = sf_wchar_open(finalFilePath.wstring().c_str(), SFM_WRITE, &oinfos[i]);
+                SNDFILE *sndfile = sf_wchar_open(finalFilePath.wstring().c_str(), SFM_WRITE, &oinfos[i]);
 #else
-                ofiles[i] = sf_open(finalFilePath.string().c_str(), SFM_WRITE, &oinfos[i]);
+                SNDFILE *sndfile = sf_open(finalFilePath.string().c_str(), SFM_WRITE, &oinfos[i]);
 #endif
-                if (ofiles[i] == NULL)
-                    Debug::print("Error: {}", sf_strerror(NULL));
+                if (sndfile == NULL)
+                    throw Xcept("Failed to open file for export: {}", sf_strerror(nullptr));
+
+                if (bitDepth != SF_FORMAT_FLOAT)
+                    sf_command(sndfile, SFC_SET_CLIPPING, NULL, SF_TRUE);
+
+                ofiles.emplace_back(sndfile, sndfileDeleter);
             }
 
             while (true) {
@@ -177,25 +202,17 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
                 assert(ctx.players.at(playerIdx).tracks.size() == nTracks);
 
                 for (size_t i = 0; i < nTracks; i++) {
-                    // do not write to invalid files
-                    if (ofiles[i] == NULL)
-                        continue;
-                    sf_count_t processed = 0;
-                    do {
-                        processed += sf_writef_float(
-                            ofiles[i],
-                            &ctx.players.at(playerIdx).tracks.at(i).audioBuffer[processed].left,
-                            sf_count_t(samplesPerBuffer) - processed
-                        );
-                    } while (processed < sf_count_t(samplesPerBuffer));
-                }
-                samplesRendered += samplesPerBuffer;
-            }
+                    sf_count_t processed = sf_writef_float(
+                        ofiles[i].get(),
+                        &ctx.players.at(playerIdx).tracks.at(i).audioBuffer[0].left,
+                        sf_count_t(samplesPerBuffer)
+                    );
 
-            for (SNDFILE *&i : ofiles) {
-                int err = sf_close(i);
-                if (err != 0)
-                    Debug::print("Error: {}", sf_error_number(err));
+                    if (processed < sf_count_t(samplesPerBuffer))
+                        throw Xcept("sf_writef_float failed: {}", sf_strerror(ofiles[i].get()));
+                }
+
+                samplesRendered += samplesPerBuffer;
             }
         } else {
             SF_INFO oinfo;
@@ -206,37 +223,40 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
             std::filesystem::path finalFilePath = filePath;
             finalFilePath += fmt::format(".wav");
 #ifdef _WIN32
-            SNDFILE *ofile = sf_wchar_open(finalFilePath.wstring().c_str(), SFM_WRITE, &oinfo);
+            SNDFILE *sndfile = sf_wchar_open(finalFilePath.wstring().c_str(), SFM_WRITE, &oinfo);
 #else
-            SNDFILE *ofile = sf_open(finalFilePath.string().c_str(), SFM_WRITE, &oinfo);
+            SNDFILE *sndfile = sf_open(finalFilePath.string().c_str(), SFM_WRITE, &oinfo);
 #endif
-            if (ofile == NULL) {
-                Debug::print("Error: {}", sf_strerror(NULL));
-                return 0;
-            }
+            if (sndfile == NULL)
+                throw Xcept("Failed to open file for export: {}", sf_strerror(nullptr));
 
-            writeSilence(ofile, padSecondsStart);
+            if (bitDepth != SF_FORMAT_FLOAT)
+                sf_command(sndfile, SFC_SET_CLIPPING, NULL, SF_TRUE);
+
+            std::unique_ptr<SNDFILE, decltype(sndfileDeleter)> ofile(sndfile, sndfileDeleter);
+
+            writeSilence(ofile.get(), padSecondsStart);
 
             while (true) {
                 ctx.m4aSoundMain();
                 if (ctx.SongEnded())
                     break;
 
-                sf_count_t processed = 0;
-                do {
-                    processed += sf_writef_float(
-                        ofile, &ctx.masterAudioBuffer[processed].left, sf_count_t(samplesPerBuffer) - processed
-                    );
-                } while (processed < sf_count_t(samplesPerBuffer));
+                sf_count_t processed = sf_writef_float(
+                    ofile.get(), &ctx.masterAudioBuffer[0].left, sf_count_t(samplesPerBuffer)
+                );
+
+                if (processed < sf_count_t(samplesPerBuffer))
+                    throw Xcept("sf_writef_float failed: {}", sf_strerror(ofile.get()));
+
                 samplesRendered += samplesPerBuffer;
             }
 
-            writeSilence(ofile, padSecondsEnd);
-
-            int err;
-            if ((err = sf_close(ofile)) != 0)
-                Debug::print("Error: {}", sf_error_number(err));
+            writeSilence(ofile.get(), padSecondsEnd);
         }
+
+        if (closeFailed)
+            throw Xcept("Unable to export song due to previous errors");
     }
     // if benchmark only
     else {

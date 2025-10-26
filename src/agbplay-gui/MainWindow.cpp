@@ -839,8 +839,12 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
             bool tBenchmarkOnly,
             bool tSeparateTracks
         ) {
-            SoundExporter se(tDirectory, tSettings, tProfile, tBenchmarkOnly, tSeparateTracks);
-            se.Export();
+            try {
+                SoundExporter se(tDirectory, tSettings, tProfile, tBenchmarkOnly, tSeparateTracks);
+                se.Export();
+            } catch (std::exception &e) {
+                Debug::print("Export failed:\n{}", e.what());
+            }
             exportBusy = false;
         },
         directory,

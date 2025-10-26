@@ -625,18 +625,22 @@ void MainWindow::LoadGame()
     fileDialog.setFileMode(QFileDialog::ExistingFile);
     fileDialog.setNameFilter("GBA-ROMs (*.gba *.zip);;GSF-Lib (*.gsflib *.zip)");
 
+    if (!settings->lastOpenFileDirectory.empty())
+        fileDialog.setDirectory(QString::fromStdWString(settings->lastOpenFileDirectory.wstring()));
+
     if (!fileDialog.exec())
         return;
-
-    assert(fileDialog.selectedFiles().size() == 1);
 
     if (!CloseGame())
         return;
 
+    assert(fileDialog.selectedFiles().size() == 1);
+    const std::filesystem::path selectedFile = fileDialog.selectedFiles().at(0).toStdWString();
+
     std::vector<std::shared_ptr<Profile>> profileCandidates;
 
     try {
-        Rom::CreateInstance(fileDialog.selectedFiles().at(0).toStdWString());
+        Rom::CreateInstance(selectedFile);
         MP2KScanner scanner(Rom::Instance());
         profileCandidates = pm->GetProfiles(Rom::Instance(), scanner.Scan());
     } catch (Xcept &e) {
@@ -681,7 +685,7 @@ void MainWindow::LoadGame()
         message += "Do you want to import the playlist from the accompanying MINIGSFs?";
         QMessageBox mbox(QMessageBox::Icon::Question, title, message, QMessageBox::Yes | QMessageBox::No, this);
         if (mbox.exec() == QMessageBox::Yes)
-            ProfileImportGsfPlaylist(fileDialog.selectedFiles().at(0).toStdWString());
+            ProfileImportGsfPlaylist(selectedFile);
     }
 
     infoWidget.romNameLineEdit.setText(QString::fromStdString(Rom::Instance().ReadString(0xA0, 12)));
@@ -703,6 +707,11 @@ void MainWindow::LoadGame()
     benchmarkSelectedAction->setEnabled(true);
     profileSettings->setEnabled(true);
     profileMinigsfImport->setEnabled(true);
+
+    if (settings->lastOpenFileDirectory != selectedFile.parent_path()) {
+        settings->lastOpenFileDirectory = selectedFile.parent_path();
+        settings->Save();
+    }
 }
 
 bool MainWindow::CloseGame()

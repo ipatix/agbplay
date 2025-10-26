@@ -17,4 +17,6 @@ struct Settings
     double exportPadEnd = 0.0;
     std::filesystem::path exportQuickExportDirectory;
     bool exportQuickExportAsk = false;
+
+    std::filesystem::path lastOpenFileDirectory;
 };

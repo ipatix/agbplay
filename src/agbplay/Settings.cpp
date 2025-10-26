@@ -78,6 +78,13 @@ void Settings::Load()
     } else {
         exportQuickExportAsk = DEFAULT_QUICK_EXPORT_ASK;
     }
+
+    if (j.contains("lastOpenFileDirectory") && j["lastOpenFileDirectory"].is_string()) {
+        const std::string tmp = j["lastOpenFileDirectory"];
+        lastOpenFileDirectory = std::u8string(reinterpret_cast<const char8_t *>(tmp.c_str()));
+    } else {
+        lastOpenFileDirectory = "";
+    }
 }
 
 void Settings::Save()
@@ -92,6 +99,7 @@ void Settings::Save()
     j["exportPadEnd"] = exportPadEnd;
     j["exportQuickExportDirectory"] = exportQuickExportDirectory;
     j["exportQuickExportAsk"] = exportQuickExportAsk;
+    j["lastOpenFileDirectory"] = lastOpenFileDirectory;
 
     std::ofstream fileStream(CONFIG_PATH);
     if (!fileStream.is_open()) {

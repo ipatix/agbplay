@@ -146,8 +146,10 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
     const double padSecondsEnd = settings.exportPadEnd;
 
     int bitDepth;
-    if (settings.exportBitDepth == 16) {
-        bitDepth = SF_FORMAT_PCM_16;
+    if (settings.exportBitDepth == 8) {
+        bitDepth = SF_FORMAT_PCM_U8;
+    } else if (settings.exportBitDepth == 16) {
+        bitDepth = SF_FORMAT_PCM_24;
     } else if (settings.exportBitDepth == 24) {
         bitDepth = SF_FORMAT_PCM_24;
     } else {

@@ -12,7 +12,7 @@
 
 static const std::vector<uint32_t> standardRates = {22050, 32000, 44100, 48000, 96000, 192000};
 static const uint32_t RATE_CUSTOM = 0u;
-static const std::vector<uint32_t> standardBits = {16, 24, 32};
+static const std::vector<uint32_t> standardBits = {8, 16, 24, 32};
 
 SettingsWindow::SettingsWindow(QWidget *parent, Settings &settings) :
 QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
@@ -55,7 +55,8 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
 
     /* init bit depth combo box */
     for (const auto v : standardBits) {
-        const auto s = QString::fromStdString(fmt::format("{}-bit", v));
+        const std::string format = (v == 32) ? "Float" : "Integer";
+        const auto s = QString::fromStdString(fmt::format("{}-bit ({})", v, format));
         ui->exportBitDepthComboBox->addItem(s, QVariant(v));
     }
 

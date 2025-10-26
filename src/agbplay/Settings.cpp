@@ -67,8 +67,8 @@ void Settings::Load()
     }
 
     if (j.contains("exportQuickExportDirectory") && j["exportQuickExportDirectory"].is_string()) {
-        exportQuickExportDirectory =
-            reinterpret_cast<const char8_t *>(std::string(j["exportQuickExportDirectory"]).c_str());
+        const std::string tmp = j["exportQuickExportDirectory"];
+        exportQuickExportDirectory = std::u8string(reinterpret_cast<const char8_t *>(tmp.c_str()));
     } else {
         exportQuickExportDirectory = DEFAULT_EXPORT_DIRECTORY;
     }

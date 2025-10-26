@@ -368,7 +368,9 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
         if (gm.contains("magicBytes") && gm["magicBytes"].is_array()) {
             for (const auto &byte : gm["magicBytes"]) {
                 if (!byte.is_number())
-                    p.gameMatch.magicBytes.emplace_back(byte);
+                    throw Xcept("Cannot parse profile: {}, magic byte list contains non-number", filePath.string());
+
+                p.gameMatch.magicBytes.emplace_back(byte);
             }
         }
     } else {

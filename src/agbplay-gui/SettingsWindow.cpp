@@ -65,6 +65,8 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
     ui->exportBitDepthComboBox->setCurrentIndex(exportComboBoxIndex);
 
     /* init other fields */
+    ui->playbackOutputNumBuffersSpinBox->setValue(settings.playbackOutputNumBuffers);
+
     ui->exportPadStartSpinBox->setValue(settings.exportPadStart);
     ui->exportPadEndSpinBox->setValue(settings.exportPadEnd);
 
@@ -180,6 +182,7 @@ void SettingsWindow::buttonBoxButtonPressed(QAbstractButton *button)
 
     /* if OK or apply was pressed, apply changes to settings */
     settings.playbackSampleRate = std::max(1u, ui->playbackSampleRateComboBox->currentData().toUInt());
+    settings.playbackOutputNumBuffers = std::clamp(1u, 8u, static_cast<uint32_t>(ui->playbackOutputNumBuffersSpinBox->value()));
     settings.exportSampleRate = std::max(1u, ui->exportSampleRateComboBox->currentData().toUInt());
     settings.exportBitDepth = std::max(1u, ui->exportBitDepthComboBox->currentData().toUInt());
     settings.exportPadStart = std::clamp(ui->exportPadStartSpinBox->value(), 0.0, 100.0);

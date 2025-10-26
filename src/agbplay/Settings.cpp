@@ -11,6 +11,7 @@ static const std::filesystem::path CONFIG_PATH = OS::GetLocalConfigDirectory() /
 static const std::filesystem::path DEFAULT_EXPORT_DIRECTORY = OS::GetMusicDirectory() / "agbplay";
 static const uint32_t DEFAULT_SAMPLERATE = 48000;
 static const uint32_t DEFAULT_BIT_DEPTH = 32;
+static const uint32_t DEFAULT_NUM_OUTPUT_BUFFERS = 1;
 static const bool DEFAULT_QUICK_EXPORT_ASK = true;
 
 void Settings::Load()
@@ -23,6 +24,7 @@ void Settings::Load()
         if (errno == ENOENT) {
             /* If the config does not exist, this is a normal use case and we silently initialize a standard config. */
             playbackSampleRate = DEFAULT_SAMPLERATE;
+            playbackOutputNumBuffers = DEFAULT_NUM_OUTPUT_BUFFERS;
             exportSampleRate = DEFAULT_SAMPLERATE;
             exportBitDepth = DEFAULT_BIT_DEPTH;
             exportQuickExportDirectory = DEFAULT_EXPORT_DIRECTORY;
@@ -40,6 +42,12 @@ void Settings::Load()
         playbackSampleRate = std::max<uint32_t>(1u, j["playbackSampleRate"]);
     } else {
         playbackSampleRate = DEFAULT_SAMPLERATE;
+    }
+
+    if (j.contains("playbackOutputNumBuffers") && j["playbackOutputNumBuffers"].is_number()) {
+        playbackOutputNumBuffers = std::clamp<uint32_t>(1u, 8u, j["playbackOutputNumBuffers"]);
+    } else {
+        playbackOutputNumBuffers = DEFAULT_NUM_OUTPUT_BUFFERS;
     }
 
     if (j.contains("exportSampleRate") && j["exportSampleRate"].is_number()) {
@@ -93,6 +101,7 @@ void Settings::Save()
 
     json j;
     j["playbackSampleRate"] = playbackSampleRate;
+    j["playbackOutputNumBuffers"] = playbackOutputNumBuffers;
     j["exportSampleRate"] = exportSampleRate;
     j["exportBitDepth"] = exportBitDepth;
     j["exportPadStart"] = exportPadStart;

@@ -290,6 +290,10 @@ void PlaybackEngine::GetVisualizerState(MP2KVisualizerState &visualizerState)
     visualizerState = visualizerStateObserver;
 }
 
+void PlaybackEngine::SetOutputNumBuffers(size_t numBuffers) {
+    ringbuffer.SetNumBuffers(numBuffers);
+}
+
 /*
  * private PlaybackEngine
  */

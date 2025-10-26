@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cassert>
 
+#include "Debug.hpp"
+
 LowLatencyRingbuffer::LowLatencyRingbuffer()
 {
     Reset();

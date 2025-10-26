@@ -34,6 +34,7 @@ public:
     SongInfo GetSongInfo();
     void UpdateSoundMode();
     void GetVisualizerState(MP2KVisualizerState &visualizerState);
+    void SetOutputNumBuffers(size_t numBuffers);
 
 private:
     void threadWorker();

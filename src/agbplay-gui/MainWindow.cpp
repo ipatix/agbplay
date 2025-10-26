@@ -700,6 +700,8 @@ void MainWindow::LoadGame()
     playbackEngine = std::make_unique<PlaybackEngine>(settings->playbackSampleRate, *profile);
     visualizerState = std::make_unique<MP2KVisualizerState>();
 
+    playbackEngine->SetOutputNumBuffers(settings->playbackOutputNumBuffers);
+
     exportSongsAction->setEnabled(true);
     exportStemsAction->setEnabled(true);
     quickExportSongAction->setEnabled(true);

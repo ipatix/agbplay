@@ -10,6 +10,7 @@ struct Settings
     void Save();
 
     uint32_t playbackSampleRate = 0;
+    uint32_t playbackOutputNumBuffers = 0;
 
     uint32_t exportSampleRate = 0;
     uint32_t exportBitDepth = 0;

@@ -739,7 +739,10 @@ void ProfileSettingsWindow::InitProfileAssignment()
                 ui->lineEditMagicBytes->setCursorPosition(cursorPos);
         }
 
-        prevMagicBytes = ui->lineEditMagicBytes->text();
+        if (prevMagicBytes != ui->lineEditMagicBytes->text()) {
+            prevMagicBytes = ui->lineEditMagicBytes->text();
+            MarkPending();
+        }
     });
 }
 
@@ -840,7 +843,7 @@ void ProfileSettingsWindow::Apply()
     }
 
     profile->gameMatch.magicBytes.clear();
-    QStringList byteStrList = ui->lineEditMagicBytes->text().split(" ");
+    QStringList byteStrList = ui->lineEditMagicBytes->text().split(" ", Qt::SkipEmptyParts);
     for (const QString &byteStr : byteStrList) {
         const uint8_t byte = static_cast<uint8_t>(byteStr.toInt(nullptr, 16));
         profile->gameMatch.magicBytes.emplace_back(byte);

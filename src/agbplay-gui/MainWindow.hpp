@@ -58,6 +58,7 @@ private:
     void PlaylistSwitchSong(int row);
 
     void ProfileImportGsfPlaylist(const std::filesystem::path &gameFilePath = "");
+    bool AskGameCodeAndUpdateProfile();
 
     void LoadGame();
     bool CloseGame();

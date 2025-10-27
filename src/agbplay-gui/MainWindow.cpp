@@ -25,6 +25,7 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QRegularExpressionValidator>
 #include <QShortcut>
 #include <QStatusBar>
 #include <QTextEdit>
@@ -619,6 +620,63 @@ void MainWindow::ProfileImportGsfPlaylist(const std::filesystem::path &gameFileP
     }
 }
 
+bool MainWindow::AskGameCodeAndUpdateProfile()
+{
+    /* Create Window */
+    QDialog dialog{this};
+    dialog.setWindowTitle("Unknown game code");
+
+    QVBoxLayout layout{&dialog};
+
+    QLabel gameCodeLabel{"Unable to determine game code automatically. Please specify manually. Must be four captial letters or digits", this};
+    QLineEdit gameCodeLineEdit{&dialog};
+
+    gameCodeLineEdit.setPlaceholderText("AB9J");
+
+    QRegularExpressionValidator charValidator{QRegularExpression{"[A-Z0-9]*"}};
+
+    gameCodeLineEdit.setValidator(&charValidator);
+
+    QDialogButtonBox gameCodeButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog};
+    gameCodeButtonBox.button(QDialogButtonBox::Ok)->setEnabled(false);
+
+    layout.addWidget(&gameCodeLabel);
+    layout.addWidget(&gameCodeLineEdit);
+    layout.addWidget(&gameCodeButtonBox);
+
+    dialog.setLayout(&layout);
+
+
+    /* Only enable Ok Button for valid input */
+    auto resultValidator = [&](const QString &) {
+        // Only allow game code up to four characters
+        if (gameCodeLineEdit.text().size() > 4)
+            gameCodeLineEdit.setText(gameCodeLineEdit.text().left(4));
+
+        QPushButton *b = gameCodeButtonBox.button(QDialogButtonBox::Ok);
+
+        if (gameCodeLineEdit.text().size() == 4)
+            b->setEnabled(true);
+        else
+            b->setEnabled(false);
+    };
+
+    connect(&gameCodeLineEdit, &QLineEdit::textChanged, resultValidator);
+    connect(&gameCodeButtonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(&gameCodeButtonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+    /* Actually query the user */
+    if (dialog.exec() != QDialog::Accepted)
+        return false;
+
+    const std::string gameCode = gameCodeLineEdit.text().toStdString();
+
+    profile->gameMatch.gameCodes.clear();
+    profile->gameMatch.gameCodes.emplace_back(gameCode);
+    ProfileManager::SetStandardPath(*profile, gameCode, profile->songTableInfoConfig.tableIdx);
+    return true;
+}
+
 void MainWindow::LoadGame()
 {
     QFileDialog fileDialog(this);
@@ -639,6 +697,8 @@ void MainWindow::LoadGame()
 
     std::vector<std::shared_ptr<Profile>> profileCandidates;
 
+    /* Load ROM and find matching profiles. GetProfiles creates a new profile if the scanner
+     * is able to find something. */
     try {
         Rom::CreateInstance(selectedFile);
         MP2KScanner scanner(Rom::Instance());
@@ -661,6 +721,17 @@ void MainWindow::LoadGame()
         profile = profileCandidates.at(static_cast<size_t>(profileDialog.selectedProfile()));
     } else {
         profile = profileCandidates.at(0);
+    }
+
+    /* If the final profile doesn't have a path set, this is probably a GSF file without game code.
+     * Manually ask the user for game code. */
+    if (profile->path.empty()) {
+        if (!AskGameCodeAndUpdateProfile()) {
+            profile->dirty = false; // <-- Do not ask to save the current profile and discard immediately
+            CloseGame();
+            MBoxError("GSF Load Error", "Unable to create profile with unknown game code. Please try again and specify a valid game code");
+            return;
+        }
     }
 
     for (uint16_t i = 0; i < profile->songTableInfoPlayback.count; i++) {

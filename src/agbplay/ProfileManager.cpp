@@ -12,6 +12,10 @@
 #include <limits>
 #include <nlohmann/json.hpp>
 
+// TODO somewhat severe bug:
+// It is currently legal to have multiple profiles with the same path. We should somehow check for that
+// to deny incosistent states.
+
 void ProfileManager::Reset()
 {
     profiles.clear();
@@ -214,13 +218,22 @@ std::shared_ptr<Profile> &ProfileManager::CreateProfile(const std::string &gameC
 {
     const std::string profileName = fmt::format("{}.{}.json", gameCode, tableIdx);
     std::shared_ptr<Profile> &profile = profiles.emplace_back(std::make_shared<Profile>());
-    profile->gameMatch.gameCodes.emplace_back(gameCode);
     if (!gameCode.empty())
-        profile->path = OS::GetLocalConfigDirectory() / "agbplay" / "profiles" / profileName;
-    else
-        profile->path.clear();
+        profile->gameMatch.gameCodes.emplace_back(gameCode);
+
+    SetStandardPath(*profile, gameCode, tableIdx);
     profile->dirty = true;
     return profile;
+}
+
+void ProfileManager::SetStandardPath(Profile &profile, const std::string &gameCode, size_t tableIdx)
+{
+    const std::string profileName = fmt::format("{}.{}.json", gameCode, tableIdx);
+    if (!gameCode.empty())
+        profile.path = OS::GetLocalConfigDirectory() / "agbplay" / "profiles" / profileName;
+    else
+        profile.path.clear();
+    profile.dirty = true;
 }
 
 void ProfileManager::LoadProfile(const std::filesystem::path &filePath)

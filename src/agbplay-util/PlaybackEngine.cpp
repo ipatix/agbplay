@@ -40,8 +40,8 @@ struct JackNameSetter
 // they are also the ones which are known to work
 const std::vector<PaHostApiTypeId> PlaybackEngine::hostApiPriority = {
     // Unix
-    paJACK,
     paALSA,
+    paJACK,
     // Windows
     paWASAPI,
     paMME,

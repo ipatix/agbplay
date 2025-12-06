@@ -1,4 +1,7 @@
 # agbplay
+
+[![Windows Build (MinGW)](https://github.com/ipatix/agbplay/actions/workflows/windows-build.yml/badge.svg)](https://github.com/ipatix/agbplay/actions/workflows/windows-build.yml)
+
 __agbplay__ is a music player with Qt GUI for GBA ROMs that use
 the most common (mp2k/m4a) sound engine format.
 

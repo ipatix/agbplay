@@ -45,7 +45,7 @@ void Settings::Load()
     }
 
     if (j.contains("playbackOutputNumBuffers") && j["playbackOutputNumBuffers"].is_number()) {
-        playbackOutputNumBuffers = std::clamp<uint32_t>(1u, 8u, j["playbackOutputNumBuffers"]);
+        playbackOutputNumBuffers = std::clamp<uint32_t>(1u, 16u, j["playbackOutputNumBuffers"]);
     } else {
         playbackOutputNumBuffers = DEFAULT_NUM_OUTPUT_BUFFERS;
     }

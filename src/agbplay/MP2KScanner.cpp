@@ -298,7 +298,7 @@ bool MP2KScanner::IsPosReferenced(size_t pos, size_t &findStartPos, size_t &refe
 {
     bool foundReference = false;
     for (size_t j = findStartPos; j < rom.Size() - 3; j += 4) {
-        const size_t referenceCandidate = rom.ReadU32(j);
+        const uint32_t referenceCandidate = rom.ReadU32(j);
         if (!rom.ValidPointer(referenceCandidate))
             continue;
         if (referenceCandidate - AGB_MAP_ROM != pos)
@@ -315,7 +315,7 @@ bool MP2KScanner::IsPosReferenced(size_t pos, size_t &findStartPos, size_t &refe
 bool MP2KScanner::IsPosReferenced(const std::vector<size_t> &poss, size_t &index) const
 {
     for (size_t j = SEARCH_START; j < rom.Size() - 3; j += 4) {
-        const size_t referenceCandidate = rom.ReadU32(j);
+        const uint32_t referenceCandidate = rom.ReadU32(j);
         if (!rom.ValidPointer(referenceCandidate))
             continue;
 

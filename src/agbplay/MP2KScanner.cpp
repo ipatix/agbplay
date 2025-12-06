@@ -53,14 +53,14 @@ std::vector<MP2KScanner::Result> MP2KScanner::Scan(std::shared_ptr<Profile> prof
         size_t playerTablePos;
         const bool playerTableValid = FindPlayerTable(songTablePos, playerTablePos, playerTableInfo);
         if (!playerTableValid)
-            break;
+            continue;
 
         /* 3. Determine sound mode. */
         uint32_t soundMode;
         size_t soundModePos;
         const bool soundModeValid = FindSoundMode(playerTablePos, soundModePos, soundMode);
         if (!soundModeValid)
-            break;
+            continue;
 
         /* 4. Save to result list. */
         Result result{
@@ -148,7 +148,7 @@ bool MP2KScanner::FindSongTable(size_t &findStartPos, size_t &songTablePos, uint
         /* return results */
         songCount = candidateSongCount;
         songTablePos = candidatePos;
-        findStartPos += candidatePos + songCount * 8;
+        findStartPos = candidatePos + songCount * 8;
         return true;
     }
 

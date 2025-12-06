@@ -44,28 +44,8 @@ int main(int argc, char *argv[])
         ProfileManager pm;
         pm.LoadProfiles();
 
-        fmt::print("Scanning for MP2K Engine\n");
-        MP2KScanner scanner(Rom::Instance());
-        auto scanResults = scanner.Scan();
-        fmt::print(" -> Found {} instance(s)\n", scanResults.size());
-
-        for (size_t i = 0; i < scanResults.size(); i++) {
-            auto &r = scanResults.at(i);
-            fmt::print("  - songtable: 0x{:x}\n", r.songTableInfo.pos);
-            fmt::print("    song count: {}\n", r.songTableInfo.count);
-            fmt::print("    sound mode:\n");
-            fmt::print("      pcm vol: {}\n", r.mp2kSoundMode.vol);
-            fmt::print("      pcm rev: {}\n", r.mp2kSoundMode.rev);
-            fmt::print("      pcm freq: {}\n", r.mp2kSoundMode.freq);
-            fmt::print("      pcm channels: {}\n", r.mp2kSoundMode.maxChannels);
-            fmt::print("      dac config: {}\n", r.mp2kSoundMode.dacConfig);
-            fmt::print("    player table (count={}):\n", r.playerTableInfo.size());
-            for (auto &i : r.playerTableInfo)
-                fmt::print("      max track={}, use prio={}\n", i.maxTracks, i.usePriority);
-        }
-
         fmt::print("Opening profile...\n");
-        auto profileCandidates = pm.GetProfiles(Rom::Instance(), scanResults);
+        auto profileCandidates = pm.GetProfiles(Rom::Instance());
 
         assert(profileCandidates.size() >= 1);
         size_t profileIdx = 0;

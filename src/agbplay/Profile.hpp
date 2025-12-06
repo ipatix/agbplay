@@ -60,4 +60,6 @@ struct Profile
     Profile &operator=(const Profile &rhs);
 
     void ApplyScanToPlayback();
+    std::string GetScanDebugString() const;
+    bool ScanOk() const;
 };

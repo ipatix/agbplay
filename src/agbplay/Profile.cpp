@@ -1,5 +1,7 @@
 #include "Profile.hpp"
 
+#include <fmt/core.h>
+
 std::atomic<uint32_t> Profile::sessionIdCounter = 1;
 
 /* We define custom copy and assignment constructors.
@@ -63,4 +65,44 @@ void Profile::ApplyScanToPlayback()
         mp2kSoundModePlayback.maxChannels = mp2kSoundModeScanned.maxChannels;
     if (mp2kSoundModeConfig.dacConfig == MP2KSoundMode::DAC_AUTO)
         mp2kSoundModePlayback.dacConfig = mp2kSoundModeScanned.dacConfig;
+}
+
+std::string Profile::GetScanDebugString() const
+{
+    std::string s1;
+    if (songTableInfoScanned.IsAuto() && songTableInfoConfig.IsAuto())
+        s1 += "missing";
+    else if (songTableInfoScanned.IsAuto() && !songTableInfoConfig.IsAuto())
+        s1 += "missing (forced)";
+    else if (!songTableInfoScanned.IsAuto() && songTableInfoConfig.IsAuto())
+        s1 += "found";
+    else
+        s1 += "found (forced)";
+
+    std::string s2;
+    if (playerTableScanned.size() == 0 && playerTableConfig.size() == 0)
+        s1 += "missing";
+    else if (playerTableScanned.size() == 0 && playerTableConfig.size() != 0)
+        s1 += "missing (forced)";
+    else if (playerTableScanned.size() != 0 && playerTableConfig.size() == 0)
+        s1 += "found";
+    else
+        s1 += "found (forced)";
+
+    std::string s3;
+    if (mp2kSoundModeScanned.IsAuto() && mp2kSoundModeConfig.IsAuto())
+        s1 += "missing";
+    else if (mp2kSoundModeScanned.IsAuto() && !mp2kSoundModeConfig.IsAuto())
+        s1 += "missing (forced)";
+    else if (!mp2kSoundModeScanned.IsAuto() && mp2kSoundModeConfig.IsAuto())
+        s1 += "found";
+    else
+        s1 += "found (forced)";
+
+    return fmt::format("songTableInfo='{}' playerTableInfo='{}' soundModeInfo='{}'", s1, s2, s3);
+}
+
+bool Profile::ScanOk() const
+{
+    return !songTableInfoScanned.IsAuto() && playerTableScanned.size() > 0 && !mp2kSoundModeScanned.IsAuto();
 }

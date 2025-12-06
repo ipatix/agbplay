@@ -701,8 +701,7 @@ void MainWindow::LoadGame()
      * is able to find something. */
     try {
         Rom::CreateInstance(selectedFile);
-        MP2KScanner scanner(Rom::Instance());
-        profileCandidates = pm->GetProfiles(Rom::Instance(), scanner.Scan());
+        profileCandidates = pm->GetProfiles(Rom::Instance());
     } catch (Xcept &e) {
         MBoxError("Load Error", e.what());
         return;

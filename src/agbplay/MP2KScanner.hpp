@@ -4,9 +4,11 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <unordered_set>
 #include <vector>
 
+class Profile;
 class Rom;
 
 class MP2KScanner
@@ -21,7 +23,7 @@ public:
         SongTableInfo songTableInfo;
     };
 
-    std::vector<Result> Scan();
+    std::vector<Result> Scan(std::shared_ptr<Profile> profile);
 
 private:
     bool FindSongTable(size_t &findStartPos, size_t &songTablePos, uint16_t &songCount) const;

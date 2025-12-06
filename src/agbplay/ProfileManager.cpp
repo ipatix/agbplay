@@ -33,66 +33,52 @@ std::filesystem::path ProfileManager::ProfileUserPath()
     return OS::GetLocalConfigDirectory() / "agbplay" / "profiles-user";
 }
 
-void ProfileManager::ApplyScanResultsToProfiles(
-    const Rom &rom, std::vector<std::shared_ptr<Profile>> &profiles, const std::vector<MP2KScanner::Result> scanResults
+void ProfileManager::ScanRomToProfiles(
+    const Rom &rom, std::vector<std::shared_ptr<Profile>> &profileCandidates
 )
 {
-    if (scanResults.size() == 0 && profiles.size() == 0) {
-        throw Xcept("Scanner failed to find songtable and no profile with manual songtable found.");
-    }
+    for (std::shared_ptr<Profile> &profileCandidate : profileCandidates) {
+        MP2KScanner scanner(rom);
+        const auto results = scanner.Scan(profileCandidate);
 
-    if (scanResults.size() == 0) {
-        /* If no scan results are found make sure profiles are restricted to the ones,
-         * which have a manual song table and song count. */
-        auto filterFunc = [](std::shared_ptr<Profile> &profile) {
-            // TODO, this filters only profiles with manual songtable.
-            // This may need to change once we change the scanner to support partial scanning
-            const bool manualTable = profile->songTableInfoConfig.pos != SongTableInfo::POS_AUTO;
-            const bool manualCount = profile->songTableInfoConfig.count != SongTableInfo::COUNT_AUTO;
-            return !(manualTable && manualCount);
-        };
-        profiles.erase(std::remove_if(profiles.begin(), profiles.end(), filterFunc), profiles.end());
-        if (profiles.size() == 0)
-            throw Xcept(
-                "Scanner could not find MP2K data. Existing matching profiles were found, but none manually specify song table and song count."
-            );
-        for (std::shared_ptr<Profile> &profileCandidate : profiles)
-            profileCandidate->ApplyScanToPlayback();
-    }
-
-    for (size_t tableIdx = 0; tableIdx < scanResults.size(); tableIdx++) {
-        auto &scanResult = scanResults.at(tableIdx);
-        bool profileExists = false;
-        for (std::shared_ptr<Profile> &profileCandidate : profiles) {
-            if (profileCandidate->songTableInfoConfig.pos != SongTableInfo::POS_AUTO) {
-                if (profileCandidate->songTableInfoConfig.count == SongTableInfo::COUNT_AUTO)
-                    throw Xcept("Cannot load profile with manual songtable but no song count.");
-                profileCandidate->songTableInfoScanned = SongTableInfo{};
-                profileCandidate->playerTableScanned = PlayerTableInfo{};
-                profileCandidate->mp2kSoundModeScanned = MP2KSoundMode{};
-                profileCandidate->ApplyScanToPlayback();
-                continue;
-            }
-            if (profileCandidate->songTableInfoConfig.tableIdx == tableIdx) {
-                profileCandidate->songTableInfoScanned = scanResult.songTableInfo;
-                profileCandidate->playerTableScanned = scanResult.playerTableInfo;
-                profileCandidate->mp2kSoundModeScanned = scanResult.mp2kSoundMode;
-                profileCandidate->ApplyScanToPlayback();
-                profileExists = true;
-                break;
-            }
+        if (!profileCandidate->ScanOk()) {
+            Debug::print("Cannot use profile '{}'. A required structure was not found: {}", profileCandidate->path.string(), profileCandidate->GetScanDebugString());
+            continue;
         }
 
-        if (!profileExists) {
-            /* Caution: profiles is our parameter (i.e. != this->profiles) */
-            std::string code = rom.GetROMCode();
-            std::shared_ptr<Profile> &p = profiles.emplace_back(CreateProfile(code, tableIdx));
-            p->songTableInfoConfig.tableIdx = static_cast<uint8_t>(tableIdx);
-            p->songTableInfoScanned = scanResult.songTableInfo;
-            p->playerTableScanned = scanResult.playerTableInfo;
-            p->mp2kSoundModeScanned = scanResult.mp2kSoundMode;
-            p->ApplyScanToPlayback();
-        }
+        profileCandidate->ApplyScanToPlayback();
+    }
+
+    // Do not allow profiles, for which the scan failed.
+    profileCandidates.erase(
+        std::remove_if(
+            profileCandidates.begin(),
+            profileCandidates.end(),
+            [] (const std::shared_ptr<Profile> &p) { return !p->ScanOk(); }
+        ),
+        profileCandidates.end()
+    );
+
+    if (profileCandidates.size() > 0)
+        return;
+
+    std::string code = rom.GetROMCode();
+
+    MP2KScanner scanner(rom);
+    const auto results = scanner.Scan(nullptr);
+
+    if (results.size() == 0)
+        throw Xcept("Scanner failed to find songtable/mp2k and no profile with manual configuration was found.");
+
+    for (size_t tableIdx = 0; tableIdx < results.size(); tableIdx++) {
+        const auto &result = results.at(tableIdx);
+        std::shared_ptr<Profile> &newProfile = profileCandidates.emplace_back(CreateProfile(code, tableIdx));
+
+        newProfile->songTableInfoConfig.tableIdx = static_cast<uint8_t>(tableIdx);
+        newProfile->songTableInfoScanned = result.songTableInfo;
+        newProfile->playerTableScanned = result.playerTableInfo;
+        newProfile->mp2kSoundModeScanned = result.mp2kSoundMode;
+        newProfile->ApplyScanToPlayback();
     }
 }
 
@@ -122,7 +108,7 @@ void ProfileManager::SaveProfiles()
 }
 
 std::vector<std::shared_ptr<Profile>>
-    ProfileManager::GetProfiles(const Rom &rom, const std::vector<MP2KScanner::Result> scanResults)
+    ProfileManager::GetProfiles(const Rom &rom)
 {
     /* Find all profiles which match the ROM passed.
      * If only a single match is found, return it.
@@ -151,7 +137,7 @@ std::vector<std::shared_ptr<Profile>>
     }
 
     if (profilesWithMagicBytes.size() == 0) {
-        ApplyScanResultsToProfiles(rom, profilesWithGameCode, scanResults);
+        ScanRomToProfiles(rom, profilesWithGameCode);
         return profilesWithGameCode;
     }
 
@@ -205,7 +191,7 @@ std::vector<std::shared_ptr<Profile>>
         }
     }
 
-    ApplyScanResultsToProfiles(rom, profilesToReturn, scanResults);
+    ScanRomToProfiles(rom, profilesToReturn);
     return profilesToReturn;
 }
 

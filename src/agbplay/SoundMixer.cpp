@@ -35,6 +35,8 @@ void SoundMixer::UpdateFixedModeRate()
 
     fixedModeRate = rateTable[ctx.mp2kSoundMode.freq % rateTable.size()];
 
+    assert(fixedModeRate > 0);
+
     const uint8_t numDmaBuffers = std::max(
         static_cast<uint8_t>(2), static_cast<uint8_t>(ctx.agbplaySoundMode.dmaBufferLen / (fixedModeRate / AGB_FPS))
     );

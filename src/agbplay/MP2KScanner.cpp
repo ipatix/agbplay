@@ -1,39 +1,68 @@
 #include "MP2KScanner.hpp"
 
 #include "Constants.hpp"
+#include "Profile.hpp"
 #include "Rom.hpp"
 
 MP2KScanner::MP2KScanner(const Rom &rom) : rom(rom)
 {
 }
 
-std::vector<MP2KScanner::Result> MP2KScanner::Scan()
+std::vector<MP2KScanner::Result> MP2KScanner::Scan(std::shared_ptr<Profile> profile)
 {
+    /* 'profile' is optional. If it is non-null, we scan only for the entry requested in the profile.
+     * In that case the result is only written to the profile. The return value is an empty list.
+     * If it is null, we try to find all occurances and return them in a list without writing
+     * to a (non-provided) profile. */
     std::vector<Result> results;
 
     InitPointerCache();
 
-    size_t findStartPos = SEARCH_START;
+    size_t findPos = SEARCH_START;
 
     while (true) {
+        /* 1. Determine songtable position */
         size_t songTablePos;
         uint16_t songCount;
-        const bool songtableValid = FindSongTable(findStartPos, songTablePos, songCount);
+
+        if (profile && !profile->songTableInfoConfig.IsAuto())
+            songTablePos = profile->songTableInfoConfig.pos;
+
+        const bool songtableValid = FindSongTable(findPos, songTablePos, songCount);
         if (!songtableValid)
             break;
 
+        if (profile && !profile->songTableInfoConfig.IsAuto())
+            songCount = profile->songTableInfoConfig.count;
+
+        if (profile && profile->playerTableConfig.size() != 0) {
+            /* Load player table from configuration. In this case, the
+             * sound mode must be provided via config as well, since the scanner cannot
+             * find it otherwise. */
+            profile->playerTableScanned = profile->playerTableConfig;
+
+            if (profile->mp2kSoundModeConfig.IsAuto())
+                break;
+
+            profile->mp2kSoundModeScanned = profile->mp2kSoundModeScanned;
+            break;
+        }
+
+        /* 2. Determine player table position */
         PlayerTableInfo playerTableInfo;
         size_t playerTablePos;
-        const bool maxTracksValid = FindPlayerTable(songTablePos, playerTablePos, playerTableInfo);
-        if (!maxTracksValid)
+        const bool playerTableValid = FindPlayerTable(songTablePos, playerTablePos, playerTableInfo);
+        if (!playerTableValid)
             break;
 
+        /* 3. Determine sound mode. */
         uint32_t soundMode;
         size_t soundModePos;
         const bool soundModeValid = FindSoundMode(playerTablePos, soundModePos, soundMode);
         if (!soundModeValid)
             break;
 
+        /* 4. Save to result list. */
         Result result{
             .mp2kSoundMode{
                 .vol = static_cast<uint8_t>((soundMode >> 12) & 0xF),
@@ -49,6 +78,13 @@ std::vector<MP2KScanner::Result> MP2KScanner::Scan()
                 .tableIdx = static_cast<uint8_t>(results.size()),
             },
         };
+
+        if (profile) {
+            profile->songTableInfoScanned = result.songTableInfo;
+            profile->playerTableScanned = result.playerTableInfo;
+            profile->mp2kSoundModeScanned = result.mp2kSoundMode;
+            break;
+        }
 
         results.emplace_back(result);
     }
@@ -412,6 +448,9 @@ bool MP2KScanner::IsValidPlayerTableEntry(size_t pos) const
 
 void MP2KScanner::InitPointerCache()
 {
+    if (wordPointerCache.size() > 0)
+        return;
+
     wordPointerCache.clear();
 
     /* find list of all pointers in ROM */

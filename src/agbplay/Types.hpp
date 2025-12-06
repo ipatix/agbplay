@@ -99,6 +99,10 @@ struct MP2KSoundMode
     static const uint8_t CHN_AUTO = 0xFF;
     static const uint8_t DAC_AUTO = 0xFF;
 
+    bool IsAuto() const {
+        return vol == VOL_AUTO || rev == REV_AUTO || freq == FREQ_AUTO || maxChannels == CHN_AUTO || dacConfig == DAC_AUTO;
+    }
+
     uint8_t vol = VOL_AUTO;
     uint8_t rev = REV_AUTO;
     uint8_t freq = FREQ_AUTO;
@@ -125,6 +129,10 @@ struct SongTableInfo
     static const size_t POS_AUTO = 0;
     static const uint16_t COUNT_AUTO = 0xFFFF;
 
+    bool IsAuto() const {
+        return pos == POS_AUTO || count == COUNT_AUTO;
+    }
+
     size_t pos = POS_AUTO;
     uint16_t count = COUNT_AUTO;
     uint8_t tableIdx = 0;
@@ -132,8 +140,8 @@ struct SongTableInfo
 
 struct PlayerInfo
 {
-    uint8_t maxTracks;
-    uint8_t usePriority;
+    uint8_t maxTracks = 0;
+    uint8_t usePriority = 0;
 };
 
 typedef std::vector<PlayerInfo> PlayerTableInfo;

@@ -1,6 +1,7 @@
 #include "MP2KScanner.hpp"
 
 #include "Constants.hpp"
+#include "Debug.hpp"
 #include "Profile.hpp"
 #include "Rom.hpp"
 
@@ -157,56 +158,71 @@ bool MP2KScanner::FindSongTable(size_t &findStartPos, size_t &songTablePos, uint
 
 bool MP2KScanner::FindPlayerTable(size_t songTablePos, size_t &playerTablePos, PlayerTableInfo &playerTableInfo) const
 {
-    /* The player table is usually located right before the song table.
-     * For cases where it is not (e.g. romhacks), the user will have to specify
-     * it manually. */
+    /* If we know the pointer to the song table, we can find the pointer to the player table by searching
+     * through the ROM. Both player table and songtable are usually referenced in:
+     * m4aSongNum{Start,StartOrChange,StartOrContinue,Stop,SongNumContinue}.
+     * mplay_table and song_table will appear right after another in the literal pools of those functions.
+     * Because we already know the song table pos, we can just check all the places where it is referenced,
+     * and then check the 4 bytes before that reference. Those have to be a valid player table. */
 
-    /* 1. Search in reverse and skip possibly up to 3 linker alignment words. */
-    const size_t maxAlignmentWords = 3;
-    size_t playerTableEndPos = songTablePos;
+    const size_t songTableRef = songTablePos + AGB_MAP_ROM;
 
-    for (size_t i = 0; i < maxAlignmentWords; i++) {
-        if (playerTableEndPos < 4)
-            return false;
-        if (rom.ReadU32(playerTableEndPos - 4) != 0)
-            break;
-        playerTableEndPos -= 4;
-    }
-
-    /* 2. Search in reverse how many player entries there are */
-    const size_t maxMusicPlayers = 32;    // maximum of mks4agb
-    size_t playerTableStartPos = playerTableEndPos;
     size_t musicPlayerCount = 0;
-    std::vector<size_t> playerTableStartPosCandidates;
-    std::vector<size_t> musicPlayerCountCandidates;
+    size_t playerTableStartPos = 0;
+    size_t matchCount = 0;
 
-    for (size_t i = 0; i < maxMusicPlayers; i++) {
-        if (playerTableStartPos < 12)
+    for (size_t i = SEARCH_START; i < rom.Size() - 3; i += 4) {
+        /* 1. Search the entire ROM for a reference to our song table. */
+        if (rom.ReadU32(i) != songTableRef)
+            continue;
+
+        if (i < 4)
+            continue;
+
+        /* 2. Check if the pointer before the reference also looks like a pointer. */
+        if (!rom.ValidPointer(rom.ReadU32(i - 4)))
+            continue;
+
+        /* 3. Check how many music players we have. */
+        const size_t playerTablePosCandidate = rom.ReadAgbPtrToPos(i - 4);
+        const size_t MAX_MUSIC_PLAYERS = 32;
+
+        size_t musicPlayerCountCandidate;
+        for (musicPlayerCountCandidate = 0; musicPlayerCountCandidate < MAX_MUSIC_PLAYERS; musicPlayerCountCandidate++) {
+            if (!IsValidPlayerTableEntry(playerTablePosCandidate + musicPlayerCountCandidate * 12))
+                break;
+        }
+
+        if (musicPlayerCountCandidate == 0)
+            continue;
+
+        /* 4. If we found a player table previously, check if it is the same one. */
+        if (playerTableStartPos != 0 && playerTableStartPos != playerTablePosCandidate) {
+            Debug::print("Found multiple player table candidates (candidateA={:#09x} candidateB={:#09x}. Bad ROM-hack?",
+                    playerTableStartPos, playerTablePosCandidate);
             break;
+        }
 
-        /* Some games use zero padded player table entires. Such an entry may be the first entry,
-         * so we need to check all possible start addresses of valid candidates. */
+        playerTableStartPos = playerTablePosCandidate;
+        musicPlayerCount = musicPlayerCountCandidate;
+        matchCount += 1;
 
-        if (!IsValidPlayerTableEntry(playerTableStartPos - 12))
+        /* 4. If we have found 5 functions, that's enough, since that's the usual number of m4a functions
+         * found in games. */
+        if (matchCount == 5)
             break;
-
-        playerTableStartPos -= 12;
-        musicPlayerCount += 1;
-        playerTableStartPosCandidates.insert(playerTableStartPosCandidates.begin(), playerTableStartPos);
-        musicPlayerCountCandidates.insert(musicPlayerCountCandidates.begin(), musicPlayerCount);
     }
 
-    if (musicPlayerCount == 0)
+    /* 5. If we haven't found anything, bail out. */
+    if (matchCount == 0)
         return false;
 
-    /* 3. check for reference to player table */
-    size_t candidateIndex;
-    if (!IsPosReferenced(playerTableStartPosCandidates, candidateIndex))
-        return false;
-    playerTableStartPos = playerTableStartPosCandidates.at(candidateIndex);
-    musicPlayerCount = musicPlayerCountCandidates.at(candidateIndex);
+    /* 6. We can still load games with fewer references to the player table. But let the user know, there
+     *    may be a problem with the ROM. */
+    if (matchCount < 5)
+        Debug::print("Found unexpected number of player table matches ({}). Bad ROM-hack?", matchCount);
 
-    /* 4. return results */
+    /* 7. Return results */
     playerTableInfo.clear();
     for (size_t i = 0; i < musicPlayerCount; i++) {
         const size_t playerPos = playerTableStartPos + i * 12;

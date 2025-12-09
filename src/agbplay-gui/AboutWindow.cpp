@@ -3,6 +3,7 @@
 #include "Version.hpp"
 
 #include <fmt/core.h>
+#include <QtVersion>
 
 static const std::string figletText = []() {
     std::string t;
@@ -25,7 +26,7 @@ static const std::string figletText = []() {
 
 static const std::string aboutText = []() {
     std::string t;
-    t += fmt::format("agbplay {}<br>", GIT_VERSION_STRING);
+    t += fmt::format("agbplay {} (Qt {})<br>", GIT_VERSION_STRING, qVersion());
     t += "<br>";
     t += "The high quality GBA music player<br>";
     t += "<br>";

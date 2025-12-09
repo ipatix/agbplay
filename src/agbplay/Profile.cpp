@@ -71,33 +71,33 @@ std::string Profile::GetScanDebugString() const
 {
     std::string s1;
     if (songTableInfoScanned.IsAuto() && songTableInfoConfig.IsAuto())
-        s1 += "missing";
+        s1 = "missing";
     else if (songTableInfoScanned.IsAuto() && !songTableInfoConfig.IsAuto())
-        s1 += "missing (forced)";
+        s1 = "missing (forced)";
     else if (!songTableInfoScanned.IsAuto() && songTableInfoConfig.IsAuto())
-        s1 += "found";
+        s1 = "found";
     else
-        s1 += "found (forced)";
+        s1 = "found (forced)";
 
     std::string s2;
     if (playerTableScanned.size() == 0 && playerTableConfig.size() == 0)
-        s1 += "missing";
+        s2 = "missing";
     else if (playerTableScanned.size() == 0 && playerTableConfig.size() != 0)
-        s1 += "missing (forced)";
+        s2 = "missing (forced)";
     else if (playerTableScanned.size() != 0 && playerTableConfig.size() == 0)
-        s1 += "found";
+        s2 = "found";
     else
-        s1 += "found (forced)";
+        s2 = "found (forced)";
 
     std::string s3;
     if (mp2kSoundModeScanned.IsAuto() && mp2kSoundModeConfig.IsAuto())
-        s1 += "missing";
+        s3 = "missing";
     else if (mp2kSoundModeScanned.IsAuto() && !mp2kSoundModeConfig.IsAuto())
-        s1 += "missing (forced)";
+        s3 = "missing (forced)";
     else if (!mp2kSoundModeScanned.IsAuto() && mp2kSoundModeConfig.IsAuto())
-        s1 += "found";
+        s3 = "found";
     else
-        s1 += "found (forced)";
+        s3 = "found (forced)";
 
     return fmt::format("songTableInfo='{}' playerTableInfo='{}' soundModeInfo='{}'", s1, s2, s3);
 }

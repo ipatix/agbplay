@@ -81,10 +81,15 @@ std::vector<MP2KScanner::Result> MP2KScanner::Scan(std::shared_ptr<Profile> prof
         };
 
         if (profile) {
-            profile->songTableInfoScanned = result.songTableInfo;
-            profile->playerTableScanned = result.playerTableInfo;
-            profile->mp2kSoundModeScanned = result.mp2kSoundMode;
-            break;
+            // If we are auto scanning for the song table, make sure we have selected the right one.
+            // If we are manual scanning for the song table, always return immediately.
+            if ((profile->songTableInfoConfig.IsAuto() && profile->songTableInfoConfig.tableIdx == results.size())
+                    || !profile->songTableInfoConfig.IsAuto()) {
+                profile->songTableInfoScanned = result.songTableInfo;
+                profile->playerTableScanned = result.playerTableInfo;
+                profile->mp2kSoundModeScanned = result.mp2kSoundMode;
+                break;
+            }
         }
 
         results.emplace_back(result);

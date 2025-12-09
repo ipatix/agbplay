@@ -39,7 +39,7 @@ void ProfileManager::ScanRomToProfiles(
 {
     for (std::shared_ptr<Profile> &profileCandidate : profileCandidates) {
         MP2KScanner scanner(rom);
-        const auto results = scanner.Scan(profileCandidate);
+        (void)scanner.Scan(profileCandidate);
 
         if (!profileCandidate->ScanOk()) {
             Debug::print("Cannot use profile '{}'. A required structure was not found: {}", profileCandidate->path.string(), profileCandidate->GetScanDebugString());

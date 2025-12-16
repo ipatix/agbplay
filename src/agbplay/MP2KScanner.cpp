@@ -239,25 +239,36 @@ bool MP2KScanner::FindPlayerTable(size_t songTablePos, size_t &playerTablePos, P
 
 bool MP2KScanner::FindSoundMode(size_t playerTablePos, size_t &soundModePos, uint32_t &soundMode) const
 {
+    if (FindSoundModeNormal(playerTablePos, soundModePos, soundMode))
+        return true;
+    return FindSoundModeMetroid(playerTablePos, soundModePos, soundMode);
+}
+
+bool MP2KScanner::FindSoundModeNormal(size_t playerTablePos, size_t &soundModePos, uint32_t &soundMode) const
+{
     /* We have to find the literal pool from m4aSoundInit(). */
     size_t playerTableReferencePos;
     size_t findStartPos = SEARCH_START;
     while (IsPosReferenced(playerTablePos, findStartPos, playerTableReferencePos)) {
         /* If we have found a reference, check if the following pattern exists:
-         * - mix code (ROM-addr)
-         * - mix code (RAM-addr)
-         * - mix code size (CpuSet Arg)
-         * - SoundInfo ptr (RAM-addr)
-         * - CgbChan ptr (RAM-addr)
-         * - sound mode <---- data of interest
-         * - player table len (0xNN, 0x00, 0x00, 0x00)
-         * - player table pos (ROM-addr) <---- we pivot from this supplied address
-         * - memacc area TODO confirm (RAM-addr) */
+         * [0x00] mix code (ROM-addr)
+         * [0x04] mix code (RAM-addr)
+         * [0x08] mix code size (CpuSet Arg)
+         * [0x0C] SoundInfo ptr (RAM-addr)
+         * [0x10] CgbChan ptr (RAM-addr)
+         * [0x14] sound mode <---- data of interest
+         * [0x18] player table len (0xNN, 0x00, 0x00, 0x00)
+         * [0x1C] player table pos (ROM-addr) <---- we pivot from this supplied address
+         * [0x20] memacc area TODO confirm (RAM-addr)
+         */
 
-        if (playerTableReferencePos < 28)
+        if (playerTableReferencePos < 0x1C)
             continue;
 
-        const size_t signaturePos = playerTableReferencePos - 28;
+        const size_t signaturePos = playerTableReferencePos - 0x1C;
+
+        if (signaturePos + 0x24 > rom.Size())
+            continue;
 
         // fmt::print("Found reference to playerTable=0x{:x} at 0x{:x}\n", playerTablePos, playerTableReferencePos);
 
@@ -273,19 +284,19 @@ bool MP2KScanner::FindSoundMode(size_t playerTablePos, size_t &soundModePos, uin
         // fmt::print(" - memacc area: 0x{:08x}\n", rom.ReadU32(signaturePos + 32));
 
         /* check mix code (ROM-addr) */
-        if (!rom.ValidPointer(rom.ReadU32(signaturePos + 0)))
+        if (!rom.ValidPointer(rom.ReadU32(signaturePos + 0x0)))
             continue;
 
         // fmt::print("mix code ROM valid\n");
 
         /* check mix code (RAM-addr) */
-        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 4)))
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0x4)))
             continue;
 
         // fmt::print("mix code RAM valid\n");
 
         /* check mix code size (CpuSet Arg) */
-        const uint32_t cpusetArg = rom.ReadU32(signaturePos + 8);
+        const uint32_t cpusetArg = rom.ReadU32(signaturePos + 0x8);
         if ((cpusetArg & (1 << 26)) == 0)    // Is 32 bit copy?
             continue;
         if ((cpusetArg & 0x1FFFFF) >= 0x800)    // Is data smaller than 0x800 words? (usually just SEARCH_START)
@@ -294,19 +305,19 @@ bool MP2KScanner::FindSoundMode(size_t playerTablePos, size_t &soundModePos, uin
         // fmt::print("mix code size valid\n");
 
         /* check SoundInfo pointer (RAM addr) */
-        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 12)))
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0xC)))
             continue;
 
         // fmt::print("SoundInfo valid\n");
 
         /* check CgbChan pointer (RAM addr) */
-        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 16)))
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0x10)))
             continue;
 
         // fmt::print("CgbChan valid\n");
 
         /* check sound mode */
-        const size_t soundModePosCandidate = signaturePos + 20;
+        const size_t soundModePosCandidate = signaturePos + 0x14;
         const uint32_t soundModeCandidate = rom.ReadU32(soundModePosCandidate);
         if ((soundModeCandidate & 0xFF) != 0)    // reserved byte must be 0
             continue;
@@ -320,23 +331,174 @@ bool MP2KScanner::FindSoundMode(size_t playerTablePos, size_t &soundModePos, uin
         // fmt::print("sound mode valid\n");
 
         /* check player table len */
-        const uint32_t playerTableLen = rom.ReadU32(signaturePos + 24);
+        const uint32_t playerTableLen = rom.ReadU32(signaturePos + 0x18);
         if (playerTableLen > 32)
             continue;
 
         // fmt::print("player table len valid\n");
 
         /* check player table pos (probably redundant as it's an argument) */
-        if (!rom.ValidPointer(rom.ReadU32(signaturePos + 28)))
+        if (!rom.ValidPointer(rom.ReadU32(signaturePos + 0x1C)))
             continue;
 
         // fmt::print("player table pos valid\n");
 
         /* check memacc address (TODO is this really the memacc address?) */
-        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 32)))
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0x20)))
             continue;
 
         // fmt::print("memacc valid\n");
+
+        soundModePos = soundModePosCandidate;
+        soundMode = soundModeCandidate;
+        return true;
+    }
+
+    return false;
+}
+
+bool MP2KScanner::FindSoundModeMetroid(size_t playerTablePos, size_t &soundModePos, uint32_t &soundMode) const
+{
+    size_t playerTableReferencePos;
+    size_t findStartPos = SEARCH_START;
+    while (IsPosReferenced(playerTablePos, findStartPos, playerTableReferencePos)) {
+        /* If we have found a reference, check if the following pattern exists:
+         * [0x00] sound initialized? (RAM-addr)
+         * [0x04] REG_IE
+         * [0x08] REG_SOUNDCNT_X
+         * [0x0C] REG_SOUNDCNT_H
+         * [0x10] SOUNDCNT_H init value
+         * [0x14] REG_SOUNDBIAS (upper byte)
+         * [0x18] REG_SOUND1CNT_H (upper byte)
+         * [0x1C] REG_SOUNDCNT_L
+         * [0x20] mix code-ptr (RAM-addr)
+         * [0x24] mix code (RAM-addr)
+         * [0x28] mix code (ROM-addr)
+         * [0x2C] DMA ctrl data
+         * [0x30] reverb code-ptr (RAM-addr)
+         * [0x34] reverb code (RAM-addr)
+         * [0x38] reverb code (ROM-addr)
+         * [0x3C] DMA ctrl data
+         * [0x40] downsampler code-ptr (RAM-addr)
+         * [0x44] downsampler code (RAM-addr)
+         * [0x48] downsampler code (ROM-addr)
+         * [0x4C] DMA ctrl data
+         * [0x50] other DMA ctrl data???
+         * [0x54] ???
+         * [0x58] player table len (0xNN, 0x00, 0x00, 0x00)
+         * [0x5C] sound mode <---- data of interest
+         * [0x60] ??? (RAM-addr)
+         * [0x64] other DMA ctrl data???
+         * [0x68] REG_DMA3SAD
+         * [0x6C] player table pos (ROM-addr) <---- we pivot from this supplied address
+         * [0x70] other DMA ctrl data???
+         * [0x74] ??? ... This stuff seems to vary between Metroid Zero Mission and Wario Ware Twisted
+         */
+
+        if (playerTableReferencePos < 0x6C)
+            continue;
+
+        const size_t signaturePos = playerTableReferencePos - 0x6C;
+
+        if (signaturePos + 0x78 > rom.Size())
+            continue;
+
+        /* Check actual signature */
+
+        /* [0x00] */
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0x0)))
+            continue;
+
+        /* [0x04] */
+        if (rom.ReadU32(signaturePos + 0x4) != 0x04000200)
+            continue;
+
+        /* [0x08] */
+        if (rom.ReadU32(signaturePos + 0x8) != 0x04000084)
+            continue;
+
+        /* [0x0C] */
+        if (rom.ReadU32(signaturePos + 0xC) != 0x04000082)
+            continue;
+
+        /* [0x14] */
+        if (rom.ReadU32(signaturePos + 0x14) != 0x04000089)
+            continue;
+
+        /* [0x18] */
+        if (rom.ReadU32(signaturePos + 0x18) != 0x04000063)
+            continue;
+
+        /* [0x1C] */
+        if (rom.ReadU32(signaturePos + 0x1C) != 0x04000080)
+            continue;
+
+        /* [0x20] */
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0x20)))
+            continue;
+
+        /* [0x24] */
+        if (!IsValidIwramPointer(rom.ReadU32(signaturePos + 0x24)))
+            continue;
+
+        /* [0x28] */
+        if (!rom.ValidPointer(rom.ReadU32(signaturePos + 0x28)))
+            continue;
+
+        /* [0x30] */
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0x30)))
+            continue;
+
+        /* [0x34] */
+        if (!IsValidIwramPointer(rom.ReadU32(signaturePos + 0x34)))
+            continue;
+
+        /* [0x38] */
+        if (!rom.ValidPointer(rom.ReadU32(signaturePos + 0x38)))
+            continue;
+
+        /* [0x40] */
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0x40)))
+            continue;
+
+        /* [0x44] */
+        if (!IsValidIwramPointer(rom.ReadU32(signaturePos + 0x44)))
+            continue;
+
+        /* [0x48] */
+        if (!rom.ValidPointer(rom.ReadU32(signaturePos + 0x48)))
+            continue;
+
+        /* [0x58] */
+        const uint32_t playerTableLen = rom.ReadU32(signaturePos + 0x58);
+        if (playerTableLen > 32)
+            continue;
+
+        /* [0x5C] */
+        const size_t soundModePosCandidate = signaturePos + 0x5C;
+        const uint32_t soundModeCandidate = rom.ReadU32(soundModePosCandidate);
+        /* Compared to "Normal" sound modes vs Metroid sound modes is, that the
+         * reserved byte appears to be actually used. It does something with stereo/mono
+         * switching, but we probably don't care about that in agbplay. */
+        if (uint32_t maxchn = (soundModeCandidate >> 8) & 0xF; maxchn < 1 || maxchn > 12)
+            continue;
+        if (uint32_t freq = (soundModeCandidate >> 16) & 0xF; freq == 0 || freq > 12)
+            continue;
+        if (uint32_t dac = (soundModeCandidate >> 20) & 0xF; dac < 8 || dac > 11)
+            continue;
+
+        /* [0x60] */
+        if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0x60)))
+            continue;
+
+        /* [0x68] */
+        if (rom.ReadU32(signaturePos + 0x68) != 0x040000D4)
+            continue;
+
+        /* [0x6C] */
+        /* check player table pos (probably redundant as it's an argument) */
+        if (!rom.ValidPointer(rom.ReadU32(signaturePos + 0x6C)))
+            continue;
 
         soundModePos = soundModePosCandidate;
         soundMode = soundModeCandidate;

@@ -29,6 +29,8 @@ private:
     bool FindSongTable(size_t &findStartPos, size_t &songTablePos, uint16_t &songCount) const;
     bool FindPlayerTable(size_t songTablePos, size_t &playerTablePos, PlayerTableInfo &playerTableInfo) const;
     bool FindSoundMode(size_t playerTablePos, size_t &soundModePos, uint32_t &soundMode) const;
+    bool FindSoundModeNormal(size_t playerTablePos, size_t &soundModePos, uint32_t &soundMode) const;
+    bool FindSoundModeMetroid(size_t playerTablePos, size_t &soundModePos, uint32_t &soundMode) const;
 
     bool IsPosReferenced(size_t pos) const;
     bool IsPosReferenced(size_t pos, size_t &findStartPos, size_t &referencePos) const;

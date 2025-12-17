@@ -182,7 +182,7 @@ void SettingsWindow::buttonBoxButtonPressed(QAbstractButton *button)
 
     /* if OK or apply was pressed, apply changes to settings */
     settings.playbackSampleRate = std::max(1u, ui->playbackSampleRateComboBox->currentData().toUInt());
-    settings.playbackOutputNumBuffers = std::clamp(1u, 8u, static_cast<uint32_t>(ui->playbackOutputNumBuffersSpinBox->value()));
+    settings.playbackOutputNumBuffers = std::clamp(static_cast<uint32_t>(ui->playbackOutputNumBuffersSpinBox->value()), 1u, 8u);
     settings.exportSampleRate = std::max(1u, ui->exportSampleRateComboBox->currentData().toUInt());
     settings.exportBitDepth = std::max(1u, ui->exportBitDepthComboBox->currentData().toUInt());
     settings.exportPadStart = std::clamp(ui->exportPadStartSpinBox->value(), 0.0, 100.0);

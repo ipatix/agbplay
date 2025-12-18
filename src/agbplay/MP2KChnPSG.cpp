@@ -639,6 +639,8 @@ void MP2KChnPSGWave::SetPitch(int16_t pitch)
 
 void MP2KChnPSGWave::Process(std::span<sample> buffer, MixingArgs &args)
 {
+    if (envState == EnvState::DEAD)
+        return;
     stepEnvelope();
     if (envState == EnvState::DEAD)
         return;
@@ -827,6 +829,8 @@ void MP2KChnPSGNoise::SetPitch(int16_t pitch)
 
 void MP2KChnPSGNoise::Process(std::span<sample> buffer, MixingArgs &args)
 {
+    if (envState == EnvState::DEAD)
+        return;
     stepEnvelope();
     if (envState == EnvState::DEAD)
         return;

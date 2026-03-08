@@ -26,3 +26,6 @@ asan.log*
 
 # as well as clangd
 /.cache
+
+# so does qtcreator
+/.qtcreator

@@ -35,6 +35,7 @@ public:
     void UpdateSoundMode();
     void GetVisualizerState(MP2KVisualizerState &visualizerState);
     void SetOutputNumBuffers(size_t numBuffers);
+    void SetMaxLoops(int8_t maxLoops);
 
 private:
     void threadWorker();

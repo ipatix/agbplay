@@ -129,6 +129,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
 {
     MP2KContext ctx(
         settings.exportSampleRate,
+        settings.exportMaxLoops,
         Rom::Instance(),
         profile.mp2kSoundModePlayback,
         profile.agbplaySoundMode,

@@ -152,6 +152,11 @@ void MainWindow::SetupMenuBar()
     connect(editPreferences, &QAction::triggered, [this](bool) {
         SettingsWindow w(this, *settings);
         w.exec();
+
+        if (playbackEngine) {
+            playbackEngine->SetOutputNumBuffers(settings->playbackOutputNumBuffers);
+            playbackEngine->SetMaxLoops(settings->playbackLoopIndefinitely ? -1 : settings->playbackMaxLoops);
+        }
     });
 
     /* Profile */
@@ -771,6 +776,7 @@ void MainWindow::LoadGame()
     visualizerState = std::make_unique<MP2KVisualizerState>();
 
     playbackEngine->SetOutputNumBuffers(settings->playbackOutputNumBuffers);
+    playbackEngine->SetMaxLoops(settings->playbackLoopIndefinitely ? -1 : settings->playbackMaxLoops);
 
     exportSongsAction->setEnabled(true);
     exportStemsAction->setEnabled(true);

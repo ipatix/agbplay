@@ -337,8 +337,6 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
             p.agbplaySoundMode.cgbPolyphony = str2cgbPoly(sm["cgbPolyphony"]);
         if (sm.contains("dmaBufferLen") && sm["dmaBufferLen"].is_number())
             p.agbplaySoundMode.dmaBufferLen = sm["dmaBufferLen"];
-        if (sm.contains("maxLoops") && sm["maxLoops"].is_number())
-            p.agbplaySoundMode.maxLoops = sm["maxLoops"];
         if (sm.contains("accurateCh3Quantization") && sm["accurateCh3Quantization"].is_boolean())
             p.agbplaySoundMode.accurateCh3Quantization = sm["accurateCh3Quantization"];
         if (sm.contains("accurateCh3Volume") && sm["accurateCh3Volume"].is_boolean())
@@ -458,7 +456,6 @@ void ProfileManager::SaveProfile(std::shared_ptr<Profile> &p)
     jasm["reverbType"] = rev2str(p->agbplaySoundMode.reverbType);
     jasm["cgbPolyphony"] = cgbPoly2str(p->agbplaySoundMode.cgbPolyphony);
     jasm["dmaBufferLen"] = p->agbplaySoundMode.dmaBufferLen;
-    jasm["maxLoops"] = p->agbplaySoundMode.maxLoops;
     jasm["accurateCh3Quantization"] = p->agbplaySoundMode.accurateCh3Quantization;
     jasm["accurateCh3Volume"] = p->agbplaySoundMode.accurateCh3Volume;
     jasm["emulateCgbSustainBug"] = p->agbplaySoundMode.emulateCgbSustainBug;

@@ -66,6 +66,9 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
 
     /* init other fields */
     ui->playbackOutputNumBuffersSpinBox->setValue(settings.playbackOutputNumBuffers);
+    ui->playbackMaxLoopsSpinBox->setValue(settings.playbackMaxLoops);
+    ui->playbackMaxLoopsSpinBox->setEnabled(!settings.playbackLoopIndefinitely);
+    ui->playbackLoopIndefinitelyCheckBox->setChecked(settings.playbackLoopIndefinitely);
 
     ui->exportPadStartSpinBox->setValue(settings.exportPadStart);
     ui->exportPadEndSpinBox->setValue(settings.exportPadEnd);
@@ -75,6 +78,13 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
 
     /* setup handlers */
     connect(ui->playbackSampleRateComboBox, &QComboBox::activated, this, &SettingsWindow::playbackComboBoxActivated);
+    connect(ui->playbackLoopIndefinitelyCheckBox, &QCheckBox::stateChanged, [this](int state) {
+        if (state == Qt::Checked) {
+            ui->playbackMaxLoopsSpinBox->setEnabled(false);
+        } else {
+            ui->playbackMaxLoopsSpinBox->setEnabled(true);
+        }
+    });
     connect(ui->exportSampleRateComboBox, &QComboBox::activated, this, &SettingsWindow::exportComboBoxActivated);
     connect(ui->exportFolderGroupBox, &QGroupBox::toggled, [this](bool on) {
         ui->exportFolderLineEdit->setEnabled(on);
@@ -183,6 +193,8 @@ void SettingsWindow::buttonBoxButtonPressed(QAbstractButton *button)
     /* if OK or apply was pressed, apply changes to settings */
     settings.playbackSampleRate = std::max(1u, ui->playbackSampleRateComboBox->currentData().toUInt());
     settings.playbackOutputNumBuffers = std::clamp(static_cast<uint32_t>(ui->playbackOutputNumBuffersSpinBox->value()), 1u, 8u);
+    settings.playbackMaxLoops = static_cast<int8_t>(std::clamp(ui->playbackMaxLoopsSpinBox->value(), 0, 127));
+    settings.playbackLoopIndefinitely = ui->playbackLoopIndefinitelyCheckBox->checkState() == Qt::Checked;
     settings.exportSampleRate = std::max(1u, ui->exportSampleRateComboBox->currentData().toUInt());
     settings.exportBitDepth = std::max(1u, ui->exportBitDepthComboBox->currentData().toUInt());
     settings.exportPadStart = std::clamp(ui->exportPadStartSpinBox->value(), 0.0, 100.0);

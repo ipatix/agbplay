@@ -11,9 +11,12 @@ struct Settings
 
     uint32_t playbackSampleRate = 0;
     uint32_t playbackOutputNumBuffers = 0;
+    int8_t playbackMaxLoops = 0;
+    bool playbackLoopIndefinitely = false;
 
     uint32_t exportSampleRate = 0;
     uint32_t exportBitDepth = 0;
+    int8_t exportMaxLoops = 0;
     double exportPadStart = 0.0;
     double exportPadEnd = 0.0;
     std::filesystem::path exportQuickExportDirectory;

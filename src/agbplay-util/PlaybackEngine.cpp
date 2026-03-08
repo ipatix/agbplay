@@ -58,6 +58,7 @@ PlaybackEngine::PlaybackEngine(uint32_t sampleRate, const Profile &profile) : pr
 {
     ctx = std::make_unique<MP2KContext>(
         sampleRate,
+        1,
         Rom::Instance(),
         profile.mp2kSoundModePlayback,
         profile.agbplaySoundMode,
@@ -292,6 +293,14 @@ void PlaybackEngine::GetVisualizerState(MP2KVisualizerState &visualizerState)
 
 void PlaybackEngine::SetOutputNumBuffers(size_t numBuffers) {
     ringbuffer.SetNumBuffers(numBuffers);
+}
+
+void PlaybackEngine::SetMaxLoops(int8_t maxLoops) {
+    auto func = [this, maxLoops]() {
+        ctx->m4aSetMaxLoops(maxLoops);
+    };
+
+    InvokeAsPlayer(func);
 }
 
 /*

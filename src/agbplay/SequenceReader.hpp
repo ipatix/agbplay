@@ -32,7 +32,7 @@ private:
     MP2KContext &ctx;
 
     bool endReached = false;
-    uint8_t numLoops = 0;
+    size_t numLoops = 0;
     float speedFactor = 1.0f;
 
     bool PlayerMain(MP2KPlayer &player);

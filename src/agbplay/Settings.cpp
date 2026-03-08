@@ -10,6 +10,8 @@
 static const std::filesystem::path CONFIG_PATH = OS::GetLocalConfigDirectory() / "agbplay" / "config.json";
 static const std::filesystem::path DEFAULT_EXPORT_DIRECTORY = OS::GetMusicDirectory() / "agbplay";
 static const uint32_t DEFAULT_SAMPLERATE = 48000;
+static const int8_t DEFAULT_MAX_LOOPS = 1;
+static const bool DEFAULT_LOOP_INDEFINITELY = false;
 static const uint32_t DEFAULT_BIT_DEPTH = 32;
 static const uint32_t DEFAULT_NUM_OUTPUT_BUFFERS = 1;
 static const bool DEFAULT_QUICK_EXPORT_ASK = true;
@@ -25,6 +27,8 @@ void Settings::Load()
             /* If the config does not exist, this is a normal use case and we silently initialize a standard config. */
             playbackSampleRate = DEFAULT_SAMPLERATE;
             playbackOutputNumBuffers = DEFAULT_NUM_OUTPUT_BUFFERS;
+            playbackMaxLoops = DEFAULT_MAX_LOOPS;
+            playbackLoopIndefinitely = DEFAULT_LOOP_INDEFINITELY;
             exportSampleRate = DEFAULT_SAMPLERATE;
             exportBitDepth = DEFAULT_BIT_DEPTH;
             exportQuickExportDirectory = DEFAULT_EXPORT_DIRECTORY;
@@ -50,6 +54,18 @@ void Settings::Load()
         playbackOutputNumBuffers = DEFAULT_NUM_OUTPUT_BUFFERS;
     }
 
+    if (j.contains("playbackMaxLoops") && j["playbackMaxLoops"].is_number()) {
+        playbackMaxLoops = std::clamp<int8_t>(j["playbackMaxLoops"], 0, 127);
+    } else {
+        playbackMaxLoops = DEFAULT_MAX_LOOPS;
+    }
+
+    if (j.contains("playbackLoopIndefinitely") && j["playbackLoopIndefinitely"].is_boolean()) {
+        playbackLoopIndefinitely = j["playbackLoopIndefinitely"];
+    } else {
+        playbackLoopIndefinitely = DEFAULT_LOOP_INDEFINITELY;
+    }
+
     if (j.contains("exportSampleRate") && j["exportSampleRate"].is_number()) {
         exportSampleRate = std::max<uint32_t>(1u, j["exportSampleRate"]);
     } else {
@@ -60,6 +76,13 @@ void Settings::Load()
         exportBitDepth = std::max<uint32_t>(1u, j["exportBitDepth"]);
     } else {
         exportBitDepth = DEFAULT_BIT_DEPTH;
+    }
+
+    if (j.contains("exportMaxLoops") && j["exportMaxLoops"].is_number()) {
+        // Clamp to 0, inifite looping not allowed for export
+        exportMaxLoops = std::clamp<int8_t>(j["exportMaxLoops"], 0, 127);
+    } else {
+        exportMaxLoops = DEFAULT_MAX_LOOPS;
     }
 
     if (j.contains("exportPadStart") && j["exportPadStart"].is_number()) {
@@ -102,8 +125,11 @@ void Settings::Save()
     json j;
     j["playbackSampleRate"] = playbackSampleRate;
     j["playbackOutputNumBuffers"] = playbackOutputNumBuffers;
+    j["playbackMaxLoops"] = playbackMaxLoops;
+    j["playbackLoopIndefinitely"] = playbackLoopIndefinitely;
     j["exportSampleRate"] = exportSampleRate;
     j["exportBitDepth"] = exportBitDepth;
+    j["exportMaxLoops"] = exportMaxLoops;
     j["exportPadStart"] = exportPadStart;
     j["exportPadEnd"] = exportPadEnd;
     j["exportQuickExportDirectory"] = exportQuickExportDirectory;

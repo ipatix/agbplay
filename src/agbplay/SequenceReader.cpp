@@ -489,7 +489,7 @@ void SequenceReader::cmdPlayCommand(MP2KPlayer &player, MP2KTrack &trk, uint8_t 
         // GOTO
         if (trk.trackIdx == 0) {
             // handle agbplay's internal loop counter
-            if (ctx.agbplaySoundMode.maxLoops != LOOP_ENDLESS && numLoops++ >= ctx.agbplaySoundMode.maxLoops
+            if (ctx.maxLoops != LOOP_ENDLESS && numLoops++ >= static_cast<size_t>(ctx.maxLoops)
                 && !endReached) {
                 endReached = true;
                 ctx.mixer.StartFadeOut(SONG_FADE_OUT_TIME);

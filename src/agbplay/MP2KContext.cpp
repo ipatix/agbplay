@@ -8,6 +8,7 @@
 
 MP2KContext::MP2KContext(
     uint32_t sampleRate,
+    int8_t maxLoops,
     const Rom &rom,
     const MP2KSoundMode &mp2kSoundMode,
     const AgbplaySoundMode &agbplaySoundMode,
@@ -22,7 +23,8 @@ MP2KContext::MP2KContext(
     agbplaySoundMode(agbplaySoundMode),
     songTableInfo(songTableInfo),
     memaccArea(256),
-    masterLoudnessCalculator(LOUDNESS_LP_FREQ, sampleRate)
+    masterLoudnessCalculator(LOUDNESS_LP_FREQ, sampleRate),
+    maxLoops(maxLoops)
 {
     assert(playerTableInfo.size() <= 32);
 
@@ -217,6 +219,11 @@ uint8_t MP2KContext::m4aSongNumPlayerGet(uint16_t songId) const
 bool MP2KContext::m4aMPlayIsPlaying(uint8_t playerIdx) const
 {
     return players.at(playerIdx).playing;
+}
+
+void MP2KContext::m4aSetMaxLoops(int8_t maxLoops)
+{
+    this->maxLoops = maxLoops;
 }
 
 bool MP2KContext::SongEnded() const

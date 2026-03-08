@@ -10,6 +10,7 @@
 static const std::filesystem::path CONFIG_PATH = OS::GetLocalConfigDirectory() / "agbplay" / "config.json";
 static const std::filesystem::path DEFAULT_EXPORT_DIRECTORY = OS::GetMusicDirectory() / "agbplay";
 static const uint32_t DEFAULT_SAMPLERATE = 48000;
+static const int8_t DEFAULT_MAX_LOOPS = 1;
 static const uint32_t DEFAULT_BIT_DEPTH = 32;
 static const uint32_t DEFAULT_NUM_OUTPUT_BUFFERS = 1;
 static const bool DEFAULT_QUICK_EXPORT_ASK = true;
@@ -25,6 +26,7 @@ void Settings::Load()
             /* If the config does not exist, this is a normal use case and we silently initialize a standard config. */
             playbackSampleRate = DEFAULT_SAMPLERATE;
             playbackOutputNumBuffers = DEFAULT_NUM_OUTPUT_BUFFERS;
+            maxLoops = DEFAULT_MAX_LOOPS;
             exportSampleRate = DEFAULT_SAMPLERATE;
             exportBitDepth = DEFAULT_BIT_DEPTH;
             exportQuickExportDirectory = DEFAULT_EXPORT_DIRECTORY;
@@ -54,6 +56,12 @@ void Settings::Load()
         exportSampleRate = std::max<uint32_t>(1u, j["exportSampleRate"]);
     } else {
         exportSampleRate = DEFAULT_SAMPLERATE;
+    }
+
+    if (j.contains("maxLoops") && j["maxLoops"].is_number()) {
+        maxLoops = std::clamp<int8_t>(j["maxLoops"], -1, 127);
+    } else {
+        maxLoops = DEFAULT_MAX_LOOPS;
     }
 
     if (j.contains("exportBitDepth") && j["exportBitDepth"].is_number()) {

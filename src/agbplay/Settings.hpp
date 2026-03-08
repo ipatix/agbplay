@@ -11,6 +11,7 @@ struct Settings
 
     uint32_t playbackSampleRate = 0;
     uint32_t playbackOutputNumBuffers = 0;
+    int8_t maxLoops = 0;
 
     uint32_t exportSampleRate = 0;
     uint32_t exportBitDepth = 0;

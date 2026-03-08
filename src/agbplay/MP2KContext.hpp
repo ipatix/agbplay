@@ -21,6 +21,7 @@ struct MP2KContext
 {
     MP2KContext(
         uint32_t sampleRate,
+        int8_t maxLoops,
         const Rom &rom,
         const MP2KSoundMode &mp2kSoundMode,
         const AgbplaySoundMode &agbplaySoundMode,
@@ -53,6 +54,7 @@ struct MP2KContext
     void m4aMPlayAllKill();
     uint8_t m4aSongNumPlayerGet(uint16_t songId) const;
     bool m4aMPlayIsPlaying(uint8_t playerIdx) const;
+    void m4aSetMaxLoops(int8_t maxLoops);
 
     bool SongEnded() const;
     void GetVisualizerState(MP2KVisualizerState &visualizerState);
@@ -77,4 +79,5 @@ struct MP2KContext
     std::list<MP2KChnPSGNoise> noiseChannels;
 
     uint8_t primaryPlayer = 0;    // <-- this is only used for visualization, perhaps move outside from here
+    int8_t maxLoops = 1;
 };

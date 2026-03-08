@@ -1,11 +1,20 @@
 #pragma once
 
+#include <cstdint>
+
 #define NUM_NOTES      128
 #define PROG_UNDEFINED 0xFF
 #define MAX_TRACKS     16
 
 #define BPM_PER_FRAME 150
 #define AGB_FPS       60
+
+namespace {
+    const uint32_t AGB_CYCLES_PER_SEC = 16 * 1024 * 1024;
+    const uint32_t AGB_CYCLES_PER_FRAME = 280896;
+    const double AGB_EXACT_FPS = static_cast<double>(AGB_CYCLES_PER_SEC) / static_cast<double>(AGB_CYCLES_PER_FRAME);
+    const uint32_t AGB_APPROX_FPS = 60;
+}
 
 // for increased quality we process in subframes (including the base frame)
 #define INTERFRAMES 4

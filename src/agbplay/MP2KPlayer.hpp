@@ -29,7 +29,7 @@ struct MP2KPlayer
     size_t interframeCount = 0;
     size_t frameCount = 0;
     size_t tickCount = 0;
-    int32_t bpmStack = 0;
+    uint64_t tickProgress_32_32 = 0;
     uint16_t bpm = 0;
 
     /* variables initialized by song start */

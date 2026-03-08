@@ -23,6 +23,7 @@ public:
 
     void Process();
     size_t GetSamplesPerBuffer() const;
+    double GetBufferLengthSpeedCorrection() const;
     void ResetFade();
     void StartFadeOut(float millis);
     void StartFadeIn(float millis);
@@ -33,7 +34,8 @@ private:
 
     const uint32_t sampleRate;
     uint32_t fixedModeRate = 13379;
-    const size_t samplesPerBuffer = sampleRate / (AGB_FPS * INTERFRAMES);
+    const size_t samplesPerBuffer = static_cast<size_t>(sampleRate / (AGB_EXACT_FPS * INTERFRAMES));
+    const double samplesPerBufferExact = static_cast<double>(sampleRate) / static_cast<double>(AGB_EXACT_FPS * INTERFRAMES);
 
     // volume control related stuff
 

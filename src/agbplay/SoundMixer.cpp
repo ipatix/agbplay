@@ -151,6 +151,11 @@ size_t SoundMixer::GetSamplesPerBuffer() const
     return samplesPerBuffer;
 }
 
+double SoundMixer::GetBufferLengthSpeedCorrection() const
+{
+    return static_cast<double>(samplesPerBuffer) / samplesPerBufferExact;
+}
+
 void SoundMixer::ResetFade()
 {
     fadePos = 0.0f;

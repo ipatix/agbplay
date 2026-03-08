@@ -87,14 +87,32 @@ bool SequenceReader::PlayerMain(MP2KPlayer &player)
 
     // TODO implement player based fadeout
 
-    player.bpmStack += uint32_t(float(player.bpm) * speedFactor);
-    while (player.bpmStack >= BPM_PER_FRAME * INTERFRAMES) {
+
+    const double UNIT_BEAT_DUR = 24.0 / AGB_APPROX_FPS;
+    const double UNIT_BPM = 60.0 / UNIT_BEAT_DUR;
+    const double UNIT_FP_32_32 = static_cast<double>(1ull << 32ull);
+    const uint64_t UNIT_STEP_32_32 = static_cast<uint64_t>(UNIT_BPM * INTERFRAMES * UNIT_FP_32_32);
+
+    // UNIT_BPM refers to the beats per minute, which the engine runs at when
+    // each tick is exactly one frame
+    
+    // The GBA runs at slightly less than 60 FPS (59.7275), but MP2K internally assumes an FPS
+    // of exact 60 for tempo calculation. This means that on original MP2K the engine will run
+    // slightly too slow. We ask the mixer to give us the required correction factor to
+    // compensate for that. This will also compensate for buffer sizes, which do not divide
+    // evenly by the framerate (e.g. 44100 / (4 * 60) == 183.75).
+
+    player.tickProgress_32_32 += static_cast<uint64_t>(
+        player.bpm * speedFactor * ctx.mixer.GetBufferLengthSpeedCorrection() * UNIT_FP_32_32
+    );
+
+    while (player.tickProgress_32_32 >= UNIT_STEP_32_32) {
         bool playing = false;
         for (MP2KTrack &trk : player.tracks)
             playing |= TrackMain(player, trk);
 
         player.tickCount++;
-        player.bpmStack -= BPM_PER_FRAME * INTERFRAMES;
+        player.tickProgress_32_32 -= UNIT_STEP_32_32;
         if (!playing) {
             player.finished = true;
             player.playing = false;

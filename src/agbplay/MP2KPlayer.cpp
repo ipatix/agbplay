@@ -42,7 +42,7 @@ void MP2KPlayer::Init(const Rom &rom, size_t songHeaderPos)
         tracks.at(i).Init(0);
 
     // reset runtime variables
-    bpmStack = 0;
+    tickProgress_32_32 = 0;
     bpm = 150;
     tickCount = 0;
     frameCount = 0;

@@ -6,9 +6,6 @@
 #define PROG_UNDEFINED 0xFF
 #define MAX_TRACKS     16
 
-#define BPM_PER_FRAME 150
-#define AGB_FPS       60
-
 namespace {
     const uint32_t AGB_CYCLES_PER_SEC = 16 * 1024 * 1024;
     const uint32_t AGB_CYCLES_PER_FRAME = 280896;

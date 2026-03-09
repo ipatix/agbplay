@@ -395,7 +395,7 @@ void MP2KChnPSGSquare::SetPitch(int16_t pitch)
          * SetPitch calls. */
         uint8_t time = sweepTime(sweep);
         assert(time != 0);
-        sweepStartCount = static_cast<int16_t>(time * AGB_FPS * INTERFRAMES);
+        sweepStartCount = static_cast<int16_t>(time * AGB_APPROX_FPS * INTERFRAMES);
     }
 }
 
@@ -535,7 +535,7 @@ float MP2KChnPSGSquare::sweep2coeff(uint8_t sweep)
 
     /* convert the sweep pitch timer coefficient to the rate that agbplay runs at */
     const float hardware_sweep_rate = 128 / static_cast<float>(sweep_time);
-    const float agbplay_sweep_rate = AGB_FPS * INTERFRAMES;
+    const float agbplay_sweep_rate = AGB_APPROX_FPS * INTERFRAMES;
     const float coeff = powf(step_coeff, hardware_sweep_rate / agbplay_sweep_rate);
 
     return coeff;

@@ -38,7 +38,7 @@ void SoundMixer::UpdateFixedModeRate()
     assert(fixedModeRate > 0);
 
     const uint8_t numDmaBuffers = std::max(
-        static_cast<uint8_t>(2), static_cast<uint8_t>(ctx.agbplaySoundMode.dmaBufferLen / (fixedModeRate / AGB_FPS))
+        static_cast<uint8_t>(2), static_cast<uint8_t>(ctx.agbplaySoundMode.dmaBufferLen / (fixedModeRate / AGB_APPROX_FPS))
     );
 
     for (MP2KPlayer &player : ctx.players) {
@@ -165,14 +165,14 @@ void SoundMixer::ResetFade()
 void SoundMixer::StartFadeOut(float millis)
 {
     fadePos = 1.0f;
-    fadeMicroframesLeft = size_t(millis / 1000.0f * float(AGB_FPS * INTERFRAMES));
+    fadeMicroframesLeft = size_t(millis / 1000.0f * float(AGB_APPROX_FPS * INTERFRAMES));
     fadeStepPerMicroframe = -1.0f / float(fadeMicroframesLeft);
 }
 
 void SoundMixer::StartFadeIn(float millis)
 {
     fadePos = 0.0f;
-    fadeMicroframesLeft = size_t(millis / 1000.0f * float(AGB_FPS * INTERFRAMES));
+    fadeMicroframesLeft = size_t(millis / 1000.0f * float(AGB_APPROX_FPS * INTERFRAMES));
     fadeStepPerMicroframe = 1.0f / float(fadeMicroframesLeft);
 }
 

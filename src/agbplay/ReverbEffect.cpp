@@ -12,10 +12,10 @@
  */
 
 ReverbEffect::ReverbEffect(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers) :
-    reverbBuffer((streamRate / AGB_FPS) * numAgbBuffers, sample{0.0f, 0.0f})
+    reverbBuffer((streamRate / AGB_APPROX_FPS) * numAgbBuffers, sample{0.0f, 0.0f})
 {
     SetLevel(intensity);
-    const size_t bufferLen = streamRate / AGB_FPS;
+    const size_t bufferLen = streamRate / AGB_APPROX_FPS;
     bufferPos = 0;
     bufferPos2 = bufferLen;
 }
@@ -102,7 +102,7 @@ size_t ReverbEffect::ProcessInternal(std::span<sample> buffer)
  */
 
 ReverbGS1::ReverbGS1(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers) :
-    ReverbEffect(intensity, streamRate, numAgbBuffers), gsBuffer((streamRate / AGB_FPS), sample{0.0f, 0.0f})
+    ReverbEffect(intensity, streamRate, numAgbBuffers), gsBuffer((streamRate / AGB_APPROX_FPS), sample{0.0f, 0.0f})
 {
     bufferPos2 = 0;
 }
@@ -161,7 +161,7 @@ size_t ReverbGS1::ProcessInternal(std::span<sample> buffer)
 
 ReverbGS2::ReverbGS2(uint8_t intensity, size_t streamRate, uint8_t numAgbBuffers, float rPrimFac, float rSecFac) :
     ReverbEffect(intensity, streamRate, numAgbBuffers),
-    gs2Buffer(streamRate / AGB_FPS, sample{0.0f, 0.0f}),
+    gs2Buffer(streamRate / AGB_APPROX_FPS, sample{0.0f, 0.0f}),
     gs2Pos(0),
     rPrimFac(rPrimFac),
     rSecFac(rSecFac)

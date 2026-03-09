@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include <vector>
 
-class Profile;
+struct Profile;
 class Rom;
 
 class MP2KScanner

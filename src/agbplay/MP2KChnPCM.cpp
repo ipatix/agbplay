@@ -534,22 +534,23 @@ bool MP2KChnPCM::sampleFetchCallbackMPTDecomp(std::vector<float> &fetchBuffer, s
             int8_t data = sInfo.samplePtr[samplePos];
 
             // 4 bit nibble is shifted up to bit 31..28
-            int32_t nibble;
+            uint32_t nibble;
             if (loNibble)
-                nibble = (int32_t(data) << 28) & 0xF0000000;
+                nibble = static_cast<uint32_t>(data << 28) & 0xF0000000u;
             else
-                nibble = (int32_t(data) << 24) & 0xF0000000;
+                nibble = static_cast<uint32_t>(data << 24) & 0xF0000000u;
 
             // in the ARM ASM you can easily just shift by more than 31, but this does not work on x86/C++
             if (shiftMPTcompressed <= 63) {
                 int32_t actualShift = (int32_t)(shiftMPTcompressed >> 1u);
-                levelMPTcompressed = int16_t(levelMPTcompressed + (nibble >> actualShift));
+                levelMPTcompressed = int16_t(levelMPTcompressed + (static_cast<int32_t>(nibble) >> actualShift));
             }
 
-            if (nibble & 0x80000000)
-                nibble = -nibble;
+            if (static_cast<uint32_t>(nibble) & 0x80000000)
+                nibble = static_cast<uint32_t>(-static_cast<int32_t>(nibble));
+
             shiftMPTcompressed = uint8_t(shiftMPTcompressed + 4);
-            shiftMPTcompressed = uint8_t((uint32_t)shiftMPTcompressed - ((uint32_t)nibble >> 28u));
+            shiftMPTcompressed = uint8_t((uint32_t)shiftMPTcompressed - (nibble >> 28u));
 
             fetchBuffer[i++] = float(levelMPTcompressed) / 128.0f;
         } while (--thisFetch > 0);

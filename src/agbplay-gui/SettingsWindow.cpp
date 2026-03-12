@@ -70,6 +70,7 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
     ui->playbackMaxLoopsSpinBox->setEnabled(!settings.playbackLoopIndefinitely);
     ui->playbackLoopIndefinitelyCheckBox->setChecked(settings.playbackLoopIndefinitely);
 
+    ui->exportMaxLoopsSpinBox->setValue(settings.exportMaxLoops);
     ui->exportPadStartSpinBox->setValue(settings.exportPadStart);
     ui->exportPadEndSpinBox->setValue(settings.exportPadEnd);
 
@@ -197,6 +198,7 @@ void SettingsWindow::buttonBoxButtonPressed(QAbstractButton *button)
     settings.playbackLoopIndefinitely = ui->playbackLoopIndefinitelyCheckBox->checkState() == Qt::Checked;
     settings.exportSampleRate = std::max(1u, ui->exportSampleRateComboBox->currentData().toUInt());
     settings.exportBitDepth = std::max(1u, ui->exportBitDepthComboBox->currentData().toUInt());
+    settings.exportMaxLoops = static_cast<int8_t>(std::clamp(ui->exportMaxLoopsSpinBox->value(), 0, 127));
     settings.exportPadStart = std::clamp(ui->exportPadStartSpinBox->value(), 0.0, 100.0);
     settings.exportPadEnd = std::clamp(ui->exportPadEndSpinBox->value(), 0.0, 100.0);
     settings.exportQuickExportDirectory = ui->exportFolderLineEdit->text().toStdWString();

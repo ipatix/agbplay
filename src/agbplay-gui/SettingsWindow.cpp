@@ -65,7 +65,7 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
     ui->exportBitDepthComboBox->setCurrentIndex(exportComboBoxIndex);
 
     /* init other fields */
-    ui->playbackOutputNumBuffersSpinBox->setValue(settings.playbackOutputNumBuffers);
+    ui->playbackOutputNumBuffersSpinBox->setValue(static_cast<int>(settings.playbackOutputNumBuffers));
     ui->playbackMaxLoopsSpinBox->setValue(settings.playbackMaxLoops);
     ui->playbackMaxLoopsSpinBox->setEnabled(!settings.playbackLoopIndefinitely);
     ui->playbackLoopIndefinitelyCheckBox->setChecked(settings.playbackLoopIndefinitely);

@@ -224,7 +224,7 @@ One more thing about reverb: Most games just use Nintendo's default reverb algor
 Last but not least, agbplay now supports different resampling algorithms which
 can be set in the JSON-File. There is a setting for normal PCM sounds
 `pcm-resampling-algo` and `pcm-fixed-rate-resampling-algo` for fixed frequency sounds (mostly used
-for drums). They sypport the following values:
+for drums). They support the following values:
 
 - `nearest` = Fast! Commonly referred to as "no interpolation". Sounds pretty
   bad in most cases but can give you that low quality crunchyness. You most

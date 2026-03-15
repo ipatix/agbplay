@@ -139,7 +139,7 @@
        </property>
        <widget class="QWidget" name="tab_4">
         <attribute name="title">
-         <string>Proile Information</string>
+         <string>Profile Information</string>
         </attribute>
         <layout class="QFormLayout" name="formLayout_3">
          <item row="1" column="0">

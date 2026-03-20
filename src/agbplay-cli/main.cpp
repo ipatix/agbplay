@@ -2,14 +2,18 @@
 
 #include <argparse/argparse.hpp>
 
+#include "Render.hpp"
 #include "Version.hpp"
+#include "Rom.hpp"
+#include "Util.hpp"
 
 namespace {
     std::string songId;
     std::string outputPath;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     const std::string VER = GIT_VERSION_STRING;
     argparse::ArgumentParser program(argv[0], VER);
 
@@ -127,7 +131,9 @@ int main(int argc, char *argv[]) {
     // Determine command
     if (program.is_subcommand_used("render")) {
         if (pRender.is_subcommand_used("master")) {
+            commandHandler = std::bind(CLI::Render, songId, outputPath, false);
         } else if (pRender.is_subcommand_used("stems")) {
+            commandHandler = std::bind(CLI::Render, songId, outputPath, true);
         } else {
             parseErrorParser = std::cref(pRender);
         }
@@ -174,8 +180,13 @@ int main(int argc, char *argv[]) {
         std::cerr << parseErrorParser.get();
         return 1;
     } else {
-        commandHandler();
-    }
+        try {
+            Rom::CreateInstance(StrToU8Str(program.get<std::string>("image")));
 
-    std::cout << "ok" << std::endl;
+            commandHandler();
+        } catch (const std::exception &e) {
+            std::cerr << "Error:\n" << e.what() << std::endl;
+            return 1;
+        }
+    }
 }

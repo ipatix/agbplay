@@ -2,6 +2,9 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <optional>
+#include <string>
+#include <vector>
 
 struct sf_private_tag;
 struct Profile;
@@ -15,6 +18,7 @@ class SoundExporter
 public:
     SoundExporter(
         const std::filesystem::path &directory,
+        const std::vector<std::filesystem::path> filePaths,
         const Settings &settings,
         const Profile &profile,
         bool benchmarkOnly,
@@ -25,11 +29,17 @@ public:
 
     void Export();
 
+    static const std::filesystem::path SONG_NAME_PATTERN;
+    static const std::filesystem::path TRACK_ID_PATTERN;
+    static const std::filesystem::path SONG_ID_PATTERN;
+
 private:
     void writeSilence(sf_private_tag *ofile, double seconds);
-    size_t exportSong(const std::filesystem::path &filePath, uint16_t uid);
+    size_t exportSong(const std::filesystem::path &filePathPatt, size_t playlistIndex);
+    std::filesystem::path makeFilePath(const std::filesystem::path &filePathPatt, size_t playlistIndex, std::optional<size_t> trackId = std::nullopt);
 
     const std::filesystem::path directory;
+    const std::vector<std::filesystem::path> filePaths;
     const Settings &settings;
     const Profile &profile;
 

@@ -45,54 +45,9 @@ int main(int argc, char *argv[])
         pm.LoadProfiles();
 
         fmt::print("Opening profile...\n");
-        auto profileCandidates = pm.GetProfiles(Rom::Instance());
-
-        assert(profileCandidates.size() >= 1);
-        size_t profileIdx = 0;
-        if (profileCandidates.size() > 1) {
-            fmt::print("Found multiple matching profiles, please select profile to load:\n");
-            for (size_t i = 0; i < profileCandidates.size(); i++) {
-                Profile &p = *profileCandidates.at(i);
-                std::string d = p.description;
-                if (d.size() == 0)
-                    d = "<no description>";
-                if (p.songTableInfoConfig.pos != SongTableInfo::POS_AUTO)
-                    fmt::print(
-                        " [{}]:\n  file: {}\n  descrpiption: {}\n  tablePos=0x{:X}\n",
-                        i,
-                        p.path.string(),
-                        d,
-                        p.songTableInfoConfig.pos
-                    );
-                else
-                    fmt::print(
-                        " [{}]:\n  file: {}\n  descrpiption: {}\n  tableIdx={}\n",
-                        i,
-                        p.path.string(),
-                        d,
-                        p.songTableInfoConfig.tableIdx
-                    );
-            }
-            size_t i;
-            do {
-                std::string istr;
-                std::cout << "Specify number of listed profiles to load: " << std::flush;
-                std::cin >> istr;
-                if (std::cin.eof()) {
-                    std::cout << std::endl;
-                    throw Xcept("Cannot load profile: No profile number specified");
-                }
-                try {
-                    i = std::stoul(istr);
-                } catch (...) {
-                    i = std::numeric_limits<size_t>::max();
-                }
-            } while (i >= profileCandidates.size());
-            profileIdx = i;
-        }
 
         fmt::print("Creating GUI!\n");
-        WindowGUI wgui(*profileCandidates.at(profileIdx));
+        WindowGUI wgui(*pm.GetCLIDefaultProfile(Rom::Instance()));
 
         std::chrono::nanoseconds frameTime(1000000000 / 60);
 

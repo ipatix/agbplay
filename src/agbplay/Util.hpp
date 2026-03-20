@@ -17,17 +17,25 @@ inline void CStrAppend(char *dest, size_t *index, const char *src)
         dest[(*index)++] = ch;
 }
 
-template<typename T> void ReplaceIllegalPathCharacters(std::basic_string<T> &str, T filler)
-{
-    static const char illegalChars[] = "<>:\"/\\|?*";
-    for (auto &c : str) {
-        if (c <= 31) {
-            c = filler;
-        } else {
-            for (const char *illegalChar = &illegalChars[0]; *illegalChar; illegalChar++) {
-                if (c == static_cast<T>(*illegalChar))
-                    c = filler;
+namespace {
+    template<typename T>
+        void ReplaceIllegalPathCharacters(std::basic_string<T> &str, T filler)
+    {
+        static const char illegalChars[] = "<>:\"/\\|?*";
+        for (auto &c : str) {
+            if (c <= 31) {
+                c = filler;
+            } else {
+                for (const char *illegalChar = &illegalChars[0]; *illegalChar; illegalChar++) {
+                    if (c == static_cast<T>(*illegalChar))
+                        c = filler;
+                }
             }
         }
+    }
+
+    inline std::u8string StrToU8Str(const std::string &s)
+    {
+        return reinterpret_cast<const char8_t *>(s.c_str());
     }
 }

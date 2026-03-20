@@ -18,6 +18,7 @@ public:
     void LoadProfiles();
     void SaveProfiles();
     static std::filesystem::path ProfileUserPath();
+    std::shared_ptr<Profile> GetCLIDefaultProfile(const Rom &rom);
     std::vector<std::shared_ptr<Profile>> GetProfiles(const Rom &rom);
     std::vector<std::shared_ptr<Profile>> &GetAllProfiles();
     std::shared_ptr<Profile> &CreateProfile(const std::string &gameCode, size_t tableIdx);

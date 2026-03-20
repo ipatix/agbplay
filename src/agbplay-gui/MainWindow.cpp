@@ -918,7 +918,7 @@ void MainWindow::ExportAudio(bool benchmarkOnly, bool separateTracks, bool quick
             bool tSeparateTracks
         ) {
             try {
-                SoundExporter se(tDirectory, tSettings, tProfile, tBenchmarkOnly, tSeparateTracks);
+                SoundExporter se(tDirectory, {}, tSettings, tProfile, tBenchmarkOnly, tSeparateTracks);
                 se.Export();
             } catch (std::exception &e) {
                 Debug::print("Export failed:\n{}", e.what());

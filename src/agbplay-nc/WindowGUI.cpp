@@ -732,7 +732,7 @@ void WindowGUI::exportLaunch(bool benchmarkOnly, bool separate)
 
     exportThread = std::make_unique<std::thread>(
         [this](std::filesystem::path dir, Settings tSettings, Profile profile, bool tBenchmarkOnly, bool tSeparate) {
-            SoundExporter se(dir, tSettings, profile, tBenchmarkOnly, tSeparate);
+            SoundExporter se(dir, {}, tSettings, profile, tBenchmarkOnly, tSeparate);
             se.Export();
             exportBusy.store(false);
         },

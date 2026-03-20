@@ -14,7 +14,6 @@
 #include <chrono>
 #include <climits>
 #include <cmath>
-#include <codecvt>
 #include <filesystem>
 #include <mutex>
 #include <sndfile.h>
@@ -24,21 +23,28 @@
  * public SoundExporter
  */
 
+const std::filesystem::path SoundExporter::SONG_NAME_PATTERN = "\%SONGNAME\%";
+const std::filesystem::path SoundExporter::SONG_ID_PATTERN = "\%SONGID\%";
+const std::filesystem::path SoundExporter::TRACK_ID_PATTERN = "\%TRACKID\%";
+
 SoundExporter::SoundExporter(
     const std::filesystem::path &directory,
+    const std::vector<std::filesystem::path> filePaths,
     const Settings &settings,
     const Profile &profile,
     bool benchmarkOnly,
     bool seperate
 ) :
-    directory(directory), settings(settings), profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
+    directory(directory), filePaths(filePaths), settings(settings), profile(profile), benchmarkOnly(benchmarkOnly), seperate(seperate)
 {
 }
 
 void SoundExporter::Export()
 {
-    if (!benchmarkOnly) {
-        Debug::print("Starting export to directory: {}", directory.string());
+    if (filePaths.size() != 0 && filePaths.size() != profile.playlist.size())
+        throw Xcept("Number of provided output paths must be equal to the number of songs to export");
+
+    if (!benchmarkOnly && filePaths.size() == 0) {
         /* create directories for file export */
         if (std::filesystem::exists(directory)) {
             if (!std::filesystem::is_directory(directory)) {
@@ -57,23 +63,15 @@ void SoundExporter::Export()
     std::function<void(void)> threadFunc = [&]() {
         OS::LowerThreadPriority();
         while (!cancel) {
-            size_t i = currentSong++;    // atomic ++
+            const size_t i = currentSong++;    // atomic ++
             if (i >= profile.playlist.size())
                 return;
 
-            /* name's in profile are utf8 encoded */
-            std::string name = profile.playlist.at(i).name;
-            ReplaceIllegalPathCharacters(name, '_');
-            Debug::print("{:3}% - Rendering to file: \"{}\"", (i + 1) * 100 / profile.playlist.size(), name);
-            std::u8string u8name(reinterpret_cast<const char8_t *>(name.c_str()));
-            std::filesystem::path filePath = directory;
-            filePath /= fmt::format("{:03d} - ", i + 1);
-            filePath += u8name;
-
             try {
-                totalSamplesRendered += exportSong(filePath, profile.playlist.at(i).id);
+                const std::filesystem::path filePathPatt = (i >= filePaths.size()) ? "" : filePaths.at(i);
+                totalSamplesRendered += exportSong(filePathPatt, i);
             } catch (std::exception &e) {
-                Debug::print("Exception while exporting song '{}':\n{}", filePath.string(), e.what());
+                Debug::print("Exception while exporting song '{}' (playlist_idx={} id={}):\n{}", profile.playlist.at(i).name, i, profile.playlist.at(i).id, e.what());
                 cancel = true;
             }
         }
@@ -110,6 +108,9 @@ void SoundExporter::Export()
             secondsTotal
         );
     }
+
+    if (cancel)
+        Debug::print("Export operation was cancelled. Please check the log for errors!");
 }
 
 /*
@@ -125,8 +126,13 @@ void SoundExporter::writeSilence(SNDFILE *ofile, double seconds)
     sf_writef_float(ofile, reinterpret_cast<float *>(silence.data()), static_cast<sf_count_t>(silence.size()));
 }
 
-size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t uid)
+size_t SoundExporter::exportSong(const std::filesystem::path &filePathPatt, size_t playlistIndex)
 {
+    Debug::print("{:3}% - Rendering to file: \"{}\"",
+        (playlistIndex + 1) * 100 / profile.playlist.size(),
+        makeFilePath(filePathPatt, playlistIndex, 0).string()
+    );
+
     MP2KContext ctx(
         settings.exportSampleRate,
         settings.exportMaxLoops,
@@ -137,9 +143,11 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
         profile.playerTablePlayback
     );
 
-    ctx.m4aSongNumStart(uid);
+    const uint16_t songId = profile.playlist.at(playlistIndex).id;
 
-    const uint8_t playerIdx = ctx.m4aSongNumPlayerGet(uid);
+    ctx.m4aSongNumStart(songId);
+
+    const uint8_t playerIdx = ctx.m4aSongNumPlayerGet(songId);
     size_t samplesRendered = 0;
     size_t samplesPerBuffer = ctx.mixer.GetSamplesPerBuffer();
     size_t nTracks = ctx.players.at(playerIdx).tracksUsed;
@@ -180,8 +188,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
                 oinfos[i].samplerate = static_cast<int>(settings.exportSampleRate);
                 oinfos[i].channels = 2;    // stereo
                 oinfos[i].format = SF_FORMAT_WAV | bitDepth;
-                std::filesystem::path finalFilePath = filePath;
-                finalFilePath += fmt::format(".{:02d}.wav", i);
+                const auto finalFilePath = makeFilePath(filePathPatt, playlistIndex, i);
 
 #ifdef _WIN32
                 SNDFILE *sndfile = sf_wchar_open(finalFilePath.wstring().c_str(), SFM_WRITE, &oinfos[i]);
@@ -223,8 +230,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
             oinfo.samplerate = static_cast<int>(settings.exportSampleRate);
             oinfo.channels = 2;    // sterep
             oinfo.format = SF_FORMAT_WAV | bitDepth;
-            std::filesystem::path finalFilePath = filePath;
-            finalFilePath += fmt::format(".wav");
+            const auto finalFilePath = makeFilePath(filePathPatt, playlistIndex);
 #ifdef _WIN32
             SNDFILE *sndfile = sf_wchar_open(finalFilePath.wstring().c_str(), SFM_WRITE, &oinfo);
 #else
@@ -271,4 +277,47 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePath, uint16_t
         }
     }
     return samplesRendered;
+}
+
+std::filesystem::path SoundExporter::makeFilePath(const std::filesystem::path &filePathPatt, size_t playlistIndex, std::optional<size_t> trackId)
+{
+    std::wstring filePathPattW = filePathPatt.wstring();
+
+    if (filePathPattW.empty()) {
+        std::filesystem::path filePathPattNew;
+        if (trackId) {
+            filePathPattNew = std::format(
+                L"{} - {}.{}.wav",
+                SONG_ID_PATTERN.wstring(),
+                SONG_NAME_PATTERN.wstring(),
+                TRACK_ID_PATTERN.wstring()
+            );
+        } else {
+            filePathPattNew = std::format(
+                L"{} - {}.wav",
+                SONG_ID_PATTERN.wstring(),
+                SONG_NAME_PATTERN.wstring()
+            );
+        }
+        filePathPattW = (directory / filePathPattNew).wstring();
+    }
+
+    std::string playlistName = profile.playlist.at(playlistIndex).name;
+    ReplaceIllegalPathCharacters(playlistName, '_');
+    std::wstring playlistNameW = std::filesystem::path(std::u8string(reinterpret_cast<const char8_t *>(playlistName.c_str()))).wstring();
+
+    const uint16_t songId = profile.playlist.at(playlistIndex).id;
+
+    boost::replace_all(filePathPattW, SONG_ID_PATTERN.wstring(), std::to_wstring(songId));
+    boost::replace_all(filePathPattW, SONG_NAME_PATTERN.wstring(), playlistNameW);
+
+    if (trackId) {
+        if (filePathPattW.find(TRACK_ID_PATTERN.wstring()) == filePathPattW.npos)
+            throw Xcept("Cannot export stems to file. Please add {} to your path pattern", TRACK_ID_PATTERN.string());
+        boost::replace_all(filePathPattW, TRACK_ID_PATTERN.wstring(), std::format(L"{:02d}", *trackId));
+    } else {
+        boost::replace_all(filePathPattW, TRACK_ID_PATTERN.wstring(), L"");
+    }
+
+    return filePathPattW;
 }

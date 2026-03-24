@@ -314,11 +314,7 @@ std::filesystem::path SoundExporter::makeFilePath(const std::filesystem::path &f
     if (seperate) {
         if (filePathPattW.find(TRACK_ID_PATTERN.wstring()) == filePathPattW.npos)
             throw Xcept("Cannot export stems to file. Please add {} to your path pattern", TRACK_ID_PATTERN.string());
-        std::wstring trackIdW;
-        if (trackId == std::numeric_limits<size_t>::max())
-            trackIdW = L"XX";
-        else
-            trackIdW = std::format(L"{:02d}", trackId);
+        std::wstring trackIdW = trackId == std::numeric_limits<size_t>::max() ? L"XX" : std::format(L"{:02d}", trackId);
         boost::replace_all(filePathPattW, TRACK_ID_PATTERN.wstring(), trackIdW);
     } else {
         boost::replace_all(filePathPattW, TRACK_ID_PATTERN.wstring(), L"");

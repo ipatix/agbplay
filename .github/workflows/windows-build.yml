@@ -62,6 +62,7 @@ jobs:
         run: |
           mkdir -p build_artifacts/agbplay
           cp build/src/agbplay-gui/agbplay-gui.exe build_artifacts/agbplay/
+          cp build/src/agbplay-cli/agbplay-cli.exe build_artifacts/agbplay/
           cp build/src/agbplay/libagbplay.dll build_artifacts/agbplay/
 
       - name: Copy dependencies

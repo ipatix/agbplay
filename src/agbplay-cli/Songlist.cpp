@@ -1,4 +1,4 @@
-#include "Song.hpp"
+#include "Songlist.hpp"
 
 #include "MP2KContext.hpp"
 #include "ProfileManager.hpp"
@@ -10,7 +10,7 @@
 #include <limits>
 #include <string>
 
-void CLI::SongShow(const std::string &songId)
+void CLI::SonglistShow(const std::string &songId)
 {
     const long long songIdLL = std::stoll(songId);
     if (songIdLL > std::numeric_limits<uint16_t>::max() || songIdLL < std::numeric_limits<uint16_t>::min())
@@ -50,7 +50,7 @@ void CLI::SongShow(const std::string &songId)
         fmt::print("  - [{:02d}] {:#x}\n", i, player.tracks.at(i).pos);
 }
 
-void CLI::SongList()
+void CLI::SonglistList()
 {
     ProfileManager pm;
     pm.LoadProfiles();
@@ -90,4 +90,19 @@ void CLI::SongList()
             player.tracksUsed
         );
     }
+}
+
+void CLI::SonglistCount()
+{
+    ProfileManager pm;
+    pm.LoadProfiles();
+
+    Settings s;
+    s.Load();
+
+    Profile p = *pm.GetCLIDefaultProfile(Rom::Instance());
+
+    assert(!p.songTableInfoPlayback.IsAuto());
+
+    fmt::print("{}\n", p.songTableInfoPlayback.count);
 }

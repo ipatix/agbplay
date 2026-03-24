@@ -3,7 +3,7 @@
 #include <argparse/argparse.hpp>
 
 #include "Render.hpp"
-#include "Song.hpp"
+#include "Songlist.hpp"
 
 #include "Version.hpp"
 #include "Rom.hpp"
@@ -40,31 +40,21 @@ int main(int argc, char *argv[])
     pRenderStems.add_description("Render stems (multitrack) to files");
     pRender.add_subparser(pRenderStems);
 
-    // $ agbplay song
-    argparse::ArgumentParser pSong("song", VER);
-    pSong.add_description("Inspect a song");
-    program.add_subparser(pSong);
-
-    // $ agbplay song show
-    argparse::ArgumentParser pSongShow("show", VER);
-    pSongShow.add_description("Show detailed song information");
-    pSongShow.add_argument("song-id").store_into(songId).help("Song ID to print details about").required();
-    pSong.add_subparser(pSongShow);
-
-    // $ agbplay song list
-    argparse::ArgumentParser pSongList("list", VER);
-    pSongList.add_description("List all available songs");
-    pSong.add_subparser(pSongList);
-
     // $ agbplay songlist
     argparse::ArgumentParser pSonglist("songlist", VER);
-    pSonglist.add_description("Inspect the list of available songs");
+    pSonglist.add_description("Inspect the list of available songs by song ID");
     program.add_subparser(pSonglist);
 
     // $ agbplay songlist show
     argparse::ArgumentParser pSonglistShow("show", VER);
-    pSonglistShow.add_description("List all available songs (songlist only)");
+    pSonglistShow.add_description("Show detailed song information");
+    pSonglistShow.add_argument("song-id").store_into(songId).help("Song ID to print details about").required();
     pSonglist.add_subparser(pSonglistShow);
+
+    // $ agbplay songlist list
+    argparse::ArgumentParser pSonglistList("list", VER);
+    pSonglistList.add_description("List all available songs");
+    pSonglist.add_subparser(pSonglistList);
 
     // $ agbplay songlist count
     argparse::ArgumentParser pSonglistCount("count", VER);
@@ -141,17 +131,13 @@ int main(int argc, char *argv[])
         } else {
             parseErrorParser = std::cref(pRender);
         }
-    } else if (program.is_subcommand_used("song")) {
-        if (pSong.is_subcommand_used("show")) {
-            commandHandler = std::bind(CLI::SongShow, songId);
-        } else if (pSong.is_subcommand_used("list")) {
-            commandHandler = CLI::SongList;
-        } else {
-            parseErrorParser = std::cref(pSong);
-        }
     } else if (program.is_subcommand_used("songlist")) {
         if (pSonglist.is_subcommand_used("show")) {
+            commandHandler = std::bind(CLI::SonglistShow, songId);
+        } else if (pSonglist.is_subcommand_used("list")) {
+            commandHandler = CLI::SonglistList;
         } else if (pSonglist.is_subcommand_used("count")) {
+            commandHandler = CLI::SonglistCount;
         } else {
             parseErrorParser = std::cref(pSonglist);
         }

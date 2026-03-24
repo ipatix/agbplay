@@ -130,7 +130,7 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePathPatt, size
 {
     Debug::print("{:3}% - Rendering to file: \"{}\"",
         (playlistIndex + 1) * 100 / profile.playlist.size(),
-        makeFilePath(filePathPatt, playlistIndex, 0).string()
+        makeFilePath(filePathPatt, playlistIndex, std::numeric_limits<size_t>::max()).string()
     );
 
     MP2KContext ctx(
@@ -279,13 +279,13 @@ size_t SoundExporter::exportSong(const std::filesystem::path &filePathPatt, size
     return samplesRendered;
 }
 
-std::filesystem::path SoundExporter::makeFilePath(const std::filesystem::path &filePathPatt, size_t playlistIndex, std::optional<size_t> trackId)
+std::filesystem::path SoundExporter::makeFilePath(const std::filesystem::path &filePathPatt, size_t playlistIndex, size_t trackId)
 {
     std::wstring filePathPattW = filePathPatt.wstring();
 
     if (filePathPattW.empty()) {
         std::filesystem::path filePathPattNew;
-        if (trackId) {
+        if (seperate) {
             filePathPattNew = std::format(
                 L"{} - {}.{}.wav",
                 SONG_ID_PATTERN.wstring(),
@@ -311,10 +311,15 @@ std::filesystem::path SoundExporter::makeFilePath(const std::filesystem::path &f
     boost::replace_all(filePathPattW, SONG_ID_PATTERN.wstring(), std::to_wstring(songId));
     boost::replace_all(filePathPattW, SONG_NAME_PATTERN.wstring(), playlistNameW);
 
-    if (trackId) {
+    if (seperate) {
         if (filePathPattW.find(TRACK_ID_PATTERN.wstring()) == filePathPattW.npos)
             throw Xcept("Cannot export stems to file. Please add {} to your path pattern", TRACK_ID_PATTERN.string());
-        boost::replace_all(filePathPattW, TRACK_ID_PATTERN.wstring(), std::format(L"{:02d}", *trackId));
+        std::wstring trackIdW;
+        if (trackId == std::numeric_limits<size_t>::max())
+            trackIdW = L"XX";
+        else
+            trackIdW = std::format(L"{:02d}", trackId);
+        boost::replace_all(filePathPattW, TRACK_ID_PATTERN.wstring(), trackIdW);
     } else {
         boost::replace_all(filePathPattW, TRACK_ID_PATTERN.wstring(), L"");
     }

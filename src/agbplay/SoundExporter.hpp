@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <filesystem>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -36,7 +35,7 @@ public:
 private:
     void writeSilence(sf_private_tag *ofile, double seconds);
     size_t exportSong(const std::filesystem::path &filePathPatt, size_t playlistIndex);
-    std::filesystem::path makeFilePath(const std::filesystem::path &filePathPatt, size_t playlistIndex, std::optional<size_t> trackId = std::nullopt);
+    std::filesystem::path makeFilePath(const std::filesystem::path &filePathPatt, size_t playlistIndex, size_t trackId = 0);
 
     const std::filesystem::path directory;
     const std::vector<std::filesystem::path> filePaths;

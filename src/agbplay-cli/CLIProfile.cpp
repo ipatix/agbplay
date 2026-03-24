@@ -127,13 +127,16 @@ void CLI::ProfileList()
 
     auto profiles = pm.GetAllProfiles();
 
-    fmt::print("   Game Codes    |    Path\n");
-    fmt::print("-----------------+------------\n");
+    fmt::print("    Game Codes    |         Name         |           Path\n");
+    fmt::print("------------------+----------------------+--------------------------\n");
 
     for (const auto &p : profiles) {
         std::string codes = p->gameMatch.gameCodes | std::views::join_with(',') | std::ranges::to<std::string>();
         if (codes.size() > 14)
-            codes = codes.substr(14) + "..";
-        fmt::print("{: ^16s} | {}\n", codes, p->path.string());
+            codes = codes.substr(0, 14) + "..";
+        std::string name = p->name;
+        if (name.size() > 18)
+            name = name.substr(0, 18) + "..";
+        fmt::print(" {: ^16s} | {:20s} | {}\n", codes, name, p->path.string());
     }
 }

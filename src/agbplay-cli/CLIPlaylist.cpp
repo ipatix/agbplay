@@ -1,4 +1,4 @@
-#include "Playlist.hpp"
+#include "CLIPlaylist.hpp"
 
 #include <fmt/core.h>
 

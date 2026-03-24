@@ -2,9 +2,9 @@
 
 #include <argparse/argparse.hpp>
 
-#include "Playlist.hpp"
-#include "Render.hpp"
-#include "Songlist.hpp"
+#include "CLIPlaylist.hpp"
+#include "CLIRender.hpp"
+#include "CLISonglist.hpp"
 
 #include "Version.hpp"
 #include "Rom.hpp"

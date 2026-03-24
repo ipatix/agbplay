@@ -97,9 +97,6 @@ void CLI::SonglistCount()
     ProfileManager pm;
     pm.LoadProfiles();
 
-    Settings s;
-    s.Load();
-
     Profile p = *pm.GetCLIDefaultProfile(Rom::Instance());
 
     assert(!p.songTableInfoPlayback.IsAuto());

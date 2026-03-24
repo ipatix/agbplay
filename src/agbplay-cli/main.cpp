@@ -2,6 +2,7 @@
 
 #include <argparse/argparse.hpp>
 
+#include "Playlist.hpp"
 #include "Render.hpp"
 #include "Songlist.hpp"
 
@@ -13,6 +14,8 @@ namespace
 {
     std::string songId;
     std::string outputPath;
+    std::string songName;
+    std::string playlistIdx;
 }
 
 int main(int argc, char *argv[])
@@ -67,7 +70,7 @@ int main(int argc, char *argv[])
     program.add_subparser(pPlaylist);
 
     // $ agbplay playlist show
-    argparse::ArgumentParser pPlaylistShow("show", VER);
+    argparse::ArgumentParser pPlaylistShow("list", VER);
     pPlaylistShow.add_description("List all available songs in the playlist");
     pPlaylist.add_subparser(pPlaylistShow);
 
@@ -78,17 +81,21 @@ int main(int argc, char *argv[])
 
     // $ agbplay playlist song
     argparse::ArgumentParser pPlaylistSong("song", VER);
-    pPlaylistSong.add_description("Manipulate or inspect a song in the playlist");
+    pPlaylistSong.add_description("Manipulate or inspect songs in playlist");
     pPlaylist.add_subparser(pPlaylistSong);
 
     // $ agbplay playlist song add
     argparse::ArgumentParser pPlaylistSongAdd("add", VER);
     pPlaylistSongAdd.add_description("Add a song to the playlist");
+    pPlaylistSongAdd.add_argument("name").store_into(songName).help("Song name of the new playlist entry").required();
+    pPlaylistSongAdd.add_argument("song-id").store_into(songId).help("Song ID of the new playlist entry").required();
+    pPlaylistSongAdd.add_argument("playlist-idx").store_into(playlistIdx).help("Playlist index of the new entry").required();
     pPlaylistSong.add_subparser(pPlaylistSongAdd);
 
     // $ agbplay playlist song remove
     argparse::ArgumentParser pPlaylistSongRemove("remove", VER);
     pPlaylistSongRemove.add_description("Remove a song from the playlist");
+    pPlaylistSongRemove.add_argument("playlist-idx").store_into(playlistIdx).help("Playlist index of the new entry").required();
     pPlaylistSong.add_subparser(pPlaylistSongRemove);
 
     // $ agbplay profile
@@ -142,11 +149,15 @@ int main(int argc, char *argv[])
             parseErrorParser = std::cref(pSonglist);
         }
     } else if (program.is_subcommand_used("playlist")) {
-        if (pPlaylist.is_subcommand_used("show")) {
+        if (pPlaylist.is_subcommand_used("list")) {
+            commandHandler = CLI::PlaylistList;
         } else if (pPlaylist.is_subcommand_used("count")) {
+            commandHandler = CLI::PlaylistCount;
         } else if (pPlaylist.is_subcommand_used("song")) {
             if (pPlaylistSong.is_subcommand_used("add")) {
+                commandHandler = std::bind(CLI::PlaylistSongAdd, songName, songId, playlistIdx);
             } else if (pPlaylistSong.is_subcommand_used("remove")) {
+                commandHandler = std::bind(CLI::PlaylistSongRemove, playlistIdx);
             } else {
                 parseErrorParser = std::cref(pPlaylistSong);
             }

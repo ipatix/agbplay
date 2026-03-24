@@ -166,7 +166,9 @@ int main(int argc, char *argv[])
         }
     } else if (program.is_subcommand_used("profile")) {
         if (pProfile.is_subcommand_used("show")) {
+            commandHandler = []() { throw std::runtime_error("This command is not yet implemented"); };
         } else if (pProfile.is_subcommand_used("list")) {
+            commandHandler = []() { throw std::runtime_error("This command is not yet implemented"); };
         } else {
             parseErrorParser = std::cref(pProfile);
         }

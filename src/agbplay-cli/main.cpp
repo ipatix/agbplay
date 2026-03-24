@@ -3,11 +3,14 @@
 #include <argparse/argparse.hpp>
 
 #include "Render.hpp"
+#include "Song.hpp"
+
 #include "Version.hpp"
 #include "Rom.hpp"
 #include "Util.hpp"
 
-namespace {
+namespace
+{
     std::string songId;
     std::string outputPath;
 }
@@ -45,6 +48,7 @@ int main(int argc, char *argv[])
     // $ agbplay song show
     argparse::ArgumentParser pSongShow("show", VER);
     pSongShow.add_description("Show detailed song information");
+    pSongShow.add_argument("song-id").store_into(songId).help("Song ID to print details about").required();
     pSong.add_subparser(pSongShow);
 
     // $ agbplay song list
@@ -139,7 +143,9 @@ int main(int argc, char *argv[])
         }
     } else if (program.is_subcommand_used("song")) {
         if (pSong.is_subcommand_used("show")) {
+            commandHandler = std::bind(CLI::SongShow, songId);
         } else if (pSong.is_subcommand_used("list")) {
+            commandHandler = CLI::SongList;
         } else {
             parseErrorParser = std::cref(pSong);
         }

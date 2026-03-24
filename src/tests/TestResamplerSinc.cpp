@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <fmt/core.h>
+#include <print>
 #include <numbers>
 #include <span>
 #include <vector>
@@ -17,7 +17,7 @@ const float TEST_FREQ = 22000.0f;
 template<typename T> void printSig(std::span<T> buffer)
 {
     for (size_t i = 0; i < buffer.size(); i++)
-        fmt::print("signal[{}] = {}\n", i, buffer[i]);
+        std::println("signal[{}] = {}", i, buffer[i]);
 }
 
 long double toDB(long double x)
@@ -79,7 +79,7 @@ int main()
         if (fetchBuffer.size() >= samplesRequired)
             return true;
 
-        fmt::print("hello: samplesRequired={}\n", samplesRequired);
+        std::println("hello: samplesRequired={}", samplesRequired);
         size_t samplesToFetch = samplesRequired - fetchBuffer.size();
         size_t i = fetchBuffer.size();
         fetchBuffer.resize(samplesRequired);
@@ -94,7 +94,7 @@ int main()
             } while (--thisFetch > 0);
 
             if (pos >= buffer.size()) {
-                fmt::print("warning padding resampler with zeroes: {}\n", fetchBuffer.size() - i);
+                std::println("warning padding resampler with zeroes: {}", fetchBuffer.size() - i);
                 std::fill(fetchBuffer.begin() + i, fetchBuffer.end(), 0.0f);
                 return false;
             }
@@ -102,25 +102,25 @@ int main()
         return true;
     };
 
-    fmt::print("Generating sine\n");
+    std::println("Generating sine");
     genSine<PRECISION>(buffer, SAMPLERATE, TEST_FREQ);
-    fmt::print("rms of sine: {:.4f} dB\n", toDB(calcRms<PRECISION>(buffer)));
+    std::println("rms of sine: {:.4f} dB", toDB(calcRms<PRECISION>(buffer)));
 
-    fmt::print("Resampling\n");
+    std::println("Resampling");
     SincResampler res;
     res.Process(resampledBuffer, 1.0f / resampledRatio, sampleFetchFunc);
-    fmt::print("rms of resampled sine: {:.4f} dB\n", toDB(calcRms<PRECISION>(resampledBuffer)));
+    std::println("rms of resampled sine: {:.4f} dB", toDB(calcRms<PRECISION>(resampledBuffer)));
 
     // applyWindow<PRECISION>(buffer);
-    // fmt::print("rms of window: {:.4f} dB\n", toDB(calcRms<PRECISION>(buffer)));
+    // std::println("rms of window: {:.4f} dB", toDB(calcRms<PRECISION>(buffer)));
 
     applyNotch<PRECISION>(buffer, SAMPLERATE, TEST_FREQ);
     applyNotch<PRECISION>(resampledBuffer, resampledRate, TEST_FREQ);
 
-    fmt::print("Trimming start glitches\n");
+    std::println("Trimming start glitches");
     buffer.erase(buffer.begin(), buffer.begin() + static_cast<int>(0.25f * SAMPLERATE));
     resampledBuffer.erase(resampledBuffer.begin(), resampledBuffer.begin() + static_cast<int>(0.25f * resampledRate));
 
-    fmt::print("rms of notch'ed signal: {:.4f} dB\n", toDB(calcRms<PRECISION>(buffer)));
-    fmt::print("rms of notch'ed resampled signal: {:.4f} dB\n", toDB(calcRms<PRECISION>(resampledBuffer)));
+    std::println("rms of notch'ed signal: {:.4f} dB", toDB(calcRms<PRECISION>(buffer)));
+    std::println("rms of notch'ed resampled signal: {:.4f} dB", toDB(calcRms<PRECISION>(resampledBuffer)));
 }

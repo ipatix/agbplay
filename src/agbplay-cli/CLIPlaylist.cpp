@@ -1,6 +1,6 @@
 #include "CLIPlaylist.hpp"
 
-#include <fmt/core.h>
+#include <print>
 
 #include "ProfileManager.hpp"
 #include "Rom.hpp"
@@ -13,12 +13,12 @@ void CLI::PlaylistList()
 
     Profile p = *pm.GetCLIDefaultProfile(Rom::Instance());
 
-    fmt::print("Index | SongID | Name\n");
-    fmt::print("------+--------+-----\n");
+    std::println("Index | SongID | Name");
+    std::println("------+--------+-----");
 
     for (size_t i = 0; i < p.playlist.size(); i++) {
         const auto &entry = p.playlist.at(i);
-        fmt::print("{: >5d} | {: >6d} | {}\n", i, entry.id, entry.name);
+        std::println("{: >5d} | {: >6d} | {}", i, entry.id, entry.name);
     }
 }
 
@@ -29,7 +29,7 @@ void CLI::PlaylistCount()
 
     Profile p = *pm.GetCLIDefaultProfile(Rom::Instance());
 
-    fmt::print("{}\n", p.playlist.size());
+    std::println("{}", p.playlist.size());
 }
 
 void CLI::PlaylistSongAdd(const std::string &name, const std::string &songId, const std::string &playlistIdx)

@@ -2,7 +2,7 @@
 
 #include "Types.hpp"
 
-#include <fmt/core.h>
+#include <format>
 
 SongWidget::SongWidget(QWidget *parent) : QWidget(parent)
 {
@@ -84,7 +84,7 @@ SongWidget::~SongWidget()
 {
 }
 
-#define setFmtText(...) setText(QString::fromStdString(fmt::format(__VA_ARGS__)))
+#define setFmtText(...) setText(QString::fromStdString(std::format(__VA_ARGS__)))
 
 void SongWidget::setVisualizerState(const MP2KVisualizerStatePlayer &state, size_t activeChannels)
 {

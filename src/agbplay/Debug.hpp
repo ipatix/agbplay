@@ -1,14 +1,14 @@
 #pragma once
 
-#include <fmt/core.h>
+#include <format>
 #include <string>
 
 namespace Debug
 {
     void puts(const std::string &msg);
-    template<typename... Args> void print(fmt::format_string<Args...> fmt, Args &&...args)
+    template<typename... Args> void print(std::format_string<Args...> fmt, Args &&...args)
     {
-        Debug::puts(fmt::format(fmt, std::forward<Args>(args)...));
+        Debug::puts(std::format(fmt, std::forward<Args>(args)...));
     }
     bool open(const char *file);
     bool close();

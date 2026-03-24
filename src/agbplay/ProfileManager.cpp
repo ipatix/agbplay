@@ -7,11 +7,12 @@
 #include "Xcept.hpp"
 
 #include <algorithm>
-#include <fmt/core.h>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <nlohmann/json.hpp>
+#include <print>
 
 // TODO somewhat severe bug:
 // It is currently legal to have multiple profiles with the same path. We should somehow check for that
@@ -41,23 +42,23 @@ std::shared_ptr<Profile> ProfileManager::GetCLIDefaultProfile(const Rom &rom)
     assert(profileCandidates.size() >= 1);
     size_t profileIdx = 0;
     if (profileCandidates.size() > 1) {
-        fmt::print("Found multiple matching profiles, please select profile to load:\n");
+        std::println("Found multiple matching profiles, please select profile to load:");
         for (size_t i = 0; i < profileCandidates.size(); i++) {
             Profile &p = *profileCandidates.at(i);
             std::string d = p.description;
             if (d.size() == 0)
                 d = "<no description>";
             if (p.songTableInfoConfig.pos != SongTableInfo::POS_AUTO)
-                fmt::print(
-                    " [{}]:\n  file: {}\n  descrpiption: {}\n  tablePos=0x{:X}\n",
+                std::println(
+                    " [{}]:\n  file: {}\n  descrpiption: {}\n  tablePos=0x{:X}",
                     i,
                     p.path.string(),
                     d,
                     p.songTableInfoConfig.pos
                 );
             else
-                fmt::print(
-                    " [{}]:\n  file: {}\n  descrpiption: {}\n  tableIdx={}\n",
+                std::println(
+                    " [{}]:\n  file: {}\n  descrpiption: {}\n  tableIdx={}",
                     i,
                     p.path.string(),
                     d,
@@ -141,7 +142,7 @@ void ProfileManager::LoadProfileDir(const std::filesystem::path &dir)
 
     if (!std::filesystem::is_directory(dir))
         throw std::invalid_argument(
-            fmt::format("ProfileManager: Profile directory is not a directory: {}", dir.string())
+            std::format("ProfileManager: Profile directory is not a directory: {}", dir.string())
         );
 
     for (const auto &dirEntry : std::filesystem::directory_iterator(dir)) {
@@ -254,7 +255,7 @@ std::vector<std::shared_ptr<Profile>> &ProfileManager::GetAllProfiles()
 
 std::shared_ptr<Profile> &ProfileManager::CreateProfile(const std::string &gameCode, size_t tableIdx)
 {
-    const std::string profileName = fmt::format("{}.{}.json", gameCode, tableIdx);
+    const std::string profileName = std::format("{}.{}.json", gameCode, tableIdx);
     std::shared_ptr<Profile> &profile = profiles.emplace_back(std::make_shared<Profile>());
     if (!gameCode.empty())
         profile->gameMatch.gameCodes.emplace_back(gameCode);
@@ -266,7 +267,7 @@ std::shared_ptr<Profile> &ProfileManager::CreateProfile(const std::string &gameC
 
 void ProfileManager::SetStandardPath(Profile &profile, const std::string &gameCode, size_t tableIdx)
 {
-    const std::string profileName = fmt::format("{}.{}.json", gameCode, tableIdx);
+    const std::string profileName = std::format("{}.{}.json", gameCode, tableIdx);
     if (!gameCode.empty())
         profile.path = OS::GetLocalConfigDirectory() / "agbplay" / "profiles" / profileName;
     else

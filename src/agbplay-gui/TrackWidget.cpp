@@ -2,8 +2,6 @@
 
 #include "Types.hpp"
 
-#include <fmt/core.h>
-
 TrackWidget::TrackWidget(size_t trackNo, QWidget *parent) : QWidget(parent), trackNo(trackNo)
 {
     setFixedHeight(36);
@@ -261,7 +259,7 @@ const std::bitset<128> TrackWidget::getPressed() const
     return keyboardWidget.getPressedKeys();
 }
 
-#define setFmtText(...) setText(QString::fromStdString(fmt::format(__VA_ARGS__)))
+#define setFmtText(...) setText(QString::fromStdString(std::format(__VA_ARGS__)))
 
 void TrackWidget::setVisualizerState(const MP2KVisualizerStateTrack &state)
 {

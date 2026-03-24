@@ -10,7 +10,7 @@
 #include <cstdio>
 #include <cstring>
 #include <curses.h>
-#include <fmt/core.h>
+#include <print>
 #include <iostream>
 #include <portaudiocpp/AutoSystem.hxx>
 
@@ -37,16 +37,16 @@ int main(int argc, char *argv[])
         setlocale(LC_ALL, "");
 
         portaudio::AutoSystem paSystem;
-        fmt::print("Loading ROM...\n");
+        std::println("Loading ROM...");
         Rom::CreateInstance(argv[1]);
 
-        fmt::print("Loading Profiles...\n");
+        std::println("Loading Profiles...");
         ProfileManager pm;
         pm.LoadProfiles();
 
-        fmt::print("Opening profile...\n");
+        std::println("Opening profile...");
 
-        fmt::print("Creating GUI!\n");
+        std::println("Creating GUI!");
         WindowGUI wgui(*pm.GetCLIDefaultProfile(Rom::Instance()));
 
         std::chrono::nanoseconds frameTime(1000000000 / 60);

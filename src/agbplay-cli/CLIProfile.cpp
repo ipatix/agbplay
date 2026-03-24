@@ -4,7 +4,7 @@
 #include "Rom.hpp"
 
 #include <algorithm>
-#include <fmt/core.h>
+#include <print>
 #include <ranges>
 #include <sstream>
 
@@ -30,48 +30,48 @@ void CLI::ProfileShow()
 
     const auto p = pm.GetCLIDefaultProfile(Rom::Instance());
 
-    fmt::print("Selected Profile '{}':\n", p->path.string());
-    fmt::print("  Name:        {}\n", p->name);
-    fmt::print("  Author:      {}\n", p->author);
-    fmt::print("  Game Studio: {}\n", p->gameStudio);
-    fmt::print("  Description:\n{}", indent(p->description, 4));
-    fmt::print("  Notes:\n{}", indent(p->description, 4));
+    std::println("Selected Profile '{}':", p->path.string());
+    std::println("  Name:        {}", p->name);
+    std::println("  Author:      {}", p->author);
+    std::println("  Game Studio: {}", p->gameStudio);
+    std::print("  Description:\n{}", indent(p->description, 4));
+    std::println("  Notes:{}", indent(p->description, 4));
 
-    fmt::print("  Game Match:\n");
-    fmt::print("    Game Codes: [{}]\n", p->gameMatch.gameCodes | std::views::join_with(std::string_view(", ")) | std::ranges::to<std::string>());
+    std::println("  Game Match:");
+    std::println("    Game Codes: [{}]", p->gameMatch.gameCodes | std::views::join_with(std::string_view(", ")) | std::ranges::to<std::string>());
     if (p->gameMatch.magicBytes.size() > 0) {
-        fmt::print("    Magic Bytes: [{}]\n",
+        std::println("    Magic Bytes: [{}]",
             p->gameMatch.magicBytes |
-            std::views::transform([](uint8_t b) { return fmt::format("{:02x}", b); }) |
+            std::views::transform([](uint8_t b) { return std::format("{:02x}", b); }) |
             std::views::join_with(std::string_view(", ")) |
             std::ranges::to<std::string>()
         );
     }
 
-    fmt::print("  Song Table:\n");
+    std::println("  Song Table:");
 
     if (p->songTableInfoConfig.IsAuto()) {
         if (p->songTableInfoScanned.IsAuto()) {
-            fmt::print("    Offset:    automatic\n");
-            fmt::print("    Num Songs: automatic\n");
-            fmt::print("    Index:     {}\n", p->songTableInfoConfig.tableIdx);
+            std::println("    Offset:    automatic");
+            std::println("    Num Songs: automatic");
+            std::println("    Index:     {}", p->songTableInfoConfig.tableIdx);
         } else {
-            fmt::print("    Offset:    automatic ({:#x})\n", p->songTableInfoScanned.pos);
-            fmt::print("    Num Songs: automatic ({})\n", p->songTableInfoScanned.count);
-            fmt::print("    Index:     {}\n", p->songTableInfoConfig.tableIdx);
+            std::println("    Offset:    automatic ({:#x})", p->songTableInfoScanned.pos);
+            std::println("    Num Songs: automatic ({})", p->songTableInfoScanned.count);
+            std::println("    Index:     {}", p->songTableInfoConfig.tableIdx);
         }
     } else {
-        fmt::print("    Offset:    {:#x}\n", p->songTableInfoConfig.pos);
-        fmt::print("    Num Songs: {}\n", p->songTableInfoConfig.count);
+        std::println("    Offset:    {:#x}", p->songTableInfoConfig.pos);
+        std::println("    Num Songs: {}", p->songTableInfoConfig.count);
     }
 
     if (p->playerTableConfig.size() == 0) {
         if (p->playerTableScanned.size() == 0) {
-            fmt::print("  Player Table: auto\n");
+            std::println("  Player Table: auto");
         } else {
-            fmt::print("  Player Table: auto (count={})\n", p->playerTableScanned.size());
+            std::println("  Player Table: auto (count={})", p->playerTableScanned.size());
             for (size_t i = 0; i < p->playerTableScanned.size(); i++) {
-                fmt::print("    - [{:02d}] maxTracks: {: >2d}, usePriority: {}\n",
+                std::println("    - [{:02d}] maxTracks: {: >2d}, usePriority: {}",
                     i,
                     p->playerTableScanned.at(i).maxTracks,
                     static_cast<bool>(p->playerTableScanned.at(i).usePriority)
@@ -79,9 +79,9 @@ void CLI::ProfileShow()
             }
         }
     } else {
-        fmt::print("  Player Table: manual (count={})\n", p->playerTableConfig.size());
+        std::println("  Player Table: manual (count={})", p->playerTableConfig.size());
         for (size_t i = 0; i < p->playerTableConfig.size(); i++) {
-            fmt::print("    - [{:02d}] maxTracks: {: >2d}, usePriority: {}\n",
+            std::println("    - [{:02d}] maxTracks: {: >2d}, usePriority: {}",
                 i,
                 p->playerTableConfig.at(i).maxTracks,
                 static_cast<bool>(p->playerTableConfig.at(i).usePriority)
@@ -91,33 +91,33 @@ void CLI::ProfileShow()
 
     if (p->mp2kSoundModeConfig.IsAuto()) {
         if (!p->mp2kSoundModeScanned.IsAuto()) {
-            fmt::print("  MP2K Sound Mode: automatic (scanned)\n");
-            fmt::print("    Volume:     {} / 15\n", p->mp2kSoundModeScanned.vol);
-            fmt::print("    Reverb:     {:#04x}\n", p->mp2kSoundModeScanned.rev);
-            fmt::print("    Frequency:  {}\n", p->mp2kSoundModeScanned.freq);
-            fmt::print("    Max Chn:    {} / 12\n", p->mp2kSoundModeScanned.maxChannels);
-            fmt::print("    DAC Config: {}\n", p->mp2kSoundModeScanned.dacConfig);
+            std::println("  MP2K Sound Mode: automatic (scanned)");
+            std::println("    Volume:     {} / 15", p->mp2kSoundModeScanned.vol);
+            std::println("    Reverb:     {:#04x}", p->mp2kSoundModeScanned.rev);
+            std::println("    Frequency:  {}", p->mp2kSoundModeScanned.freq);
+            std::println("    Max Chn:    {} / 12", p->mp2kSoundModeScanned.maxChannels);
+            std::println("    DAC Config: {}", p->mp2kSoundModeScanned.dacConfig);
         } else {
-            fmt::print("  MP2K Sound Mode: automatic (not scanned)\n");
+            std::println("  MP2K Sound Mode: automatic (not scanned)");
         }
     } else {
-        fmt::print("  MP2K Sound Mode: manual\n");
-        fmt::print("    Volume:     {} / 15\n", p->mp2kSoundModeConfig.vol);
-        fmt::print("    Reverb:     {:#04x}\n", p->mp2kSoundModeConfig.rev);
-        fmt::print("    Frequency:  {}\n", p->mp2kSoundModeConfig.freq);
-        fmt::print("    Max Chn:    {} / 12\n", p->mp2kSoundModeConfig.maxChannels);
-        fmt::print("    DAC Config: {}\n", p->mp2kSoundModeConfig.dacConfig);
+        std::println("  MP2K Sound Mode: manual");
+        std::println("    Volume:     {} / 15", p->mp2kSoundModeConfig.vol);
+        std::println("    Reverb:     {:#04x}", p->mp2kSoundModeConfig.rev);
+        std::println("    Frequency:  {}", p->mp2kSoundModeConfig.freq);
+        std::println("    Max Chn:    {} / 12", p->mp2kSoundModeConfig.maxChannels);
+        std::println("    DAC Config: {}", p->mp2kSoundModeConfig.dacConfig);
     }
 
-    fmt::print("  agbplay Sound Mode:\n");
-    fmt::print("    Resampler (normal): {}\n", res2str(p->agbplaySoundMode.resamplerTypeNormal));
-    fmt::print("    Resampler (fixed): {}\n", res2str(p->agbplaySoundMode.resamplerTypeFixed));
-    fmt::print("    Reverb Type: {}\n", rev2str(p->agbplaySoundMode.reverbType));
-    fmt::print("    PSG Polyphony: {}\n", cgbPoly2str(p->agbplaySoundMode.cgbPolyphony));
-    fmt::print("    DMA Buffer Len: {:#x}\n", p->agbplaySoundMode.dmaBufferLen);
-    fmt::print("    Accurate CH3 Quant: {}\n", p->agbplaySoundMode.accurateCh3Quantization);
-    fmt::print("    Accurate CH3 Vol: {}\n", p->agbplaySoundMode.accurateCh3Volume);
-    fmt::print("    Emulate PSG Sustain Bug: {}\n", p->agbplaySoundMode.emulateCgbSustainBug);
+    std::println("  agbplay Sound Mode:");
+    std::println("    Resampler (normal): {}", res2str(p->agbplaySoundMode.resamplerTypeNormal));
+    std::println("    Resampler (fixed): {}", res2str(p->agbplaySoundMode.resamplerTypeFixed));
+    std::println("    Reverb Type: {}", rev2str(p->agbplaySoundMode.reverbType));
+    std::println("    PSG Polyphony: {}", cgbPoly2str(p->agbplaySoundMode.cgbPolyphony));
+    std::println("    DMA Buffer Len: {:#x}", p->agbplaySoundMode.dmaBufferLen);
+    std::println("    Accurate CH3 Quant: {}", p->agbplaySoundMode.accurateCh3Quantization);
+    std::println("    Accurate CH3 Vol: {}", p->agbplaySoundMode.accurateCh3Volume);
+    std::println("    Emulate PSG Sustain Bug: {}", p->agbplaySoundMode.emulateCgbSustainBug);
 }
 
 void CLI::ProfileList()
@@ -127,8 +127,8 @@ void CLI::ProfileList()
 
     auto profiles = pm.GetAllProfiles();
 
-    fmt::print("    Game Codes    |         Name         |           Path\n");
-    fmt::print("------------------+----------------------+--------------------------\n");
+    std::println("    Game Codes    |         Name         |           Path");
+    std::println("------------------+----------------------+--------------------------");
 
     for (const auto &p : profiles) {
         std::string codes = p->gameMatch.gameCodes | std::views::join_with(',') | std::ranges::to<std::string>();
@@ -137,6 +137,6 @@ void CLI::ProfileList()
         std::string name = p->name;
         if (name.size() > 18)
             name = name.substr(0, 18) + "..";
-        fmt::print(" {: ^16s} | {:20s} | {}\n", codes, name, p->path.string());
+        std::println(" {: ^16s} | {:20s} | {}", codes, name, p->path.string());
     }
 }

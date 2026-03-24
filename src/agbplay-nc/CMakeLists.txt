@@ -4,7 +4,6 @@ set(CMAKE_CXX_STANDARD 23)
 
 include(FindPkgConfig)
 find_package(PkgConfig REQUIRED)
-find_package(fmt REQUIRED)
 pkg_check_modules(ncurses REQUIRED IMPORTED_TARGET ncursesw)
 pkg_check_modules(portaudio REQUIRED IMPORTED_TARGET portaudiocpp)
 
@@ -26,7 +25,6 @@ target_link_libraries(agbplay-nc
     PRIVATE
     agbplay
     agbplay-util
-    fmt::fmt
     PkgConfig::portaudio
     PkgConfig::ncurses
 )

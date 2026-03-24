@@ -1,5 +1,4 @@
 #include <cmath>
-#include <fmt/core.h>
 #include <numbers>
 
 template<typename OT, typename IT> struct NotchFilter

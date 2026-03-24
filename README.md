@@ -29,7 +29,6 @@ Performance may be really bad with the high quality resamplers.
 
 Package       | Debian/Ubuntu      | Arch          | MinGW
 ---           | ---                | ---           | ---
-libfmt        | libfmt-dev         | fmt           | fmt
 nlohmann JSON | nlohmann-json3-dev | nlohmann-json | nlohmann-json
 Boost         | libboost-all-dev   | boost         | boost
 libzip        | libzip-dev         | libzip        | libzip

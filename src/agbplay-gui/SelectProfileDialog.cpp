@@ -2,7 +2,7 @@
 
 #include "Profile.hpp"
 
-#include <fmt/core.h>
+#include <format>
 #include <QListWidgetItem>
 #include <QMessageBox>
 
@@ -51,7 +51,7 @@ void SelectProfileDialog::addToSelectionDialog(const Profile &profile)
         tableIndexItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
         if (profile.songTableInfoConfig.pos != SongTableInfo::POS_AUTO)
-            tablePosItem->setText(QString::fromStdString(fmt::format("0x{:x}", profile.songTableInfoConfig.pos)));
+            tablePosItem->setText(QString::fromStdString(std::format("0x{:x}", profile.songTableInfoConfig.pos)));
         else
             tableIndexItem->setText(QString::number(profile.songTableInfoConfig.tableIdx));
 

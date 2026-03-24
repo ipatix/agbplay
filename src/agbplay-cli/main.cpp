@@ -3,6 +3,7 @@
 #include <argparse/argparse.hpp>
 
 #include "CLIPlaylist.hpp"
+#include "CLIProfile.hpp"
 #include "CLIRender.hpp"
 #include "CLISonglist.hpp"
 
@@ -166,9 +167,9 @@ int main(int argc, char *argv[])
         }
     } else if (program.is_subcommand_used("profile")) {
         if (pProfile.is_subcommand_used("show")) {
-            commandHandler = []() { throw std::runtime_error("This command is not yet implemented"); };
+            commandHandler = CLI::ProfileShow;
         } else if (pProfile.is_subcommand_used("list")) {
-            commandHandler = []() { throw std::runtime_error("This command is not yet implemented"); };
+            commandHandler = CLI::ProfileList;
         } else {
             parseErrorParser = std::cref(pProfile);
         }

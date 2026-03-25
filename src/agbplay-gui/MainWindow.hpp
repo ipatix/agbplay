@@ -13,6 +13,7 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QSlider>
 #include <QSplitter>
 #include <QTableView>
 #include <QTextEdit>
@@ -100,6 +101,7 @@ private:
     QPushButton speedHalveButton{this};
     QPushButton speedDoubleButton{this};
     VUMeterWidget vuMeter{128, 32, this};
+    QSlider volumeSlider{this};
 
     /* central container */
     QWidget containerCentral{this};

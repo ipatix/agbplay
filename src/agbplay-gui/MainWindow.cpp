@@ -272,6 +272,16 @@ void MainWindow::SetupToolBar()
     toolBar->addSeparator();
 
     toolBar->addWidget(&vuMeter);
+
+    toolBar->addSeparator();
+
+    volumeSlider.setFixedSize(128, 32);
+    volumeSlider.setOrientation(Qt::Horizontal);
+    volumeSlider.setMinimum(0);
+    volumeSlider.setMaximum(100);
+    volumeSlider.setTickInterval(10);
+    volumeSlider.setTickPosition(QSlider::TicksBothSides);
+    toolBar->addWidget(&volumeSlider);
 }
 
 void MainWindow::SetupWidgets()

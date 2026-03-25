@@ -15,7 +15,7 @@
 
 #include <algorithm>
 #include <array>
-#include <format>
+#include <fmt/core.h>
 #include <fstream>
 #include <QCloseEvent>
 #include <QDesktopServices>
@@ -470,7 +470,7 @@ void MainWindow::LoadSong(const std::string &title, uint16_t id)
         return;
 
     playbackEngine->LoadSong(id);
-    statusWidget.songWidget.titleLabel.setText(QString::fromStdString(std::format("{} - {}", id, title)));
+    statusWidget.songWidget.titleLabel.setText(QString::fromStdString(fmt::format("{} - {}", id, title)));
 
     if (playlistFocus) {
         songlistWidget.SetPlayState(false);
@@ -739,7 +739,7 @@ void MainWindow::LoadGame()
     }
 
     for (uint16_t i = 0; i < profile->songTableInfoPlayback.count; i++) {
-        auto songName = std::format("{:04}", i);
+        auto songName = fmt::format("{:04}", i);
         songlistWidget.AddSong(songName, i);
     }
 
@@ -766,7 +766,7 @@ void MainWindow::LoadGame()
     infoWidget.romNameLineEdit.setText(QString::fromStdString(Rom::Instance().ReadString(0xA0, 12)));
     infoWidget.romCodeLineEdit.setText(QString::fromStdString(Rom::Instance().GetROMCode()));
     infoWidget.songTableLineEdit.setText(
-        QString::fromStdString(std::format("0x{:X}", profile->songTableInfoPlayback.pos))
+        QString::fromStdString(fmt::format("0x{:X}", profile->songTableInfoPlayback.pos))
     );
     infoWidget.songCountLineEdit.setText(QString::number(profile->songTableInfoPlayback.count));
 
@@ -959,7 +959,7 @@ void MainWindow::SaveLog()
     const std::filesystem::path selectedFile = fileDialog.selectedFiles().at(0).toStdWString();
     std::ofstream fileStream(selectedFile);
     if (!fileStream.is_open()) {
-        MBoxError("Save log file failed", std::format("Failed to save file: {}", strerror(errno)));
+        MBoxError("Save log file failed", fmt::format("Failed to save file: {}", strerror(errno)));
         return;
     }
 
@@ -1049,12 +1049,12 @@ void MainWindow::UpdateSoundMode()
         "262 kHz @ 6 bit",
     };
 
-    const std::string vol = std::format("{}/15", profile->mp2kSoundModePlayback.vol);
-    const std::string rev = std::format("{}/127", profile->mp2kSoundModePlayback.rev % 128);
-    const std::string freq = std::format(
+    const std::string vol = fmt::format("{}/15", profile->mp2kSoundModePlayback.vol);
+    const std::string rev = fmt::format("{}/127", profile->mp2kSoundModePlayback.rev % 128);
+    const std::string freq = fmt::format(
         "{}: {} Hz", profile->mp2kSoundModePlayback.freq, rateTable[profile->mp2kSoundModePlayback.freq % 16]
     );
-    const std::string chn = std::format("{}/12", profile->mp2kSoundModePlayback.maxChannels);
+    const std::string chn = fmt::format("{}/12", profile->mp2kSoundModePlayback.maxChannels);
     const std::string dac = dacTable[profile->mp2kSoundModePlayback.dacConfig % 4];
 
     infoWidget.pcmVolValLabel.setText(QString::fromStdString(vol));

@@ -6,7 +6,7 @@
 #include "Xcept.hpp"
 
 #include <cassert>
-#include <print>
+#include <fmt/core.h>
 #include <limits>
 #include <string>
 
@@ -38,16 +38,16 @@ void CLI::SonglistShow(const std::string &songId)
 
     const MP2KPlayer &player = ctx.players.at(ctx.primaryPlayer);
 
-    std::println("Song {} (hex: {:#x}) information:", songIdLL, songIdLL);
-    std::println("  Header offset: {:#x}", player.songHeaderPos);
-    std::println("  Voice table offset: {:#x}", player.bankPos);
-    std::println("  Reverb: {:#x}", player.reverb);
-    std::println("  Priority: {}", player.priority);
-    std::println("  Player number: {}", player.playerIdx);
-    std::println("  Tracks (count: {}):", player.tracksUsed);
+    fmt::print("Song {} (hex: {:#x}) information:\n", songIdLL, songIdLL);
+    fmt::print("  Header offset: {:#x}\n", player.songHeaderPos);
+    fmt::print("  Voice table offset: {:#x}\n", player.bankPos);
+    fmt::print("  Reverb: {:#x}\n", player.reverb);
+    fmt::print("  Priority: {}\n", player.priority);
+    fmt::print("  Player number: {}\n", player.playerIdx);
+    fmt::print("  Tracks (count: {}):\n", player.tracksUsed);
     assert(player.tracksUsed <= player.tracks.size());
     for (size_t i = 0; i < player.tracksUsed; i++)
-        std::println("  - [{:02d}] {:#x}", i, player.tracks.at(i).pos);
+        fmt::print("  - [{:02d}] {:#x}\n", i, player.tracks.at(i).pos);
 }
 
 void CLI::SonglistList()
@@ -72,15 +72,15 @@ void CLI::SonglistList()
 
     assert(!p.songTableInfoPlayback.IsAuto());
 
-    std::println("SongID | Header Off | VoiceT Off | Rev  | Prio | PlyID | #Trks");
-    std::println("-------+------------+------------+------+------+-------+------");
+    fmt::print("SongID | Header Off | VoiceT Off | Rev  | Prio | PlyID | #Trks\n");
+    fmt::print("-------+------------+------------+------+------+-------+------\n");
 
     for (size_t i = 0; i < p.songTableInfoPlayback.count; i++) {
         ctx.m4aSongNumStart(static_cast<uint16_t>(i));
 
         const MP2KPlayer &player = ctx.players.at(ctx.primaryPlayer);
 
-        std::println("{: >6d} | {: >#10x} | {: >#10x} | {:#04x} | {: >4d} | {: >5d} | {: >5d}",
+        fmt::print("{: >6d} | {: >#10x} | {: >#10x} | {:#04x} | {: >4d} | {: >5d} | {: >5d}\n",
             i,
             player.songHeaderPos,
             player.bankPos,
@@ -101,5 +101,5 @@ void CLI::SonglistCount()
 
     assert(!p.songTableInfoPlayback.IsAuto());
 
-    std::println("{}", p.songTableInfoPlayback.count);
+    fmt::print("{}\n", p.songTableInfoPlayback.count);
 }

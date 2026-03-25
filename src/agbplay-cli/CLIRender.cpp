@@ -3,10 +3,12 @@
 #include <cassert>
 #include <cstdint>
 #include <filesystem>
+#include <format>
 #include <limits>
 #include <string>
 #include <string_view>
 #include <vector>
+#include <fmt/core.h>
 
 #include "ProfileManager.hpp"
 #include "Rom.hpp"

@@ -4,7 +4,7 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <format>
+#include <fmt/core.h>
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QStandardPaths>
@@ -21,7 +21,7 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
 
     /* init samplerate combo boxes */
     for (const auto v : standardRates) {
-        const auto s = QString::fromStdString(std::format("{} Hz", v));
+        const auto s = QString::fromStdString(fmt::format("{} Hz", v));
         ui->playbackSampleRateComboBox->addItem(s, QVariant(v));
         ui->exportSampleRateComboBox->addItem(s, QVariant(v));
     }
@@ -33,7 +33,7 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
     if (it == standardRates.end()) {
         /* manually add samplerate if not in the list */
         const auto r = settings.playbackSampleRate;
-        const auto s = QString::fromStdString(std::format("{} Hz (custom)", r));
+        const auto s = QString::fromStdString(fmt::format("{} Hz (custom)", r));
         ui->playbackSampleRateComboBox->addItem(s, QVariant(r));
     }
 
@@ -45,7 +45,7 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
     if (it == standardRates.end()) {
         /* manually add samplerate if not in the list */
         const auto r = settings.exportSampleRate;
-        const auto s = QString::fromStdString(std::format("{} Hz (custom)", r));
+        const auto s = QString::fromStdString(fmt::format("{} Hz (custom)", r));
         ui->exportSampleRateComboBox->addItem(s, QVariant(r));
     }
 
@@ -56,7 +56,7 @@ QDialog(parent), ui(new Ui::SettingsWindow), settings(settings)
     /* init bit depth combo box */
     for (const auto v : standardBits) {
         const std::string format = (v == 32) ? "Float" : "Integer";
-        const auto s = QString::fromStdString(std::format("{}-bit ({})", v, format));
+        const auto s = QString::fromStdString(fmt::format("{}-bit ({})", v, format));
         ui->exportBitDepthComboBox->addItem(s, QVariant(v));
     }
 
@@ -147,7 +147,7 @@ void SettingsWindow::updateComboBoxRate(QComboBox *comboBox, int &index, const i
     } else if (oldIt != standardRates.end() && newIt == standardRates.end()) {
         /* Only old rate is standard rate, add custom rate to combo box. */
         assert(newIndex < 0);
-        const auto s = QString::fromStdString(std::format("{} Hz (custom)", newRate));
+        const auto s = QString::fromStdString(fmt::format("{} Hz (custom)", newRate));
         comboBox->addItem(s, newRate);
         newIndex = comboBox->findData(newRate);
         assert(newIndex >= 0);
@@ -157,7 +157,7 @@ void SettingsWindow::updateComboBoxRate(QComboBox *comboBox, int &index, const i
         comboBox->removeItem(oldIndex);
     } else {
         /* Both old and new rates are custom. Update existing custom rate. */
-        const auto s = QString::fromStdString(std::format("{} Hz (custom)", newRate));
+        const auto s = QString::fromStdString(fmt::format("{} Hz (custom)", newRate));
         comboBox->setItemText(oldIndex, s);
         comboBox->setItemData(oldIndex, newRate);
         newIndex = oldIndex;

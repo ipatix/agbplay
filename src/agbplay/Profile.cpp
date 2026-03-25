@@ -1,6 +1,6 @@
 #include "Profile.hpp"
 
-#include <format>
+#include <fmt/core.h>
 
 std::atomic<uint32_t> Profile::sessionIdCounter = 1;
 
@@ -99,7 +99,7 @@ std::string Profile::GetScanDebugString() const
     else
         s3 = "found (forced)";
 
-    return std::format("songTableInfo='{}' playerTableInfo='{}' soundModeInfo='{}'", s1, s2, s3);
+    return fmt::format("songTableInfo='{}' playerTableInfo='{}' soundModeInfo='{}'", s1, s2, s3);
 }
 
 bool Profile::ScanOk() const

@@ -12,7 +12,6 @@
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
-#include <format>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -62,7 +61,7 @@ WindowGUI::WindowGUI(Profile &profile) : profile(profile)
     // add songs to table
     assert(profile.songTableInfoPlayback.count != SongTableInfo::COUNT_AUTO);
     for (uint16_t i = 0; i < profile.songTableInfoPlayback.count; i++) {
-        auto songName = std::format("{:04}", i);
+        auto songName = fmt::format("{:04}", i);
         songUI->AddSong(Profile::PlaylistEntry{songName, i});
     }
     songUI->Enter();

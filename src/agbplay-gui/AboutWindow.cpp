@@ -2,7 +2,7 @@
 
 #include "Version.hpp"
 
-#include <format>
+#include <fmt/core.h>
 #include <QtVersion>
 
 static const std::string figletText = []() {
@@ -26,11 +26,11 @@ static const std::string figletText = []() {
 
 static const std::string aboutText = []() {
     std::string t;
-    t += std::format("agbplay {} (Qt {})<br>", GIT_VERSION_STRING, qVersion());
+    t += fmt::format("agbplay {} (Qt {})<br>", GIT_VERSION_STRING, qVersion());
     t += "<br>";
     t += "The high quality GBA music player<br>";
     t += "<br>";
-    t += std::format("Copyright (c) 2015-{} ipatix<br>", COPYRIGHT_YEAR);
+    t += fmt::format("Copyright (c) 2015-{} ipatix<br>", COPYRIGHT_YEAR);
     t += "and contributors<br>";
     t += "<br>";
     t += "News, Bug Reports, Updates on <a href=\"https://github.com/ipatix/agbplay\">Github</a>";

@@ -6,6 +6,7 @@ include(FindPkgConfig)
 find_package(PkgConfig REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(Boost CONFIG REQUIRED)
+find_package(fmt REQUIRED)
 find_package(libzip REQUIRED)
 pkg_check_modules(sndfile REQUIRED IMPORTED_TARGET sndfile)
 pkg_check_modules(zlib REQUIRED IMPORTED_TARGET zlib)
@@ -39,6 +40,7 @@ endif()
 target_include_directories(agbplay PUBLIC "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(agbplay
     PUBLIC
+    fmt::fmt
     nlohmann_json::nlohmann_json
     PRIVATE
     Boost::boost

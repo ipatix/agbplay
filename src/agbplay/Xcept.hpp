@@ -1,15 +1,15 @@
 #pragma once
 
 #include <exception>
-#include <format>
+#include <fmt/core.h>
 #include <string>
 
 class Xcept : public std::exception
 {
 public:
-    template<typename... Args> constexpr Xcept(std::format_string<Args...> fmt, Args &&...args)
+    template<typename... Args> constexpr Xcept(fmt::format_string<Args...> fmt, Args &&...args)
     {
-        msg = std::format(fmt, std::forward<Args>(args)...);
+        msg = fmt::format(fmt, std::forward<Args>(args)...);
     }
     ~Xcept() override;
 

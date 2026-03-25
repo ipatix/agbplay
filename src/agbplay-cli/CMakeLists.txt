@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_CXX_STANDARD 23)
 
-find_package(argparse QUIET)
+find_package(argparse OPTIONAL)
 if(NOT argparse_FOUND)
     message(STATUS "argparse not found locally. Fetching from GitHub...")
     include(FetchContent)
@@ -12,6 +12,8 @@ if(NOT argparse_FOUND)
         GIT_TAG 3eda91b2e1ce7d569f84ba295507c4cd8fd96910 # v3.2
     )
     FetchContent_MakeAvailable(argparse)
+else()
+    message(STATUS "  Found argparse, version ${argparse_VERSION}")
 endif()
 
 file(GLOB_RECURSE AGBPLAY_CLI_SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/../agbplay-common/*.cpp")

@@ -13,6 +13,7 @@ struct Settings
     uint32_t playbackOutputNumBuffers = 0;
     int8_t playbackMaxLoops = 0;
     bool playbackLoopIndefinitely = false;
+    uint32_t playbackVolume = 100;
 
     uint32_t exportSampleRate = 0;
     uint32_t exportBitDepth = 0;

@@ -46,6 +46,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     settings = std::make_unique<Settings>();
     settings->Load();
 
+    volumeSlider.setValue(static_cast<int>(settings->playbackVolume));
+
     connect(&statusUpdateTimer, &QTimer::timeout, this, &MainWindow::StatusUpdate);
     statusUpdateTimer.setTimerType(Qt::PreciseTimer);
     statusUpdateTimer.setInterval(16);
@@ -282,6 +284,11 @@ void MainWindow::SetupToolBar()
     volumeSlider.setTickInterval(10);
     volumeSlider.setTickPosition(QSlider::TicksBothSides);
     toolBar->addWidget(&volumeSlider);
+    connect(&volumeSlider, &QAbstractSlider::valueChanged, [this](int value) {
+        if (!settings)
+            return;
+        settings->playbackVolume = static_cast<uint32_t>(value);
+    });
 }
 
 void MainWindow::SetupWidgets()

@@ -9,6 +9,7 @@
 
 static const std::filesystem::path CONFIG_PATH = OS::GetLocalConfigDirectory() / "agbplay" / "config.json";
 static const std::filesystem::path DEFAULT_EXPORT_DIRECTORY = OS::GetMusicDirectory() / "agbplay";
+static const uint32_t DEFAULT_VOLUME = 100;
 static const uint32_t DEFAULT_SAMPLERATE = 48000;
 static const int8_t DEFAULT_MAX_LOOPS = 1;
 static const bool DEFAULT_LOOP_INDEFINITELY = false;
@@ -64,6 +65,12 @@ void Settings::Load()
         playbackLoopIndefinitely = j["playbackLoopIndefinitely"];
     } else {
         playbackLoopIndefinitely = DEFAULT_LOOP_INDEFINITELY;
+    }
+
+    if (j.contains("playbackVolume") && j["playbackVolume"].is_number()) {
+        playbackVolume = j["playbackVolume"];
+    } else {
+        playbackVolume = DEFAULT_VOLUME;
     }
 
     if (j.contains("exportSampleRate") && j["exportSampleRate"].is_number()) {
@@ -127,6 +134,7 @@ void Settings::Save()
     j["playbackOutputNumBuffers"] = playbackOutputNumBuffers;
     j["playbackMaxLoops"] = playbackMaxLoops;
     j["playbackLoopIndefinitely"] = playbackLoopIndefinitely;
+    j["playbackVolume"] = playbackVolume;
     j["exportSampleRate"] = exportSampleRate;
     j["exportBitDepth"] = exportBitDepth;
     j["exportMaxLoops"] = exportMaxLoops;

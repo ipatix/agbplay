@@ -64,6 +64,7 @@ jobs:
           cp build/src/agbplay-gui/agbplay-gui.exe build_artifacts/agbplay/
           cp build/src/agbplay-cli/agbplay-cli.exe build_artifacts/agbplay/
           cp build/src/agbplay/libagbplay.dll build_artifacts/agbplay/
+          strip build_artifacts/agbplay/{agbplay-gui.exe,agbplay-cli.exe,libagbplay.dll}
 
       - name: Copy dependencies
         run: (ldd build_artifacts/agbplay/agbplay-gui.exe && ldd build_artifacts/agbplay/agbplay-cli.exe) | awk '{print $3}' | grep /${{matrix.sys}}/bin/ | uniq | xargs cp -t build_artifacts/agbplay/

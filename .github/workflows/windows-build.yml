@@ -66,7 +66,7 @@ jobs:
           cp build/src/agbplay/libagbplay.dll build_artifacts/agbplay/
 
       - name: Copy dependencies
-        run: ldd build_artifacts/agbplay/agbplay-gui.exe | awk '{print $3}' | grep /${{matrix.sys}}/bin/ | uniq | xargs cp -t build_artifacts/agbplay/
+        run: (ldd build_artifacts/agbplay/agbplay-gui.exe && ldd build_artifacts/agbplay/agbplay-cli.exe) | awk '{print $3}' | grep /${{matrix.sys}}/bin/ | uniq | xargs cp -t build_artifacts/agbplay/
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

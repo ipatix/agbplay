@@ -287,6 +287,7 @@ void MainWindow::SetupToolBar()
     volumeSlider.setMaximum(100);
     volumeSlider.setTickInterval(10);
     volumeSlider.setTickPosition(QSlider::TicksBothSides);
+    volumeSlider.setToolTip("Playback Volume");
     toolBar->addWidget(&volumeSlider);
     connect(&volumeSlider, &QAbstractSlider::valueChanged, [this](int value) {
         if (!settings)

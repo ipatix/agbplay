@@ -73,6 +73,7 @@ private:
     void MBoxInfo(const std::string &title, const std::string &msg);
     void MBoxError(const std::string &title, const std::string &msg);
 
+    float ConvertSliderVolume(int value);
     void UpdateSoundMode();
     void UpdateMute(size_t trackNo, bool audible, bool visualOnly);
     void StatusUpdate();
@@ -80,6 +81,7 @@ private:
     Q_INVOKABLE void LogAppend(std::string msg);
 
     void closeEvent(QCloseEvent *event) override;
+
 
     /* menu bar */
     QAction *exportSongsAction = nullptr;

@@ -4,6 +4,7 @@
 #include "MP2KContext.hpp"
 #include "Profile.hpp"
 
+#include <atomic>
 #include <bitset>
 #include <condition_variable>
 #include <cstdint>
@@ -17,7 +18,7 @@
 class PlaybackEngine
 {
 public:
-    PlaybackEngine(uint32_t sampleRate, const Profile &profile);
+    PlaybackEngine(uint32_t sampleRate, float volume, const Profile &profile);
     PlaybackEngine(const PlaybackEngine &) = delete;
     PlaybackEngine &operator=(const PlaybackEngine &) = delete;
     ~PlaybackEngine();
@@ -36,6 +37,7 @@ public:
     void GetVisualizerState(MP2KVisualizerState &visualizerState);
     void SetOutputNumBuffers(size_t numBuffers);
     void SetMaxLoops(int8_t maxLoops);
+    void SetPlaybackVolume(float volume);
 
 private:
     void threadWorker();
@@ -74,6 +76,9 @@ private:
     std::atomic<bool> playerThreadQuitRequest = false;
     std::string playerThreadQuitError;
     bool playerThreadQuitComplete = false;
+    std::atomic<float> playerThreadVolumeTarget;
+    float playerThreadVolumeCur;
+    const float volumeRampCoeff = 0.001f;
 
     std::atomic<bool> songEnded = false;
 

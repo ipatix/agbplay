@@ -54,7 +54,8 @@ const std::vector<PaHostApiTypeId> PlaybackEngine::hostApiPriority = {
  * public PlaybackEngine
  */
 
-PlaybackEngine::PlaybackEngine(uint32_t sampleRate, const Profile &profile) : profile(profile)
+PlaybackEngine::PlaybackEngine(uint32_t sampleRate, float volume, const Profile &profile)
+    : playerThreadVolumeTarget(volume), playerThreadVolumeCur(volume), profile(profile)
 {
     ctx = std::make_unique<MP2KContext>(
         sampleRate,
@@ -303,6 +304,11 @@ void PlaybackEngine::SetMaxLoops(int8_t maxLoops) {
     InvokeAsPlayer(func);
 }
 
+void PlaybackEngine::SetPlaybackVolume(float volume)
+{
+    playerThreadVolumeTarget = volume;
+}
+
 /*
  * private PlaybackEngine
  */
@@ -411,7 +417,20 @@ int PlaybackEngine::audioCallback(
     (void)timeInfo;
     (void)statusFlags;
     PlaybackEngine *_this = static_cast<PlaybackEngine *>(userData);
-    _this->ringbuffer.Take({static_cast<sample *>(outputBuffer), framesPerBuffer});
+
+    std::span<sample> outputBufferSpan{static_cast<sample *>(outputBuffer), framesPerBuffer};
+
+    _this->ringbuffer.Take(outputBufferSpan);
+
+    const float volTarget = _this->playerThreadVolumeTarget;
+
+    for (size_t i = 0; i < framesPerBuffer; i++) {
+        outputBufferSpan[i].left *= _this->playerThreadVolumeCur;
+        outputBufferSpan[i].right *= _this->playerThreadVolumeCur;
+
+        _this->playerThreadVolumeCur += _this->volumeRampCoeff * (volTarget - _this->playerThreadVolumeCur);
+    }
+
     return paContinue;
 }
 

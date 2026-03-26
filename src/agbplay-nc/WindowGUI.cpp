@@ -107,7 +107,9 @@ WindowGUI::WindowGUI(Profile &profile) : profile(profile)
 
     settings.Load();
 
-    mplay = std::make_unique<PlaybackEngine>(settings.playbackSampleRate, profile);
+    const float volume = static_cast<float>(settings.playbackVolume) / 100.0f;
+
+    mplay = std::make_unique<PlaybackEngine>(settings.playbackSampleRate, volume * volume, profile);
 
     profile.dirty = true;
     trackUI->SetTitle("0000");

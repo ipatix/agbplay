@@ -293,6 +293,8 @@ void MainWindow::SetupToolBar()
             return;
         settings->playbackVolume = static_cast<uint32_t>(value);
         settings->dirty = true;
+        if (playbackEngine)
+            playbackEngine->SetPlaybackVolume(ConvertSliderVolume(value));
     });
 }
 
@@ -794,7 +796,7 @@ void MainWindow::LoadGame()
 
     UpdateSoundMode();
 
-    playbackEngine = std::make_unique<PlaybackEngine>(settings->playbackSampleRate, *profile);
+    playbackEngine = std::make_unique<PlaybackEngine>(settings->playbackSampleRate, ConvertSliderVolume(settings->playbackVolume), *profile);
     visualizerState = std::make_unique<MP2KVisualizerState>();
 
     playbackEngine->SetOutputNumBuffers(settings->playbackOutputNumBuffers);
@@ -1054,6 +1056,12 @@ void MainWindow::MBoxError(const std::string &title, const std::string &msg)
     const QString qmsg = QString::fromStdString(msg);
     QMessageBox mbox(QMessageBox::Icon::Critical, qtitle, qmsg, QMessageBox::Ok, this);
     mbox.exec();
+}
+
+float MainWindow::ConvertSliderVolume(int value)
+{
+    const float valueFloat = static_cast<float>(value) / static_cast<float>(volumeSlider.maximum());
+    return std::clamp(valueFloat * valueFloat, 0.0f, 1.0f);
 }
 
 void MainWindow::UpdateSoundMode()

@@ -48,6 +48,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     volumeSlider.setValue(static_cast<int>(settings->playbackVolume));
 
+    // Because we programmatically modify the slider above, the dirty flag is set.
+    // Reset this, to avoid an unnecessary save.
+    settings->dirty = false;
+
     connect(&statusUpdateTimer, &QTimer::timeout, this, &MainWindow::StatusUpdate);
     statusUpdateTimer.setTimerType(Qt::PreciseTimer);
     statusUpdateTimer.setInterval(16);
@@ -288,6 +292,7 @@ void MainWindow::SetupToolBar()
         if (!settings)
             return;
         settings->playbackVolume = static_cast<uint32_t>(value);
+        settings->dirty = true;
     });
 }
 
@@ -1139,4 +1144,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->accept();
     else
         event->ignore();
+
+    settings->Save();
 }

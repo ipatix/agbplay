@@ -203,5 +203,6 @@ void SettingsWindow::buttonBoxButtonPressed(QAbstractButton *button)
     settings.exportPadEnd = std::clamp(ui->exportPadEndSpinBox->value(), 0.0, 100.0);
     settings.exportQuickExportDirectory = ui->exportFolderLineEdit->text().toStdWString();
     settings.exportQuickExportAsk = !ui->exportFolderGroupBox->isChecked();
+    settings.dirty = true;
     settings.Save();
 }

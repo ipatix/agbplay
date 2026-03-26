@@ -23,5 +23,7 @@ struct Settings
     std::filesystem::path exportQuickExportDirectory;
     bool exportQuickExportAsk = false;
 
+    bool dirty = false;
+
     std::filesystem::path lastOpenFileDirectory;
 };

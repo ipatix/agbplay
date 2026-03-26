@@ -127,6 +127,9 @@ void Settings::Load()
 
 void Settings::Save()
 {
+    if (!dirty)
+        return;
+
     using nlohmann::json;
 
     json j;
@@ -151,4 +154,6 @@ void Settings::Save()
     }
     fileStream << std::setw(2) << j << std::endl;
     fileStream.close();
+
+    dirty = false;
 }

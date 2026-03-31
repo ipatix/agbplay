@@ -174,7 +174,6 @@ void MainWindow::SetupMenuBar()
         if (!pm)
             return;
         ProfileSettingsWindow w(this, *pm, profile, Rom::Instance().GetROMCode());
-        MBoxInfo("Profile Switching", "The profile editor still has a few known bugs. Please do not report them. The code will need some major changes.");
         w.exec();
 
         /* apply relevant changes to current running program. */

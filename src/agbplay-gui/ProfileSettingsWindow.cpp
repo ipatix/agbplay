@@ -87,7 +87,14 @@ void ProfileSettingsWindow::InitTreeWidget()
 
     /* load profile button */
     connect(ui->pushButtonProfileLoad, &QAbstractButton::clicked, [this](bool){
-        // TODO
+        QMessageBox mbox(
+            QMessageBox::Icon::Critical,
+            "Load Profile",
+            "This button is not yet implemented",
+            QMessageBox::Yes | QMessageBox::No,
+            this
+        );
+        mbox.exec();
     });
 
     /* copy profile button */

@@ -72,6 +72,9 @@
           </item>
           <item row="2" column="1">
            <widget class="QSpinBox" name="playbackMaxLoopsSpinBox">
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+            </property>
             <property name="maximum">
              <number>127</number>
             </property>
@@ -211,6 +214,9 @@
           </item>
           <item row="1" column="1">
            <widget class="QSpinBox" name="exportMaxLoopsSpinBox">
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+            </property>
             <property name="maximum">
              <number>127</number>
             </property>

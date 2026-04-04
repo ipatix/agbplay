@@ -208,6 +208,9 @@
          </item>
          <item row="0" column="1">
           <widget class="QSpinBox" name="spinBoxVol">
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
            <property name="maximum">
             <number>15</number>
            </property>
@@ -236,6 +239,9 @@
          </item>
          <item row="1" column="1">
           <widget class="QSpinBox" name="spinBoxRev">
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
            <property name="maximum">
             <number>127</number>
            </property>
@@ -243,6 +249,9 @@
          </item>
          <item row="3" column="1">
           <widget class="QSpinBox" name="spinBoxChn">
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
            <property name="minimum">
             <number>1</number>
            </property>
@@ -311,6 +320,9 @@
          </item>
          <item row="5" column="1">
           <widget class="QSpinBox" name="spinBoxDmaBufLen">
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
            <property name="minimum">
             <number>1584</number>
            </property>
@@ -497,6 +509,9 @@
             </item>
             <item row="1" column="1">
              <widget class="QSpinBox" name="spinBoxSongCount">
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+              </property>
               <property name="maximum">
                <number>65534</number>
               </property>
@@ -514,6 +529,9 @@
             </item>
             <item row="2" column="1">
              <widget class="QSpinBox" name="spinBoxTableIndex">
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+              </property>
               <property name="maximum">
                <number>8</number>
               </property>
@@ -521,6 +539,9 @@
             </item>
             <item row="0" column="1">
              <widget class="QSpinBox" name="spinBoxSongTable">
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+              </property>
               <property name="prefix">
                <string notr="true">0x</string>
               </property>

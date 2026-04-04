@@ -234,14 +234,14 @@ void ProfileSettingsWindow::InitSoundMode()
     connect(ui->spinBoxVol, &QSpinBox::valueChanged, [this](int) { MarkPending(); });
 
     /* reverb */
-    if (profile->mp2kSoundModeConfig.rev == MP2KSoundMode::REV_AUTO) {
+    if (profile->mp2kSoundModeConfig.rev & MP2KSoundMode::REV_MASK_SET) {
+        ui->spinBoxRev->setValue(profile->mp2kSoundModeConfig.rev & MP2KSoundMode::REV_MASK_VAL);
+        ui->spinBoxRev->setEnabled(true);
+        ui->checkBoxRev->setCheckState(Qt::Checked);
+    } else {
         ui->spinBoxRev->setValue(profile->mp2kSoundModeScanned.rev);
         ui->spinBoxRev->setEnabled(false);
         ui->checkBoxRev->setCheckState(Qt::Unchecked);
-    } else {
-        ui->spinBoxRev->setValue(profile->mp2kSoundModeConfig.rev);
-        ui->spinBoxRev->setEnabled(true);
-        ui->checkBoxRev->setCheckState(Qt::Checked);
     }
 
     connect(ui->checkBoxRev, &QCheckBox::stateChanged, [this](int state){
@@ -403,6 +403,39 @@ void ProfileSettingsWindow::InitEnhancements()
     });
 
     connect(ui->comboBoxRevAlgo, &QComboBox::currentIndexChanged, [this](int) { MarkPending(); });
+
+    /* force reverb depth */
+    if (profile->agbplaySoundMode.reverbForce & MP2KSoundMode::REV_MASK_SET) {
+        ui->checkBoxRevForce->setChecked(true);
+        ui->spinBoxRevForce->setValue(profile->agbplaySoundMode.reverbForce & MP2KSoundMode::REV_MASK_VAL);
+        ui->spinBoxRevForce->setEnabled(true);
+    } else {
+        ui->checkBoxRevForce->setChecked(false);
+        ui->spinBoxRevForce->setValue(0);
+        ui->spinBoxRevForce->setEnabled(false);
+    }
+
+    static const QString revForceToolTip = "Globally force a reverb level.\n"
+        "This will unconditionally override the reverb depth everywhere, even the one manually set as an initial sound mode on the previous tab.";
+
+    ui->spinBoxRevForce->setToolTip(revForceToolTip);
+
+    connect(ui->pushButtonRevForce, &QPushButton::clicked, [this](bool){
+        ui->spinBoxRevForce->setValue(0);
+        ui->checkBoxRevForce->setChecked(false);
+        MarkPending();
+    });
+
+    connect(ui->spinBoxRevForce, &QSpinBox::valueChanged, [this](int) { MarkPending(); });
+    connect(ui->checkBoxRevForce, &QCheckBox::stateChanged, [this](int) {
+        if (ui->checkBoxRevForce->checkState() == Qt::Checked) {
+            ui->spinBoxRevForce->setEnabled(true);
+        } else {
+            ui->spinBoxRevForce->setEnabled(false);
+            ui->spinBoxRevForce->setValue(0);
+        }
+        MarkPending();
+    });
 
     /* PSG polyphony */
     ui->comboBoxPsgPoly->clear();
@@ -786,9 +819,9 @@ void ProfileSettingsWindow::Apply()
         profile->mp2kSoundModeConfig.vol = MP2KSoundMode::VOL_AUTO;
 
     if (ui->checkBoxRev->checkState() == Qt::Checked)
-        profile->mp2kSoundModeConfig.rev = static_cast<uint8_t>(ui->spinBoxRev->value());
+        profile->mp2kSoundModeConfig.rev = static_cast<uint8_t>(ui->spinBoxRev->value() | MP2KSoundMode::REV_MASK_SET);
     else
-        profile->mp2kSoundModeConfig.rev = MP2KSoundMode::REV_AUTO;
+        profile->mp2kSoundModeConfig.rev = static_cast<uint8_t>(ui->spinBoxRev->value());
 
     if (ui->checkBoxFreq->checkState() == Qt::Checked)
         profile->mp2kSoundModeConfig.freq = static_cast<uint8_t>(ui->comboBoxFreq->currentData().toInt());
@@ -809,6 +842,10 @@ void ProfileSettingsWindow::Apply()
     profile->agbplaySoundMode.resamplerTypeNormal = static_cast<ResamplerType>(ui->comboBoxResTypeNormal->currentData().toInt());
     profile->agbplaySoundMode.resamplerTypeFixed = static_cast<ResamplerType>(ui->comboBoxResTypeFixed->currentData().toInt());
     profile->agbplaySoundMode.reverbType = static_cast<ReverbType>(ui->comboBoxRevAlgo->currentData().toInt());
+    if (ui->checkBoxRevForce->checkState() == Qt::Checked)
+        profile->agbplaySoundMode.reverbForce = static_cast<uint8_t>(ui->spinBoxRevForce->value() | MP2KSoundMode::REV_MASK_SET);
+    else
+        profile->agbplaySoundMode.reverbForce = 0;
     profile->agbplaySoundMode.cgbPolyphony = static_cast<CGBPolyphony>(ui->comboBoxPsgPoly->currentData().toInt());
     profile->agbplaySoundMode.dmaBufferLen = static_cast<uint32_t>(ui->spinBoxDmaBufLen->value());
     profile->agbplaySoundMode.accurateCh3Quantization = ui->checkBoxCh3Quant->checkState() == Qt::Checked;

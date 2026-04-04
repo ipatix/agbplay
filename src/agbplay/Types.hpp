@@ -94,17 +94,21 @@ struct SampleInfo
 struct MP2KSoundMode
 {
     static const uint8_t VOL_AUTO = 0xFF;
-    static const uint8_t REV_AUTO = 0x7F;
+    static const uint8_t REV_MASK_VAL = 0x7F;
+    static const uint8_t REV_MASK_SET = 0x80;
     static const uint8_t FREQ_AUTO = 0xFF;
     static const uint8_t CHN_AUTO = 0xFF;
     static const uint8_t DAC_AUTO = 0xFF;
 
+    // "rev" is intentionally not checked for something like "REV_AUTO".
+    // IsAuto is currently only used to detect, whether scanning was successful.
+    // For configuration it doesn't matter, since "rev" is not saved if the bit masked by REV_MASK_SET is not set.
     bool IsAuto() const {
-        return vol == VOL_AUTO || rev == REV_AUTO || freq == FREQ_AUTO || maxChannels == CHN_AUTO || dacConfig == DAC_AUTO;
+        return vol == VOL_AUTO || freq == FREQ_AUTO || maxChannels == CHN_AUTO || dacConfig == DAC_AUTO;
     }
 
     uint8_t vol = VOL_AUTO;
-    uint8_t rev = REV_AUTO;
+    uint8_t rev = 0;
     uint8_t freq = FREQ_AUTO;
     uint8_t maxChannels = CHN_AUTO;    // currently unused
     uint8_t dacConfig = DAC_AUTO;      // currently unused
@@ -115,6 +119,7 @@ struct AgbplaySoundMode
     ResamplerType resamplerTypeNormal = ResamplerType::BLAMP;
     ResamplerType resamplerTypeFixed = ResamplerType::BLEP;
     ReverbType reverbType = ReverbType::NORMAL;
+    uint8_t reverbForce = 0;
     CGBPolyphony cgbPolyphony = CGBPolyphony::MONO_STRICT;
     uint32_t dmaBufferLen = 0x630;
     bool accurateCh3Quantization = true;

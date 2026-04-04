@@ -551,8 +551,8 @@ void WindowGUI::songInfo()
         entry->id,
         sinfo.songHeaderPos,
         sinfo.voiceTablePos,
-        sinfo.reverb >> 7,
-        sinfo.reverb & 0x7F,
+        static_cast<bool>(sinfo.reverb & MP2KSoundMode::REV_MASK_SET),
+        sinfo.reverb & MP2KSoundMode::REV_MASK_VAL,
         sinfo.priority,
         sinfo.playerIdx
     );

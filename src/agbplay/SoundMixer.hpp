@@ -28,6 +28,7 @@ public:
     void StartFadeOut(float millis);
     void StartFadeIn(float millis);
     bool IsFadeDone() const;
+    uint8_t GetReverbLevel() const;
 
 private:
     MP2KContext &ctx;

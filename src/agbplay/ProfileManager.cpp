@@ -366,7 +366,7 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
         if (sm.contains("vol") && sm["vol"].is_number())
             p.mp2kSoundModeConfig.vol = static_cast<uint8_t>(std::clamp<int64_t>(sm["vol"], 0, 15));
         if (sm.contains("rev") && sm["rev"].is_number())
-            p.mp2kSoundModeConfig.rev = static_cast<uint8_t>(std::clamp<int64_t>(sm["rev"], 0, 255));
+            p.mp2kSoundModeConfig.rev = static_cast<uint8_t>(std::clamp<int64_t>(sm["rev"], 0, 127) | MP2KSoundMode::REV_MASK_SET);
         if (sm.contains("freq") && sm["freq"].is_number())
             p.mp2kSoundModeConfig.freq = static_cast<uint8_t>(std::clamp<int64_t>(sm["freq"], 1, 12));
         if (sm.contains("maxChannels") && sm["maxChannels"].is_number())
@@ -385,6 +385,8 @@ void ProfileManager::LoadProfile(const std::filesystem::path &filePath)
             p.agbplaySoundMode.resamplerTypeFixed = str2res(sm["resamplerTypeFixed"]);
         if (sm.contains("reverbType") && sm["reverbType"].is_string())
             p.agbplaySoundMode.reverbType = str2rev(sm["reverbType"]);
+        if (sm.contains("reverbForce") && sm["reverbForce"].is_number())
+            p.agbplaySoundMode.reverbForce = static_cast<uint8_t>(std::clamp<int64_t>(sm["reverbForce"], 0, 127) | MP2KSoundMode::REV_MASK_SET);
         if (sm.contains("cgbPolyphony") && sm["cgbPolyphony"].is_string())
             p.agbplaySoundMode.cgbPolyphony = str2cgbPoly(sm["cgbPolyphony"]);
         if (sm.contains("dmaBufferLen") && sm["dmaBufferLen"].is_number())
@@ -490,8 +492,8 @@ void ProfileManager::SaveProfile(std::shared_ptr<Profile> &p)
     json jmsm = json::object();
     if (p->mp2kSoundModeConfig.vol != MP2KSoundMode::VOL_AUTO)
         jmsm["vol"] = p->mp2kSoundModeConfig.vol;
-    if (p->mp2kSoundModeConfig.rev != MP2KSoundMode::REV_AUTO)
-        jmsm["rev"] = p->mp2kSoundModeConfig.rev;
+    if (p->mp2kSoundModeConfig.rev & MP2KSoundMode::REV_MASK_SET)
+        jmsm["rev"] = p->mp2kSoundModeConfig.rev & MP2KSoundMode::REV_MASK_VAL;
     if (p->mp2kSoundModeConfig.freq != MP2KSoundMode::FREQ_AUTO)
         jmsm["freq"] = p->mp2kSoundModeConfig.freq;
     if (p->mp2kSoundModeConfig.maxChannels != MP2KSoundMode::CHN_AUTO)
@@ -506,6 +508,8 @@ void ProfileManager::SaveProfile(std::shared_ptr<Profile> &p)
     jasm["resamplerTypeNormal"] = res2str(p->agbplaySoundMode.resamplerTypeNormal);
     jasm["resamplerTypeFixed"] = res2str(p->agbplaySoundMode.resamplerTypeFixed);
     jasm["reverbType"] = rev2str(p->agbplaySoundMode.reverbType);
+    if (p->agbplaySoundMode.reverbForce & MP2KSoundMode::REV_MASK_SET)
+        jasm["reverbForce"] = p->agbplaySoundMode.reverbForce & MP2KSoundMode::REV_MASK_VAL;
     jasm["cgbPolyphony"] = cgbPoly2str(p->agbplaySoundMode.cgbPolyphony);
     jasm["dmaBufferLen"] = p->agbplaySoundMode.dmaBufferLen;
     jasm["accurateCh3Quantization"] = p->agbplaySoundMode.accurateCh3Quantization;

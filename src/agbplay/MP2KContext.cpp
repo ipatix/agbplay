@@ -62,7 +62,7 @@ void MP2KContext::m4aSoundMode(uint32_t mode)
 
 void MP2KContext::m4aSoundModeReverb(uint8_t reverb)
 {
-    if (reverb & 0x80) {
+    if (reverb & MP2KSoundMode::REV_MASK_SET) {
         mp2kSoundMode.rev = reverb;
         mixer.UpdateReverb();
     }
@@ -170,9 +170,7 @@ void MP2KContext::m4aMPlayStart(uint8_t playerIdx, size_t songPos)
     reader.Restart();
     mixer.ResetFade();
 
-    const uint8_t reverb = player.reverb;
-    if (reverb & 0x80)
-        m4aSoundModeReverb(reverb);
+    m4aSoundModeReverb(player.reverb);
 }
 
 void MP2KContext::m4aMPlayStop(uint8_t playerIdx)

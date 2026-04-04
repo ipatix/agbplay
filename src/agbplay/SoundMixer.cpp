@@ -22,7 +22,7 @@ void SoundMixer::UpdateReverb()
 {
     for (MP2KPlayer &player : ctx.players) {
         for (MP2KTrack &trk : player.tracks) {
-            trk.reverb->SetLevel(ctx.mp2kSoundMode.rev & 0x7F);
+            trk.reverb->SetLevel(GetReverbLevel());
         }
     }
 }
@@ -44,7 +44,7 @@ void SoundMixer::UpdateFixedModeRate()
     for (MP2KPlayer &player : ctx.players) {
         for (MP2KTrack &trk : player.tracks) {
             trk.reverb = ReverbEffect::MakeReverb(
-                ctx.agbplaySoundMode.reverbType, ctx.mp2kSoundMode.rev & 0x7F, sampleRate, numDmaBuffers
+                ctx.agbplaySoundMode.reverbType, GetReverbLevel(), sampleRate, numDmaBuffers
             );
         }
     }
@@ -179,4 +179,12 @@ void SoundMixer::StartFadeIn(float millis)
 bool SoundMixer::IsFadeDone() const
 {
     return fadeMicroframesLeft == 0;
+}
+
+uint8_t SoundMixer::GetReverbLevel() const
+{
+    if (ctx.agbplaySoundMode.reverbForce & MP2KSoundMode::REV_MASK_SET)
+        return ctx.agbplaySoundMode.reverbForce & MP2KSoundMode::REV_MASK_VAL;
+    else
+        return ctx.mp2kSoundMode.rev & MP2KSoundMode::REV_MASK_VAL;
 }

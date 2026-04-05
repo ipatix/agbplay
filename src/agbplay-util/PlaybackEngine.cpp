@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <bit>
 #include <cassert>
 #include <chrono>
 #include <cmath>
@@ -473,12 +474,28 @@ void PlaybackEngine::portaudioOpen()
 
         auto &outputDevice = currentHostApi.defaultOutputDevice();
 
+        // Manually set the latency for ALSA on Linux
+        // See: https://github.com/ipatix/agbplay/issues/93
+        // PortAudio will unfortunately suggest a latency value, which
+        // is a very odd number (e.g. 8.7ms on developer machine).
+        // PipeWire takes those latency values very literally.
+        // With 48 kHz samplerate this causes a period size of 104 samples,
+        // and that causes unstable output. Round this up to the closest power of two instead.
+        double latency = outputDevice.defaultLowOutputLatency();
+        if (apiType == paALSA) {
+            long framesPerPeriodSigned = lround(latency * static_cast<double>(ctx->sampleRate));
+            assert(framesPerPeriodSigned >= 0);
+            const unsigned long framesPerPeriod = std::bit_ceil(static_cast<unsigned long>(framesPerPeriodSigned));
+            if (framesPerPeriod > 0)
+                latency = static_cast<double>(framesPerPeriod) / static_cast<double>(ctx->sampleRate);
+        }
+
         portaudio::DirectionSpecificStreamParameters outPars(
             outputDevice,
             2,    // stereo
             portaudio::SampleDataFormat::FLOAT32,
             true,
-            outputDevice.defaultLowOutputLatency(),
+            latency,
             hostApiSpecificStreamInfo.get()
         );
 

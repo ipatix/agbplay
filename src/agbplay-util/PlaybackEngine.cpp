@@ -346,6 +346,7 @@ void PlaybackEngine::threadWorker()
 
         playerThreadQuitError.clear();
     } catch (std::exception &e) {
+        Debug::print("player thread has crashed: {}", e.what());
         playerThreadQuitError = e.what();
     }
 

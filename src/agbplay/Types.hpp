@@ -78,6 +78,7 @@ struct Note
     uint8_t pseudoEchoLen;
     uint8_t trackIdx;
     uint8_t playerIdx;
+    uint8_t psgLength;
 };
 
 struct SampleInfo

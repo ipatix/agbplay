@@ -46,6 +46,9 @@ protected:
     int16_t pan = 0;
     bool mp2k_sus_vol_bug_update = false;
 
+    uint16_t psgLengthCount = 0;
+    bool psgLengthActive = false;
+
     /* all of these values have pairs of new and old value to allow smooth fades */
     uint8_t envInterStep = 0;
     uint8_t envLevelCur = 0;

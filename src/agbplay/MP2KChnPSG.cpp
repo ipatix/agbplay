@@ -24,6 +24,15 @@ MP2KChnPSG::MP2KChnPSG(MP2KContext &ctx, MP2KTrack *track, ADSR env, Note note, 
     this->env.sus &= 0xF;
     this->env.rel &= 0x7;
 
+    if (note.psgLength > 0) {
+        /* Length is inverted as mentioned in GBATEK */
+        const uint8_t invertedLength = static_cast<uint8_t>(64 - (note.psgLength & 0x3F));
+        /* Our loop runs at 240 Hz instead of 256 Hz, so correct the counter. This will result in some timings
+         * to be slightly off, but we by rounding we should be able to eliminate the timing error to ~2ms. */
+        psgLengthCount = static_cast<uint16_t>((invertedLength * AGB_APPROX_FPS * INTERFRAMES + 128) / 256);
+        psgLengthActive = true;
+    }
+
     // if (note.trackIdx == 6)
     //     Debug::print("note start: this=%p att=%d dec=%d sus=%d rel=%d", this, (int)env.att, (int)env.dec,
     //     (int)env.sus, (int)env.rel);
@@ -138,6 +147,12 @@ void MP2KChnPSG::stepEnvelope()
             goto decay_start;
         }
     } else {
+        if (psgLengthActive && psgLengthCount > 0) {
+            psgLengthCount--;
+            if (psgLengthCount == 0)
+                Release(true);
+        }
+
         if (fastRelease && envState != EnvState::DIE) {
             /* if note is already releasing but we are now releasing fast, do not wait
              * until the next real frame but stop the note immerdiately */

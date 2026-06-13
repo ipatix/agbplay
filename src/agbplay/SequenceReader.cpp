@@ -332,6 +332,7 @@ void SequenceReader::cmdPlayNote(MP2KPlayer &player, MP2KTrack &trk, uint8_t cmd
     note.pseudoEchoLen = trk.pseudoEchoLen;
     note.trackIdx = trk.trackIdx;
     note.playerIdx = player.playerIdx;
+    note.psgLength = rom.ReadU8(instrPos + 0x2);
 
     ADSR adsr;
     adsr.att = rom.ReadU8(instrPos + 0x8);

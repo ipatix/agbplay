@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <fstream>
 #include <iostream>
 #include <limits>

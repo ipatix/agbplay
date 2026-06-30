@@ -2,7 +2,7 @@
 
 #include "Types.hpp"
 
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 TrackWidget::TrackWidget(size_t trackNo, QWidget *parent) : QWidget(parent), trackNo(trackNo)
 {

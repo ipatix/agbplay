@@ -18,6 +18,8 @@
 #include <string>
 #include <thread>
 
+#include <fmt/format.h>
+
 #define KEY_TAB 9
 
 WindowGUI::WindowGUI(Profile &profile) : profile(profile)

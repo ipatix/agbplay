@@ -1,7 +1,7 @@
 #pragma once
 
 #include <exception>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <string>
 
 class Xcept : public std::exception

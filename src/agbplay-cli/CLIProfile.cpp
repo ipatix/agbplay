@@ -4,7 +4,7 @@
 #include "Rom.hpp"
 
 #include <algorithm>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <ranges>
 #include <sstream>
 

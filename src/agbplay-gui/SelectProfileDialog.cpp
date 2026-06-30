@@ -2,7 +2,7 @@
 
 #include "Profile.hpp"
 
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <QListWidgetItem>
 #include <QMessageBox>
 

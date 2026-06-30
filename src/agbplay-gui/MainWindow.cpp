@@ -15,7 +15,7 @@
 
 #include <algorithm>
 #include <array>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <fstream>
 #include <QCloseEvent>
 #include <QDesktopServices>

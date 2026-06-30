@@ -1,6 +1,6 @@
 #include "Profile.hpp"
 
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 std::atomic<uint32_t> Profile::sessionIdCounter = 1;
 

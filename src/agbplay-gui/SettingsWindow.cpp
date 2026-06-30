@@ -4,7 +4,7 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QStandardPaths>

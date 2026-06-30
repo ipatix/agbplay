@@ -2,7 +2,7 @@
 
 #include "Types.hpp"
 
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 SongWidget::SongWidget(QWidget *parent) : QWidget(parent)
 {

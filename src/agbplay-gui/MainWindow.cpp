@@ -1031,7 +1031,7 @@ int MainWindow::AskSaveProfile()
         return QMessageBox::Discard;
 
     const QString title = "Save changed profile?";
-    const QString message = "The currentl profile has unsaved changes. Do you want to save the changes?";
+    const QString message = "The current profile has unsaved changes. Do you want to save them?";
     QMessageBox mbox(
         QMessageBox::Icon::Question,
         title,

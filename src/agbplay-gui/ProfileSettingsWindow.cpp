@@ -466,7 +466,7 @@ void ProfileSettingsWindow::InitEnhancements()
 
     static const QString dmaBufLenToolTip = "Specify PCM DMA reverb buffer len:\n"
         "This is 1584 (0x630) for all known commercial GBA games.\n"
-        "Increasing this increases the duration of the reverb echoes fromt the 'Normal' reverb type";
+        "Increasing this increases the duration of the reverb echoes from the 'Normal' reverb type";
 
     ui->spinBoxDmaBufLen->setToolTip(dmaBufLenToolTip);
 
@@ -480,7 +480,7 @@ void ProfileSettingsWindow::InitEnhancements()
     ui->checkBoxCh3Quant->setCheckState(profile->agbplaySoundMode.accurateCh3Quantization ? Qt::Checked : Qt::Unchecked);
 
     static const QString quantToolTip = "Accurate PSG CH3 quantization:\n"
-        "On real GBA hardware, the volume of PSG CH3 will affect the quantization, thus change the timbre.\n"
+        "On real GBA hardware, the volume of PSG CH3 will affect the quantization, and thus change the timbre.\n"
         "Disable this to get 'better than hardware' sound, but for low volumes it may noticeably change the timbre.";
 
     ui->checkBoxCh3Quant->setToolTip(quantToolTip);

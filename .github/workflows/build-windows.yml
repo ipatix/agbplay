@@ -1,18 +1,16 @@
-name: Windows Build (MinGW)
+name: Build
 
 on:
-  push:
-    tags:
-      - 'v*'
-    branches:
-      - 'master'
-  workflow_dispatch:
-  pull_request:
-    branches:
-      - 'master'
+  workflow_call:
+    outputs:
+      artifact-name:
+        value: ${{ jobs.build.outputs.artifact-name }}
 
 # MSYS2 How To:
 # https://github.com/marketplace/actions/setup-msys2
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -28,6 +26,9 @@ jobs:
         # clangarm64 not tested
         sys: [ mingw64 ]
 
+    outputs:
+      artifact-name: ${{ steps.set-artifact-name.outputs.name }}
+
     steps:
       - name: Check repository
         uses: actions/checkout@v4
@@ -35,7 +36,7 @@ jobs:
       - name: Setup msys2/mingw64
         uses: msys2/setup-msys2@v2
         with:
-          msystem: ${{matrix.sys}}
+          msystem: ${{ matrix.sys }}
           update: true
           install: |
             git
@@ -70,10 +71,14 @@ jobs:
           strip build_artifacts/agbplay/{agbplay-gui.exe,agbplay-cli.exe,libagbplay.dll}
 
       - name: Copy dependencies
-        run: (ldd build_artifacts/agbplay/agbplay-gui.exe && ldd build_artifacts/agbplay/agbplay-cli.exe) | awk '{print $3}' | grep /${{matrix.sys}}/bin/ | uniq | xargs cp -t build_artifacts/agbplay/
+        run: (ldd build_artifacts/agbplay/agbplay-gui.exe && ldd build_artifacts/agbplay/agbplay-cli.exe) | awk '{print $3}' | grep /${{ matrix.sys }}/bin/ | uniq | xargs cp -t build_artifacts/agbplay/
+
+      - name: Set artifact name
+        id: set-artifact-name
+        run: echo "name=agbplay-windows-${{ matrix.sys }}" >> "$GITHUB_OUTPUT"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: agbplay-windows-${{matrix.sys}}
+          name: ${{ steps.set-artifact-name.outputs.name }}
           path: build_artifacts/

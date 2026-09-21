@@ -192,13 +192,18 @@ bool MP2KScanner::FindPlayerTable(size_t songTablePos, size_t &playerTablePos, P
         const size_t playerTablePosCandidate = rom.ReadAgbPtrToPos(i - 4);
         const size_t MAX_MUSIC_PLAYERS = 32;
 
+        bool musicPlayerOnlyBlank = true;
         size_t musicPlayerCountCandidate;
         for (musicPlayerCountCandidate = 0; musicPlayerCountCandidate < MAX_MUSIC_PLAYERS; musicPlayerCountCandidate++) {
-            if (!IsValidPlayerTableEntry(playerTablePosCandidate + musicPlayerCountCandidate * 12))
+            bool blankEntry;
+            if (!IsValidPlayerTableEntry(playerTablePosCandidate + musicPlayerCountCandidate * 12, blankEntry))
                 break;
+
+            if (!blankEntry)
+                musicPlayerOnlyBlank = false;
         }
 
-        if (musicPlayerCountCandidate == 0)
+        if (musicPlayerCountCandidate == 0 || musicPlayerOnlyBlank)
             continue;
 
         /* 4. If we found a player table previously, check if it is the same one. */
@@ -599,7 +604,7 @@ bool MP2KScanner::IsValidSongTableEntry(size_t pos, bool relaxed) const
     return true;
 }
 
-bool MP2KScanner::IsValidPlayerTableEntry(size_t pos) const
+bool MP2KScanner::IsValidPlayerTableEntry(size_t pos, bool &isBlankEntry) const
 {
     /* A player table entry usually looks like this:
      * - RAM pointer
@@ -614,8 +619,10 @@ bool MP2KScanner::IsValidPlayerTableEntry(size_t pos) const
     const uint16_t trackLimit = rom.ReadU16(pos + 8);
     const uint16_t unknown = rom.ReadU16(pos + 10);
 
-    if (playerPtr == 0 && trackPtr == 0 && trackLimit == 0 && unknown == 0)
+    if (playerPtr == 0 && trackPtr == 0 && trackLimit == 0 && unknown == 0) {
+        isBlankEntry = true;
         return true;
+    }
 
     if (!IsValidRamPointer(playerPtr))
         return false;
@@ -626,6 +633,7 @@ bool MP2KScanner::IsValidPlayerTableEntry(size_t pos) const
     if (unknown > 1)
         return false;
 
+    isBlankEntry = false;
     return true;
 }
 

@@ -24,30 +24,61 @@ jobs:
         shell: bash
         run: |
           TODAY=$(TZ=UTC date -u '+%Y-%m-%dT00:00:00Z')
-          COMMITS=$(git log --since="$TODAY" --format="%H" 2>/dev/null || echo "")
-          if [ -z "$COMMITS" ]; then
+          COMMITS=$(git log --since="${TODAY}" --format="%H" 2>/dev/null || echo "")
+          if [ -z "${COMMITS}" ]; then
             echo "No commits since midnight UTC today. Skipping."
-            echo "has-new-commits=false" >> "$GITHUB_OUTPUT"
+            echo "has-new-commits=false" >> "${GITHUB_OUTPUT}"
           else
             echo "Found $(echo "$COMMITS" | wc -l) commit(s) since midnight UTC."
-            echo "has-new-commits=true" >> "$GITHUB_OUTPUT"
+            echo "has-new-commits=true" >> "${GITHUB_OUTPUT}"
           fi
 
     outputs:
       has-new-commits: ${{ steps.check-commits.outputs.has-new-commits }}
 
-  build:
-    name: Build Windows
+  build-check:
+    name: Check Build
     needs: check-commits
     if: needs.check-commits.outputs.has-new-commits == 'true'
     uses: ./.github/workflows/build-windows.yml
 
   create-release:
-    name: Create Nightly Release
+    name: Create Release
     needs:
-      - build
+      - build-check
     runs-on: ubuntu-latest
-    if: needs.build.result == 'success'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make tag
+        id: make-tag
+        run: |
+          echo "tag-name=nightly/v$(date -u '+%Y%m%d')-${GITHUB_SHA}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.make-tag.outputs.tag-name }}" \
+            --prerelease \
+            --title "Nightly agbplay ${GITHUB_REF_NAME} ($(date -u '+%Y-%m-%d'))" \
+            --target "${GITHUB_SHA}"
+    outputs:
+      tag-name: ${{ steps.make-tag.outputs.tag-name }}
+
+  build-release:
+    name: Release Build Windows
+    needs:
+      - create-release
+    uses: ./.github/workflows/build-windows.yml
+
+  upload-release:
+    name: Upload Release Binaries
+    needs:
+      - create-release
+      - build-release
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -55,22 +86,15 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.build.outputs.artifact-name }}
+          name: ${{ needs.build-release.outputs.artifact-name }}
 
       - name: Zip Build Artifacts
         shell: bash
         run: |
-          zip -r "nightly-${{ needs.build.outputs.artifact-name }}-$(date -u '+%Y%m%d').zip" agbplay/
+          zip -r "nightly-${{ needs.build-release.outputs.artifact-name }}-$(date -u '+%Y%m%d').zip" agbplay/
 
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TODAY=$(date -u '+%Y%m%d')
-          TAG="nightly/v${TODAY}-${GITHUB_SHA}"
-          TITLE="Nightly agbplay ${GITHUB_REF_NAME} ($(date -u '+%Y-%m-%d'))"
-          ls
-          ## Remove the latest-prerelease release if it exists to avoid conflicts
-          #gh release view "${TAG}" --json id >/dev/null 2>&1 || \
-          #  gh release create "${TAG}" --prerelease --title "${TITLE}" --target "${GITHUB_SHA}" *-nightly-*.zip
-          gh release create "${TAG}" --prerelease --title "${TITLE}" --target "${GITHUB_SHA}" nightly-*.zip
+          gh release upload ${{ needs.create-release.outputs.tag-name }} nightly-*.zip

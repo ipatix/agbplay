@@ -31,6 +31,7 @@ private:
     bool FindSoundMode(size_t playerTablePos, size_t &soundModePos, uint32_t &soundMode) const;
 
     bool IsSoundModeNormalAgbcc(size_t playerTableReferencePos, size_t &soundModePos, uint32_t &soundMode) const;
+    bool IsSoundModeNormalGccA(size_t playerTableReferencePos, size_t &soundModePos, uint32_t &soundMode) const;
     bool IsSoundModeMetroidAgbcc(size_t playerTableReferencePos, size_t &soundModePos, uint32_t &soundMode) const;
 
     bool IsPosReferenced(size_t pos) const;

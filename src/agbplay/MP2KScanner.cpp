@@ -251,6 +251,8 @@ bool MP2KScanner::FindSoundMode(size_t playerTablePos, size_t &soundModePos, uin
         /* If we have found a reference, check if one of the available patterns are present */
         if (IsSoundModeNormalAgbcc(playerTableReferencePos, soundModePos, soundMode))
             return true;
+        if (IsSoundModeNormalGccA(playerTableReferencePos, soundModePos, soundMode))
+            return true;
         if (IsSoundModeMetroidAgbcc(playerTableReferencePos, soundModePos, soundMode))
             return true;
     }
@@ -268,7 +270,7 @@ bool MP2KScanner::IsSoundModeNormalAgbcc(size_t playerTableReferencePos, size_t 
      * [0x14] sound mode <---- data of interest
      * [0x18] player table len (0xNN, 0x00, 0x00, 0x00)
      * [0x1C] player table pos (ROM-addr) <---- we pivot from this supplied address
-     * [0x20] memacc area TODO confirm (RAM-addr)
+     * [0x20] memacc area (RAM-addr)
      */
 
     if (playerTableReferencePos < 0x1C)
@@ -352,11 +354,102 @@ bool MP2KScanner::IsSoundModeNormalAgbcc(size_t playerTableReferencePos, size_t 
 
     // fmt::print("player table pos valid\n");
 
-    /* check memacc address (TODO is this really the memacc address?) */
+    /* check memacc address */
     if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0x20)))
         return false;
 
     // fmt::print("memacc valid\n");
+    soundMode = soundModeCandidate;
+    soundModePos = soundModePosCandidate;
+    return true;
+}
+
+bool MP2KScanner::IsSoundModeNormalGccA(size_t playerTableReferencePos, size_t &soundModePos, uint32_t &soundMode) const
+{
+    /* [0x00] mix code (ROM-addr)
+     * [0x04] mix code size (CpuSet Arg)
+     * [0x08] mix code (RAM-addr)
+     * [0x0C] SoundInfo ptr (RAM-addr)
+     * [0x10] CgbChan ptr (RAM-addr)
+     * [0x14] sound mode <---- data of interest
+     * [0x18] player table len (0xNN, 0x00, 0x00, 0x00)
+     * [0x1C] memacc area (RAM-addr)
+     * [0x20] player table pos (ROM-addr) <---- we pivot from this supplied address
+     */
+
+    if (playerTableReferencePos < 0x20)
+        return false;
+
+    const size_t signaturePos = playerTableReferencePos - 0x20;
+
+    if (signaturePos + 0x24 > rom.Size())
+        return false;
+
+    /* check mix code (ROM-addr) */
+    if (!rom.ValidPointer(rom.ReadU32(signaturePos + 0x0)))
+        return false;
+
+    // fmt::print("mix code ROM valid\n");
+
+    /* check mix code size (CpuSet Arg) */
+    const uint32_t cpusetArg = rom.ReadU32(signaturePos + 0x4);
+    if ((cpusetArg & (1 << 26)) == 0)    // Is 32 bit copy?
+        return false;
+    if ((cpusetArg & 0x1FFFFF) >= 0x800)    // Is data smaller than 0x800 words? (usually just SEARCH_START)
+        return false;
+
+    // fmt::print("mix code size valid\n");
+
+    /* check mix code (RAM-addr) */
+    if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0x8)))
+        return false;
+
+    // fmt::print("mix code RAM valid\n");
+
+    /* check SoundInfo pointer (RAM addr) */
+    if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0xC)))
+        return false;
+
+    // fmt::print("SoundInfo valid\n");
+
+    /* check CgbChan pointer (RAM addr) */
+    if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0x10)))
+        return false;
+
+    // fmt::print("CgbChan valid\n");
+
+    /* check sound mode */
+    const size_t soundModePosCandidate = signaturePos + 0x14;
+    const uint32_t soundModeCandidate = rom.ReadU32(soundModePosCandidate);
+    if ((soundModeCandidate & 0xFF) != 0)    // reserved byte must be 0
+        return false;
+    if (uint32_t maxchn = (soundModeCandidate >> 8) & 0xF; maxchn < 1 || maxchn > 12)
+        return false;
+    if (uint32_t freq = (soundModeCandidate >> 16) & 0xF; freq == 0 || freq > 12)
+        return false;
+    if (uint32_t dac = (soundModeCandidate >> 20) & 0xF; dac < 8 || dac > 11)
+        return false;
+
+    // fmt::print("sound mode valid\n");
+
+    /* check player table len */
+    const uint32_t playerTableLen = rom.ReadU32(signaturePos + 0x18);
+    if (playerTableLen > 32)
+        return false;
+
+    // fmt::print("player table len valid\n");
+
+    /* check memacc address */
+    if (!IsValidRamPointer(rom.ReadU32(signaturePos + 0x1C)))
+        return false;
+
+    // fmt::print("memacc valid\n");
+
+    /* check player table pos (probably redundant as it's an argument) */
+    if (!rom.ValidPointer(rom.ReadU32(signaturePos + 0x20)))
+        return false;
+
+    // fmt::print("player table pos valid\n");
     soundMode = soundModeCandidate;
     soundModePos = soundModePosCandidate;
     return true;

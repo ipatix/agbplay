@@ -61,8 +61,8 @@ jobs:
         run: |
           gh release create "${{ steps.make-tag.outputs.tag-name }}" \
             --prerelease \
-            --title "Nightly agbplay ${GITHUB_REF_NAME} ($(date -u '+%Y-%m-%d'))" \
-            --target "${GITHUB_SHA}"
+            --generate-notes \
+            --title "Nightly agbplay ${GITHUB_REF_NAME} ($(date -u '+%Y-%m-%d'))"
     outputs:
       tag-name: ${{ steps.make-tag.outputs.tag-name }}
 

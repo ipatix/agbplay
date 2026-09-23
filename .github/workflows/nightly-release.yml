@@ -23,13 +23,12 @@ jobs:
         id: check-commits
         shell: bash
         run: |
-          TODAY=$(TZ=UTC date -u '+%Y-%m-%dT00:00:00Z')
-          COMMITS=$(git log --since="${TODAY}" --format="%H" 2>/dev/null || echo "")
+          COMMITS=$(git log $(echo $(git describe --tags --abbrev=0 2> /dev/null && echo ..HEAD) | tr -d '[:blank:]') --format=%H)
           if [ -z "${COMMITS}" ]; then
-            echo "No commits since midnight UTC today. Skipping."
+            echo "No commits since last tag. Skipping."
             echo "has-new-commits=false" >> "${GITHUB_OUTPUT}"
           else
-            echo "Found $(echo "$COMMITS" | wc -l) commit(s) since midnight UTC."
+            echo "Found $(echo "$COMMITS" | wc -l) commit(s) since last tag."
             echo "has-new-commits=true" >> "${GITHUB_OUTPUT}"
           fi
 

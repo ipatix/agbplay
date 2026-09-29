@@ -14,7 +14,7 @@ pkg_check_modules(zlib REQUIRED IMPORTED_TARGET zlib)
 # configure heaer
 find_package(Git REQUIRED)
 execute_process(
-    COMMAND ${GIT_EXECUTABLE} describe --always --dirty
+    COMMAND ${GIT_EXECUTABLE} describe --always --tags --dirty
     COMMAND_ERROR_IS_FATAL ANY
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
     OUTPUT_VARIABLE GIT_VERSION

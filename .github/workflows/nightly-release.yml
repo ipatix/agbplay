@@ -23,7 +23,7 @@ jobs:
         id: check-commits
         shell: bash
         run: |
-          COMMITS=$(git log $(echo $(git describe --tags --abbrev=0 2> /dev/null && echo ..HEAD) | tr -d '[:blank:]') --format=%H)
+          COMMITS=$(git log $(echo $(git describe --tags 2> /dev/null && echo ..HEAD) | tr -d '[:blank:]') --format=%H)
           if [ -z "${COMMITS}" ]; then
             echo "No commits since last tag. Skipping."
             echo "has-new-commits=false" >> "${GITHUB_OUTPUT}"

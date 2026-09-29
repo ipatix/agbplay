@@ -2,20 +2,158 @@
 
 [![Windows Build (MinGW)](https://github.com/ipatix/agbplay/actions/workflows/build-common.yml/badge.svg)](https://github.com/ipatix/agbplay/actions/workflows/build-common.yml)
 
-__agbplay__ is a music player with Qt GUI for GBA ROMs that use
-the most common (mp2k/m4a) sound engine format.
+## General Information
 
-## Qt GUI Version
+__agbplay__ is a music player for GBA ROMs, which use Nintendo's MP2K sound engine.
+Because it was provided by Nintendo via their SDK, it is by far the most common sound format used, thus supports a larger catalog of commercially released games.
+Games, which don't use this engine are not supported and also won't be supported in future version.
 
-### Info
+You can use agbplay to play back the music contained in those games, export them, and tweak the sound with various enhancements.
+agbplay is not a perfectly hardware accurate sound player, neither was that ever the intention.
+If you want something that is accurate to hardware, you should probably check out GSF players (e.g. [foo_input_gsf](https://www.foobar2000.org/components/view/foo_input_gsf)).
+GSF players also have the advantage of supporting other sound formats.
 
-Since 2024 agbplay also has a Qt GUI version available.
-Currently it is still in pre-relase state and it may still have some bugs.
-This readme also needs more details.
+The advantage of agbplay over emulators is that it is optimized for higher quality playback.
+This includes e.g. the following features:
+
+- Selectable resampling algorithms
+- Unlike hardware, PCM playback is directly resampled to the desired output (instead of the two stage software mixing and DAC resampling)
+- PSGs with anti aliasing filters
+- Higher pitch accuracy for PSGs
+- 240 Hz (instead of 60 Hz) sequencer update rate
+- Defacto noise free due to floating point processing (instead of 8 bit integer)
+- Support for MP2K variants (Game Freak, Camelot). Metroid and Wario Ware Twisted ("MP2K Neo") are supported, but exhibit some bugs.
+- Most supported games are detected and scanned fully automatic (song table, player table, sound mode)
+- GBA ROM and GSF support (GSFs may not always be detected correctly due to missing game code in ROM header)
+
+Since 2024 agbplay has a GUI version available.
+It replaces the old Terminal/Curses based version and should be much more accessible to users on Windows.
+While the old Curses version isn't removed, it won't receive any new features.
+
+## Usage
+
+### General
 
 ![agbplay](.github/data/gui.png)
 
-### Building
+The GUI version should be self explanatory for the most part.
+Load a ROM, select a song and have fun with the playback buttons.
+
+If you are Windows user you can obtain the latest version on the [Releases page](https://github.com/ipatix/agbplay/releases).
+Mac and Linux users currently have to compile on their own.
+See the section below for details.
+
+### Playlist / Songlist
+
+You may notice that there are two lists on the left side of the program:
+
+- *Songlist*: This shows all song numbers, which the scanner found in the ROM image.
+  No names can be shown, because this information never makes it into an MP2K game.
+- *Playlist*: On first launch this will be typically be empty.
+  You can add entries from the song list here and assign names.
+  The only difference between the two is that this one is customized to your liking.
+
+Each entry in those lists has a check box.
+These check boxes can be used to select songs, which should be exported when doing so in the menu.
+The quick export only exports the current song, while the regular export respects the selection.
+
+### Visualizer
+
+In the center of the program you can interactively observe the state of the song currently being played back.
+There are three buttons for each track:
+
+- *Mute (red)*: Mutes/unmutes a track
+- *Solo (green)*: Mute all other tracks besides the solo ones
+- *Analyze (blue)*: Enable chord analyzer: Enable this on one or multiple tracks to get real time harmony analysis
+
+### Menu Bar
+
+- *File*: Open, export, benchmarking. Should be self explanatory
+- *Edit*: Global program settings (independent of game)
+- *Profile*: Manage profile specific settings (see Profile section).
+- *Help:*: Info about the program.
+
+### Profiles
+
+#### General
+
+agbplay has the concept of _profiles_.
+A ROM / GSF may have one or more matching profiles, which themselves are game specific settings (e.g. how to handle playback, various overrides, etc.).
+If there are multiple matching profiles, agbplay will ask you on ROM load which one to load.
+You can use a profile to adjust settings on how to handle playback (e.g. enhancements).
+The playlist is also stored in this profile, so if you need multiple playlists, use profiles to separate them.
+
+*DISCLAIMER*: The buttons to delete/add/copy profiles in the profile editor do not function properly.
+Use at your own risk.
+
+#### Importing tags from GSF files
+
+Manually creating playlists/tags for some games can be avoided if you can find an existing GSF set for that particular game.
+Use `Profile -> Import GSF Playlist` to do so.
+
+#### Sound Mode
+
+On Nintendo's engine (that runs on the hardware) it allows the developer to set a master volume for PCM sound from 0 to 15.
+This doesn't affect PSG sounds and changing it will result in a different volume ratio between PCM and PSG sounds.
+
+As for the reverb level, you can globally set it from 0 to 127.
+This overrides the song's reverb settings in their song header.
+
+The 'magic' samplerate values are listed below.
+Note that the 'magic' values correspond to the values like they are used by m4aSoundMode (values: 1-12).
+`agbplay` will use this 'magic' value to get the sample rate for so-called "fixed frequency sounds".
+However, for there is no longer an intermediate software mixing frequency of that value, unlike real hardware.
+
+`5734`, `7884`, `10512`, `13379`, `15768`, `18157`, `21024`, `26758`, `31536`, `36314`, `40137`, `42048`
+
+#### Enhancements
+
+##### Reverb
+
+Most games just use Nintendo's default reverb algorithm (or reverb of 0 for no reverb at all).
+However, some games have implemented their own algorithms.
+agbplay supports the following reverb types.
+
+- Nintendo's normal reverb algorithm
+- Camelot's reverb used in Golden Sun 1
+- Camelot's reverb used in Golden Sun TLA (aka Golden Sun 2)
+- Camelot's reverb used in Mario Golf - Advance Tour
+- A test reverb algorithm. Only used for development (or for your custom algorithm).
+- None at all
+
+##### Resampling
+
+agbplay supports multiple resampling algorithms.
+An algorithm can be used for both normal resampling and for fixed frequency sounds, which on console would usually only be resampled by hardware (instead of software and hardware).
+The idea is many sound effects and percussion/drums will typically be a fixed frequency sound.
+For those it may sound better to use a different algorithm.
+
+The actual algorithms themselves of course differ in "quality", but they do have to different purposes in mind.
+
+- *Nearest Neighbor*: Fast!
+  Commonly referred to as "no interpolation".
+  Sounds pretty bad in most cases but can give you that low quality crunchyness.
+  You most likely want to use *BLEP* over this one (`nearest` is wayyyyyyy cheaper to compute, though).
+- *Linear*: Fast!
+  Interpolate samples in a triangular fasion.
+  This is what's used with Nintendo's sound driver (although with a second stage nearest neighbor at hardware).
+  Recommended for normal sounds, but *BLAMP* is a higher quality version of this.
+- *Sinc*: Slow!
+  Use a sinc based filter to avoid aliasing.
+  For most games this will filter out a lot of the high freuqnecies.
+  The only case I'd recommend this is for games that generally use high samplerate waveforms (I like to use it on Golden Sun TLA which uses 31 kHz for drums).
+- *BLEP*: Slow!
+  This generates bandlimited rectangular pulses for the samples.
+  It's similar to *Nearest* but latter one will not bandlimit the rectangular pulses, so it's going to cause frequency band folding.
+  Use *BLEP* if you want to fake some brightness into your drums (i.e. fixed frequency sounds), since this is the way hardware does it (except *BLEP* will clean up the higher frequencies which *Nearest* doesn't).
+- *BLAMP*: Slow!
+  Same as blep but creates bandlimited triangular pulses instead of rectangular ones.
+  Use this as high quality alternative to *Linear*.
+
+## Compilation / Building
+
+Install the required packages from the list.
+After that it should be as simple as running the following commands.
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
@@ -25,7 +163,7 @@ cmake --build build
 Do not use the pure debug build unless you're debugging.
 Performance may be really bad with the high quality resamplers.
 
-### Dependencies
+## Dependencies
 
 Package       | Debian/Ubuntu      | Arch          | MinGW
 ---           | ---                | ---           | ---
@@ -46,21 +184,11 @@ Only x86_64 is known to work, i686, ucrt, and clang currently don't work.
 I don't remember what as preventing those to work.
 There isn't anything in the code, which should prevent those to work, but I just didn't spent the time investigating the cause.
 
-### Running
-
-```bash
-./build/src/agbplay-gui/agbplay-gui
-```
-
-### How to use
-
-TODO
-
 ## Legacy Curses Version
 
-### Info
+### General
 
-For the majority of its lifetime agbplay only had a curses based UI.
+For the majority of its lifetime agbplay only had a Curses based UI.
 Since 2024 there a Qt GUI is available and is intended to replace the curses UI.
 While the curses UI is not removed it won't get any new features.
 In the chapters below you can find the info about the curses version.
@@ -91,191 +219,10 @@ In the chapters below you can find the info about the curses version.
 - Q or Ctrl-D: Exit rrogram
 - !: Show extended song information
 
-### Current state of things
-- ROMs can be loaded and scanned for the songtable automatically
-- PCM playback works pretty much perfectly; GB instruments sound great, but
-  envelope curves are not 100% accurate
-- Basic rendering to file done, including dummy writing for benchmarking
+### Terminal Colors
 
-### To do
-- Add missing key explanation for controls
-- Change to an audio library that doesn't print ANYTHING messages on stdout
-
-### Dependencies
-
-TODO: These are known to be obsolete.
-
-Debian | Arch | Cygwin
---- | --- | ---
-`build-essential` | `base-devel` | `make`, `gcc-g++`
-`libboost-all-dev` | `boost` | `libboost-devel`
-`portaudio19-dev` | `portaudio` | `libportaudio-devel`
-`libncursesw5-dev` | `ncurses5-compat-libs` <sup>AUR</sup> | `libncurses-devel`
-`libsndfile1-dev` | `libsndfile` | `libsndfile-devel`
-`libjsoncpp-dev` | `jsoncpp` | `libjsoncpp-devel`
-
-### Configuration JSON
-Since 21.10.2020, agbplay uses a standard JSON format for storing playlists and
-other configuration data.
-
-Take a look at this sample scheme:
-```
-{
-    "id" : "agbplay",
-    "cgb-polyphony" : "mono-strict",
-    "wave-output-dir" : "/home/misterx/Music/agbplay",
-    "max-loops-export" : 1,
-    "max-loops-playlist" : 1,
-    "playlists" : 
-    [
-        {
-            "games" : 
-            [
-                "BPED", "BPEE"
-            ],
-            "pcm-fixed-rate-resampling-algo" : "blep",
-            "pcm-master-volume" : 12,
-            "pcm-resampling-algo" : "linear",
-            "pcm-reverb-buffer-len" : 1584,
-            "pcm-reverb-level" : 0,
-            "pcm-reverb-type" : "normal",
-            "pcm-samplerate" : 4,
-            "song-track-limit" : 10,
-            "songs" : 
-            [
-                {
-                    "index" : 414,
-                    "name" : "Intro Video"
-                },
-                {
-                    "index" : 442,
-                    "name" : "The Pokemon"
-                },
-                {
-                    "index" : 413,
-                    "name" : "Title Screen"
-                },
-            ]
-        },
-        {
-            "games" :
-            [
-                "AGSE"
-            ],
-            ...
-        }
-    ]
-}
-```
-
-The root element in the JSON has the following properties:
-- `id` is a fixed string and should always be set to `agbplay`.
-- `playlists` contains the array of the actual tagged songs. See below for details.
-- `wave-output-dir` specifies the directory which is used for exporting songs from agbplay.
-- `cgb-polyphony` specifies whether CGB sounds should be allowed to be polyphonic. Valid values are `mono-strict`, `mono-smooth`, `poly`.
-- `max-loops-export` specifies how many times songs should loop before fading out when exporting to a file.
-- `max-loops-playlist` specifies how many times songs should loop before fading out when listening to a song within the program. This value can be set to `-1` to make songs loop endlessly.
-
-Each playlist entry in the array contains the following properties:
-
-- `games`: A list of game codes which should use the specified playlist.
-  agbplay doesn't generate this on its own, but you can manually edit the JSON
-  to let games share a playlist (for example different localizations).
-- `pcm-master-volume`: Value from 0 to 15.
-  The correct setting for this value depends on the game and has to be reverse engineered individually.
-- `pcm-samplerate`: Value from 0 to 15.
-  The correct setting for this value depends on the game and has to be reverse engineered individually.
-- `pcm-reverb-level`: I have not seen any games which use this.
-  Can be used to apply reverb even for songs that don't use it. Set to 0 if you don't care.
-- `pcm-reverb-buffer-len`: This is fixed to 1536 in Nintendo's engine, but if you want to experiement with reverb, you can change this.
-- `pcm-reverb-type`: Different games use different reverb implementations. Check `Sound formatting notes` below for details.
-- `pcm-resampling-algo` and `pcm-fixed-rate-resampling-algo`
-- `song-track-limit`: Limit the number of tracks the engine can play.
-  Useful for games which have an engine limit, but the song contain more tracks than the engine can handle.
-- `simulate-cgb-sustain-bug`: Emulate the mp2k CGB sustain bug. Enabling this will delay the application of certain volume changes which may fix certain songs (e.g. Pokémon Emerald's Battle Arena). Though, keeping it disabled (default) may make certain songs sound more like the composer originally intended it.
-- `songs`: This is again an array which contains all the playlist's songs.
-  Format is pretty straight forward. There is an `index` property and a `name` property for each song.
-
-#### Sound formatting notes
-
-On Nintendo's engine (that runs on the hardware) it allows the developer to set
-a master volume for PCM sound from 0 to 15. This doesn't affect CGB sounds and
-changing it will result in a different volume ratio between PCM and CGB sounds.
-
-As for the reverb level, you can globally set it from 0 to 127. This overrides
-the song's reverb settings in their song header.
-
-The 'magic' samplerate values are listed below. Note that the 'magic' values
-correspond to the values like they are used by m4aSoundMode (values: 1-12). `agbplay` will use
-this 'magic' value to get the sample rate for so-called "fixed frequency
-sounds".
-
-Magic values (in Hz): `5734`, `7884`, `10512`, `13379`, `15768`, `18157`,
-`21024`, `26758`, `31536`, `36314`, `40137`, `42048`
-
-One more thing about reverb: Most games just use Nintendo's default reverb algorithm (or reverb of 0 for no reverb at all). However, some games have implemented their own algorithms. You can use the following values in combination with the option `pcm-reverb-type` to set it:
-
-- `normal` = Nintendo's normal reverb algorithm
-- `gs1` = Camelot's reverb used in Golden Sun 1
-- `gs2` = Camelot's reverb used in Golden Sun TLA (aka Golden Sun 2)
-- `mgat` = Camelot's reverb used in Mario Golf - Advance Tour
-- `test` = Only use this if you use the TestReverb class for developing your own algrithm
-- `none` = disabled (not used in normal games)
-
-Last but not least, agbplay now supports different resampling algorithms which
-can be set in the JSON-File. There is a setting for normal PCM sounds
-`pcm-resampling-algo` and `pcm-fixed-rate-resampling-algo` for fixed frequency sounds (mostly used
-for drums). They support the following values:
-
-- `nearest` = Fast! Commonly referred to as "no interpolation". Sounds pretty
-  bad in most cases but can give you that low quality crunchyness. You most
-  likely want to use `blep` over this one (`nearest` is wayyyyyyy cheaper to
-  compute, though).
-- `linear` = Fast! Interpolate samples in a triangular fasion. This is what's
-  used with Nintendo's sound driver (although with different target samplerates).
-  Recommended for normal sounds.
-- `sinc` = Slow! Use a sinc based filter to avoid aliasing. For most games this
-  will filter out a lot of the high end freuqnecies. The only case I'd
-  recommend this is for games that generally use high samplerate waveforms (I
-  like to use it on Golden Sun TLA which uses 31 kHz for drums).
-- `blep` = Slow! This generates bandlimited rectangular pulses for the samples.
-  It's similar to `nearest` but `nearest` will not bandlimit the rectangular pulses
-  so it's going to cause frequency band folding. Use `blep` if you want to fake
-  some brightness into your drums (i.e. fixed frequency sounds) since this is
-  the way hardware does it (except `blep` will clean up the higher frequencies
-  which `nearest` doesn't).
-- `blamp` = Slow! Same as blep but creates bandlimited triangular pulses instead
-  of rectangular ones. Use this as high quality alternative to `linear`.
-
-#### Importing tags from GSF files
-
-Manually creating playlists/tags for some games can be avoided if you can find
-an existing GSF set for that particular game.
-
-Use the supplied `playlist_from_gsf.py` script and pass it a set of `.minigsf` files.
-The script will then parse the song names and song numbers from those files and will
-output a JSON formatted array that then can be used for the property `songs`, which
-is explained above. So you can copy that JSON array into your `agbplay.json` for
-that particular game.
-
-### Additional information
-
-#### Debian portaudio issues
-
-If you have issues installing portaudio19-dev on Debian (conflicting packages) make sure to install "libjack-jackd2-dev" before. The reason for this is that portaudio on Debian depends on either the old dev package for jack or the jack2 dev package. By default apt wants to install the old one which for some reason causes problems on a lot of systems.
-
-#### "Missing DLLs"
-
-If you happen to get errors about missing DLLs and you compiled agbplay under
-the Cygwin environement, you also have to run agbplay from the Cygwin environment.
-Cygwin compiled software does require the Cygwin runtime for 99% of the programs,
-so please accept that you have to do this for agbplay as well.
-
-#### Terminal Colors
-
-agbplay requires 256 color terminal support. If you happen to see the message
-`Terminal does not support 256 colors`, you may have to use a different
-terminal emulator or you have to fix your `TERM` variable.
+agbplay Curses version requires 256 color terminal support.
+If you happen to see the message `Terminal does not support 256 colors`, you may have to use a different terminal emulator or you have to fix your `TERM` variable.
 
 If you are using the Cygwin environment, you can do the following:
 
@@ -284,32 +231,25 @@ If you are using the Cygwin environment, you can do the following:
 - Select "Terminal" in the tree view
 - Change Type to `xterm-256color`
 
-Another option is to use the Windows Terminal from the Windows Store
-(although it sometimes still seems to have a few graphical issues).
+Another option is to use the Windows Terminal from the Windows Store (although it sometimes still seems to have a few graphical issues).
 
-**Never ever** set your `TERM` variable in your `.bashrc` or equivalent. This will
-cause issues if you are running your shell from the wrong terminal emulator.
-The `TERM` string required depends on the terminal emulator you use and thus
-should only be set by it.
+**Never ever** set your `TERM` variable in your `.bashrc` or equivalent.
+This will cause issues if you are running your shell from the wrong terminal emulator.
+The `TERM` string required depends on the terminal emulator you use and thus should only be set by it.
 
-#### Building
+## Contributing
 
-Install all dependencies (listed above) and run `make`.
+If you have any suggestions feel free to open up a pull request or just an issue with some basic information.
+For issues I'm mostly focused on fixing bugs and not really on any new features.
 
-Ideally the code should compile fine if all dependencies are installed.
+If you are having an issue with some specific game, please include the following information:
 
-It has been tested on Cygwin (Windows), Debian and Arch Linux, all on x86-64.
-Native Windows is currently **NOT** supported. I did some compilation tests
-with the MinGW 64 compiler (MSYS2). However, even when compiling the code,
-getting native 256 colors to work and getting all the unicode characters to
-display properly wasn't something I was able to achieve during a long day.
+- Which game (ROM code)
+- Which song (if applicable)
+- Any other detail
 
-#### Contributing
-
-If you have any suggestions feel free to open up a pull request or just an
-issue with some basic information. For issues I'm mostly focused on fixing bugs
-and not really on any new features.
-
-Please be reminded that this was a "C++ learning project" for me and therefore
-the code is quite weird and probably contains a lot of "bad practices" in a few
-places.
+While I try to support ROM hacks as best as possible, it is sometimes difficult to support them.
+This is because a lot of them have broken song entries, bad voice data, and other weird stuff.
+The games themselves may work fine (because the garbage ends up being interpreted as something harmless), but agbplay has rather strict error checking.
+Or to put it into other words:
+If you develop a ROM hack, you can use agbplay to check if everything is right :-)

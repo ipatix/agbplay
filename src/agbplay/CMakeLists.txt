@@ -23,13 +23,24 @@ execute_process(
 string(TIMESTAMP BUILD_YEAR "%Y")
 configure_file(Version.hpp.in Version.hpp @ONLY)
 
+set(AGBPLAY_DEFINES "")
 file(GLOB_RECURSE AGBPLAY_SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.cpp")
 set(AGBPLAY_SOURCES_AVX2 ${AGBPLAY_SOURCES})
 list(FILTER AGBPLAY_SOURCES_AVX2 INCLUDE REGEX ".*AVX2\\.cpp")
 
+
+# AVX2 code is only supported on x86)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|amd64|i[3-6]86|x86)$")
+    list(APPEND AGBPLAY_DEFINES "AGBPLAY_WITH_AVX2")
+else()
+    list(REMOVE_ITEM AGBPLAY_SOURCES ${AGBPLAY_SOURCES_AVX2})
+    set(AGBPLAY_SOURCES_AVX2 "")
+endif()
+
 add_library(agbplay SHARED ${AGBPLAY_SOURCES})
 
 target_compile_options(agbplay PRIVATE -Wall -Wextra -Wconversion)
+target_compile_definitions(agbplay PUBLIC ${AGBPLAY_DEFINES})
 set_source_files_properties(${AGBPLAY_SOURCES_AVX2} PROPERTIES COMPILE_FLAGS -mavx2)
 
 if(ENABLE_ADDRESS_SANITIZER)

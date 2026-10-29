@@ -2,7 +2,7 @@
 
 #include "Resampler.hpp"
 
-#if __has_include(<immintrin.h>)
+#ifdef AGBPLAY_WITH_AVX2
 
 #include <immintrin.h>
 

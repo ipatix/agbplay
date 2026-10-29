@@ -18,15 +18,12 @@
 #include <QTableView>
 #include <QTextEdit>
 #include <QTimer>
+#include <thread>
 
 class PlaybackEngine;
 class ProfileManager;
 struct Settings;
 struct Profile;
-namespace std
-{
-    class thread;
-}
 struct MP2KVisualizerState;
 
 class MainWindow : public QMainWindow

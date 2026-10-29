@@ -7,14 +7,12 @@
 #include <boost/math/special_functions/sinc.hpp>
 
 const bool AVX2_SUPPORTED = []() {
-#if defined(__x86_64__) || defined(i386) || defined(__i386__) || defined(__386)
+#ifdef AGBPLAY_WITH_AVX2
     __builtin_cpu_init();
     if (__builtin_cpu_supports("avx2"))
         return std::getenv("AGBPLAY_NO_AVX") ? false : true;
     else
         return false;
-#elif defined(_M_X64) || defined(_M_IX86)
-    static_assert(false, "AVX2 detection in MSVC is not yet implemented");
 #else
     return false;
 #endif

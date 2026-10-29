@@ -165,17 +165,18 @@ Performance may be really bad with the high quality resamplers.
 
 ## Dependencies
 
-Package       | Debian/Ubuntu      | Arch          | MinGW
----           | ---                | ---           | ---
-argparse      | libargparse-dev    | argparse      | N/A (fetched via CMake)
-libfmt        | libfmt-dev         | fmt           | fmt
-nlohmann JSON | nlohmann-json3-dev | nlohmann-json | nlohmann-json
-Boost         | libboost-all-dev   | boost         | boost
-libzip        | libzip-dev         | libzip        | libzip
-zlib          | zlib1g-dev         | zlib          | zlib
-ncurses       | libncurses-dev     | ncurses       | N/A (curses UI not available)
-portaudio     | portaudio19-dev    | portaudio     | portaudio
-Qt6           | qt6-base-dev       | qt6-base      | qt6
+Package       | Debian/Ubuntu      | Arch          | MinGW                         | macOS (Homebrew)
+---           | ---                | ---           | ---                           | ---
+argparse      | libargparse-dev    | argparse      | N/A (fetched via CMake)       | argparse
+libfmt        | libfmt-dev         | fmt           | fmt                           | fmt
+nlohmann JSON | nlohmann-json3-dev | nlohmann-json | nlohmann-json                 | nlohmann-json
+Boost         | libboost-all-dev   | boost         | boost                         | boost
+libzip        | libzip-dev         | libzip        | libzip                        | libzip
+libsndfile    | libsndfile1-dev    | libsndfile    | libsndfile                    | libsndfile
+zlib          | zlib1g-dev         | zlib          | zlib                          | N/A (part of macOS)
+ncurses       | libncurses-dev     | ncurses       | N/A (curses UI not available) | N/A (part of macOS)
+portaudio     | portaudio19-dev    | portaudio     | portaudio                     | portaudio
+Qt6           | qt6-base-dev       | qt6-base      | qt6                           | qtbase
 
 Because the ncurses UI is not available on Windows, no package for MinGW is listed.
 The package names shown for MinGW are not exact and they need to be expanded to the following schema: `mingw-w64-$ARCH-$PACKAGE`.

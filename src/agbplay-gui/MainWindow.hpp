@@ -12,12 +12,12 @@
 #include <QListView>
 #include <QMainWindow>
 #include <QProgressBar>
-#include <QPushButton>
 #include <QScrollArea>
 #include <QSplitter>
 #include <QTableView>
 #include <QTextEdit>
 #include <QTimer>
+#include <QToolButton>
 #include <thread>
 
 class PlaybackEngine;
@@ -91,14 +91,14 @@ private:
     QAction *profileMinigsfImport = nullptr;
 
     /* tool bar */
-    QPushButton saveButton{this};
-    QPushButton pauseButton{this};
-    QPushButton playButton{this};
-    QPushButton stopButton{this};
-    QPushButton prevButton{this};
-    QPushButton nextButton{this};
-    QPushButton speedHalveButton{this};
-    QPushButton speedDoubleButton{this};
+    QToolButton saveButton{this};
+    QToolButton pauseButton{this};
+    QToolButton playButton{this};
+    QToolButton stopButton{this};
+    QToolButton prevButton{this};
+    QToolButton nextButton{this};
+    QToolButton speedHalveButton{this};
+    QToolButton speedDoubleButton{this};
     VUMeterWidget vuMeter{128, 32, this};
     VolumeSlider volumeSlider{this};
 

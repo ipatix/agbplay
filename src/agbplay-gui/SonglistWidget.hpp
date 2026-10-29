@@ -7,7 +7,7 @@
 #include <QIcon>
 #include <QLabel>
 #include <QListWidget>
-#include <QPushButton>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <vector>
@@ -46,7 +46,7 @@ public:
     QListWidget listWidget{this};
     QLabel title{this};
     QCheckBox selectAllCheckBox{this};
-    QPushButton addRemoveButton{this};
+    QToolButton addRemoveButton{this};
 
 private:
     int selectedSong = 0;

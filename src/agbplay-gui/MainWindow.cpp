@@ -216,10 +216,11 @@ void MainWindow::SetupMenuBar()
 void MainWindow::SetupToolBar()
 {
     QToolBar *toolBar = addToolBar("Main Toolbar");
+    /* QToolBar applies its own icon size to every QToolButton added to it */
+    toolBar->setIconSize(QSize(32, 32));
 
     saveButton.setIcon(QIcon(":/icons/save-profile-large.ico"));
     saveButton.setFixedSize(32, 32);
-    saveButton.setIconSize(QSize(32, 32));
     saveButton.setEnabled(false);
     toolBar->addWidget(&saveButton);
     connect(&saveButton, &QAbstractButton::clicked, [this](bool) { SaveProfile(); });
@@ -228,7 +229,6 @@ void MainWindow::SetupToolBar()
 
     stopButton.setIcon(QIcon(":/icons/playback-stop.ico"));
     stopButton.setFixedSize(32, 32);
-    stopButton.setIconSize(QSize(32, 32));
     stopButton.setCheckable(true);
     stopButton.setChecked(true);
     toolBar->addWidget(&stopButton);
@@ -236,27 +236,23 @@ void MainWindow::SetupToolBar()
 
     playButton.setIcon(QIcon(":/icons/playback-play.ico"));
     playButton.setFixedSize(32, 32);
-    playButton.setIconSize(QSize(32, 32));
     playButton.setCheckable(true);
     toolBar->addWidget(&playButton);
     connect(&playButton, &QAbstractButton::clicked, [this](bool) { Play(); });
 
     pauseButton.setIcon(QIcon(":/icons/playback-pause.ico"));
     pauseButton.setFixedSize(32, 32);
-    pauseButton.setIconSize(QSize(32, 32));
     pauseButton.setCheckable(true);
     toolBar->addWidget(&pauseButton);
     connect(&pauseButton, &QAbstractButton::clicked, [this](bool) { Pause(); });
 
     prevButton.setIcon(QIcon(":/icons/playback-previous.ico"));
     prevButton.setFixedSize(32, 32);
-    prevButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&prevButton);
     connect(&prevButton, &QAbstractButton::clicked, [this](bool) { AdvanceSong(-1); });
 
     nextButton.setIcon(QIcon(":/icons/playback-next.ico"));
     nextButton.setFixedSize(32, 32);
-    nextButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&nextButton);
     connect(&nextButton, &QAbstractButton::clicked, [this](bool) { AdvanceSong(1); });
 
@@ -264,13 +260,11 @@ void MainWindow::SetupToolBar()
 
     speedHalveButton.setIcon(QIcon(":/icons/speed-halve.ico"));
     speedHalveButton.setFixedSize(32, 32);
-    speedHalveButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&speedHalveButton);
     connect(&speedHalveButton, &QAbstractButton::clicked, [this](bool) { SpeedHalve(); });
 
     speedDoubleButton.setIcon(QIcon(":/icons/speed-double.ico"));
     speedDoubleButton.setFixedSize(32, 32);
-    speedDoubleButton.setIconSize(QSize(32, 32));
     toolBar->addWidget(&speedDoubleButton);
     connect(&speedDoubleButton, &QAbstractButton::clicked, [this](bool) { SpeedDouble(); });
 

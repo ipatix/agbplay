@@ -3,6 +3,8 @@
 #include "Types.hpp"
 
 #include <fmt/format.h>
+#include <QStyle>
+#include <QStyleFactory>
 
 TrackWidget::TrackWidget(size_t trackNo, QWidget *parent) : QWidget(parent), trackNo(trackNo)
 {
@@ -30,6 +32,14 @@ TrackWidget::TrackWidget(size_t trackNo, QWidget *parent) : QWidget(parent), tra
     layout.setColumnMinimumWidth(COL_SPACE1, 6);
 
     /* Buttons */
+    /* Native styles like macOS ignore the button palette colors and draw push
+     * buttons as fixed height bezels. Their layout rects are also much smaller
+     * than the 16x16 widgets, which squeezes the grid rows and makes the VU
+     * bars overlap the keyboard. Use Fusion for these buttons on all platforms. */
+    static QStyle *buttonStyle = QStyleFactory::create("Fusion");
+    for (QPushButton *button : {&muteButton, &soloButton, &analyzerButton})
+        button->setStyle(buttonStyle);
+
     connect(&muteButton, &QAbstractButton::clicked, [this](bool) { setMuted(!isMuted()); });
     muteButton.setFixedSize(16, 16);
     muteButton.setText("M");
